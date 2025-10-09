@@ -1,6 +1,6 @@
 extends Node3D
 
-# --- Camera controls (WASD + optional zoom) ---
+# -- Camera controls (WASD + optional zoom) ---
 @export var camera_move_speed: float = 5.0
 @export var camera_zoom_speed: float = 10.0
 @export var min_zoom: float = 3.0
