@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Game_Unknown_1"
-run/main_scene="uid://camg64m8fg43w"
+run/main_scene="uid://b3mv1fus57f04"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 

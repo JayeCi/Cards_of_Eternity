@@ -1,35 +1,48 @@
-[gd_scene load_steps=2 format=3 uid="uid://cghuuo1jwh48x"]
+[gd_scene load_steps=3 format=3 uid="uid://cghuuo1jwh48x"]
 
 [ext_resource type="Script" uid="uid://dl7qvvjxjl01r" path="res://UI/card_zoom.gd" id="1_ekd02"]
+[ext_resource type="Texture2D" uid="uid://3j8dhf7kmeed" path="res://Images/Goblin.jpg" id="2_6vw8o"]
 
 [node name="CardZoom" type="Control"]
 auto_translate_mode = 1
-visible = false
 layout_mode = 3
-anchors_preset = 0
-offset_right = 520.0
-offset_bottom = 830.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_ekd02")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
-layout_mode = 0
-offset_left = 4.0
-offset_top = 4.0
-offset_right = 516.0
-offset_bottom = 826.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="Art" type="TextureRect" parent="VBoxContainer"]
 custom_minimum_size = Vector2(300, 350)
 layout_mode = 2
 size_flags_horizontal = 4
-size_flags_vertical = 4
+size_flags_vertical = 5
+texture = ExtResource("2_6vw8o")
 expand_mode = 1
 
 [node name="NameLabel" type="Label" parent="VBoxContainer"]
 layout_mode = 2
+size_flags_vertical = 5
+text = "Test Name"
+horizontal_alignment = 1
+
+[node name="StatsLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 5
+text = "Attack: 1 Defense: 1"
+horizontal_alignment = 1
 
 [node name="DescLabel" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-
-[node name="RarityLabel" type="Label" parent="VBoxContainer"]
-layout_mode = 2
+size_flags_vertical = 5
+text = "Description"
+horizontal_alignment = 1

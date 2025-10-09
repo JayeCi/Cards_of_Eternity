@@ -1,7 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://b2qv0ufs44ptf"]
+[gd_scene load_steps=2 format=3 uid="uid://b2qv0ufs44ptf"]
 
 [ext_resource type="Script" uid="uid://bvlj2eo88irqy" path="res://UI/collection_ui.gd" id="1_ybtod"]
-[ext_resource type="PackedScene" uid="uid://cghuuo1jwh48x" path="res://Cards/Utilities/card_zoom.tscn" id="2_ic262"]
 
 [node name="CollectionUI" type="Control"]
 layout_mode = 3
@@ -28,5 +27,3 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/h_separation = 80
 columns = 6
-
-[node name="CardZoom" parent="." instance=ExtResource("2_ic262")]

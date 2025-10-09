@@ -1,10 +1,11 @@
-[gd_scene load_steps=14 format=3 uid="uid://b3mv1fus57f04"]
+[gd_scene load_steps=15 format=3 uid="uid://b3mv1fus57f04"]
 
 [ext_resource type="Script" uid="uid://bs3prbmyy3oly" path="res://main.gd" id="1_1bvp3"]
 [ext_resource type="PackedScene" uid="uid://b2qv0ufs44ptf" path="res://UI/collection_ui.tscn" id="1_h2yge"]
 [ext_resource type="PackedScene" uid="uid://8eemhx56fscd" path="res://player.tscn" id="1_ig7tw"]
 [ext_resource type="PackedScene" uid="uid://4ftlpnnxlo53" path="res://Cards/Utilities/cardpickup.tscn" id="2_0xm2m"]
 [ext_resource type="PackedScene" uid="uid://blufc4dirvpbs" path="res://Entities/test_npc.tscn" id="5_lquwl"]
+[ext_resource type="PackedScene" uid="uid://cghuuo1jwh48x" path="res://Cards/Utilities/card_zoom.tscn" id="6_7mycd"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_7dm0k"]
 sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
@@ -46,6 +47,11 @@ visible = false
 
 [node name="CardZoom" parent="CollectionUI" index="1"]
 layout_mode = 0
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+grow_horizontal = 1
+grow_vertical = 1
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_0xm2m")
@@ -113,7 +119,12 @@ card_ids = Array[String]([""])
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="FadeRect" type="ColorRect" parent="CanvasLayer"]
-offset_right = 40.0
-offset_bottom = 40.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CardZoom" parent="CanvasLayer" instance=ExtResource("6_7mycd")]
 
 [editable path="CollectionUI"]
