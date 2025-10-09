@@ -5,6 +5,7 @@ extends Node3D
 @export var camera_zoom_speed: float = 10.0
 @export var min_zoom: float = 3.0
 @export var max_zoom: float = 20.0
+@export var enemy_deck: Array = []
 
 signal battle_finished(result: String)
 
@@ -15,6 +16,7 @@ var _rotation_x := deg_to_rad(45)  # pitch
 var _rotation_y := 0.0             # yaw
 var _mouse_sensitivity := 0.005
 var acted_this_turn := {} # {UnitData: true}
+var _is_camera_locked: bool = false
 
 const BOARD_W := 7
 const BOARD_H := 7
@@ -38,7 +40,6 @@ var summon_mode := UnitData.Mode.ATTACK
 
 # Gameplay data
 var player_deck: Array = []
-var enemy_deck: Array = []
 var player_hand: Array = []
 var enemy_hand: Array = []
 
@@ -79,6 +80,7 @@ const BASE_MOVE_RANGE := 1
 
 # -------------------------------------------------------------------
 func _ready():
+	await get_tree().process_frame 
 	set_process(true)
 	# setup hover label
 	hover_label = Label3D.new()
@@ -88,8 +90,6 @@ func _ready():
 	hover_label.set("theme_override_font_sizes/font_size", 72)
 	hover_label.visible = false
 	add_child(hover_label)
-
-
 
 	# ghost card
 	ghost_card = Sprite3D.new()
@@ -101,28 +101,32 @@ func _ready():
 	ghost_card.visible = false
 	add_child(ghost_card)
 
-	# cards & decks
-	CardCollection.add_card(GOBLIN)
-	CardCollection.add_card(DIRT)
-	CardCollection.add_card(IMP)
-	CardCollection.add_card(FYSH)
-	CardCollection.add_card(NAGA)
-	CardCollection.add_card(FOREST_FAE)
-	CardCollection.add_card(COLD_SLOTH)
-	CardCollection.add_card(LAVA_HARE)
+	## cards & decks
+	#CardCollection.add_card(GOBLIN)
+	#CardCollection.add_card(DIRT)
+	#CardCollection.add_card(IMP)
+	#CardCollection.add_card(FYSH)
+	#CardCollection.add_card(NAGA)
+	#CardCollection.add_card(FOREST_FAE)
+	#CardCollection.add_card(COLD_SLOTH)
+	#CardCollection.add_card(LAVA_HARE)
 
 	_build_decks()
-	_spawn_leaders()  # ✅ leaders now exist
+	_spawn_leaders()
 
-	# ✅ now it’s safe to read hp for labels
 	player_hp_label.text = "Player Leader HP: %d" % player_leader.hp
 	enemy_hp_label.text = "Enemy Leader HP: %d" % enemy_leader.hp
+
+	# ✅ Ensure essence labels and logic are set first
 	_update_essence_labels()
 
 	_draw_starting_hand(5)
+
+	# ✅ Now hand can check essence properly
 	_refresh_hand_ui()
 	_update_phase_label()
 	_position_camera()
+
 
 # -------------------------------------------------------------------
 # --- Deck / hand setup ---
@@ -131,23 +135,22 @@ func _build_decks():
 	if all.is_empty():
 		push_warning("No cards in collection!")
 
-	# Build player deck (two copies of all cards)
+	# --- Player Deck ---
 	player_deck = []
 	for c in all:
 		player_deck.append(c.duplicate())
 		player_deck.append(c.duplicate())
 	player_deck.shuffle()
 
-	# Build enemy deck (independent duplicate deck)
-	enemy_deck = []
-	for c in all:
-		enemy_deck.append(c.duplicate())
-		enemy_deck.append(c.duplicate())
-	enemy_deck.shuffle()
+	# --- Enemy Deck ---
+	if enemy_deck.is_empty():
+		enemy_deck = []
+		for c in all:
+			enemy_deck.append(c.duplicate())
+			enemy_deck.append(c.duplicate())
+		enemy_deck.shuffle()
 
 	log_message("✅ Decks built: Player = %d, Enemy = %d" % [player_deck.size(), enemy_deck.size()])
-	log_message("🔁 Starting new player turn...")
-	log_message("Enemy ends its turn.")
 
 
 func _draw_starting_hand(n: int):
@@ -177,7 +180,23 @@ func _draw_up_to_hand_limit():
 	print("After draw -> Hand:", player_hand.size(), " Deck:", player_deck.size())
 	_refresh_hand_ui()
 
+func _smooth_return_to_origin():
+	var spacing = board.spacing
+	var board_center = Vector3(0, 0, 1)
+	var board_depth = (BOARD_H - 1) * spacing
+	var board_width = (BOARD_W - 1) * spacing
+	var t = create_tween()
+
+	var target_zoom = max(board_width, board_depth) * 0.8
+	var angle = deg_to_rad(45)
+	var target_pos = Vector3(0, sin(angle) * target_zoom * 1.5, cos(angle) * target_zoom * 1.5)
+
+	t.tween_property(camera, "position", target_pos, 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	t.tween_callback(func(): _look_at_target(board_center))
+
 func _start_player_turn():
+	_smooth_return_to_origin()
+
 	print("🔁 Starting new player turn...")
 	_reset_action_flags()
 	show_battle_message("Your Turn!", 1.5)
@@ -198,14 +217,36 @@ func _draw_card():
 	player_hand.append(player_deck.pop_back())
 
 func _refresh_hand_ui():
-	for child in hand_grid.get_children(): child.queue_free()
+	for child in hand_grid.get_children():
+		child.queue_free()
+
 	for c in player_hand:
 		var ui = preload("res://UI/CardUI.tscn").instantiate()
 		ui.card_data = c
 		ui.refresh()
+
+		# 🔹 Determine if this card is playable with current essence
+		var cost := 1
+		if c.has_meta("cost"):
+			cost = int(c.get_meta("cost"))
+		elif c.has_method("get_cost"):
+			cost = c.get_cost()
+		elif "cost" in c:
+			cost = int(c.cost)
+
+		ui.set_playable(cost <= player_essence)
+
 		ui.gui_input.connect(func(ev):
 			if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+				if cost > player_essence:
+					# optional feedback: pulse red briefly
+					var t = create_tween()
+					t.tween_property(ui, "modulate", Color(1, 0.5, 0.5, 1), 0.1)
+					t.tween_property(ui, "modulate", Color(0.4, 0.4, 0.4, 0.5), 0.25)
+					log_message("❌ Not enough Essence for %s (Cost %d, you have %d)" % [c.name, cost, player_essence])
+					return
 				_on_hand_card_clicked(c))
+
 		hand_grid.add_child(ui)
 
 # -------------------------------------------------------------------
@@ -235,37 +276,30 @@ func _handle_camera_movement(delta: float) -> void:
 	if not camera:
 		return
 
-	var input_dir = Vector3.ZERO
-
-	var forward = -camera.global_transform.basis.z
-	var right = camera.global_transform.basis.x
-	forward.y = 0  # ignore tilt for movement
+	var move_input := Vector3.ZERO
+	var forward := -camera.global_transform.basis.z
+	var right := camera.global_transform.basis.x
+	forward.y = 0
 	right.y = 0
 	forward = forward.normalized()
 	right = right.normalized()
 
-	# --- A/D move left/right ---
+	# --- WASD Input ---
 	if Input.is_action_pressed("ui_left") or Input.is_action_pressed("move_left"):
-		input_dir -= right
+		move_input -= right
 	if Input.is_action_pressed("ui_right") or Input.is_action_pressed("move_right"):
-		input_dir += right
-
-	# --- W/S move forward/backward ---
+		move_input += right
 	if Input.is_action_pressed("ui_up") or Input.is_action_pressed("move_forward"):
-		input_dir += forward
+		move_input += forward
 	if Input.is_action_pressed("ui_down") or Input.is_action_pressed("move_downward"):
-		input_dir -= forward
+		move_input -= forward
 
-	# Apply ground-plane movement
-	if input_dir != Vector3.ZERO:
-		var move = input_dir.normalized() * camera_move_speed * delta
-		camera.position.x += move.x
-		camera.position.z += move.z  # 🔹 keep Y unchanged
+	if move_input != Vector3.ZERO:
+		camera.position += move_input.normalized() * camera_move_speed * delta
 
-	# --- Smooth zoom in/out ---
-# --- Smooth zoom in/out ---
+
+	# --- Zoom ---
 	var zoom_changed := false
-
 	if Input.is_action_pressed("wheel_up"):
 		_zoom_distance -= camera_zoom_speed * delta * 5
 		zoom_changed = true
@@ -275,25 +309,12 @@ func _handle_camera_movement(delta: float) -> void:
 
 	_zoom_distance = clamp(_zoom_distance, min_zoom, max_zoom)
 
-	# 🔹 Only update Y/Z if zoom actually changed
 	if zoom_changed:
 		var angle := deg_to_rad(45)
 		camera.position.y = sin(angle) * _zoom_distance * 1.5
 		camera.position.z = cos(angle) * _zoom_distance * 1.5
 
-	_zoom_distance = clamp(_zoom_distance, min_zoom, max_zoom)
-
-	# 🔹 Keep camera angle fixed while adjusting height & distance dynamically
-	var angle := deg_to_rad(45)  # Camera tilt (you can tweak this)
-	camera.position.y = sin(angle) * _zoom_distance * 1.5
-	camera.position.z = cos(angle) * _zoom_distance * 1.5
-	
-
-
-	# Clamp Y to safe range (to prevent floating away)
 	camera.position.y = clamp(camera.position.y, 3.0, 25.0)
-
-	# 🔒 Keep camera near the board
 	_clamp_camera_to_board()
 
 func _update_hover_highlight():
@@ -811,11 +832,15 @@ func _on_leader_defeated(owner: int) -> void:
 	if owner == PLAYER:
 		log_message("💀 Your Leader has fallen!", Color(1, 0.3, 0.3))
 		show_battle_message("Your Leader has fallen! You lose!", 3.0)
-		get_tree().paused = true
+		get_tree().paused = false  # ensure unpaused
+		emit_signal("battle_finished", "player_lost")
+
 	elif owner == ENEMY:
 		log_message("🏆 Enemy Leader defeated! You win!", Color(0.3, 1, 0.3))
 		show_battle_message("Enemy Leader defeated! You win!", 3.0)
-		get_tree().paused = true
+		get_tree().paused = false
+		emit_signal("battle_finished", "player_won")
+
 
 func show_battle_message(text: String, duration: float = 2.0) -> void:
 	var label = $UI/BattlePopup
@@ -837,7 +862,7 @@ func _play_3d_battle(att: UnitData, defn: UnitData) -> String:
 
 	# load temporary battle scene
 	var battle_scene = preload("res://Arena/battle_scene_3d.tscn").instantiate()
-	get_tree().root.add_child(battle_scene)
+	add_child(battle_scene)
 
 	battle_scene.play_battle(att.card, defn.card, result)
 	await battle_scene.finished
@@ -858,11 +883,11 @@ func _fade(to_alpha: float, dur: float):
 func _spawn_leaders():
 	player_leader = UnitData.new().init_from_card(IMP, PLAYER)
 	player_leader.is_leader = true
-	player_leader.hp = 100
+	player_leader.hp = 10
 
 	enemy_leader = UnitData.new().init_from_card(NAGA, ENEMY)
 	enemy_leader.is_leader = true
-	enemy_leader.hp = 100
+	enemy_leader.hp = 10
 
 	# 🔁 Swap their placement
 	_place_leader(player_leader, Vector2i(BOARD_W / 2, 0))
@@ -905,33 +930,36 @@ func _position_camera():
 # -------------------------------------------------------------------
 # --- Camera boundary locking ---
 func _clamp_camera_to_board():
+	if _is_camera_locked:
+		return  # 🔒 skip while tweening
 	if not board or not camera:
 		return
 
+
 	var spacing = board.spacing if board.has_method("spacing") else 1.0
-	
-	# Compute approximate world bounds of the board
 	var half_w = (BOARD_W - 1) * spacing * 0.5
 	var half_h = (BOARD_H - 1) * spacing * 0.5
-
-	# Define how far beyond the board the camera can move
-	var margin = spacing * 2.5
+	var margin = spacing * 3.5
+	var forward_extra = spacing * 3.0  # extra space toward enemy side
 
 	var min_x = -half_w - margin
 	var max_x = half_w + margin
 	var min_z = -half_h - margin
-	var max_z = half_h + margin
-	
-	var overshoot_x = clamp(abs(camera.position.x) - max_x, 0, spacing)
-	var overshoot_z = clamp(abs(camera.position.z) - max_z, 0, spacing)
-	if overshoot_x > 0:
-		camera.position.x -= sign(camera.position.x) * overshoot_x * 0.3
-	if overshoot_z > 0:
-		camera.position.z -= sign(camera.position.z) * overshoot_z * 0.3
+	var max_z = half_h + margin + forward_extra
 
-	# Clamp the camera position
-	camera.position.x = clamp(camera.position.x, min_x, max_x)
-	camera.position.z = clamp(camera.position.z, min_z, max_z)
+	# --- Compute the camera's look-at (focus) point ---
+	var forward = -camera.global_transform.basis.z.normalized()
+	var focus_distance := _zoom_distance * 0.6  # approximate how far camera looks ahead
+	var focus_point = camera.position + forward * focus_distance
+
+	# --- Clamp the focus point within bounds ---
+	focus_point.x = clamp(focus_point.x, min_x, max_x)
+	focus_point.z = clamp(focus_point.z, min_z, max_z)
+
+	# --- Move camera so that it still looks at the clamped focus point ---
+	var offset = camera.position - (camera.position + forward * focus_distance)
+	var corrected_camera_pos = focus_point - forward * focus_distance
+	camera.position = corrected_camera_pos
 
 func _on_end_turn_button_pressed() -> void:
 	if phase != Phase.SUMMON_OR_MOVE:
@@ -941,19 +969,21 @@ func _on_end_turn_button_pressed() -> void:
 	_update_phase_label()
 
 	# Hide hand (fade out)
+	hand_grid.modulate.a = 0.0
 	var t = create_tween()
-	t.tween_property(hand_grid, "modulate:a", 0.0, 0.25)
-	await t.finished
-	hand_grid.visible = false
+	t.tween_property(hand_grid, "modulate:a", 1.0, 0.25)
 
 	# 🔹 Enemy starts with clean action flags
-	_reset_action_flags()
+
 
 	await _enemy_turn()
 	log_message("🔁 Enemy turn finished.")
 	_start_player_turn()
-
+	_reset_action_flags()
 func _enemy_turn() -> void:
+	#var enemy_leader_pos3d = board.get_tile(_get_leader_pos(ENEMY).x, _get_leader_pos(ENEMY).y).global_position
+	#_focus_camera_on(enemy_leader_pos3d, 0.8, 1.0)
+
 	print("🤖 Enemy is thinking...")
 	await get_tree().create_timer(1.0).timeout
 
@@ -1046,6 +1076,11 @@ func _enemy_try_summon() -> void:
 
 
 	var pos = valid_tiles.front()  # closest tile to player
+		# --- Focus camera on summon location ---
+	var summon_tile = board.get_tile(pos.x, pos.y)
+	_focus_camera_on(summon_tile.global_position, 0.8, 0.6)
+	await get_tree().create_timer(0.4).timeout  # small pause for effect
+
 	_place_unit(summon_card, pos, ENEMY)
 	log_message("🤖 Enemy summoned %s at %s" % [summon_card.name, str(pos)], Color(0.8, 0.8, 1))
 
@@ -1089,9 +1124,14 @@ func _enemy_try_move_or_attack() -> void:
 					continue
 				var tile = board.get_tile(target.x, target.y)
 				if tile and tile.occupant and tile.occupant.owner == PLAYER:
+					var attack_tile = board.get_tile(target.x, target.y)
+					_focus_camera_on(attack_tile.global_position, 0.6, 0.5)
+					await get_tree().create_timer(0.3).timeout
 					log_message("⚔ Enemy attacks player’s unit at %s!" % str(target), Color(1, 0.7, 0.7))
 					await _move_or_battle(move_pos, target)
+					await get_tree().create_timer(0.4).timeout
 					return
+
 
 			# Otherwise, move closer to player leader
 		var best_move = move_pos
@@ -1112,10 +1152,17 @@ func _enemy_try_move_or_attack() -> void:
 						best_move = target
 						best_dist = dist_to_leader
 
-		if best_move != move_pos:
-			print("Enemy moves from %s to %s" % [str(move_pos), str(best_move)])
-			await _move_or_battle(move_pos, best_move)
-			return
+			if best_move != move_pos:
+				var move_tile = board.get_tile(best_move.x, best_move.y)
+				if move_tile:
+					# 🎥 Focus camera on the tile being moved to
+					_focus_camera_on(move_tile.global_position, 0.75, 0.6)
+					await get_tree().create_timer(0.25).timeout  # short cinematic pause
+
+				print("Enemy moves from %s to %s" % [str(move_pos), str(best_move)])
+				await _move_or_battle(move_pos, best_move)
+				await get_tree().create_timer(0.4).timeout  # pause before next action
+				return
 
 	print("Enemy found no useful actions.")
 
@@ -1163,6 +1210,7 @@ func _update_essence_labels(prev_player: int = -1, prev_enemy: int = -1):
 		var te = create_tween()
 		te.tween_property(enemy_essence_label, "modulate", Color(1, 1, 0.5), 0.15)
 		te.tween_property(enemy_essence_label, "modulate", Color(1, 1, 1), 0.25)
+	_refresh_hand_ui()
 
 func _reset_action_flags() -> void:
 	acted_this_turn.clear()
@@ -1187,3 +1235,30 @@ func _mark_unit_acted(u: UnitData) -> void:
 			if t:
 				t.set_exhausted(true)
 			break
+
+func _focus_camera_on(target_pos: Vector3, zoom_mult: float = 0.6, duration: float = 1.0):
+	if not camera:
+		return
+	_is_camera_locked = true  # 🔒 stop clamp and WASD updates during focus
+
+	var t = create_tween()
+	var angle = deg_to_rad(45)
+	var distance = _zoom_distance * zoom_mult
+
+	var desired_pos = Vector3(
+		target_pos.x,
+		sin(angle) * distance * 1.5,
+		target_pos.z + cos(angle) * distance * 1.5
+	)
+
+	t.tween_property(camera, "position", desired_pos, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	t.tween_callback(func(): 
+		_look_at_target(target_pos)
+		await get_tree().create_timer(0.3).timeout
+		_is_camera_locked = false  # 🔓 unlock when done
+	)
+
+
+func _look_at_target(target_pos: Vector3):
+	if camera:
+		camera.look_at(target_pos, Vector3.UP)

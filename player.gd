@@ -4,6 +4,7 @@ const SPEED = 5.0
 const JUMP_VELOCITY = 4.5
 const MOUSE_SENSITIVITY = 0.003
 
+@onready var cam: Camera3D = $Head/Camera3D
 @onready var head = $Head
 @onready var collection_ui: Control = get_node("/root/Main/CollectionUI")
 
@@ -11,9 +12,19 @@ var rotation_x = 0.0
 var mouse_locked = true
 
 func _ready() -> void:
-	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	await get_tree().process_frame 
+	_lock_mouse()
+
 
 func _input(event):
+	if event.is_action_pressed("interact"):
+		var space_state = get_world_3d().direct_space_state
+		var from = cam.global_position
+		var to = from + -cam.global_transform.basis.z * 3.0
+		var result = space_state.intersect_ray(PhysicsRayQueryParameters3D.create(from, to))
+		if result and result.collider.is_in_group("npcs"):
+			result.collider.on_interact()
+
 	if Input.is_action_just_pressed("open_collection"):
 		_toggle_collection()
 
@@ -31,13 +42,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		rotation_x = clamp(rotation_x, deg_to_rad(-89), deg_to_rad(89))
 		head.rotation.x = rotation_x
 
-	# Toggle mouse lock with ESC
+		# Toggle mouse lock with ESC
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		mouse_locked = not mouse_locked
 		if mouse_locked:
-			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+			_unlock_mouse()
 		else:
-			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+			_lock_mouse()
 
 func _physics_process(delta: float) -> void:
 	# Skip physics input while UI is open
@@ -74,3 +84,11 @@ func _toggle_collection():
 		collection_ui.show()
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		mouse_locked = false
+
+func _lock_mouse():
+	mouse_locked = true
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+
+func _unlock_mouse():
+	mouse_locked = false
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)

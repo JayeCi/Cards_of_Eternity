@@ -8,6 +8,7 @@ var collection: Dictionary = {}
 # Signal for UI updates
 signal card_added(card: CardData)
 
+
 # Add a card to the collection
 func add_card(card: CardData) -> void:
 	if card == null:
@@ -23,6 +24,11 @@ func add_card(card: CardData) -> void:
 # Check if a card is owned
 func has_card(card_id: String) -> bool:
 	return collection.has(card_id)
+	
+func get_card(card_id: String) -> CardData:
+	if collection.has(card_id):
+		return collection[card_id]
+	return null
 
 # Get a list of all owned cards
 func get_all_cards() -> Array:

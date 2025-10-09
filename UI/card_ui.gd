@@ -61,3 +61,6 @@ func _on_card_hover_exit():
 	if not get_global_rect().has_point(get_global_mouse_position()):
 		is_hovering = false
 		emit_signal("request_hide_zoom")
+
+func set_playable(is_playable: bool):
+	modulate = Color(1, 1, 1, 1) if is_playable else Color(0.4, 0.4, 0.4, 0.5)
