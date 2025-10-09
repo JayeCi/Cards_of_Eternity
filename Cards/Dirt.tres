@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://jne2skd0eidt"]
+
+[ext_resource type="Texture2D" uid="uid://ccsxe205y8lva" path="res://Images/Dirt.jpg" id="1_tltfv"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_grnjx"]
+
+[resource]
+script = ExtResource("2_grnjx")
+id = "00002"
+name = "Dirt"
+description = "A dirt monster."
+art = ExtResource("1_tltfv")
+cost = 1
+attack = 12
+defense = 25
+rarity = 1
+card_type = "Monster"
+metadata/_custom_type_script = "uid://57up1u0etcmc"

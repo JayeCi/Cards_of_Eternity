@@ -1,0 +1,23 @@
+[gd_scene load_steps=2 format=3 uid="uid://k5i76hbrftem"]
+
+[ext_resource type="Script" uid="uid://dccli5bjcjnj8" path="res://Arena/board_ui.gd" id="1_m41ov"]
+
+[node name="BoardUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_m41ov")
+
+[node name="Grid" type="GridContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 6
+columns = 7

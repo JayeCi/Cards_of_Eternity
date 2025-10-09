@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://dd2c50etc7n8n"]
+
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="1_4nhxv"]
+[ext_resource type="Texture2D" uid="uid://bruotfy06ok7x" path="res://Images/Cold_Sloth.jpeg" id="1_xas3p"]
+
+[resource]
+script = ExtResource("1_4nhxv")
+type = "Beast"
+rarity = "Common"
+id = "00008"
+name = "Cold Sloth"
+description = "A sloth evolved to withstand even the coldest of climate."
+art = ExtResource("1_xas3p")
+cost = 1
+attack = 16
+defense = 16
+card_type = "Monster"
+fusion_materials = Array[String]([])
+attack_moves = Array[String]([])
+metadata/_custom_type_script = "uid://57up1u0etcmc"

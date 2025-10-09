@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://bw1sf4rk66258"]
+
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="1_42yog"]
+[ext_resource type="Texture2D" uid="uid://3j8dhf7kmeed" path="res://Images/Goblin.jpg" id="1_c0fva"]
+
+[resource]
+script = ExtResource("1_42yog")
+id = "00001"
+name = "Goblin"
+description = "A basic gross goblin."
+art = ExtResource("1_c0fva")
+cost = 1
+attack = 15
+defense = 15
+rarity = 1
+card_type = "Monster"
+metadata/_custom_type_script = "uid://57up1u0etcmc"

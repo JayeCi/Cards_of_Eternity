@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://l8hkcr570yry"]
+
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="1_8dvcv"]
+[ext_resource type="Texture2D" uid="uid://cl0iui7leetm" path="res://Images/Fish.jpg" id="1_pf8oy"]
+
+[resource]
+script = ExtResource("1_8dvcv")
+type = "Beast"
+rarity = "Common"
+id = "00004"
+name = "Fysh"
+description = "A fish with some fierceness."
+art = ExtResource("1_pf8oy")
+cost = 1
+attack = 10
+defense = 10
+card_type = "Monster"
+fusion_materials = Array[String]([])
+attack_moves = Array[String]([])
+metadata/_custom_type_script = "uid://57up1u0etcmc"

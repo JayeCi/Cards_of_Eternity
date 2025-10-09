@@ -1,0 +1,116 @@
+[gd_scene load_steps=17 format=3 uid="uid://b3mv1fus57f04"]
+
+[ext_resource type="PackedScene" uid="uid://b2qv0ufs44ptf" path="res://UI/collection_ui.tscn" id="1_h2yge"]
+[ext_resource type="PackedScene" uid="uid://8eemhx56fscd" path="res://player.tscn" id="1_ig7tw"]
+[ext_resource type="PackedScene" uid="uid://4ftlpnnxlo53" path="res://Cards/cardpickup.tscn" id="2_0xm2m"]
+[ext_resource type="Resource" uid="uid://bw1sf4rk66258" path="res://Cards/Goblin.tres" id="4_7mycd"]
+[ext_resource type="Resource" uid="uid://jne2skd0eidt" path="res://Cards/Dirt.tres" id="5_lquwl"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_7dm0k"]
+sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+ground_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+
+[sub_resource type="Sky" id="Sky_ig7tw"]
+sky_material = SubResource("ProceduralSkyMaterial_7dm0k")
+
+[sub_resource type="Environment" id="Environment_0xm2m"]
+background_mode = 2
+sky = SubResource("Sky_ig7tw")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_h2yge"]
+vertex_color_use_as_albedo = true
+albedo_color = Color(0.0562916, 0.0562916, 0.0562916, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_1bvp3"]
+material = SubResource("StandardMaterial3D_h2yge")
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_0xm2m"]
+points = PackedVector3Array(0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5)
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_h2yge"]
+points = PackedVector3Array(0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5)
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_1bvp3"]
+points = PackedVector3Array(0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lquwl"]
+vertex_color_use_as_albedo = true
+albedo_color = Color(0.675008, 0.58806, 0.29859, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7mycd"]
+material = SubResource("StandardMaterial3D_lquwl")
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_lquwl"]
+points = PackedVector3Array(0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5)
+
+[node name="Main" type="Node3D"]
+
+[node name="CollectionUI" parent="." instance=ExtResource("1_h2yge")]
+visible = false
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_0xm2m")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, 0.75, -0.433013, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Structures" type="Node3D" parent="."]
+
+[node name="StaticBody3D" type="StaticBody3D" parent="Structures"]
+
+[node name="Floor" type="MeshInstance3D" parent="Structures/StaticBody3D"]
+transform = Transform3D(16, 0, 0, 0, -0.0281603, 0, 0, 0, 16, 0, 0, 0)
+mesh = SubResource("BoxMesh_1bvp3")
+skeleton = NodePath("../../root/@EditorNode@21272/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Main")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Structures/StaticBody3D"]
+transform = Transform3D(16, 0, 0, 0, -0.0281603, 0, 0, 0, 16, 0, 0, 0)
+shape = SubResource("ConvexPolygonShape3D_0xm2m")
+
+[node name="StaticBody3D2" type="StaticBody3D" parent="Structures"]
+
+[node name="Wall" type="MeshInstance3D" parent="Structures/StaticBody3D2"]
+transform = Transform3D(16, 0, 0, 0, 1.23093e-09, -16, 0, -0.0281603, -6.99382e-07, 0, 8, 8)
+mesh = SubResource("BoxMesh_1bvp3")
+skeleton = NodePath("../../root/@EditorNode@21272/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Main")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Structures/StaticBody3D2"]
+transform = Transform3D(16, 0, 0, 0, 1.23093e-09, -16, 0, -0.0281603, -6.99382e-07, 0, 8, 8)
+shape = SubResource("ConvexPolygonShape3D_h2yge")
+
+[node name="ThinWall" type="StaticBody3D" parent="Structures"]
+
+[node name="ThinWall" type="MeshInstance3D" parent="Structures/ThinWall"]
+transform = Transform3D(4.10017, 0, 0, 0, 1.23093e-09, -16, 0, -0.0281603, -6.99382e-07, -5.94452, 7.80297, 0)
+mesh = SubResource("BoxMesh_1bvp3")
+skeleton = NodePath("../../root/@EditorNode@21272/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Main")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Structures/ThinWall"]
+transform = Transform3D(4.10017, 0, 0, 0, 1.23093e-09, -16, 0, -0.0281603, -6.99382e-07, -5.94452, 8, 0)
+shape = SubResource("ConvexPolygonShape3D_1bvp3")
+
+[node name="Box" type="StaticBody3D" parent="Structures"]
+
+[node name="BoxMesh" type="MeshInstance3D" parent="Structures/Box"]
+unique_name_in_owner = true
+transform = Transform3D(4.10017, 0, 0, 0, 1.32561e-07, -1.33878, 0, -3.03265, -5.85198e-08, 0.0554843, 0.677229, 0)
+mesh = SubResource("BoxMesh_7mycd")
+skeleton = NodePath("../../root/@EditorNode@21272/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/Main")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Structures/Box"]
+transform = Transform3D(4.10017, 0, 0, 0, 1.32561e-07, -1.33878, 0, -3.03265, -5.85198e-08, 0.0554843, 0.677229, 0)
+shape = SubResource("ConvexPolygonShape3D_lquwl")
+
+[node name="Player" parent="." groups=["player"] instance=ExtResource("1_ig7tw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.73659, 2.49216, -5.14133)
+
+[node name="GoblinCard" parent="." instance=ExtResource("2_0xm2m")]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 3.58433, 0.0140802, 3.39316)
+card_data = ExtResource("4_7mycd")
+
+[node name="DirtCard" parent="." instance=ExtResource("2_0xm2m")]
+transform = Transform3D(-0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, -0.707107, 7.37201, 0.3384, 0)
+card_data = ExtResource("5_lquwl")

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://bymlax4cwtbnq"]
+
+[ext_resource type="Texture2D" uid="uid://caqg12eqtvgh2" path="res://Images/Imp.jpg" id="1_gynxb"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="1_t13up"]
+
+[resource]
+script = ExtResource("1_t13up")
+type = "Demon"
+rarity = "Rare"
+id = "00003"
+name = "Imp"
+description = "A demonic spawn from hell."
+art = ExtResource("1_gynxb")
+cost = 2
+attack = 18
+defense = 10
+card_type = "Monster"
+fusion_materials = Array[String]([])
+attack_moves = Array[String]([])
+metadata/_custom_type_script = "uid://57up1u0etcmc"

@@ -1,0 +1,28 @@
+[gd_scene load_steps=4 format=3 uid="uid://4ftlpnnxlo53"]
+
+[ext_resource type="Script" uid="uid://dnpmx4n7xby6j" path="res://Cards/cardpickup.gd" id="1_xrsix"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ihtcx"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_xrsix"]
+size = Vector3(3.70483, 1.64429, 1)
+
+[node name="Card" type="Area3D"]
+script = ExtResource("1_xrsix")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.403461, 0, 0, 0, -4.37114e-08, -0.555885, 0, 1, -2.42985e-08, 0, 0.6, 0)
+mesh = SubResource("PlaneMesh_ihtcx")
+skeleton = NodePath("")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(0.403461, 0, 0, 0, -4.37114e-08, -0.555885, 0, 1, -2.42985e-08, 0, 0.6, 0)
+shape = SubResource("BoxShape3D_xrsix")
+
+[node name="Label3D" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.27084, 0)
+visible = false
+text = "Press [E] to pick up"
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
+[connection signal="body_exited" from="." to="." method="_on_body_exited"]

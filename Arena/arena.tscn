@@ -1,0 +1,44 @@
+[gd_scene load_steps=4 format=3 uid="uid://b0gy7m8c1jskl"]
+
+[ext_resource type="Script" uid="uid://bmu6yj2gr6rm0" path="res://arena.gd" id="1_upiig"]
+[ext_resource type="PackedScene" uid="uid://k5i76hbrftem" path="res://Arena/board_ui.tscn" id="2_sswsf"]
+[ext_resource type="PackedScene" uid="uid://dcus3e1lnkiqj" path="res://UI/UI.tscn" id="3_sswsf"]
+
+[node name="Arena" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_upiig")
+
+[node name="BoardUI" parent="." instance=ExtResource("2_sswsf")]
+layout_mode = 1
+
+[node name="CanvasLayer" parent="." instance=ExtResource("3_sswsf")]
+
+[node name="SummonMode" type="PopupPanel" parent="."]
+
+[node name="VBoxContainer" type="VBoxContainer" parent="SummonMode"]
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 124.0
+offset_bottom = 105.0
+
+[node name="AttackMode" type="Button" parent="SummonMode/VBoxContainer"]
+layout_mode = 2
+text = "Attack Mode"
+
+[node name="DefenseMode" type="Button" parent="SummonMode/VBoxContainer"]
+layout_mode = 2
+text = "Defense Mode"
+
+[node name="FaceDown" type="Button" parent="SummonMode/VBoxContainer"]
+layout_mode = 2
+text = "Face Down"
+
+[connection signal="pressed" from="SummonMode/VBoxContainer/AttackMode" to="." method="_on_attack_mode_pressed"]
+[connection signal="pressed" from="SummonMode/VBoxContainer/DefenseMode" to="." method="_on_defense_mode_pressed"]
+[connection signal="pressed" from="SummonMode/VBoxContainer/FaceDown" to="." method="_on_facedown_mode_pressed"]
