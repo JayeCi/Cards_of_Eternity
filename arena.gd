@@ -131,23 +131,28 @@ func _ready():
 # -------------------------------------------------------------------
 # --- Deck / hand setup ---
 func _build_decks():
-	var all = CardCollection.get_all_cards()
-	if all.is_empty():
-		push_warning("No cards in collection!")
+	var all_ids = CardCollection.get_all_cards()
+	if all_ids.is_empty():
+		push_warning("⚠️ No cards in player collection!")
 
 	# --- Player Deck ---
-	player_deck = []
-	for c in all:
-		player_deck.append(c.duplicate())
-		player_deck.append(c.duplicate())
+	player_deck.clear()
+	for id in all_ids:
+		var count = CardCollection.get_card_count(id)
+		var card_data = CardCollection.get_card_data(id)
+		for i in range(count):
+			player_deck.append(card_data.duplicate())
+
 	player_deck.shuffle()
 
 	# --- Enemy Deck ---
 	if enemy_deck.is_empty():
-		enemy_deck = []
-		for c in all:
-			enemy_deck.append(c.duplicate())
-			enemy_deck.append(c.duplicate())
+		enemy_deck.clear()
+		for id in ["IMP", "GOBLIN"]:  # fallback defaults
+			if ResourceLoader.exists("res://Cards/%s.tres" % id):
+				var card = ResourceLoader.load("res://Cards/%s.tres" % id)
+				for i in range(10):  # each enemy card repeated for test
+					enemy_deck.append(card.duplicate())
 		enemy_deck.shuffle()
 
 	log_message("✅ Decks built: Player = %d, Enemy = %d" % [player_deck.size(), enemy_deck.size()])

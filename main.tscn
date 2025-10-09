@@ -39,7 +39,7 @@ points = PackedVector3Array(0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 
 script = ExtResource("1_1bvp3")
 
 [node name="player" parent="." instance=ExtResource("1_ig7tw")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.73659, 2.49216, -5.14133)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.73659, 1.4921601, -5.14133)
 
 [node name="CollectionUI" parent="." instance=ExtResource("1_h2yge")]
 visible = false
@@ -95,6 +95,15 @@ shape = SubResource("ConvexPolygonShape3D_1bvp3")
 transform = Transform3D(-0.5, 0, -0.866025, 0, 1, 0, 0.866025, 0, -0.5, 7.04632, 0.0140802, 0.144066)
 
 [node name="Card2" parent="Interactables" instance=ExtResource("2_0xm2m")]
+transform = Transform3D(-0.965926, 0, -0.258819, 0, 1, 0, 0.258819, 0, -0.965926, 4.38025, 0.0140802, 2.28766)
+
+[node name="Card3" parent="Interactables" instance=ExtResource("2_0xm2m")]
+transform = Transform3D(-0.965926, 0, -0.258819, 0, 1, 0, 0.258819, 0, -0.965926, 4.38025, 0.0140802, 2.28766)
+
+[node name="Card4" parent="Interactables" instance=ExtResource("2_0xm2m")]
+transform = Transform3D(-0.965926, 0, -0.258819, 0, 1, 0, 0.258819, 0, -0.965926, 4.38025, 0.0140802, 2.28766)
+
+[node name="Card5" parent="Interactables" instance=ExtResource("2_0xm2m")]
 transform = Transform3D(-0.965926, 0, -0.258819, 0, 1, 0, 0.258819, 0, -0.965926, 4.38025, 0.0140802, 2.28766)
 
 [node name="Test_NPC" parent="." instance=ExtResource("5_lquwl")]

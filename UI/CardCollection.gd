@@ -1,79 +1,44 @@
-# res://scripts/CardCollection.gd
 extends Node
 
-# Dictionary to store all collected cards
-# Key: card ID, Value: CardData resource
+# Dictionary to store owned cards and quantity
+# Format: { "IMP": { "card": CardData, "count": 2 }, ... }
 var collection: Dictionary = {}
 
-# Signal for UI updates
-signal card_added(card: CardData)
+signal card_added(card: CardData, count: int)
 
 
-# Add a card to the collection
 func add_card(card: CardData) -> void:
 	if card == null:
 		return
-	if not collection.has(card.id):
-		collection[card.id] = card
-		emit_signal("card_added", card)
-		print("Added card to collection:", card.name)  # <-- correct
+
+	if collection.has(card.resource_path):
+		collection[card.resource_path].count += 1
+		var new_count = collection[card.resource_path].count
+		print("SIGNAL: Emitting card_added for", card.name, "count = ", new_count)
+		emit_signal("card_added", card, new_count)
 	else:
-		print("Card already in collection:", card.name) # <-- correct
+		collection[card.resource_path] = {
+			"card": card,
+			"count": 1
+		}
+		print("🆕 Added card to collection:", card.name)
+		emit_signal("card_added", card, 1)  # ✅ emit here too
 
 
-# Check if a card is owned
-func has_card(card_id: String) -> bool:
-	return collection.has(card_id)
-	
 func get_card(card_id: String) -> CardData:
-	if collection.has(card_id):
-		return collection[card_id]
-	return null
+	if not collection.has(card_id):
+		return null
+	return collection[card_id].card
 
-# Get a list of all owned cards
+func get_card_count(card_id: String) -> int:
+	if not collection.has(card_id):
+		return 0
+	return collection[card_id].count
+
 func get_all_cards() -> Array:
-	return collection.values()
+	return collection.keys()  # return IDs, not cards
 
-# Optional: Save / Load
-func save_collection(path: String = "user://collection.json") -> void:
-	var id_list = []
-	for c in collection.values():
-		id_list.append(c.id)
-	var file = FileAccess.open(path, FileAccess.WRITE)
-	if file:
-		file.store_string(JSON.stringify(id_list))
-		file.close()
-
-
-func load_collection(path: String = "user://collection.json") -> void:
-	if not FileAccess.file_exists(path):
-		return
-	var file = FileAccess.open(path, FileAccess.READ)
-	if file:
-		var text = file.get_as_text()
-		file.close()
-		var result = JSON.parse_string(text)
-		if result.error != OK:
-			return
-		var id_list = result.result
-		# Assuming all CardData resources are loaded in `res://cards/`
-		for id in id_list:
-			var card = find_card_by_id(id)
-			if card:
-				collection[id] = card
-
-# Helper function to find a card by ID from all card resources
-func find_card_by_id(id: String) -> CardData:
-	var dir = DirAccess.open("res://cards")
-	if dir:
-		dir.list_dir_begin()
-		var file = dir.get_next()
-		while file != "":
-			if not dir.current_is_dir() and file.ends_with(".tres"):
-				var card = ResourceLoader.load("res://cards/" + file)
-				if card and card is CardData and card.id == id:
-					dir.list_dir_end()
-					return card
-			file = dir.get_next()
-		dir.list_dir_end()
-	return null
+func get_card_data(id: String) -> CardData:
+	if not collection.has(id):
+		return null
+	return collection[id].card
