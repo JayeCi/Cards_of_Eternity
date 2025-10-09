@@ -1,6 +1,8 @@
 extends Node3D
 class_name NPC
 
+@onready var name_label: Label3D = $NameLabel
+
 @export var npc_name := "Bandit"
 @export var card_ids: Array[String] = ["GOBLIN"]  # Default template, but overridden below
 @export var deck_size := 20  # number of cards in deck

@@ -1,0 +1,45 @@
+[gd_scene load_steps=5 format=4 uid="uid://bxbrrv54b386g"]
+
+[ext_resource type="Texture2D" uid="uid://dbnlgnttabnmv" path="res://Images/CardBack1.png" id="1_va3j8"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cja7w"]
+resource_name = "Front"
+cull_mode = 2
+albedo_texture = ExtResource("1_va3j8")
+roughness = 0.8657005
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_pofye"]
+_surfaces = [{
+"aabb": AABB(-0.2936446, -0.0028149406, 0, 0.5872892, 1e-05, 0.99554044),
+"format": 34896613377,
+"index_count": 66,
+"index_data": PackedByteArray("AAABAAIAAgADAAAAAwAEAAAAAwAFAAQABQAGAAQABQAHAAYABwAIAAYABwAJAAgACQAKAAgACQALAAoACwAMAAoACwANAAwADQAOAAwADQAPAA4ADwAQAA4ADwARABAAEQASABAAEQATABIAEwAUABIAEwAVABQAFQAWABQAFQAXABYA"),
+"name": "Front",
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 24,
+"vertex_data": PackedByteArray("kvcAAFoAAADO8wAAAAAAADAMAAAAAAAAbAgAAFoAAAD4+gAAXwEAAAYFAABfAQAAq/0AAPYCAABTAgAA9gIAAGb/AAD3BAAAmAAAAPcEAAD//wAAMAcAAAAAAAAwBwAA//8AAM74AAAAAAAAzvgAAGb/AAAH+wAAmAAAAAf7AACr/QAACP0AAFMCAAAI/QAA+PoAAJ/+AAAGBQAAn/4AAJL3AACk/wAAbAgAAKT/AADO8wAA//8AADAMAAD//wAA")
+}]
+blend_shape_mode = 0
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_la7aj"]
+resource_name = "Sketchfab_Scene_CARD_Front_0"
+_surfaces = [{
+"aabb": AABB(-0.2936446, -0.0028149406, 0, 0.5872892, 1e-05, 0.99554044),
+"attribute_data": PackedByteArray("UPfSAJPzhwC3DYcA+gnSAK/6qwGbBqsBXP39Au4D/QIU/6cENgKnBKz/gAaeAYAGrP9o+Z4BaPkU/0D7NgJA+1z96vzuA+r8r/o9/psGPf5Q9xb/+gkW/5PzYP+3DWD/"),
+"format": 34896613399,
+"index_count": 66,
+"index_data": PackedByteArray("AAABAAIAAgADAAAAAwAEAAAAAwAFAAQABQAGAAQABQAHAAYABwAIAAYABwAJAAgACQAKAAgACQALAAoACwAMAAoACwANAAwADQAOAAwADQAPAA4ADwAQAA4ADwARABAAEQASABAAEQATABIAEwAUABIAEwAVABQAFQAWABQAFQAXABYA"),
+"material": SubResource("StandardMaterial3D_cja7w"),
+"name": "Front",
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 24,
+"vertex_data": PackedByteArray("kvcAAFoA/z/O8wAAAAD/PzAMAAAAAP8/bAgAAFoA/z/4+gAAXwH/PwYFAABfAf8/q/0AAPYC/z9TAgAA9gL/P2b/AAD3BP8/mAAAAPcE/z///wAAMAf/PwAAAAAwB/8///8AAM74/z8AAAAAzvj/P2b/AAAH+/8/mAAAAAf7/z+r/QAACP3/P1MCAAAI/f8/+PoAAJ/+/z8GBQAAn/7/P5L3AACk//8/bAgAAKT//z/O8wAA////PzAMAAD///8/AAD/fwAA/38AAP9/AAD/fwAA/38AAP9/AAD/fwAA/38AAP9/AAD/fwAA/38AAP9/AAD/fwAA/38AAP9/AAD/fwAA/38AAP9/AAD/fwAA/38AAP9/AAD/fwAA/38AAP9/")
+}]
+blend_shape_mode = 0
+shadow_mesh = SubResource("ArrayMesh_pofye")
+
+[node name="CARD_Front_0" type="MeshInstance3D"]
+mesh = SubResource("ArrayMesh_la7aj")
+skeleton = NodePath("")

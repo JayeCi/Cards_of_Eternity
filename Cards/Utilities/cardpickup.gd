@@ -2,6 +2,7 @@ extends Area3D
 
 @export var pickup_distance: float = 2.0
 @export var pickup_key: String = "interact"
+@export var popup_manager_path: NodePath = NodePath("/root/Main/CanvasLayer/CardPickupManager")
 
 signal card_picked(card: CardData)
 
@@ -40,10 +41,18 @@ func _pickup() -> void:
 	if card_data == null:
 		push_warning("Pickup has no card data!")
 		return
+
 	print("Picked up:", card_data.name)
 	CardCollection.add_card(card_data)
 	emit_signal("card_picked", card_data)
+
+	# 🟢 Show popup using manager
+	var manager: Node = get_node_or_null(popup_manager_path)
+	if manager and manager.has_method("show_card"):
+		manager.show_card(card_data)
+
 	queue_free()
+
 
 func _on_body_entered(body):
 	if body.is_in_group("player"):

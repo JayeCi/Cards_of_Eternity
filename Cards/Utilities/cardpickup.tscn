@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://4ftlpnnxlo53"]
 
-[ext_resource type="Script" uid="uid://dnpmx4n7xby6j" path="res://Cards/cardpickup.gd" id="1_xrsix"]
+[ext_resource type="Script" uid="uid://dnpmx4n7xby6j" path="res://Cards/Utilities/cardpickup.gd" id="1_xrsix"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ihtcx"]
 

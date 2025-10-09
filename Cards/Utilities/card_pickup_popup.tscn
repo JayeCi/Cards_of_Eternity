@@ -1,0 +1,50 @@
+[gd_scene load_steps=5 format=3 uid="uid://dqi47auvbid30"]
+
+[ext_resource type="Script" uid="uid://dasouufhgcs23" path="res://Cards/Utilities/card_pickup_popup.gd" id="1_31xxr"]
+[ext_resource type="Texture2D" uid="uid://cl0iui7leetm" path="res://Images/Fish.jpg" id="2_n6n1o"]
+
+[sub_resource type="SystemFont" id="SystemFont_ox5q6"]
+font_names = PackedStringArray("Arial Rounded MT")
+subpixel_positioning = 0
+
+[sub_resource type="LabelSettings" id="LabelSettings_31xxr"]
+font = SubResource("SystemFont_ox5q6")
+
+[node name="CardPickupPopup" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_31xxr")
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer"]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/HBoxContainer"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+texture = ExtResource("2_n6n1o")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Card Name" type="Label" parent="PanelContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+text = "Name"
+label_settings = SubResource("LabelSettings_31xxr")
+
+[node name="Rarity" type="Label" parent="PanelContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+text = "1"

@@ -3,7 +3,8 @@ extends Control
 @export var card_ui_scene: PackedScene = preload("res://ui/CardUI.tscn")
 
 @onready var grid = $ScrollContainer/GridContainer
-@onready var zoom = $"../CanvasLayer/CardZoom"
+@onready var zoom = get_tree().root.get_node("Main/CanvasLayer/CardZoom")
+
 
 # Track displayed cards
 var displayed_cards := {}  # { "CARD_ID": card_ui_node }
@@ -26,21 +27,18 @@ func _add_or_update_card_ui(card: CardData, count: int) -> void:
 	if card == null or card.id == "":
 		return
 
+	# ✅ Update existing entry
 	if displayed_cards.has(card.id):
-		var card_ui = displayed_cards[card.id]
-		var label = card_ui.get_node_or_null("PanelContainer/CenterContainer/VBoxContainer/CountLabel")
+		var card_ui: Control = displayed_cards[card.id]
+		var label := _find_count_label(card_ui)
 		if label:
 			label.text = "x" + str(count)
 		return
 
-	var card_ui = card_ui_scene.instantiate()
+	# ✅ Create new entry
+	var card_ui: Control = card_ui_scene.instantiate()
 	card_ui.card_data = card
 	card_ui.refresh()
-
-	var label = card_ui.get_node_or_null("PanelContainer/CenterContainer/VBoxContainer/CountLabel")
-	if label:
-		label.text = "x" + str(count)
-
 	# 🟢 Add click to enlarge card
 	card_ui.gui_input.connect(func(ev):
 		if ev is InputEventMouseButton and ev.pressed:
@@ -53,6 +51,19 @@ func _add_or_update_card_ui(card: CardData, count: int) -> void:
 	grid.add_child(card_ui)
 	displayed_cards[card.id] = card_ui
 
+func _find_count_label(card_ui: Node) -> Label:
+	# Adjust these as your CardUI structure changes
+	var possible_paths = [
+		"PanelContainer/CenterContainer/VBoxContainer/CountLabel",
+		"PanelContainer/VBoxContainer/CountLabel",
+		"CountLabel"
+	]
+	for path in possible_paths:
+		var label = card_ui.get_node_or_null(path)
+		if label:
+			return label
+	return null
+	
 func _show_zoom(card: CardData) -> void:
 	if not zoom:
 		return
@@ -66,9 +77,12 @@ func _show_zoom(card: CardData) -> void:
 
 	zoom.show_card(card)
 	zoom.show()
-	zoom.grab_focus()
+	await get_tree().process_frame
+
+
 
 
 func _hide_zoom() -> void:
 	if zoom:
-		zoom.hide()
+		zoom.visible=false
+		

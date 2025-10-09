@@ -2,17 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cl0iui7leetm"
-path.s3tc="res://.godot/imported/Fish.jpg-09d9b3ff2d1479f31338c8c2a9cc22e9.s3tc.ctex"
+uid="uid://b7u1loistqogw"
+path.s3tc="res://.godot/imported/amy_roses_deck_part_3_2.png-0f90cf1422e7a70ffbbbb847a51a60c7.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
+generator_parameters={
+"md5": "4e4ef7fab548135ad3f764e3dce8335b"
+}
 
 [deps]
 
-source_file="res://Images/Fish.jpg"
-dest_files=["res://.godot/imported/Fish.jpg-09d9b3ff2d1479f31338c8c2a9cc22e9.s3tc.ctex"]
+source_file="res://Cards/Utilities/CardModel/amy_roses_deck_part_3_2.png"
+dest_files=["res://.godot/imported/amy_roses_deck_part_3_2.png-0f90cf1422e7a70ffbbbb847a51a60c7.s3tc.ctex"]
 
 [params]
 

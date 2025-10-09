@@ -18,3 +18,8 @@ shape = SubResource("CapsuleShape3D_lnpa0")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 mesh = SubResource("CapsuleMesh_nkcsb")
 surface_material_override/0 = SubResource("StandardMaterial3D_l470e")
+
+[node name="NameLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.269633, 0)
+billboard = 2
+text = "NPC"
