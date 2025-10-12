@@ -24,6 +24,8 @@ func add_card(card: CardData) -> void:
 		print("🆕 Added card to collection:", card.name)
 		emit_signal("card_added", card, 1)  # ✅ emit here too
 
+func has_card(card_id: String) -> bool:
+	return collection.has(card_id)
 
 func get_card(card_id: String) -> CardData:
 	if not collection.has(card_id):

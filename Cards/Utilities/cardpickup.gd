@@ -2,7 +2,11 @@ extends Area3D
 
 @export var pickup_distance: float = 2.0
 @export var pickup_key: String = "interact"
-@export var popup_manager_path: NodePath = NodePath("/root/Main/CanvasLayer/CardPickupManager")
+@export var popup_manager_path: NodePath = NodePath("../CanvasLayer/CardPickupManager")
+@onready var pickup_sound: AudioStreamPlayer3D = $PickupSound
+@onready var new_pickup_sound: AudioStreamPlayer3D = $NewPickupSound
+@onready var mesh: MeshInstance3D = $MeshInstance3D
+
 
 signal card_picked(card: CardData)
 
@@ -10,17 +14,20 @@ var player_in_range := false
 var player: Node3D = null
 var card_data: CardData = null
 
+# 🔹 Animation settings
+@export var spin_speed: float = 90.0  # degrees per second
+@export var float_amplitude: float = 0.05
+@export var float_speed: float = 2.0
+
+var _base_y: float = 0.0
+var _float_phase: float = 0.0
+
 func _ready() -> void:
-	# Connect area signals
-
-	# Randomize card after signals (important order)
 	_randomize_card()
-
-	# Ensure collision layer works
 	monitoring = true
 	monitorable = true
 
-	# Create label dynamically if not in scene
+	# Create or hide label
 	if not has_node("Label3D"):
 		var label = Label3D.new()
 		label.name = "Label3D"
@@ -29,13 +36,28 @@ func _ready() -> void:
 		label.visible = false
 		add_child(label)
 	else:
-		$Label3D.visible = false  # hide by default
+		$Label3D.visible = false
+
+	_base_y = position.y
 
 func _physics_process(delta: float) -> void:
+	# 🌀 Always spin & float
+	_spin_and_float(delta)
+
+	# Check for player interaction
 	if player_in_range and player:
 		var dist = global_position.distance_to(player.global_position)
 		if dist <= pickup_distance and Input.is_action_just_pressed(pickup_key):
 			_pickup()
+
+# --- Animation helpers ---
+func _spin_and_float(delta: float) -> void:
+	# Continuous rotation around Y-axis
+	rotate_y(deg_to_rad(spin_speed * delta))
+
+	# Gentle floating up/down motion
+	_float_phase += delta * float_speed
+	position.y = _base_y + sin(_float_phase) * float_amplitude
 
 func _pickup() -> void:
 	if card_data == null:
@@ -43,16 +65,29 @@ func _pickup() -> void:
 		return
 
 	print("Picked up:", card_data.name)
+	mesh.visible = false
+	# 🔸 Use resource_path for lookup — that’s what CardCollection uses as its key
+	var key := card_data.resource_path
+	var is_new := not CardCollection.has_card(key)
+
+	# 🔸 Add to collection first (so count is updated)
 	CardCollection.add_card(card_data)
 	emit_signal("card_picked", card_data)
 
-	# 🟢 Show popup using manager
+	# 🔸 Show popup
 	var manager: Node = get_node_or_null(popup_manager_path)
 	if manager and manager.has_method("show_card"):
 		manager.show_card(card_data)
 
-	queue_free()
+	# 🔸 Play correct sound
+	if is_new:
+		new_pickup_sound.play()
+		await new_pickup_sound.finished
+	else:
+		pickup_sound.play()
+		await pickup_sound.finished
 
+	queue_free()
 
 func _on_body_entered(body):
 	if body.is_in_group("player"):
@@ -86,7 +121,7 @@ func _randomize_card() -> void:
 		file = dir.get_next()
 	dir.list_dir_end()
 
-	if card_files.size() == 0:
+	if card_files.is_empty():
 		push_warning("No card files found in res://cards/")
 		return
 

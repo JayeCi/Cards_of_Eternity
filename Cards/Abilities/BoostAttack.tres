@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="BoostAttack" load_steps=2 format=3 uid="uid://bjw8upbsyg51l"]
+
+[ext_resource type="Script" uid="uid://dkjvk43ly654t" path="res://Cards/Abilities/BoostAttack.gd" id="1_q243h"]
+
+[resource]
+script = ExtResource("1_q243h")
+trigger = "on_attack"
+display_name = "Boost Attack"
+value = 2
+range = 1
+description = "After attacking, increase this unit's attack power by 2 for the rest of this battle."
+metadata/_custom_type_script = "uid://dkjvk43ly654t"

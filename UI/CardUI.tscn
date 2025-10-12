@@ -1,16 +1,47 @@
-[gd_scene load_steps=3 format=3 uid="uid://ccivih8mxlv61"]
+[gd_scene load_steps=10 format=3 uid="uid://ccivih8mxlv61"]
 
 [ext_resource type="Script" uid="uid://bkgieridxbqpf" path="res://UI/card_ui.gd" id="1_qbe4h"]
 [ext_resource type="Texture2D" uid="uid://3j8dhf7kmeed" path="res://Images/Goblin.jpg" id="2_f3yd6"]
+[ext_resource type="Texture2D" uid="uid://ddm5ino8m58bj" path="res://Cards/Utilities/sprite_sheet.png" id="2_nfm18"]
+[ext_resource type="LabelSettings" uid="uid://cwdlq55ib3mtl" path="res://ATK_DEF_LABEL.tres" id="4_vs81k"]
 
-[node name="CardUi" type="Control"]
-custom_minimum_size = Vector2(75, 75)
+[sub_resource type="SystemFont" id="SystemFont_vs81k"]
+font_names = PackedStringArray("Tahoma")
+subpixel_positioning = 0
+
+[sub_resource type="LabelSettings" id="LabelSettings_3t43t"]
+font = SubResource("SystemFont_vs81k")
+outline_size = 3
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 8
+shadow_color = Color(0, 0, 0, 0.415686)
+
+[sub_resource type="LabelSettings" id="LabelSettings_kgeiq"]
+font_size = 12
+outline_size = 4
+outline_color = Color(0.520823, 0.296347, 0.0550154, 1)
+
+[sub_resource type="SystemFont" id="SystemFont_2l5o1"]
+font_names = PackedStringArray("Tahoma")
+subpixel_positioning = 0
+
+[sub_resource type="LabelSettings" id="LabelSettings_3mvpk"]
+font = SubResource("SystemFont_2l5o1")
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+shadow_color = Color(0, 0, 0, 0.701961)
+shadow_offset = Vector2(-1.585, 1)
+
+[node name="LegendaryCardUI" type="Control"]
+custom_minimum_size = Vector2(75, 153)
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = -1077.0
-offset_bottom = -573.0
+offset_left = 6.0
+offset_top = 7.0
+offset_right = -1071.0
+offset_bottom = -488.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 4
@@ -19,33 +50,174 @@ script = ExtResource("1_qbe4h")
 
 [node name="PanelContainer" type="PanelContainer" parent="."]
 layout_mode = 1
-offset_right = 75.0
-offset_bottom = 154.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 1
 
 [node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer"]
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="Art" type="TextureRect" parent="PanelContainer/VBoxContainer"]
+[node name="ArtPanel" type="Sprite2D" parent="PanelContainer/VBoxContainer"]
+z_index = 1
+position = Vector2(9, 37)
+scale = Vector2(1.575, 1.575)
+texture = ExtResource("2_nfm18")
+region_enabled = true
+region_rect = Rect2(356, 36, 56, 41)
+
+[node name="Art" type="TextureRect" parent="PanelContainer/VBoxContainer/ArtPanel"]
+z_index = 1
 custom_minimum_size = Vector2(75, 100)
-layout_mode = 2
+offset_left = -12.6984
+offset_top = -18.4127
+offset_right = 62.3016
+offset_bottom = 81.5873
+scale = Vector2(0.362, 0.362)
 texture = ExtResource("2_f3yd6")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="NameLabel" type="Label" parent="PanelContainer/VBoxContainer"]
+[node name="NamePlate" type="Sprite2D" parent="PanelContainer/VBoxContainer"]
+z_index = 2
+position = Vector2(9, 75)
+scale = Vector2(1.475, 1.475)
+texture = ExtResource("2_nfm18")
+region_enabled = true
+region_rect = Rect2(276, 514, 70, 13)
+
+[node name="NameLabel" type="Label" parent="PanelContainer/VBoxContainer/NamePlate"]
+z_index = 2
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = -14.9153
+offset_top = -6.77966
+offset_right = -14.9153
+offset_bottom = 16.2203
+grow_horizontal = 2
+scale = Vector2(0.434274, 0.434274)
+mouse_filter = 1
+text = "NAME"
+label_settings = SubResource("LabelSettings_3t43t")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+uppercase = true
+max_lines_visible = 1
+
+[node name="RarityPlate" type="Sprite2D" parent="PanelContainer/VBoxContainer"]
+z_index = 2
+position = Vector2(9, 2)
+scale = Vector2(1.475, 1.475)
+texture = ExtResource("2_nfm18")
+region_enabled = true
+region_rect = Rect2(369, 515, 46, 11)
+
+[node name="RarityLabel" type="Label" parent="PanelContainer/VBoxContainer/RarityPlate"]
+z_index = 2
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = -9.49153
+offset_top = -4.74576
+offset_right = -9.49152
+offset_bottom = 18.2542
+grow_horizontal = 2
+scale = Vector2(0.434274, 0.434274)
+mouse_filter = 1
+text = "RARITY"
+label_settings = SubResource("LabelSettings_kgeiq")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+uppercase = true
+max_lines_visible = 1
+
+[node name="StatPlate" type="Sprite2D" parent="PanelContainer/VBoxContainer"]
+z_index = 2
+position = Vector2(9, 116)
+scale = Vector2(1.475, 1.475)
+texture = ExtResource("2_nfm18")
+region_enabled = true
+region_rect = Rect2(356, 85, 56, 41)
+
+[node name="Panel" type="Panel" parent="PanelContainer/VBoxContainer/StatPlate"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -28.0
+offset_top = -20.5
+offset_right = -28.0
+offset_bottom = -20.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="AtkContainer" type="VBoxContainer" parent="PanelContainer/VBoxContainer/StatPlate/Panel"]
+layout_mode = 0
+offset_left = 1.55932
+offset_top = 2.19492
+offset_right = 31.5593
+offset_bottom = 42.1949
+scale = Vector2(0.905, 0.905)
+
+[node name="AtkLabel" type="Label" parent="PanelContainer/VBoxContainer/StatPlate/Panel/AtkContainer"]
+layout_mode = 2
+text = "ATK"
+label_settings = ExtResource("4_vs81k")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Atk" type="Label" parent="PanelContainer/VBoxContainer/StatPlate/Panel/AtkContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 6
+text = "15"
+label_settings = SubResource("LabelSettings_3mvpk")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DefContainer" type="VBoxContainer" parent="PanelContainer/VBoxContainer/StatPlate/Panel"]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 2.19492
+offset_right = 58.0
+offset_bottom = 42.1949
+scale = Vector2(0.905, 0.905)
+
+[node name="DefLabel" type="Label" parent="PanelContainer/VBoxContainer/StatPlate/Panel/DefContainer"]
+z_index = 1
 layout_mode = 2
 mouse_filter = 1
-text = "Test"
+text = "DEF"
+label_settings = ExtResource("4_vs81k")
+horizontal_alignment = 1
 
-[node name="StatLabel" type="Label" parent="PanelContainer/VBoxContainer"]
+[node name="Def" type="Label" parent="PanelContainer/VBoxContainer/StatPlate/Panel/DefContainer"]
 layout_mode = 2
-mouse_filter = 1
-text = "Test"
+size_flags_horizontal = 4
+size_flags_vertical = 6
+text = "15"
+label_settings = SubResource("LabelSettings_3mvpk")
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="CostLabel" type="Label" parent="PanelContainer"]
-layout_mode = 2
+[node name="CostPlate" type="Sprite2D" parent="PanelContainer/VBoxContainer"]
+z_index = 2
+position = Vector2(50, 5)
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("2_nfm18")
+region_enabled = true
+region_rect = Rect2(358, 678, 20, 20)
+
+[node name="CostLabel" type="Label" parent="PanelContainer/VBoxContainer/CostPlate"]
+z_index = 2
+offset_left = -2.66667
+offset_top = -9.33333
+offset_right = 8.33333
+offset_bottom = 16.6667
+scale = Vector2(0.655, 0.655)
 size_flags_horizontal = 8
 size_flags_vertical = 0
 theme_override_colors/font_color = Color(0.326422, 0.532406, 1, 1)
@@ -56,6 +228,13 @@ theme_override_constants/outline_size = 5
 theme_override_constants/shadow_outline_size = 4
 theme_override_font_sizes/font_size = 18
 text = "3"
+
+[node name="Card" type="Sprite2D" parent="PanelContainer/VBoxContainer"]
+position = Vector2(9, 78)
+scale = Vector2(1.575, 1.575)
+texture = ExtResource("2_nfm18")
+region_enabled = true
+region_rect = Rect2(55.7399, 563.994, 64.5758, 106.178)
 
 [node name="CountLabel" type="Label" parent="."]
 custom_minimum_size = Vector2(20, 20)

@@ -1,7 +1,39 @@
-[gd_scene load_steps=3 format=3 uid="uid://cghuuo1jwh48x"]
+[gd_scene load_steps=11 format=3 uid="uid://cghuuo1jwh48x"]
 
 [ext_resource type="Script" uid="uid://dl7qvvjxjl01r" path="res://UI/card_zoom.gd" id="1_ekd02"]
 [ext_resource type="Texture2D" uid="uid://3j8dhf7kmeed" path="res://Images/Goblin.jpg" id="2_6vw8o"]
+[ext_resource type="LabelSettings" uid="uid://bx3701todekh2" path="res://Cards/Utilities/DescriptionLabel.tres" id="2_8mo6d"]
+[ext_resource type="Texture2D" uid="uid://ddm5ino8m58bj" path="res://Cards/Utilities/sprite_sheet.png" id="2_dl2o5"]
+[ext_resource type="LabelSettings" uid="uid://deppmgiebdv6n" path="res://ATK_DEF_LABEL_ZOOM.tres" id="4_4wle8"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dl2o5"]
+bg_color = Color(0.298039, 0.321569, 0.364706, 1)
+border_width_left = 8
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 8
+border_blend = true
+
+[sub_resource type="SystemFont" id="SystemFont_qyawe"]
+font_names = PackedStringArray("Tahoma")
+
+[sub_resource type="LabelSettings" id="LabelSettings_mcfj5"]
+font = SubResource("SystemFont_qyawe")
+outline_size = 3
+outline_color = Color(0.407843, 0.235294, 0, 1)
+shadow_size = 4
+shadow_color = Color(0, 0, 0, 0.8)
+
+[sub_resource type="SystemFont" id="SystemFont_4wle8"]
+font_names = PackedStringArray("Tahoma")
+subpixel_positioning = 0
+
+[sub_resource type="LabelSettings" id="LabelSettings_8mo6d"]
+font = SubResource("SystemFont_4wle8")
+outline_size = 4
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 2
+shadow_color = Color(0, 0, 0, 0.780392)
 
 [node name="CardZoom" type="Control"]
 auto_translate_mode = 1
@@ -11,47 +43,269 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+size_flags_horizontal = 6
+size_flags_vertical = 6
 script = ExtResource("1_ekd02")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 15.0
+offset_top = -302.0
+offset_right = 409.28
+offset_bottom = 300.9
+grow_vertical = 2
+size_flags_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_dl2o5")
+
+[node name="DescriptionContainer" type="MarginContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 8.0
+offset_right = 12.0
+offset_bottom = -304.67
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.939683, 0.939683)
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel/DescriptionContainer"]
+layout_mode = 2
+
+[node name="DescLabel" type="Label" parent="Panel/DescriptionContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Description"
+label_settings = ExtResource("2_8mo6d")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Desc" type="Label" parent="Panel/DescriptionContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 0
+mouse_default_cursor_shape = 2
+text = "Description Text"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -296.9
+offset_right = -0.279999
+offset_bottom = 0.0999756
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 3
+
+[node name="AbilitiesContainer" type="VBoxContainer" parent="Panel/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+
+[node name="AbilitiesLabel" type="Label" parent="Panel/MarginContainer/AbilitiesContainer"]
+layout_mode = 2
+size_flags_vertical = 1
+mouse_filter = 0
+mouse_default_cursor_shape = 2
+text = "Abilities"
+label_settings = ExtResource("2_8mo6d")
+horizontal_alignment = 1
+
+[node name="Ability_name" type="Label" parent="Panel/MarginContainer/AbilitiesContainer"]
+layout_mode = 2
+size_flags_vertical = 1
+mouse_filter = 0
+mouse_default_cursor_shape = 2
+text = "Ability Name"
+label_settings = SubResource("LabelSettings_mcfj5")
+horizontal_alignment = 1
+
+[node name="Ability_desc" type="Label" parent="Panel/MarginContainer/AbilitiesContainer"]
+custom_minimum_size = Vector2(350, 250)
+layout_mode = 2
+size_flags_vertical = 1
+text = "Abilities Text"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 6
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
 mouse_filter = 0
 
-[node name="Art" type="TextureRect" parent="VBoxContainer"]
-custom_minimum_size = Vector2(300, 350)
-layout_mode = 2
+[node name="Card" type="Sprite2D" parent="MarginContainer/VBoxContainer"]
+position = Vector2(571, 312.903)
+scale = Vector2(5.15585, 5.15585)
+texture = ExtResource("2_dl2o5")
+region_enabled = true
+region_rect = Rect2(276, 353, 56, 95)
+
+[node name="Art" type="TextureRect" parent="MarginContainer/VBoxContainer/Card"]
+custom_minimum_size = Vector2(256, 384)
+offset_left = -23.8564
+offset_top = -41.2935
+offset_right = 232.144
+offset_bottom = 342.707
+scale = Vector2(0.186446, 0.186446)
 size_flags_horizontal = 4
 size_flags_vertical = 5
 mouse_filter = 0
 mouse_default_cursor_shape = 2
 texture = ExtResource("2_6vw8o")
 expand_mode = 1
+metadata/_edit_use_anchors_ = true
 
-[node name="NameLabel" type="Label" parent="VBoxContainer"]
-layout_mode = 2
+[node name="Rarity" type="Label" parent="MarginContainer/VBoxContainer/Card"]
+z_index = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -52.2443
+offset_top = -63.7545
+offset_right = 36.7557
+offset_bottom = -40.7545
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(0.543983, 0.543983)
 size_flags_vertical = 5
 mouse_filter = 0
+mouse_default_cursor_shape = 2
+text = "COMMON"
+horizontal_alignment = 1
+
+[node name="NamePlate" type="Sprite2D" parent="MarginContainer/VBoxContainer"]
+z_index = 1
+position = Vector2(572.779, 102.903)
+scale = Vector2(4.22227, 4.22227)
+texture = ExtResource("2_dl2o5")
+region_enabled = true
+region_rect = Rect2(276, 482, 70, 13)
+
+[node name="NameLabel" type="Label" parent="MarginContainer/VBoxContainer/NamePlate"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -15.8683
+offset_top = -6.39467
+offset_right = -2.86826
+offset_bottom = 3.60533
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.395, 0.395)
+size_flags_horizontal = 3
+size_flags_vertical = 1
 mouse_default_cursor_shape = 2
 text = "Test Name"
+label_settings = SubResource("LabelSettings_8mo6d")
 horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="StatsLabel" type="Label" parent="VBoxContainer"]
-layout_mode = 2
-size_flags_vertical = 5
-mouse_filter = 0
-mouse_default_cursor_shape = 2
-text = "Attack: 1 Defense: 1"
-horizontal_alignment = 1
+[node name="Border" type="Sprite2D" parent="MarginContainer/VBoxContainer"]
+position = Vector2(571, 470)
+scale = Vector2(5.96734, 1.06408)
+texture = ExtResource("2_dl2o5")
+region_enabled = true
+region_rect = Rect2(369, 483, 46, 11)
 
-[node name="DescLabel" type="Label" parent="VBoxContainer"]
-layout_mode = 2
-size_flags_vertical = 5
-mouse_filter = 0
-mouse_default_cursor_shape = 2
-text = "Description"
+[node name="Stats" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 733.0
+offset_top = -149.0
+offset_right = 1127.28
+offset_bottom = 134.505
+grow_vertical = 2
+size_flags_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_dl2o5")
+
+[node name="AtkPlate" type="Sprite2D" parent="Stats"]
+position = Vector2(99, 137)
+scale = Vector2(2.08407, 2.08407)
+texture = ExtResource("2_dl2o5")
+region_enabled = true
+region_rect = Rect2(276, 36, 56, 41)
+
+[node name="Atk" type="Label" parent="Stats/AtkPlate"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -28.0
+offset_top = -20.5
+offset_right = -28.0
+offset_bottom = -20.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "10"
+label_settings = ExtResource("4_4wle8")
 horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DefPlate" type="Sprite2D" parent="Stats"]
+position = Vector2(298, 137)
+scale = Vector2(2.08407, 2.08407)
+texture = ExtResource("2_dl2o5")
+region_enabled = true
+region_rect = Rect2(276, 36, 56, 41)
+
+[node name="Def" type="Label" parent="Stats/DefPlate"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -28.0
+offset_top = -20.5
+offset_right = -28.0
+offset_bottom = -20.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "10"
+label_settings = ExtResource("4_4wle8")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AttackLabel" type="Label" parent="Stats"]
+layout_mode = 0
+offset_left = 61.0
+offset_top = 59.0
+offset_right = 138.0
+offset_bottom = 94.0
+text = "Attack"
+label_settings = ExtResource("4_4wle8")
+
+[node name="DefenseLabel" type="Label" parent="Stats"]
+layout_mode = 0
+offset_left = 247.0
+offset_top = 59.0
+offset_right = 347.0
+offset_bottom = 94.0
+text = "Defense"
+label_settings = ExtResource("4_4wle8")

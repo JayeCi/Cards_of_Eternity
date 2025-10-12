@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://bnccqdqhcj703"]
 
-[ext_resource type="Script" uid="uid://dffda5a8krvyr" path="res://card_pickup_manager.gd" id="1_g26e7"]
+[ext_resource type="Script" uid="uid://dffda5a8krvyr" path="res://Cards/Utilities/card_pickup_manager.gd" id="1_g26e7"]
 
 [node name="CardPickupManager" type="Control"]
 layout_mode = 3

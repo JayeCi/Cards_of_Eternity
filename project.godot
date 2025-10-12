@@ -11,19 +11,21 @@ config_version=5
 [application]
 
 config/name="Game_Unknown_1"
-run/main_scene="uid://b3mv1fus57f04"
-config/features=PackedStringArray("4.5", "Forward Plus")
+run/main_scene="uid://b0mrl7osoahqg"
+config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
 
 CardCollection="*res://UI/CardCollection.gd"
 BattleManager="*res://UI/BattleManager.gd"
+DialogueManager="*res://Dialogue/DialogueManager.gd"
 
 [global_group]
 
 player=""
 overworld=""
+battle_scene=""
 
 [input]
 

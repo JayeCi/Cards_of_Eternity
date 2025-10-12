@@ -6,15 +6,14 @@
 [resource]
 script = ExtResource("1_wmtkd")
 type = "Elemental"
-rarity = "Rare"
+rarity = "Legendary"
 id = "00007"
 name = "Forest Fae"
-description = "A forest fae turned villianous."
 art = ExtResource("1_64214")
 cost = 2
-attack = 22
-defense = 15
-card_type = "Monster"
+atk = 25
+def = 25
+hp = 0
 fusion_materials = Array[String]([])
 attack_moves = Array[String]([])
 metadata/_custom_type_script = "uid://57up1u0etcmc"

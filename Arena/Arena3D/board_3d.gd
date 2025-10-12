@@ -29,7 +29,10 @@ func _generate_grid() -> void:
 			var tile := tile_scene.instantiate()
 			tile.x = x
 			tile.y = y
-
+			
+			var terrain_options = ["Stone", "Grass" , "Lava", "Water", "Forest", "Ice"]
+			tile.terrain_type = terrain_options[randi() % terrain_options.size()]
+			
 			# Position tiles evenly around (0,0)
 			var pos_x := (x - half_w) * spacing
 			var pos_z := -(y - half_h) * spacing
@@ -44,3 +47,44 @@ func _generate_grid() -> void:
 
 func get_tile(x: int, y: int) -> Node3D:
 	return tiles.get(Vector2i(x, y))
+	
+func set_board_layout(layout_name: String) -> void:
+	var layout: Array = []
+
+	match layout_name:
+		"stone_arena":
+			# All Stone
+			layout.resize(height)
+			for y in range(height):
+				layout[y] = []
+				for x in range(width):
+					layout[y].append("Stone")
+
+		"lava_valley":
+			# Outer ring Lava, middle Stone
+			layout.resize(height)
+			for y in range(height):
+				layout[y] = []
+				for x in range(width):
+					var is_edge = x == 0 or y == 0 or x == width - 1 or y == height - 1
+					layout[y].append("Lava" if is_edge else "Stone")
+
+		"forest_meadow":
+			# Diagonal forest paths
+			layout.resize(height)
+			for y in range(height):
+				layout[y] = []
+				for x in range(width):
+					layout[y].append("Forest" if (x + y) % 2 == 0 else "Grass")
+
+		_:
+			push_warning("Unknown board layout: %s" % layout_name)
+			return
+
+	# Apply layout to tiles
+	for y in range(height):
+		for x in range(width):
+			var tile: Node3D = get_tile(x, y)
+			if tile and y < layout.size() and x < layout[y].size():
+				tile.terrain_type = layout[y][x]
+				tile._apply_terrain_visual()

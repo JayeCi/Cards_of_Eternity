@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://dfkmkny1i2g7h"
+path="res://.godot/imported/CardMove.mp3-e3828b47a0fc70c517fa10cd0a4f8f04.mp3str"
+
+[deps]
+
+source_file="res://Audio/Sound FX/CardMove.mp3"
+dest_files=["res://.godot/imported/CardMove.mp3-e3828b47a0fc70c517fa10cd0a4f8f04.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

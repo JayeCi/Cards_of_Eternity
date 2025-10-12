@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=3 uid="uid://camg64m8fg43w"]
+[gd_scene load_steps=9 format=3 uid="uid://camg64m8fg43w"]
 
 [ext_resource type="PackedScene" uid="uid://da27pnrvn5yna" path="res://Arena/Arena3D/Board3D.tscn" id="1_5ykft"]
-[ext_resource type="Script" uid="uid://bmu6yj2gr6rm0" path="res://arena.gd" id="1_6q22w"]
+[ext_resource type="Script" uid="uid://bmu6yj2gr6rm0" path="res://Arena/arena.gd" id="1_6q22w"]
 [ext_resource type="PackedScene" uid="uid://dcus3e1lnkiqj" path="res://UI/UI.tscn" id="2_opwpc"]
-[ext_resource type="AudioStream" uid="uid://b5kmgf3x0byk" path="res://Music/classic-rock-solo-jam-epic-guitar-performance-225274.mp3" id="4_pfipv"]
+[ext_resource type="AudioStream" uid="uid://b5kmgf3x0byk" path="res://Audio/Music/classic-rock-solo-jam-epic-guitar-performance-225274.mp3" id="4_pfipv"]
+[ext_resource type="Texture2D" uid="uid://dkes2i4j5tjot" path="res://Images/Textures/metall005-new-tileable.png" id="5_i5af3"]
 
 [sub_resource type="Environment" id="Environment_6q22w"]
 background_mode = 1
@@ -11,7 +12,13 @@ background_color = Color(0.0137245, 0.0722071, 0.0761018, 1)
 fog_enabled = true
 fog_light_color = Color(0.00847996, 0.0731864, 0.0787612, 1)
 
-[node name="Arena3D" type="Node3D"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_i42j4"]
+albedo_texture = ExtResource("5_i5af3")
+uv1_scale = Vector3(1.765, 1.765, 1.765)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pfipv"]
+
+[node name="Arena3D" type="Node3D" groups=["battle_scene"]]
 script = ExtResource("1_6q22w")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
@@ -40,6 +47,11 @@ volume_db = -36.54
 autoplay = true
 bus = &"Music"
 parameters/looping = true
+
+[node name="UnderBoard" type="MeshInstance3D" parent="."]
+transform = Transform3D(50, 0, 0, 0, 50, 0, 0, 0, 50, 0, -27.8305, 0)
+material_override = SubResource("StandardMaterial3D_i42j4")
+mesh = SubResource("BoxMesh_pfipv")
 
 [connection signal="pressed" from="UI/EndTurnButton" to="." method="_on_end_turn_button_pressed"]
 [connection signal="pressed" from="UI/VBoxContainer/LogButton" to="." method="_on_log_button_pressed"]

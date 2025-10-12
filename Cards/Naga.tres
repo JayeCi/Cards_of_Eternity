@@ -6,15 +6,14 @@
 [resource]
 script = ExtResource("1_ma0od")
 type = "Elemental"
-rarity = "Rare"
+rarity = "Epic"
 id = "00005"
 name = "Naga"
-description = "A snake humanoid that is out for vengeance."
 art = ExtResource("1_m3xtm")
 cost = 2
-attack = 17
-defense = 22
-card_type = "Monster"
+atk = 17
+def = 19
+hp = 0
 fusion_materials = Array[String]([])
 attack_moves = Array[String]([])
 metadata/_custom_type_script = "uid://57up1u0etcmc"

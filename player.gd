@@ -6,13 +6,12 @@ const MOUSE_SENSITIVITY = 0.003
 
 @onready var cam: Camera3D = $Head/Camera3D
 @onready var head = $Head
-@onready var collection_ui: Control = get_node("/root/Main/CollectionUI")
+@onready var collection_ui: Control = $"../CollectionUI"
 
 var rotation_x = 0.0
 var mouse_locked = true
 
 func _ready() -> void:
-	await get_tree().process_frame 
 	_lock_mouse()
 
 

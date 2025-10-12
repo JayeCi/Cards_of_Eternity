@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://cfdpfo0v7q58b"
+path="res://.godot/imported/rat-squeaks-2-fx-396301.mp3-ae1774029c1890306eaac045dffca880.mp3str"
+
+[deps]
+
+source_file="res://Audio/Sound FX/Rat/rat-squeaks-2-fx-396301.mp3"
+dest_files=["res://.godot/imported/rat-squeaks-2-fx-396301.mp3-ae1774029c1890306eaac045dffca880.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

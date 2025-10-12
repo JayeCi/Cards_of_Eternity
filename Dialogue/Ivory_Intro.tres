@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="DialogueData" load_steps=2 format=3 uid="uid://d0ie67kaq5j1g"]
+
+[ext_resource type="Script" uid="uid://dk3qs7y52r5yr" path="res://Dialogue/DialogueData.gd" id="1_32p81"]
+
+[resource]
+script = ExtResource("1_32p81")
+lines = Array[String](["Hey why are you down here?", "Do you have any cards?"])
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"

@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://4ftlpnnxlo53"]
+[gd_scene load_steps=6 format=3 uid="uid://4ftlpnnxlo53"]
 
 [ext_resource type="Script" uid="uid://dnpmx4n7xby6j" path="res://Cards/Utilities/cardpickup.gd" id="1_xrsix"]
-
-[sub_resource type="PlaneMesh" id="PlaneMesh_ihtcx"]
+[ext_resource type="ArrayMesh" uid="uid://b3xxievahudgm" path="res://Cards/Utilities/CardModel/CardMeshExt.res" id="2_kt2e6"]
+[ext_resource type="AudioStream" uid="uid://d115kwrryugwj" path="res://Audio/Sound FX/Pickup.mp3" id="3_oyvri"]
+[ext_resource type="AudioStream" uid="uid://c785ynqxv8sm5" path="res://Audio/Sound FX/NEW_card.mp3" id="4_cjafp"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_xrsix"]
 size = Vector3(3.70483, 1.64429, 1)
@@ -11,18 +12,29 @@ size = Vector3(3.70483, 1.64429, 1)
 script = ExtResource("1_xrsix")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(0.403461, 0, 0, 0, -4.37114e-08, -0.555885, 0, 1, -2.42985e-08, 0, 0.6, 0)
-mesh = SubResource("PlaneMesh_ihtcx")
+transform = Transform3D(0.299789, 0, 0, 0, -3.24795e-08, -0.413047, 0, 0.743044, -1.80549e-08, 0, 1.2818, 0)
+mesh = ExtResource("2_kt2e6")
 skeleton = NodePath("")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(0.403461, 0, 0, 0, -4.37114e-08, -0.555885, 0, 1, -2.42985e-08, 0, 0.6, 0)
+transform = Transform3D(0.107783, 0, 0, 0, -1.16773e-08, -0.148502, 0, 0.267146, -6.49125e-09, 0, 0.994321, 0)
 shape = SubResource("BoxShape3D_xrsix")
 
 [node name="Label3D" type="Label3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.27084, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.79171, 0)
 visible = false
+billboard = 2
 text = "Press [E] to pick up"
+
+[node name="PickupSound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("3_oyvri")
+volume_db = -31.998
+bus = &"SFX"
+
+[node name="NewPickupSound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("4_cjafp")
+volume_db = -31.998
+bus = &"SFX"
 
 [connection signal="body_entered" from="." to="." method="_on_body_entered"]
 [connection signal="body_exited" from="." to="." method="_on_body_exited"]

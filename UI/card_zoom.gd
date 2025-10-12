@@ -1,9 +1,13 @@
 extends Control
 
-@onready var art = $VBoxContainer/Art
-@onready var name_label = $VBoxContainer/NameLabel
-@onready var stats_label = $VBoxContainer/StatsLabel
-@onready var desc_label = $VBoxContainer/DescLabel
+@onready var art = $MarginContainer/VBoxContainer/Card/Art
+@onready var name_label = $MarginContainer/VBoxContainer/NamePlate/NameLabel
+@onready var desc = $Panel/DescriptionContainer/VBoxContainer/Desc
+@onready var attack_label = $Stats/AtkPlate/Atk
+@onready var defense_label = $Stats/DefPlate/Def
+@onready var rarity_label = $MarginContainer/VBoxContainer/Card/Rarity
+@onready var ability_name = $Panel/MarginContainer/AbilitiesContainer/Ability_name
+@onready var ability_desc = $Panel/MarginContainer/AbilitiesContainer/Ability_desc
 
 func _ready():
 	set_process_unhandled_input(true)
@@ -16,12 +20,23 @@ func show_card(card: CardData):
 
 	art.texture = card.art
 	name_label.text = card.name
-	stats_label.text = "ATK: %d | DEF: %d | Cost: %d" % [card.attack, card.defense, card.cost]
-
+	attack_label.text = str(card.atk)
+	defense_label.text = str(card.def)
+	rarity_label = card.rarity
+	
 	if "description" in card and card.description != "":
-		desc_label.text = card.description
+		desc.text = card.description
 	else:
-		desc_label.text = "No description."
+		desc.text = "No description."
+		
+	# 🧩 Ability
+	if card.ability:
+		var ability = card.ability
+		ability_name.text = card.ability.display_name
+		ability_desc.text = card.ability.description
+	else:
+		ability_name.text = str("No ability")
+		ability_desc.text = ""
 
 	modulate.a = 0.0
 	scale = Vector2(0.9, 0.9)

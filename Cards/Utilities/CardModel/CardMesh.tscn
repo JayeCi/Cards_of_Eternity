@@ -6,11 +6,11 @@
 resource_name = "Front"
 cull_mode = 2
 albedo_texture = ExtResource("1_va3j8")
-roughness = 0.8657005
+roughness = 0.8657
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_pofye"]
 _surfaces = [{
-"aabb": AABB(-0.2936446, -0.0028149406, 0, 0.5872892, 1e-05, 0.99554044),
+"aabb": AABB(-0.293645, -0.00281494, 0, 0.587289, 1e-05, 0.99554),
 "format": 34896613377,
 "index_count": 66,
 "index_data": PackedByteArray("AAABAAIAAgADAAAAAwAEAAAAAwAFAAQABQAGAAQABQAHAAYABwAIAAYABwAJAAgACQAKAAgACQALAAoACwAMAAoACwANAAwADQAOAAwADQAPAA4ADwAQAA4ADwARABAAEQASABAAEQATABIAEwAUABIAEwAVABQAFQAWABQAFQAXABYA"),
@@ -25,7 +25,7 @@ blend_shape_mode = 0
 [sub_resource type="ArrayMesh" id="ArrayMesh_la7aj"]
 resource_name = "Sketchfab_Scene_CARD_Front_0"
 _surfaces = [{
-"aabb": AABB(-0.2936446, -0.0028149406, 0, 0.5872892, 1e-05, 0.99554044),
+"aabb": AABB(-0.293645, -0.00281494, 0, 0.587289, 1e-05, 0.99554),
 "attribute_data": PackedByteArray("UPfSAJPzhwC3DYcA+gnSAK/6qwGbBqsBXP39Au4D/QIU/6cENgKnBKz/gAaeAYAGrP9o+Z4BaPkU/0D7NgJA+1z96vzuA+r8r/o9/psGPf5Q9xb/+gkW/5PzYP+3DWD/"),
 "format": 34896613399,
 "index_count": 66,

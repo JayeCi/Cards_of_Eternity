@@ -2,17 +2,39 @@ extends Control
 
 @export var card_ui_scene: PackedScene = preload("res://ui/CardUI.tscn")
 
-@onready var grid = $ScrollContainer/GridContainer
-@onready var zoom = get_tree().root.get_node("Main/CanvasLayer/CardZoom")
+@onready var grid = $ScrollContainer/MarginContainer/GridContainer
+@onready var zoom: Control = $"../CanvasLayer/CardZoom"
+
 
 
 # Track displayed cards
 var displayed_cards := {}  # { "CARD_ID": card_ui_node }
 
 func _ready():
+	connect("visibility_changed", Callable(self, "_on_visibility_changed"))
 	CardCollection.connect("card_added", Callable(self, "_on_card_added"))
 	_load_existing_cards()
 	zoom.hide()
+
+func _on_visibility_changed():
+	var battle_scene: Node = null
+
+	# 🔍 Find the active battle scene via its group
+	var nodes = get_tree().get_nodes_in_group("battle_scene")
+	if nodes.size() > 0:
+		battle_scene = nodes[0]
+
+	if not battle_scene:
+		print("⚠️ Could not find battle scene to toggle UI.")
+		return
+
+	# ✅ Toggle arena UI visibility (hide when collection is open)
+	if visible:
+		if battle_scene.has_method("hide_game_ui"):
+			battle_scene.hide_game_ui()
+	else:
+		if battle_scene.has_method("show_game_ui"):
+			battle_scene.show_game_ui()
 
 func _load_existing_cards():
 	for card_id in CardCollection.get_all_cards():

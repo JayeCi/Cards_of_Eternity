@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://cvok0bo1d23pq"
+path="res://.godot/imported/electricty.mp3-f44c5c7d6aef3f3dcab8974d5747954b.mp3str"
+
+[deps]
+
+source_file="res://Audio/Sound FX/electricty.mp3"
+dest_files=["res://.godot/imported/electricty.mp3-f44c5c7d6aef3f3dcab8974d5747954b.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
