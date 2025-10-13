@@ -154,6 +154,9 @@ func fade_hand_out() -> void:
 
 # Hover label + card details
 func show_hover_for_tile(tile: Node3D) -> void:
+	if core and core.is_cutscene_active:
+		return  # 🚫 Stop hover UI during cutscene
+
 	if tile == null:
 		hide_hover()
 		return
@@ -184,6 +187,9 @@ func move_ghost_over(tile: Node3D) -> void:
 
 
 func hide_hover() -> void:
+	if core and core.is_cutscene_active:
+		return  # 🚫 Skip hiding/fading during cutscene
+
 	if not hover_label.visible: return
 	var t = create_tween()
 	t.tween_property(hover_label, "modulate:a", 0.0, 0.15)

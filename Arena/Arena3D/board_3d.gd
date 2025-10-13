@@ -4,17 +4,58 @@ extends Node3D
 @export var width: int = 7
 @export var height: int = 7
 @export var spacing: float = 1.1
+@onready var card_ui: ArenaCardDetails = get_node("../UISystem/ArenaCardDetails")
+@onready var terrain_ui: Control = get_node("../UISystem/ArenaTerrainDetails")
+@onready var core: ArenaCore = $".."
+
 
 var tiles: Dictionary = {}
 
 func _ready() -> void:
-	# Clear any existing tiles before generating
+	# 1️⃣ Clear old tiles first (if any)
 	for child in get_children():
 		child.queue_free()
 
+	await get_tree().process_frame  # allow freeing to complete
+
+	# 2️⃣ Generate the new board
 	_generate_grid()
 
-# ✅ NEW HELPER — safely fetch a tile occupied by a given UnitData
+	# 3️⃣ Connect hover signals to the new tiles
+	for tile in tiles.values():
+		if tile.has_signal("hovered"):
+			tile.hovered.connect(_on_tile_hovered)
+
+func _on_tile_hovered(tile: Node3D) -> void:
+	# 🚫 Disable hover during cutscene
+	if core and core.is_cutscene_active:
+		return
+
+	if tile.occupant:
+		# Show card/unit info
+		if card_ui:
+			card_ui.show_unit(tile.occupant)
+		if terrain_ui:
+			terrain_ui.visible = false
+	else:
+		# Show terrain info only
+		if terrain_ui:
+			terrain_ui.show_terrain(tile.terrain_type)
+		if card_ui:
+			card_ui.hide_card()
+
+
+func _on_tile_hover_exited(tile: Node3D) -> void:
+	# 🚫 Disable hover exit during cutscene
+	if core and core.is_cutscene_active:
+		return
+
+	if card_ui:
+		card_ui.hide_card()
+	if terrain_ui:
+		terrain_ui.hide_terrain()
+
+
 func get_tile_position_for_unit(unit: UnitData) -> Node3D:
 	for pos in tiles.keys():
 		var tile = tiles[pos]

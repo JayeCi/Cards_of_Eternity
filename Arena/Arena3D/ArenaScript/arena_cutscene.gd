@@ -4,14 +4,23 @@ class_name ArenaCutscene
 var core: ArenaCore
 var board: Node3D
 var camera: Camera3D
+var _is_cutscene_running := false
 
 func init_cutscene(core_ref: ArenaCore) -> void:
 	core = core_ref
 	board = core.board
 	camera = core.camera
 
+func _unhandled_input(event: InputEvent) -> void:
+	if _is_cutscene_running and event is InputEventMouseButton:
+		get_viewport().set_input_as_handled()
+
 func _intro() -> void:
+	_is_cutscene_running = true
+	core.is_cutscene_active = true  # 🔒 Tell systems to ignore hover
 	_disable_input(true)
+	_hide_battle_ui(true)
+	
 	var fade_rect: ColorRect = core.get_node("UISystem/FadeRect")
 	fade_rect.modulate.a = 1.0
 	await get_tree().process_frame
@@ -38,10 +47,24 @@ func _intro() -> void:
 	await get_tree().create_timer(0.6).timeout
 	await _smooth_return()
 	await get_tree().create_timer(0.8).timeout
+
+	_hide_battle_ui(false)
+	core.is_cutscene_active = false  # 🔓 Allow hover again
 	_disable_input(false)
-	core._log("⚔️ The battle begins!")
+	_is_cutscene_running = false
+# -------------------------------------------------
+# UI Helpers
+# -------------------------------------------------
+func _hide_battle_ui(hide: bool) -> void:
+	if not core: return
+	if core.has_node("UISystem/ArenaCardDetails"):
+		core.get_node("UISystem/ArenaCardDetails").visible = not hide
+	if core.has_node("UISystem/ArenaTerrainDetails"):
+		core.get_node("UISystem/ArenaTerrainDetails").visible = not hide
 
-
+# -------------------------------------------------
+# Rest of your existing methods remain unchanged
+# -------------------------------------------------
 func _fade(to_alpha: float, dur: float):
 	var rect: ColorRect = core.get_node("UISystem/FadeRect")
 	var tw = create_tween()
@@ -139,3 +162,10 @@ func _focus_camera_on(target_pos: Vector3, zoom_mult: float, duration: float):
 
 func _disable_input(b: bool) -> void:
 	core.set_process_input(not b)
+
+	if b:
+		# 🖱️ Lock mouse & hide cursor
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	else:
+		# 🖱️ Restore normal mouse mode
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)

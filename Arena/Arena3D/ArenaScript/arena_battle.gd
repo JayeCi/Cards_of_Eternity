@@ -64,14 +64,28 @@ func clear_highlights() -> void:
 			var t = board.get_tile(x, y)
 			if t: t.set_highlight(false)
 
-func show_valid_summon_tiles() -> void:
-	clear_highlights()
-	var leader_pos := get_leader_pos(core.PLAYER)
-	for d in [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]:
-		var p = leader_pos + d
-		if p.x < 0 or p.y < 0 or p.x >= core.BOARD_W or p.y >= core.BOARD_H: continue
-		var t = board.get_tile(p.x, p.y)
-		if t.occupant == null: t.set_highlight(true, "★")
+func show_valid_summon_tiles():
+	var leader_pos = core.get_leader_pos(core.PLAYER)
+	var tiles_to_highlight: Array = []
+
+	for y in range(core.BOARD_H):
+		for x in range(core.BOARD_W):
+			var tile = core.board.get_tile(x, y)
+			if not tile: continue
+			var dist = Vector2i(x, y).distance_to(leader_pos)
+			if dist == 1 and tile.occupant == null:
+				tiles_to_highlight.append(tile)
+
+	for tile in tiles_to_highlight:
+		tile.summon_highlight = true
+		tile.set_highlight(true)
+		
+func clear_summon_highlights():
+	for tile in core.board.tiles.values():
+		if tile.summon_highlight:
+			tile.summon_highlight = false
+			if not tile.highlighted:
+				tile.set_highlight(false)
 
 # -----------------------------
 # BOARD INTERACTION
@@ -128,7 +142,8 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, mark_acted
 	u.mode = mode
 	core.units[pos] = u
 	var tile = board.get_tile(pos.x, pos.y)
-	tile.occupant = u
+	tile.set_occupant(u)
+
 
 	match u.mode:
 		UnitData.Mode.ATTACK:
@@ -176,7 +191,7 @@ func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 
 	if dst.occupant == null:
 		# MOVE
-		dst.occupant = attacker
+		dst.set_occupant(attacker)
 		_play_card_sound(core.CARD_MOVE_SOUND, dst.global_position)
 		dst.set_art(
 	attacker.card.art if attacker.mode != UnitData.Mode.FACEDOWN else core.CARD_BACK,
@@ -208,12 +223,12 @@ func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 	match result:
 		"attacker_wins":
 			_kill_unit(defender)
-			dst.occupant = attacker
+			dst.set_occupant(attacker)
 			dst.set_art(
 	attacker.card.art if attacker.mode != UnitData.Mode.FACEDOWN else core.CARD_BACK,
 	attacker.owner == core.ENEMY
 )
-
+			dst.set_occupant(attacker)
 			dst.set_badge_text("P" if attacker.owner == core.PLAYER else "E")
 
 			src.clear()

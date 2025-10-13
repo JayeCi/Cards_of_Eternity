@@ -16,6 +16,11 @@ var current_atk: int
 var current_def: int
 
 func init_from_card(c: CardData, owner_id: int) -> UnitData:
+	if c == null:
+		push_error("❌ UnitData.init_from_card called with null CardData!")
+		return self
+	# rest of your code…
+
 	card = c
 	owner = owner_id
 	atk = c.atk

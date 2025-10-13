@@ -1,0 +1,12 @@
+[gd_resource type="LabelSettings" load_steps=2 format=3 uid="uid://bh5cergsoq62"]
+
+[sub_resource type="SystemFont" id="SystemFont_yn11x"]
+font_names = PackedStringArray("Dubai")
+subpixel_positioning = 0
+
+[resource]
+font = SubResource("SystemFont_yn11x")
+outline_size = 2
+outline_color = Color(0, 0.38212615, 0.8931859, 1)
+shadow_size = 9
+shadow_color = Color(0, 0, 0, 0.8509804)

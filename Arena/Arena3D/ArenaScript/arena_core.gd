@@ -89,6 +89,7 @@ var acted_this_turn := {} # {UnitData: true}
 
 # Camera lock used by focus tweens/cutscenes
 var _is_camera_locked := false
+var is_cutscene_active: bool = false
 
 # -----------------------------
 # CARDS (preloads you used)
@@ -186,7 +187,11 @@ func _spawn_leaders() -> void:
 func _place_leader(unit: UnitData, pos: Vector2i) -> void:
 	units[pos] = unit
 	var tile = board.get_tile(pos.x, pos.y)
-	tile.occupant = unit
+	if not tile:
+		push_error("⚠️ Could not find tile for leader placement at %s" % str(pos))
+		return
+
+	tile.set_occupant(unit)  # ✅ this automatically shows LeaderBadge if is_leader = true
 	tile.set_art(unit.card.art)
 	tile.set_badge_text("L")
 
@@ -218,11 +223,20 @@ func on_hand_card_clicked(card: CardData) -> void:
 	ui_sys.call("on_drag_start", card)
 
 func try_place_dragged_card(hover_tile: Node3D) -> void:
-	if not hover_tile or hover_tile.occupant != null:
+	if not dragging_card or not selected_card:
+		_log("⚠️ Tried to place a card, but none is selected.")
 		ui_sys.call("cancel_drag")
 		_set_phase(Phase.SUMMON_OR_MOVE)
 		_update_phase_ui()
 		return
+
+	if not hover_tile or hover_tile.occupant != null:
+		ui_sys.call("cancel_drag")
+		battle_sys.call("clear_summon_highlights") # 🧹 clear when not placing
+		_set_phase(Phase.SUMMON_OR_MOVE)
+		_update_phase_ui()
+		return
+
 
 	var leader_pos: Vector2i = battle_sys.call("get_leader_pos", PLAYER)
 	var tile_pos := Vector2i(hover_tile.x, hover_tile.y)
@@ -268,7 +282,9 @@ func confirm_summon_in_mode(mode: int) -> void:
 	player_essence -= cost
 	emit_signal("essence_changed", player_essence, enemy_essence)
 
+	print("DEBUG summon:", selected_card, "pos:", selected_pos, "mode:", mode)
 	battle_sys.call("place_unit", selected_card, selected_pos, PLAYER, summon_mode, true)
+
 
 	# Clean up
 	ui_sys.call("cancel_drag")  # ✅ hides ghost + shows hand again
@@ -280,7 +296,7 @@ func confirm_summon_in_mode(mode: int) -> void:
 
 	_set_phase(Phase.SUMMON_OR_MOVE)
 	_update_phase_ui()
-
+	
 # -----------------------------
 # TURN FLOW
 # -----------------------------
@@ -425,3 +441,10 @@ func log_message(message: String, color: Color = Color.WHITE) -> void:
 # Optional alias to match older scripts
 func _log(message: String, color: Color = Color.WHITE) -> void:
 	log_message(message, color)
+
+func get_terrain_for_unit(unit: UnitData) -> String:
+	for pos in board.tiles.keys():
+		var tile = board.tiles[pos]
+		if tile and tile.occupant == unit:
+			return tile.terrain_type
+	return ""

@@ -7,16 +7,26 @@ class_name Tile
 
 var occupant = null
 var highlighted = false
+var hover_highlight = false 
+var summon_highlight := false  # 🔒 stays visible until explicitly cleared
 
 @onready var highlight_mesh: MeshInstance3D = $Highlight
 @onready var card_mesh: MeshInstance3D = $CardMesh
 @onready var mesh: MeshInstance3D = $TileMesh
 @onready var label: Label3D = $Badge
+@onready var hover_area: Area3D = $HoveredArea
+@onready var leader_badge: MeshInstance3D = $LeaderBadge
 
+signal hovered(tile)
+signal unhovered(tile)
 
-func _ready() -> void:
+func _ready():
 	set_meta("tile_marker", true)
-
+	_apply_terrain_visual()
+	
+	if hover_area:
+		hover_area.mouse_entered.connect(_on_mouse_entered)
+		hover_area.mouse_exited.connect(_on_mouse_exited) 
 	# --- Ensure unique mesh and material per tile ---
 	if mesh and mesh.mesh:
 		mesh.mesh = mesh.mesh.duplicate()  # duplicate the mesh resource
@@ -82,6 +92,29 @@ func clear() -> void:
 	set_highlight(false)
 	occupant = null
 
+	if leader_badge:
+		leader_badge.visible = false
+
+func set_occupant(unit: UnitData) -> void:
+	occupant = unit
+
+	# Update art if card exists
+	if unit and unit.card:
+		set_art(unit.card.art, unit.owner == 1)
+	else:
+		card_mesh.visible = false
+
+	# Show/hide the leader badge
+	_update_leader_badge()
+
+func _update_leader_badge() -> void:
+	if not leader_badge:
+		return
+
+	if occupant and occupant.is_leader:
+		leader_badge.visible = true
+	else:
+		leader_badge.visible = false
 
 func flash() -> void:
 	if not highlight_mesh:
@@ -133,7 +166,7 @@ func _apply_terrain_visual() -> void:
 
 	# 🚀 Always assign a fresh StandardMaterial3D to prevent shared state
 	var mat := StandardMaterial3D.new()
-	mat.unshaded = false
+	#mat.unshaded = false
 	mat.emission_enabled = true
 	mat.roughness = 0.5
 	mat.metallic = 0.1
@@ -170,3 +203,27 @@ func _apply_terrain_visual() -> void:
 			hmat = StandardMaterial3D.new()
 			highlight_mesh.set_surface_override_material(0, hmat)
 		hmat.albedo_color = mat.albedo_color.lightened(0.4)
+
+func _update_highlight_visibility() -> void:
+	if not highlight_mesh:
+		return
+	
+	# Always visible if any highlight type is active
+	highlight_mesh.visible = highlighted or hover_highlight or summon_highlight
+
+
+# 🆕 HOVER BEHAVIOR ---
+func _on_mouse_entered() -> void:
+	print("Hovered tile:", terrain_type)
+	hover_highlight = true
+	_update_highlight_visibility()
+	emit_signal("hovered", self)
+	
+func _on_mouse_exited() -> void:
+	hover_highlight = false
+
+	# 🧠 Only hide hover highlights if NOT system-marked
+	if not highlighted and not summon_highlight and highlight_mesh:
+		highlight_mesh.visible = false
+
+	emit_signal("unhovered", self)

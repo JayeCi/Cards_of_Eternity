@@ -1,15 +1,22 @@
-[gd_scene load_steps=5 format=3 uid="uid://dcus3e1lnkiqj"]
+[gd_scene load_steps=6 format=3 uid="uid://dcus3e1lnkiqj"]
 
 [ext_resource type="Texture2D" uid="uid://bof3211rwmtev" path="res://Images/Egyptian.png" id="1_6dd3c"]
 [ext_resource type="Script" uid="uid://b5ngergka1wik" path="res://Arena/Arena3D/ArenaScript/arena_ui.gd" id="1_e707p"]
 [ext_resource type="PackedScene" uid="uid://be24omkufdto6" path="res://Cards/arena_card_details.tscn" id="1_q0uhn"]
 [ext_resource type="AudioStream" uid="uid://ba11gf23vyw2l" path="res://Audio/Sound FX/CardDraw.mp3" id="2_dhe1o"]
+[ext_resource type="PackedScene" uid="uid://hs2m5kkdydux" path="res://Cards/arena_terrain_details.tscn" id="3_f1fl4"]
 
 [node name="UI" type="CanvasLayer"]
 script = ExtResource("1_e707p")
 
 [node name="ArenaCardDetails" parent="." instance=ExtResource("1_q0uhn")]
 visible = false
+
+[node name="ArenaTerrainDetails" parent="." instance=ExtResource("3_f1fl4")]
+offset_left = -3.0
+offset_top = 5.0
+offset_right = -3.0
+offset_bottom = 5.0
 
 [node name="EnemyPortrait" type="TextureRect" parent="."]
 visible = false
