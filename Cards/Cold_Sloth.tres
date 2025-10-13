@@ -10,6 +10,7 @@ type = "Beast"
 rarity = "Epic"
 id = "00008"
 name = "Cold Sloth"
+description = ""
 art = ExtResource("1_xas3p")
 cost = 1
 atk = 18

@@ -1,4 +1,5 @@
 extends Node3D
+class_name Tile
 
 @export var x: int
 @export var y: int
@@ -7,122 +8,165 @@ extends Node3D
 var occupant = null
 var highlighted = false
 
-@onready var highlight_mesh = $Highlight
-@onready var card_sprite = $CardMesh
-@onready var mesh = $TileMesh
-@onready var label: Label3D = $Badge
+@onready var highlight_mesh: MeshInstance3D = $Highlight
 @onready var card_mesh: MeshInstance3D = $CardMesh
+@onready var mesh: MeshInstance3D = $TileMesh
+@onready var label: Label3D = $Badge
 
-func _ready():
+
+func _ready() -> void:
 	set_meta("tile_marker", true)
 
-	if mesh:
-		mesh.mesh = mesh.mesh.duplicate()
-		var base_mat = mesh.mesh.surface_get_material(0)
+	# --- Ensure unique mesh and material per tile ---
+	if mesh and mesh.mesh:
+		mesh.mesh = mesh.mesh.duplicate()  # duplicate the mesh resource
+		var base_mat := mesh.mesh.surface_get_material(0)
 		if base_mat:
-			var mat_copy = base_mat.duplicate()
-			mesh.set_surface_override_material(0, mat_copy)
+			var unique_mat = base_mat.duplicate()
+			mesh.set_surface_override_material(0, unique_mat)
 
-	# Hide card mesh by default
+	# initialize color
+	_apply_terrain_visual()
+
 	if card_mesh:
-		card_mesh.visible = false
+		card_mesh.visible = false  # invisible until art is set
 
-func set_highlight(state: bool, symbol: String = ""):
+# --- CORE FUNCTION ---
+func set_art(tex: Texture2D, flipped: bool = false) -> void:
+	if occupant and occupant.has_method("get"):
+		flipped = occupant.owner == 1 if not flipped else flipped
+
+	if not card_mesh:
+		return
+
+	if tex == null:
+		card_mesh.visible = false
+		return
+
+	var mat := card_mesh.get_surface_override_material(0)
+	if not mat:
+		var base_mat := card_mesh.mesh.surface_get_material(0)
+		mat = base_mat.duplicate() if base_mat else StandardMaterial3D.new()
+		card_mesh.set_surface_override_material(0, mat)
+
+	mat.albedo_texture = tex
+	mat.albedo_color = Color(1, 1, 1, 1)
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
+	mat.uv1_scale.y = -1 if flipped else 1
+
+	card_mesh.visible = true
+	card_mesh.position.y = 0.05
+
+
+# --- OTHER VISUAL HELPERS ---
+func set_highlight(state: bool, symbol: String = "") -> void:
 	highlighted = state
 	if label:
 		label.text = symbol
 		label.visible = state and symbol != ""
-	
 	if highlight_mesh:
 		highlight_mesh.visible = state
 
-func set_art(tex: Texture2D):
-	if tex == null:
-		push_warning("⚠️ set_art called with null texture on tile (%d, %d)" % [x, y])
-		return
 
-	# Ensure each tile has its own material instance
-	var mat = card_mesh.get_surface_override_material(0)
-	if not mat:
-		var base_mat = card_mesh.mesh.surface_get_material(0)
-		if base_mat:
-			mat = base_mat.duplicate()
-			card_mesh.set_surface_override_material(0, mat)
-		else:
-			mat = StandardMaterial3D.new()
-			card_mesh.set_surface_override_material(0, mat)
+func set_badge_text(text: String) -> void:
+	if label:
+		label.text = text
+		label.visible = text != ""
 
-	# ✅ Actually apply the texture to the material
-	mat.albedo_texture = tex
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
-	mat.albedo_color = Color(1, 1, 1, 1)
 
-	# ✅ Make sure the mesh is visible and slightly raised
-	card_mesh.visible = true
-	card_mesh.position.y = 0.05
-
-	print("✅ Tile", x, y, "texture set to", tex)
-
-func set_badge_text(text: String):
-	label.text = text
-
-func clear():
-	occupant = null
+func clear() -> void:
 	if card_mesh:
-		var mat = card_mesh.get_surface_override_material(0)
-		if mat:
-			mat.albedo_texture = null
 		card_mesh.visible = false
-
-	label.text = ""
+		card_mesh.scale = Vector3.ONE
+	set_badge_text("")
 	set_highlight(false)
+	occupant = null
 
-func flash():
-	if not has_node("HighlightMesh"):
+
+func flash() -> void:
+	if not highlight_mesh:
 		return
+	var mat := highlight_mesh.get_surface_override_material(0)
+	if not mat:
+		var base := highlight_mesh.mesh.surface_get_material(0)
+		mat = base.duplicate() if base else StandardMaterial3D.new()
+		highlight_mesh.set_surface_override_material(0, mat)
 
-	var mesh = $HighlightMesh
+	mat.emission_enabled = true
+	mat.emission = Color(1, 0.5, 0.5)
+	mat.emission_energy_multiplier = 4.0
+	highlight_mesh.visible = true
+
 	var tw = create_tween()
-	mesh.visible = true
-	mesh.modulate = Color(1, 0.5, 0.5, 0.8)  # reddish flash
-	tw.tween_property(mesh, "modulate:a", 0.0, 0.3)
+	tw.tween_property(mat, "emission_energy_multiplier", 0.0, 0.3)
 	await tw.finished
-	mesh.visible = false
-	
-func set_exhausted(state: bool):
-	if card_mesh:
-		var mat = card_mesh.get_surface_override_material(0)
-		if not mat:
-			mat = StandardMaterial3D.new()
-			card_mesh.set_surface_override_material(0, mat)
 
-		if state:
-			mat.albedo_color = Color(0.4, 0.4, 0.4, 0.7)  # darker and semi-transparent
-			mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		else:
-			mat.albedo_color = Color(1, 1, 1, 1)
-			mat.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
+	mat.emission_enabled = false
+	mat.emission = Color(0, 0, 0)
+	highlight_mesh.visible = false
+
+
+func set_exhausted(state: bool) -> void:
+	if not card_mesh:
+		return
+	var mat := card_mesh.get_surface_override_material(0)
+	if not mat:
+		mat = StandardMaterial3D.new()
+		card_mesh.set_surface_override_material(0, mat)
+
+	if state:
+		mat.albedo_color = Color(0.4, 0.4, 0.4, 0.8)
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	else:
+		mat.albedo_color = Color(1, 1, 1, 1)
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
+
+
+# --- TERRAIN COLOR SYSTEM ---
+func set_terrain_type(new_type: String) -> void:
+	terrain_type = new_type
+	_apply_terrain_visual()
 
 func _apply_terrain_visual() -> void:
 	if not mesh:
 		return
 
-	var mat = mesh.get_surface_override_material(0)
-	if not mat:
-		var base = mesh.mesh.surface_get_material(0)
-		mat = base.duplicate() if base else StandardMaterial3D.new()
-		mesh.set_surface_override_material(0, mat)
+	# 🚀 Always assign a fresh StandardMaterial3D to prevent shared state
+	var mat := StandardMaterial3D.new()
+	mat.unshaded = false
+	mat.emission_enabled = true
+	mat.roughness = 0.5
+	mat.metallic = 0.1
+	mesh.set_surface_override_material(0, mat)
 
 	match terrain_type:
 		"Stone":
 			mat.albedo_color = Color(0.5, 0.5, 0.5)
+			mat.emission = Color(0.2, 0.2, 0.25)
 		"Grass":
 			mat.albedo_color = Color(0.3, 0.8, 0.3)
+			mat.emission = Color(0.05, 0.25, 0.05)
 		"Lava":
 			mat.albedo_color = Color(1.0, 0.3, 0.1)
+			mat.emission = Color(1.0, 0.1, 0.0)
+			mat.emission_energy_multiplier = 2.0
 		"Water":
 			mat.albedo_color = Color(0.2, 0.4, 1.0)
+			mat.emission = Color(0.1, 0.2, 0.6)
 		"Forest":
 			mat.albedo_color = Color(0.1, 0.5, 0.2)
+			mat.emission = Color(0.0, 0.2, 0.0)
 		"Ice":
 			mat.albedo_color = Color(0.6, 0.8, 1.0)
+			mat.emission = Color(0.4, 0.6, 1.0)
+		_:
+			mat.albedo_color = Color(0.6, 0.6, 0.6)
+			mat.emission = Color(0.2, 0.2, 0.2)
+
+	# Optional: make highlight match terrain hue slightly
+	if highlight_mesh:
+		var hmat := highlight_mesh.get_surface_override_material(0)
+		if not hmat:
+			hmat = StandardMaterial3D.new()
+			highlight_mesh.set_surface_override_material(0, hmat)
+		hmat.albedo_color = mat.albedo_color.lightened(0.4)

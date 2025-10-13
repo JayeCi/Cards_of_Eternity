@@ -39,6 +39,7 @@ var summon_mode := UnitData.Mode.ATTACK
 @onready var summon_mode_popup: Popup = $UI/SummonMode
 @onready var battle_log: RichTextLabel = $UI/VBoxContainer/BattleLogLabel
 @onready var card_draw: AudioStreamPlayer = $UI/SFX/CardDraw
+@onready var card_details_ui: ArenaCardDetails = $UI/ArenaCardDetails
 
 
 # Gameplay data
@@ -83,6 +84,7 @@ const BASE_MOVE_RANGE := 1
 
 # -------------------------------------------------------------------
 func _ready():
+	
 	await get_tree().process_frame 
 	set_process(true)
 	# setup hover label
@@ -106,17 +108,18 @@ func _ready():
 
 	## cards & decks
 	CardCollection.add_card(GOBLIN)
-	#CardCollection.add_card(DIRT)
-	#CardCollection.add_card(IMP)
-	#CardCollection.add_card(FYSH)
-	#CardCollection.add_card(NAGA)
-	#CardCollection.add_card(FOREST_FAE)
-	#CardCollection.add_card(COLD_SLOTH)
-	#CardCollection.add_card(LAVA_HARE)
+	CardCollection.add_card(DIRT)
+	CardCollection.add_card(IMP)
+	CardCollection.add_card(FYSH)
+	CardCollection.add_card(NAGA)
+	CardCollection.add_card(FOREST_FAE)
+	CardCollection.add_card(COLD_SLOTH)
+	CardCollection.add_card(LAVA_HARE)
 
 	board.set_board_layout("forest_meadow")
 	_build_decks()
 	_spawn_leaders()
+	await play_intro_cutscene()
 
 	player_hp_label.text = "Player Leader HP: %d" % player_leader.hp
 	enemy_hp_label.text = "Enemy Leader HP: %d" % enemy_leader.hp
@@ -388,8 +391,16 @@ func _update_hover_highlight():
 
 		# 🔹 NEW: Show stats above hovered tile
 		_show_hover_label(tile)
+		#🔹 Show full card details if the tile has a unit
+		if tile.occupant:
+			card_details_ui.show_unit(tile.occupant)
+		else:
+			card_details_ui.hide_card()
+
+
 	else:
 		_hide_hover_label()
+
 
 func _show_hover_label(tile: Node3D):
 	if not tile:
@@ -429,6 +440,7 @@ func _hide_hover_label():
 	var t = create_tween()
 	t.tween_property(hover_label, "modulate:a", 0.0, 0.15)
 	await t.finished
+	card_details_ui.hide_card()
 	hover_label.visible = false
 
 func _ray_pick(screen_pos: Vector2) -> Dictionary:
@@ -784,31 +796,55 @@ func _move_or_battle(from: Vector2i, to: Vector2i):
 			log_message("❗ %s was revealed!" % defender.card.name, Color(1, 0.9, 0.7))
 
 		var result := await _play_3d_battle(attacker, defender)
-
+		
 		match result:
 			"attacker_wins":
-				if defender.card.ability and defender.card.ability.trigger == "on_passive":
-					_remove_passive_effect(defender, defender.card.ability)
-				dst.clear()
+				_kill_unit(defender)
 				dst.occupant = attacker
-				dst.set_art(attacker.card.art)
+				dst.set_art(attacker.card.art if attacker.mode != UnitData.Mode.FACEDOWN else CARD_BACK)
 				dst.set_badge_text("P" if attacker.owner == PLAYER else "E")
 				src.clear()
 				units.erase(from)
 				units[to] = attacker
-				_mark_unit_acted(attacker) # ✅ consumed action
-				
+				_mark_unit_acted(attacker)
+
 			"defender_wins":
-				src.clear()
-				if attacker.card.ability and attacker.card.ability.trigger == "on_passive":
-					_remove_passive_effect(attacker, attacker.card.ability)
-				units.erase(from)
-				# attacker died → no need to mark
+				_kill_unit(attacker)
+				# defender stays; no move
+
+			"both_destroyed":
+				_kill_unit(defender)
+				_kill_unit(attacker)
+
 			"both_survive", "leader_damaged":
 				dst.flash()
-				_mark_unit_acted(attacker) # ✅ consumed action
-				
-				
+				_mark_unit_acted(attacker)
+
+		# --- Final safety: if anyone hit 0 during animations, clean them up ---
+		if dst.occupant and dst.occupant.current_def <= 0:
+			_kill_unit(dst.occupant)
+		if attacker and attacker.current_def <= 0:
+			_kill_unit(attacker)
+
+func _kill_unit(u: UnitData) -> void:
+	if u == null: return
+	# remove passive auras first
+	if u.card and u.card.ability and u.card.ability.trigger == "on_passive":
+		_remove_passive_effect(u, u.card.ability)
+
+	var tile := _get_unit_tile(u)
+	if tile:
+		_play_card_sound(u.card.death_sound, tile.global_position)
+		tile.clear()
+
+	# erase from board dictionary
+	for pos in units.keys():
+		if units[pos] == u:
+			units.erase(pos)
+			break
+
+	card_details_ui.hide_card()
+
 func _apply_all_passives():
 	for pos in units.keys():
 		var u: UnitData = units[pos]
@@ -832,106 +868,96 @@ func _flip_faceup(tile: Node3D, new_texture: Texture2D):
 
 func _resolve_battle(att: UnitData, defn: UnitData) -> String:
 	var a = att.current_atk
-	var d := defn.current_def
+	var d = defn.current_def
+	var def_before = d
 
-	var def_before := d
-
-	# --- Battle Start ---
-	log_message("⚔ Battle! %s (ATK %d) vs %s (DEF %d)" % [
-		att.card.name, att.current_atk, defn.card.name, defn.current_def
+	log_message("⚔ Battle! %s (ATK %d) vs %s (ATK %d / DEF %d, Mode=%s)" % [
+		att.card.name, a, defn.card.name, defn.current_atk, defn.current_def, str(defn.mode)
 	], Color(1, 0.9, 0.6))
 
 	var att_tile = _get_unit_tile(att)
 	if att_tile:
 		_play_card_sound(att.card.attack_sound, att_tile.global_position)
-	else:
-		_play_card_sound(att.card.attack_sound)
 
-  # 🔊 Attacker begins battle
-
-	# --- Defender is a Leader ---
+	# --- Leader logic ---
 	if defn.is_leader:
-		defn.hp -= a
+		defn.hp = max(defn.hp - a, 0)
 		log_message("💥 %s attacks the Leader directly for %d damage!" % [att.card.name, a], Color(1, 0.6, 0.6))
-		
-		var def_tile = _get_unit_tile(defn)
-		if def_tile:
-			_play_card_sound(defn.card.defense_sound, def_tile.global_position)
-		else:
-			_play_card_sound(defn.card.defense_sound)
-
 		_update_hp_labels(defn.owner)
-
 		if defn.hp <= 0:
-			log_message("☠️ The Leader has been defeated!", Color(1, 0.4, 0.4))
-			if def_tile:
-				_play_card_sound(defn.card.death_sound, def_tile.global_position)
-			else:
-				_play_card_sound(defn.card.death_sound)
 			_on_leader_defeated(defn.owner)
-			return "leader_damaged"
-		else:
-			log_message("🩸 Leader HP now %d" % defn.hp, Color(1, 0.8, 0.8))
 		return "leader_damaged"
 
-	# --- Card Ability Trigger ---
+	# --- Trigger attack abilities ---
 	if att.card.ability and att.card.ability.trigger == "on_attack":
 		_execute_card_ability(att, att.card.ability)
 
-	# --- Normal unit battle (with overflow/piercing) ---
-	if a >= d:
-		var overflow = a - d
-		defn.current_def = 0
-		log_message("💥 %s’s ATK (%d) ≥ %s’s DEF (%d): Attacker wins!" % [
-			att.card.name, a, defn.card.name, def_before
-		], Color(0.7, 1, 0.7))
-		_play_card_sound(defn.card.death_sound)  # 🔊 Defender destroyed
+	# ==========================================================
+	# CASE 1: Defender is in DEFENSE MODE
+	# ==========================================================
+	if defn.mode == UnitData.Mode.DEFENSE:
+		defn.current_def = max(defn.current_def - a, 0)
+		card_details_ui.refresh_if_showing(defn)
 
-		# Overflow damage → leader
-		if overflow > 0:
-			var defender_owner := defn.owner
-			var target_leader := (player_leader if defender_owner == PLAYER else enemy_leader)
+		if a > d:
+			log_message("💥 %s breaks through %s’s DEF!" % [att.card.name, defn.card.name], Color(0.7, 1, 0.7))
+			_play_card_sound(defn.card.death_sound)
+			return "attacker_wins"
+		else:
+			log_message("🛡 %s’s DEF reduced from %d → %d" % [defn.card.name, def_before, defn.current_def], Color(0.8, 0.8, 1))
+			_play_card_sound(defn.card.defense_sound)
 
-			if target_leader and target_leader.hp > 0:
-				target_leader.hp -= overflow
-				log_message("🔥 Overflow damage! %s takes %d damage directly!" % [
-					("Player" if defender_owner == PLAYER else "Enemy"), overflow
-				], Color(1, 0.7, 0.4))
-				_play_card_sound(target_leader.card.defense_sound)
-				_update_hp_labels(target_leader.owner)
+			# Counterattack if defender can fight back
+			if defn.current_atk > 0:
+				att.current_def = max(att.current_def - defn.current_atk, 0)
+				card_details_ui.refresh_if_showing(att)
+				log_message("↩ %s counterattacks for %d! %s DEF → %d" % [
+					defn.card.name, defn.current_atk, att.card.name, att.current_def
+				], Color(1, 0.9, 0.7))
+				if att.current_def <= 0:
+					_play_card_sound(att.card.death_sound)
+					return "defender_wins"
+			return "both_survive"
 
-				var lp := _get_leader_pos(target_leader.owner)
-				var lt = board.get_tile(lp.x, lp.y)
-				if lt: lt.flash()
+	# ==========================================================
+	# CASE 2: Both are in ATTACK MODE — mutual combat
+	# ==========================================================
+	if defn.mode == UnitData.Mode.ATTACK and att.mode == UnitData.Mode.ATTACK:
+		log_message("🔥 Both monsters attack head-on!", Color(1, 0.8, 0.5))
 
-				if target_leader.hp <= 0:
-					_play_card_sound(target_leader.card.death_sound)
-					_on_leader_defeated(target_leader.owner)
-					return "leader_damaged"
+		defn.current_def = max(defn.current_def - a, 0)
+		att.current_def = max(att.current_def - defn.current_atk, 0)
 
-		return "attacker_wins"
+		card_details_ui.refresh_if_showing(defn)
+		card_details_ui.refresh_if_showing(att)
 
-	else:
-		# --- Defender survives; reduce DEF and counterattack
-		defn.current_def -= a
-		log_message("🛡 %s’s DEF reduced from %d → %d" % [defn.card.name, def_before, defn.current_def], Color(0.8, 0.8, 1))
-		_play_card_sound(defn.card.defense_sound)  # 🔊 Defense sound
+		log_message("%s DEF → %d | %s DEF → %d" % [
+			defn.card.name, defn.current_def, att.card.name, att.current_def
+		], Color(1, 1, 1))
 
-		var counter = defn.current_atk
-		att.current_def -= counter
+		var attacker_destroyed = att.current_def <= 0
+		var defender_destroyed = defn.current_def <= 0
 
-		log_message("↩ %s counterattacks with ATK %d" % [defn.card.name, counter], Color(1, 0.9, 0.7))
-		_play_card_sound(defn.card.attack_sound)  # 🔊 Counterattack
-
-		if att.current_def <= 0:
+		if attacker_destroyed and defender_destroyed:
+			log_message("💀 Both are destroyed in battle!", Color(1, 0.4, 0.4))
+			_play_card_sound(att.card.death_sound)
+			_play_card_sound(defn.card.death_sound)
+			return "both_destroyed"
+		elif defender_destroyed:
+			log_message("💥 %s destroys %s!" % [att.card.name, defn.card.name], Color(0.7, 1, 0.7))
+			_play_card_sound(defn.card.death_sound)
+			return "attacker_wins"
+		elif attacker_destroyed:
 			log_message("💀 %s is destroyed!" % att.card.name, Color(1, 0.4, 0.4))
-			_play_card_sound(att.card.death_sound)  # 🔊 Attacker death
+			_play_card_sound(att.card.death_sound)
 			return "defender_wins"
 		else:
-			log_message("🩸 Both survive! %s DEF left: %d | %s DEF left: %d" % [
-				att.card.name, att.current_def, defn.card.name, defn.current_def
-			], Color(1, 1, 1))
 			return "both_survive"
+
+	# ==========================================================
+	# Fallback
+	# ==========================================================
+	return "both_survive"
 
 func _update_hp_labels(owner: int) -> void:
 	if owner == PLAYER:
@@ -1010,7 +1036,21 @@ func _spawn_leaders():
 	# 🔁 Swap their placement
 	_place_leader(player_leader, Vector2i(BOARD_W / 2, 0))
 	_place_leader(enemy_leader, Vector2i(BOARD_W / 2, BOARD_H - 1))
+	# 🔹 Hide both leaders’ meshes initially
+	var player_tile = board.get_tile(BOARD_W / 2, 0)
+	var enemy_tile = board.get_tile(BOARD_W / 2, BOARD_H - 1)
 
+	for t in [player_tile, enemy_tile]:
+		if t and t.has_node("CardMesh"):
+			var mesh = t.get_node("CardMesh")
+			var mat = mesh.get_surface_override_material(0)
+			if mat == null:
+				mat = StandardMaterial3D.new()
+				mesh.set_surface_override_material(0, mat)
+			mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			var color = mat.albedo_color
+			color.a = 0.0   # invisible
+			mat.albedo_color = color
 func _place_leader(unit: UnitData, pos: Vector2i):
 	units[pos] = unit
 	var tile = board.get_tile(pos.x, pos.y)
@@ -1435,3 +1475,92 @@ func show_game_ui():
 		if child is CanvasItem:
 			child.visible = true
 	print("🎴 Game UI restored after Collection view closed.")
+
+# -------------------------------------------------------------------
+# --- Cutscene Control ---
+# -------------------------------------------------------------------
+
+# -------------------------------------------------------------------
+# --- Battle Intro Cutscene ---
+# -------------------------------------------------------------------
+func play_intro_cutscene() -> void:
+	set_process_input(false)
+	_is_camera_locked = true
+	fade_rect.modulate.a = 1.0
+
+	await get_tree().process_frame
+
+	# --- Camera start pulled back ---
+	var spacing = board.spacing
+	var board_center = Vector3(0, 0, 1)
+	var board_depth = (BOARD_H - 1) * spacing
+	var board_width = (BOARD_W - 1) * spacing
+	_zoom_distance = max(board_width, board_depth) * 1.2
+
+	var angle = deg_to_rad(50)
+	camera.position = Vector3(0, sin(angle) * _zoom_distance * 1.5, cos(angle) * _zoom_distance * 1.5)
+	camera.look_at(board_center, Vector3.UP)
+
+	await _fade(0.0, 1.0)
+
+	# --- Enemy Leader fade-in ---
+	var enemy_pos = _get_leader_pos(ENEMY)
+	var enemy_tile = board.get_tile(enemy_pos.x, enemy_pos.y)
+	_focus_camera_on(enemy_tile.global_position, 0.4, 1.0)
+	await get_tree().create_timer(0.5).timeout
+	await _fade_in_leader(enemy_pos, "👑 The Enemy Leader has appeared!")
+
+	# --- Player Leader fade-in ---
+	var player_pos = _get_leader_pos(PLAYER)
+	var player_tile = board.get_tile(player_pos.x, player_pos.y)
+	_focus_camera_on(player_tile.global_position, 0.4, 1.0)
+	await get_tree().create_timer(0.5).timeout
+	await _fade_in_leader(player_pos, "👑 Your Leader enters the battlefield!")
+
+	# --- Pull back to gameplay view ---
+	await get_tree().create_timer(0.6).timeout
+	_smooth_return_to_origin()
+	await get_tree().create_timer(1.2).timeout
+
+	_is_camera_locked = false
+	set_process_input(true)
+	log_message("⚔️ The battle begins!")
+
+# --- Helper function to fade in a leader card mesh ---
+func _fade_in_leader(pos: Vector2i, label: String):
+	var tile = board.get_tile(pos.x, pos.y)
+	if not tile or not tile.has_node("CardMesh"):
+		return
+	var mesh = tile.get_node("CardMesh")
+
+	# Duplicate the material so we can adjust transparency independently
+	var mat = mesh.get_surface_override_material(0)
+	if mat == null:
+		mat = StandardMaterial3D.new()
+		mesh.set_surface_override_material(0, mat)
+	else:
+		mat = mat.duplicate()
+		mesh.set_surface_override_material(0, mat)
+
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	var color = mat.albedo_color
+	color.a = 0.0
+	mat.albedo_color = color
+
+	# Animate position + fade in alpha
+	var start_pos = mesh.position
+	mesh.position = start_pos - Vector3(0, 0.3, 0)
+
+	var tween = create_tween()
+	tween.tween_property(mesh, "position", start_pos, 1.2).set_trans(Tween.TRANS_SINE)
+
+	# ✅ FIX: define callback as variable
+	var log_callback := func():
+		log_message(label)
+	tween.tween_callback(log_callback)
+
+	# Fade-in alpha manually
+	for step in range(0, 12):
+		await get_tree().create_timer(0.1).timeout
+		color.a = float(step) / 12.0
+		mat.albedo_color = color

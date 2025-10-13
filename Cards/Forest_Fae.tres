@@ -9,6 +9,7 @@ type = "Elemental"
 rarity = "Legendary"
 id = "00007"
 name = "Forest Fae"
+description = ""
 art = ExtResource("1_64214")
 cost = 2
 atk = 25

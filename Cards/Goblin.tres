@@ -12,6 +12,7 @@ type = "Beast"
 rarity = "Common"
 id = "00001"
 name = "Goblin"
+description = ""
 art = ExtResource("1_c0fva")
 cost = 1
 atk = 12

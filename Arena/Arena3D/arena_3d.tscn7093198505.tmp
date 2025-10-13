@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://camg64m8fg43w"]
+[gd_scene load_steps=14 format=3 uid="uid://camg64m8fg43w"]
 
 [ext_resource type="Script" uid="uid://uk6se88h2jyj" path="res://Arena/Arena3D/ArenaScript/arena_core.gd" id="1_2nnof"]
 [ext_resource type="PackedScene" uid="uid://da27pnrvn5yna" path="res://Arena/Arena3D/Board3D.tscn" id="1_5ykft"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://bqkc1hsxx6w73" path="res://Arena/Arena3D/ArenaScript/arena_camera.gd" id="5_2nnof"]
 [ext_resource type="Texture2D" uid="uid://dkes2i4j5tjot" path="res://Images/Textures/metall005-new-tileable.png" id="5_i5af3"]
 [ext_resource type="Script" uid="uid://khurkxh2646n" path="res://Arena/Arena3D/ArenaScript/arena_cutscene.gd" id="6_i42j4"]
+[ext_resource type="Script" uid="uid://b5ngergka1wik" path="res://Arena/Arena3D/ArenaScript/arena_ui.gd" id="7_i7u7f"]
 [ext_resource type="Script" uid="uid://c01bdnjyd3qmh" path="res://Arena/Arena3D/ArenaScript/arena_battle.gd" id="8_08t7x"]
 [ext_resource type="Script" uid="uid://bjt3wnmra8jjr" path="res://Arena/Arena3D/ArenaScript/arena_ai.gd" id="9_pkj7r"]
 
@@ -57,6 +58,7 @@ far = 101.25
 script = ExtResource("5_2nnof")
 
 [node name="UISystem" parent="." instance=ExtResource("2_opwpc")]
+script = ExtResource("7_i7u7f")
 
 [node name="VBoxContainer" parent="UISystem/SummonMode" index="1"]
 offset_right = 96.0

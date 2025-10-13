@@ -1,9 +1,15 @@
-[gd_scene load_steps=3 format=3 uid="uid://dcus3e1lnkiqj"]
+[gd_scene load_steps=5 format=3 uid="uid://dcus3e1lnkiqj"]
 
 [ext_resource type="Texture2D" uid="uid://bof3211rwmtev" path="res://Images/Egyptian.png" id="1_6dd3c"]
+[ext_resource type="Script" uid="uid://b5ngergka1wik" path="res://Arena/Arena3D/ArenaScript/arena_ui.gd" id="1_e707p"]
+[ext_resource type="PackedScene" uid="uid://be24omkufdto6" path="res://Cards/arena_card_details.tscn" id="1_q0uhn"]
 [ext_resource type="AudioStream" uid="uid://ba11gf23vyw2l" path="res://Audio/Sound FX/CardDraw.mp3" id="2_dhe1o"]
 
 [node name="UI" type="CanvasLayer"]
+script = ExtResource("1_e707p")
+
+[node name="ArenaCardDetails" parent="." instance=ExtResource("1_q0uhn")]
+visible = false
 
 [node name="EnemyPortrait" type="TextureRect" parent="."]
 visible = false
@@ -85,12 +91,13 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 autowrap_mode = 1
 
 [node name="HPPanel" type="VBoxContainer" parent="."]
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -40.0
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -20.0
+offset_right = 20.0
 offset_bottom = 50.0
-grow_horizontal = 0
+grow_horizontal = 2
 
 [node name="PlayerHP" type="Label" parent="HPPanel"]
 layout_mode = 2
@@ -168,3 +175,7 @@ layout_mode = 2
 stream = ExtResource("2_dhe1o")
 volume_db = -6.559
 bus = &"SFX"
+
+[connection signal="pressed" from="SummonMode/VBoxContainer/AttackMode" to="." method="_on_attack_mode_pressed"]
+[connection signal="pressed" from="SummonMode/VBoxContainer/DefenseMode" to="." method="_on_defense_mode_pressed"]
+[connection signal="pressed" from="SummonMode/VBoxContainer/FaceDown" to="." method="_on_face_down_pressed"]

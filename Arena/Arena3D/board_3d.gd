@@ -14,6 +14,14 @@ func _ready() -> void:
 
 	_generate_grid()
 
+# ✅ NEW HELPER — safely fetch a tile occupied by a given UnitData
+func get_tile_position_for_unit(unit: UnitData) -> Node3D:
+	for pos in tiles.keys():
+		var tile = tiles[pos]
+		if tile and tile.occupant == unit:
+			return tile
+	return null
+	
 func _generate_grid() -> void:
 	if not tile_scene:
 		push_error("Board3D: tile_scene not assigned!")

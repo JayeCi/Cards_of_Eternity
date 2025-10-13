@@ -10,6 +10,7 @@ type = "Beast"
 rarity = "Common"
 id = "00002"
 name = "Dirt"
+description = ""
 art = ExtResource("1_tltfv")
 cost = 1
 atk = 2

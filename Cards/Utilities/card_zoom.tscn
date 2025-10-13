@@ -16,6 +16,7 @@ border_blend = true
 
 [sub_resource type="SystemFont" id="SystemFont_qyawe"]
 font_names = PackedStringArray("Tahoma")
+subpixel_positioning = 0
 
 [sub_resource type="LabelSettings" id="LabelSettings_mcfj5"]
 font = SubResource("SystemFont_qyawe")
