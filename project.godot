@@ -22,6 +22,10 @@ BattleManager="*res://UI/BattleManager.gd"
 DialogueManager="*res://Dialogue/DialogueManager.gd"
 TerrainManager="*res://UI/Terrains/TerrainManager.gd"
 
+[editor_plugins]
+
+enabled=PackedStringArray()
+
 [global_group]
 
 player=""
