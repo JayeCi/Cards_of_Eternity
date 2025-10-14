@@ -138,8 +138,19 @@ func on_drag_start(card: CardData) -> void:
 	ghost_card.position = camera.global_position + forward * 5.0
 
 func cancel_drag() -> void:
+	if not ghost_card:
+		return
+	
+	# Fade the ghost card out
+	if ghost_card.visible:
+		var t = create_tween()
+		t.tween_property(ghost_card, "modulate:a", 0.0, 0.2)
+		await t.finished
 	ghost_card.visible = false
-	hand_grid.visible = true
+	ghost_card.modulate.a = 0.8  # reset for next time
+
+	# Bring back the hand
+	fade_hand_in()
 
 func fade_hand_in() -> void:
 	hand_grid.visible = true
@@ -151,35 +162,16 @@ func fade_hand_out() -> void:
 	hand_grid.modulate.a = 0.0
 	var t = create_tween()
 	t.tween_property(hand_grid, "modulate:a", 1.0, 0.25)
-
-# Hover label + card details
-func show_hover_for_tile(tile: Node3D) -> void:
-	if core and core.is_cutscene_active:
-		return  # 🚫 Stop hover UI during cutscene
-
-	if tile == null:
-		hide_hover()
+	
+func return_card_to_hand(card_data: CardData):
+	if not card_data:
 		return
-	var text := ""
-	if tile.occupant:
-		var u: UnitData = tile.occupant
-		ghost_card.position = (tile.position + Vector3(0,0.03,0)) if tile else ghost_card.position
+	if not hand_grid:
+		return
 
-		text += "🗡 " + str(u.current_atk) + " | 🛡 " + str(u.current_def)
-		if u.is_leader: text += " | ❤️ " + str(u.hp)
-		text += "\n"
-	text += "🌍 Terrain: " + tile.terrain_type
-	hover_label.global_position = tile.global_position + Vector3(0, 0.25, 0)
-	hover_label.text = text
-	hover_label.visible = true
-	hover_label.modulate.a = 0.0
-	var t = create_tween()
-	t.tween_property(hover_label, "modulate:a", 1.0, 0.2)
+	# Make sure hand is visible before adding card
+	fade_hand_in()
 
-	if tile.occupant:
-		card_details_ui.call("show_unit", tile.occupant)
-	else:
-		card_details_ui.call("hide_card")
 
 func move_ghost_over(tile: Node3D) -> void:
 	if ghost_card.visible:

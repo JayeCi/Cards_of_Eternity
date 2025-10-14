@@ -1,9 +1,17 @@
-[gd_scene load_steps=13 format=3 uid="uid://dymngijkrptcc"]
+[gd_scene load_steps=33 format=3 uid="uid://dymngijkrptcc"]
 
 [ext_resource type="Script" uid="uid://dtfto6htrvfm5" path="res://Arena/tile_3d.gd" id="1_5v3qr"]
 [ext_resource type="PackedScene" uid="uid://cqxo8j6lh1au8" path="res://Downloaded/bricks_A.tscn" id="2_wh67p"]
-[ext_resource type="ArrayMesh" uid="uid://b3xxievahudgm" path="res://Cards/Utilities/CardModel/CardMeshExt.res" id="3_mf1uq"]
+[ext_resource type="ArrayMesh" uid="uid://dnscntj46qyil" path="res://Cards/Utilities/CardModel/CardMeshExt.res" id="3_mf1uq"]
+[ext_resource type="PackedScene" uid="uid://dnajq0rmf2gw2" path="res://Arena/Terrain_Models/mountains.tscn" id="3_w0pxh"]
+[ext_resource type="Texture2D" uid="uid://cbc5l83bvnhjk" path="res://UI/Terrains/Water.png" id="4_27ivk"]
 [ext_resource type="Texture2D" uid="uid://dkes2i4j5tjot" path="res://Images/Textures/metall005-new-tileable.png" id="4_ifjyk"]
+[ext_resource type="Texture2D" uid="uid://j0dkcfmp3g3d" path="res://UI/Terrains/Ice.png" id="5_nvf5m"]
+[ext_resource type="Texture2D" uid="uid://dp1ew5edt28ly" path="res://UI/Terrains/stone.png" id="5_u8wge"]
+[ext_resource type="Texture2D" uid="uid://cmwi3xrb0nspr" path="res://UI/Terrains/Lava.png" id="6_sa6f8"]
+[ext_resource type="Texture2D" uid="uid://dkc013g0vjkfa" path="res://UI/Terrains/grass.png" id="7_haurc"]
+[ext_resource type="Texture2D" uid="uid://c07v4ijon03kv" path="res://UI/Terrains/Forest.png" id="8_2dc0q"]
+[ext_resource type="PackedScene" uid="uid://b226o8whi8uox" path="res://Arena/Terrain_Models/column_stylized_low-poly_3d_model.glb" id="12_3e2tw"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_5v3qr"]
 
@@ -12,6 +20,43 @@
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5v3qr"]
 cull_mode = 2
 albedo_color = Color(0.205117, 0.205117, 0.205117, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nvf5m"]
+albedo_texture = ExtResource("4_27ivk")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_sa6f8"]
+material = SubResource("StandardMaterial3D_nvf5m")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sa6f8"]
+albedo_texture = ExtResource("5_nvf5m")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_haurc"]
+material = SubResource("StandardMaterial3D_sa6f8")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_haurc"]
+albedo_texture = ExtResource("6_sa6f8")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_2dc0q"]
+material = SubResource("StandardMaterial3D_haurc")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2dc0q"]
+albedo_color = Color(0.513233, 0.513233, 0.513233, 1)
+albedo_texture = ExtResource("7_haurc")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_3e2tw"]
+material = SubResource("StandardMaterial3D_2dc0q")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3e2tw"]
+albedo_texture = ExtResource("8_2dc0q")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_l2kch"]
+material = SubResource("StandardMaterial3D_3e2tw")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_u8wge"]
+albedo_texture = ExtResource("5_u8wge")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_nvf5m"]
+material = SubResource("StandardMaterial3D_u8wge")
 
 [sub_resource type="QuadMesh" id="QuadMesh_5v3qr"]
 
@@ -43,12 +88,45 @@ transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 
 mesh = SubResource("QuadMesh_0bhp4")
 surface_material_override/0 = SubResource("StandardMaterial3D_5v3qr")
 
-[node name="bricks_A3" parent="TileMesh" instance=ExtResource("2_wh67p")]
+[node name="DefaultTile" parent="TileMesh" instance=ExtResource("2_wh67p")]
 transform = Transform3D(0.487551, 0, 0, 0, 0.487551, 0, 0, 0, 0.487551, 0, 1.95836e-08, -0.448021)
 
-[node name="CardMesh" type="MeshInstance3D" parent="."]
-transform = Transform3D(1.13, 0, 0, 0, 1.13, 0, 0, 0, 1.13, 0, 0.0599931, -0.553633)
+[node name="Mountains" parent="TileMesh" instance=ExtResource("3_w0pxh")]
+transform = Transform3D(0.347835, 0, 0, 0, -1.52044e-08, -0.347835, 0, 0.347835, -1.52044e-08, 0, 1.78173e-08, -0.407613)
 visible = false
+
+[node name="WaterMesh" type="MeshInstance3D" parent="TileMesh"]
+transform = Transform3D(0.467104, 0, 0, 0, -2.04178e-08, -0.467104, 0, 0.467104, -2.04178e-08, 0, -1.80143e-09, 0.041212)
+visible = false
+mesh = SubResource("PlaneMesh_sa6f8")
+
+[node name="IceMesh" type="MeshInstance3D" parent="TileMesh"]
+transform = Transform3D(0.467104, 0, 0, 0, -2.04178e-08, -0.467104, 0, 0.467104, -2.04178e-08, 0, -1.80143e-09, 0.041212)
+visible = false
+mesh = SubResource("PlaneMesh_haurc")
+
+[node name="LavaMesh" type="MeshInstance3D" parent="TileMesh"]
+transform = Transform3D(0.467104, 0, 0, 0, -2.04178e-08, -0.467104, 0, 0.467104, -2.04178e-08, 0, -1.80143e-09, 0.041212)
+visible = false
+mesh = SubResource("PlaneMesh_2dc0q")
+
+[node name="GrassMesh" type="MeshInstance3D" parent="TileMesh"]
+transform = Transform3D(0.467104, 0, 0, 0, -2.04178e-08, -0.467104, 0, 0.467104, -2.04178e-08, 0, -1.80143e-09, 0.041212)
+visible = false
+mesh = SubResource("PlaneMesh_3e2tw")
+
+[node name="ForestMesh" type="MeshInstance3D" parent="TileMesh"]
+transform = Transform3D(0.467104, 0, 0, 0, -2.04178e-08, -0.467104, 0, 0.467104, -2.04178e-08, 0, -1.80143e-09, 0.041212)
+visible = false
+mesh = SubResource("PlaneMesh_l2kch")
+
+[node name="StoneMesh" type="MeshInstance3D" parent="TileMesh"]
+transform = Transform3D(0.467104, 0, 0, 0, -2.04178e-08, -0.467104, 0, 0.467104, -2.04178e-08, 0, -1.80143e-09, 0.041212)
+visible = false
+mesh = SubResource("PlaneMesh_nvf5m")
+
+[node name="CardMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1.13, 0, 0, 0, 1.13, 0, 0, 0, 1.13, 0, 0.201595, -0.553633)
 mesh = ExtResource("3_mf1uq")
 
 [node name="Badge" type="Label3D" parent="."]
@@ -57,7 +135,7 @@ billboard = 1
 vertical_alignment = 0
 
 [node name="Highlight" type="MeshInstance3D" parent="."]
-transform = Transform3D(0.925, 0, 0, 0, -4.0433033e-08, 0.925, 0, -0.925, -4.0433033e-08, 0, 0.0333439, 0)
+transform = Transform3D(0.925, 0, 0, 0, -4.0433e-08, 0.925, 0, -0.925, -4.0433e-08, 0, 0.0333439, 0)
 visible = false
 mesh = SubResource("QuadMesh_5v3qr")
 surface_material_override/0 = SubResource("StandardMaterial3D_wh67p")
@@ -65,10 +143,22 @@ surface_material_override/0 = SubResource("StandardMaterial3D_wh67p")
 [node name="HoveredArea" type="Area3D" parent="."]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HoveredArea"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.41514373, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.415144, 0)
 shape = SubResource("BoxShape3D_mf1uq")
 
 [node name="LeaderBadge" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.08405161, 0, 0, 0, 1, 0, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 0.0840516, 0, 0, 0, 1, 0, 0, 0)
 visible = false
 mesh = SubResource("BoxMesh_27ivk")
+
+[node name="Sketchfab_Scene" parent="." instance=ExtResource("12_3e2tw")]
+transform = Transform3D(0.164554, 0, 0, 0, 0.214497, 0, 0, 0, 0.164554, -0.448426, -0.919722, 0.434168)
+
+[node name="Sketchfab_Scene2" parent="." instance=ExtResource("12_3e2tw")]
+transform = Transform3D(0.164554, 0, 0, 0, 0.214497, 0, 0, 0, 0.164554, 0.430492, -0.919722, 0.434168)
+
+[node name="Sketchfab_Scene3" parent="." instance=ExtResource("12_3e2tw")]
+transform = Transform3D(0.164554, 0, 0, 0, 0.214497, 0, 0, 0, 0.164554, -0.448426, -0.919722, -0.465832)
+
+[node name="Sketchfab_Scene4" parent="." instance=ExtResource("12_3e2tw")]
+transform = Transform3D(0.164554, 0, 0, 0, 0.214497, 0, 0, 0, 0.164554, 0.430492, -0.919722, -0.465832)

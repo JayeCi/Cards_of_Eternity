@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://uk6se88h2jyj" path="res://Arena/Arena3D/ArenaScript/arena_core.gd" id="1_2nnof"]
 [ext_resource type="PackedScene" uid="uid://da27pnrvn5yna" path="res://Arena/Arena3D/Board3D.tscn" id="1_5ykft"]
 [ext_resource type="PackedScene" uid="uid://dcus3e1lnkiqj" path="res://UI/UI.tscn" id="2_opwpc"]
-[ext_resource type="AudioStream" uid="uid://b5kmgf3x0byk" path="res://Audio/Music/classic-rock-solo-jam-epic-guitar-performance-225274.mp3" id="4_pfipv"]
+[ext_resource type="AudioStream" uid="uid://w7n2h3ha0xhe" path="res://Audio/Music/Yu-Gi-Oh! Duelist of the Roses_ VS.  Seto - C. Rosenkruez  Extended.mp3" id="3_aj210"]
 [ext_resource type="Script" uid="uid://bqkc1hsxx6w73" path="res://Arena/Arena3D/ArenaScript/arena_camera.gd" id="5_2nnof"]
 [ext_resource type="Texture2D" uid="uid://dkes2i4j5tjot" path="res://Images/Textures/metall005-new-tileable.png" id="5_i5af3"]
 [ext_resource type="Script" uid="uid://khurkxh2646n" path="res://Arena/Arena3D/ArenaScript/arena_cutscene.gd" id="6_i42j4"]
@@ -28,6 +28,7 @@ script = ExtResource("1_2nnof")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(-0.866024, -0.433016, 0.250001, 0, 0.499998, 0.866026, -0.500003, 0.749999, -0.43301, 0, 0, 0)
 shadow_enabled = true
+shadow_bias = 0.139
 directional_shadow_max_distance = 52.9
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
@@ -36,8 +37,8 @@ environment = SubResource("Environment_6q22w")
 [node name="Board3D" parent="." instance=ExtResource("1_5ykft")]
 
 [node name="BGMusic" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("4_pfipv")
-volume_db = -36.54
+stream = ExtResource("3_aj210")
+volume_db = -45.207
 autoplay = true
 bus = &"Music"
 parameters/looping = true
@@ -58,8 +59,9 @@ script = ExtResource("5_2nnof")
 
 [node name="UISystem" parent="." instance=ExtResource("2_opwpc")]
 
-[node name="ArenaCardDetails" parent="UISystem" index="0"]
-visible = true
+[node name="VBoxContainer" parent="UISystem/SummonMode" index="1"]
+offset_right = 96.0
+offset_bottom = 96.0
 
 [node name="BattleSystem" type="Node3D" parent="."]
 script = ExtResource("8_08t7x")

@@ -39,7 +39,8 @@ enum Phase { SUMMON_OR_MOVE, SELECT_SUMMON_TILE, SELECT_MOVE_TARGET, ENEMY_TURN 
 # -----------------------------
 # NODES
 # -----------------------------
-@onready var board: Node3D = $Board3D
+@onready var board: Board3D = $Board3D
+
 @onready var ui_root: CanvasLayer = $UISystem
 @onready var camera: Camera3D = $CameraSystem
 
@@ -119,6 +120,34 @@ func _ready() -> void:
 	CardCollection.add_card(FOREST_FAE)
 	CardCollection.add_card(COLD_SLOTH)
 	CardCollection.add_card(LAVA_HARE)
+
+	# Pick a random biome
+	var all_biomes = [
+		board.Biome.OCEAN,
+		board.Biome.VOLCANO,
+		board.Biome.FOREST,
+		board.Biome.MEADOW,
+		board.Biome.MOUNTAIN,
+		board.Biome.TUNDRA
+	]
+
+	# Use randf_range or randi for variety
+	randomize()
+	#board.biome = all_biomes[randi() % all_biomes.size()]
+	board.biome = 1
+	# Generate the map for that biome
+	board._generate_grid()
+
+	# Optional: friendly text for logging
+	var biome_names = {
+		board.Biome.OCEAN: "🌊 Ocean",
+		board.Biome.VOLCANO: "🌋 Volcano",
+		board.Biome.FOREST: "🌲 Forest",
+		board.Biome.MEADOW: "🌾 Meadow",
+		board.Biome.MOUNTAIN: "⛰️ Mountain",
+		board.Biome.TUNDRA: "❄️ Tundra"
+	}
+	_log("🌍 Battlefield biome: " + biome_names.get(board.biome, str(board.biome)))
 
 	# Build decks, spawn leaders, play intro
 	_build_decks()
@@ -440,7 +469,10 @@ func log_message(message: String, color: Color = Color.WHITE) -> void:
 
 # Optional alias to match older scripts
 func _log(message: String, color: Color = Color.WHITE) -> void:
-	log_message(message, color)
+	# Always print to console for debugging
+	print(message)
+	# Send to ArenaUI via signal
+	emit_signal("log_line", message, color)
 
 func get_terrain_for_unit(unit: UnitData) -> String:
 	for pos in board.tiles.keys():

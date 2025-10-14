@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://4ftlpnnxlo53"]
 
 [ext_resource type="Script" uid="uid://dnpmx4n7xby6j" path="res://Cards/Utilities/cardpickup.gd" id="1_xrsix"]
-[ext_resource type="ArrayMesh" uid="uid://b3xxievahudgm" path="res://Cards/Utilities/CardModel/CardMeshExt.res" id="2_kt2e6"]
+[ext_resource type="ArrayMesh" uid="uid://dnscntj46qyil" path="res://Cards/Utilities/CardModel/CardMeshExt.res" id="2_kt2e6"]
 [ext_resource type="AudioStream" uid="uid://d115kwrryugwj" path="res://Audio/Sound FX/Pickup.mp3" id="3_oyvri"]
 [ext_resource type="AudioStream" uid="uid://c785ynqxv8sm5" path="res://Audio/Sound FX/NEW_card.mp3" id="4_cjafp"]
 

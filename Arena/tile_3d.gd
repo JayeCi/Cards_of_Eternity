@@ -5,10 +5,11 @@ class_name Tile
 @export var y: int
 @export var terrain_type: String = "Stone"
 
+
 var occupant = null
 var highlighted = false
 var hover_highlight = false 
-var summon_highlight := false  # 🔒 stays visible until explicitly cleared
+var summon_highlight := false  
 
 @onready var highlight_mesh: MeshInstance3D = $Highlight
 @onready var card_mesh: MeshInstance3D = $CardMesh
@@ -16,6 +17,15 @@ var summon_highlight := false  # 🔒 stays visible until explicitly cleared
 @onready var label: Label3D = $Badge
 @onready var hover_area: Area3D = $HoveredArea
 @onready var leader_badge: MeshInstance3D = $LeaderBadge
+@onready var default_tile: Node3D = $TileMesh/DefaultTile
+
+#TILEMESHES
+@onready var water_mesh: MeshInstance3D = $TileMesh/WaterMesh
+@onready var stone_mesh: MeshInstance3D = $TileMesh/StoneMesh
+@onready var ice_mesh: MeshInstance3D = $TileMesh/IceMesh
+@onready var lava_mesh: MeshInstance3D = $TileMesh/LavaMesh
+@onready var grass_mesh: MeshInstance3D = $TileMesh/GrassMesh
+@onready var forest_mesh: MeshInstance3D = $TileMesh/ForestMesh
 
 signal hovered(tile)
 signal unhovered(tile)
@@ -104,8 +114,16 @@ func set_occupant(unit: UnitData) -> void:
 	else:
 		card_mesh.visible = false
 
+
 	# Show/hide the leader badge
 	_update_leader_badge()
+
+func _pulse_border(border: MeshInstance3D):
+	if not border: return
+	var tw = create_tween()
+	tw.tween_property(border, "scale", border.scale * 1.05, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_property(border, "scale", border.scale, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tw.set_loops()  # loop forever
 
 func _update_leader_badge() -> void:
 	if not leader_badge:
@@ -161,40 +179,42 @@ func set_terrain_type(new_type: String) -> void:
 	_apply_terrain_visual()
 
 func _apply_terrain_visual() -> void:
-	if not mesh:
-		return
 
-	# 🚀 Always assign a fresh StandardMaterial3D to prevent shared state
-	var mat := StandardMaterial3D.new()
-	#mat.unshaded = false
-	mat.emission_enabled = true
-	mat.roughness = 0.5
-	mat.metallic = 0.1
-	mesh.set_surface_override_material(0, mat)
+	# Hide all terrain meshes first
+	for mesh_variant in [default_tile, water_mesh, stone_mesh, ice_mesh, lava_mesh, grass_mesh, forest_mesh]:
+		if mesh_variant:
+			mesh_variant.visible = false
 
 	match terrain_type:
 		"Stone":
-			mat.albedo_color = Color(0.5, 0.5, 0.5)
-			mat.emission = Color(0.2, 0.2, 0.25)
+			if stone_mesh: stone_mesh.visible = true
 		"Grass":
-			mat.albedo_color = Color(0.3, 0.8, 0.3)
-			mat.emission = Color(0.05, 0.25, 0.05)
-		"Lava":
-			mat.albedo_color = Color(1.0, 0.3, 0.1)
-			mat.emission = Color(1.0, 0.1, 0.0)
-			mat.emission_energy_multiplier = 2.0
-		"Water":
-			mat.albedo_color = Color(0.2, 0.4, 1.0)
-			mat.emission = Color(0.1, 0.2, 0.6)
+			if grass_mesh: grass_mesh.visible = true
 		"Forest":
-			mat.albedo_color = Color(0.1, 0.5, 0.2)
-			mat.emission = Color(0.0, 0.2, 0.0)
+			if forest_mesh: forest_mesh.visible = true
+		"Lava":
+			if lava_mesh:
+				lava_mesh.visible = true
+				if lava_mesh.material_override:
+					lava_mesh.material_override.emission_enabled = true
+					lava_mesh.material_override.emission = Color(1.0, 0.3, 0.1)
+					lava_mesh.material_override.emission_energy_multiplier = 2.0
 		"Ice":
-			mat.albedo_color = Color(0.6, 0.8, 1.0)
-			mat.emission = Color(0.4, 0.6, 1.0)
+			if ice_mesh:
+				ice_mesh.visible = true
+				if ice_mesh.material_override:
+					ice_mesh.material_override.albedo_color = Color(0.8, 0.9, 1.0)
+					ice_mesh.material_override.roughness = 0.1
+					ice_mesh.material_override.metallic = 0.3
+		"Water":
+			if water_mesh:
+				water_mesh.visible = true
+				if water_mesh.material_override:
+					water_mesh.material_override.albedo_color = Color(0.2, 0.4, 0.9)
+					water_mesh.material_override.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+					water_mesh.material_override.albedo_color.a = 0.85
 		_:
-			mat.albedo_color = Color(0.6, 0.6, 0.6)
-			mat.emission = Color(0.2, 0.2, 0.2)
+			if default_tile: default_tile.visible = true
 
 	# Optional: make highlight match terrain hue slightly
 	if highlight_mesh:
@@ -202,7 +222,7 @@ func _apply_terrain_visual() -> void:
 		if not hmat:
 			hmat = StandardMaterial3D.new()
 			highlight_mesh.set_surface_override_material(0, hmat)
-		hmat.albedo_color = mat.albedo_color.lightened(0.4)
+		#hmat.albedo_color = mat.albedo_color.lightened(0.4)
 
 func _update_highlight_visibility() -> void:
 	if not highlight_mesh:

@@ -14,6 +14,10 @@ func init_battle(core_ref: ArenaCore) -> void:
 	board = core.board
 	ui = core.get_node("UISystem")
 	cam = core.get_node("CameraSystem")
+	
+func _input(event):
+	if event.is_action_pressed("cancel_action"):
+		_on_cancel_card_drag()
 
 
 func _process(_dt: float) -> void:
@@ -41,7 +45,7 @@ func _update_hover() -> void:
 		tile.set_highlight(true, "★" if core.dragging_card != null else "")
 
 		hovered_tile = tile
-		ui.show_hover_for_tile(tile)
+		#ui.show_hover_for_tile(tile)
 		if core.dragging_card:
 			ui.move_ghost_over(tile)
 
@@ -155,7 +159,12 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, mark_acted
 			tile.set_art(card.art, owner == core.ENEMY)
 
 			if tile.has_node("CardMesh"):
-				tile.get_node("CardMesh").rotation_degrees.y = 90
+				var mesh = tile.get_node("CardMesh")
+				mesh.rotation_degrees.y = 90
+				mesh.position = Vector3(0, mesh.position.y, 0)  # recenters in case rotation shifts it
+				mesh.position.x = -0.5
+				mesh.position.z = 0.0
+
 		UnitData.Mode.FACEDOWN:
 			tile.set_art(core.CARD_BACK)
 			if tile.has_node("CardMesh"):
@@ -181,6 +190,11 @@ func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 	if not src or not dst: return
 	var attacker: UnitData = src.occupant
 	if not attacker: return
+		# 🚫 Prevent attacking or moving onto itself
+	if from == to:
+		core._log("⚠️ You can’t attack your own tile!", Color(1, 0.6, 0.4))
+		return
+
 	if not core.can_unit_act(attacker):
 		core._log("⏳ That unit already acted this turn."); return
 
@@ -248,6 +262,26 @@ func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 	# final safety
 	if dst.occupant and dst.occupant.current_def <= 0: _kill_unit(dst.occupant)
 	if attacker and attacker.current_def <= 0: _kill_unit(attacker)
+	
+func _on_cancel_card_drag():
+	if core.dragging_card:
+		# Hide the ghost
+		if ui and ui.ghost_card:
+			ui.ghost_card.visible = false
+
+		# Return the card to the player hand (depends on your UI system)
+		if ui and core.dragging_card:
+			ui.return_card_to_hand(core.dragging_card)
+
+		# Clear drag reference
+		core.dragging_card = null
+
+		# Reset highlights and hover
+		clear_highlights()
+		hovered_tile = null
+		ui.hide_hover()
+
+		core._log("🌀 Card placement canceled.", Color(0.8, 0.8, 1))
 
 func _fizzle_out(sprite: Sprite3D) -> void:
 	if not sprite: return

@@ -10,7 +10,6 @@
 script = ExtResource("1_e707p")
 
 [node name="ArenaCardDetails" parent="." instance=ExtResource("1_q0uhn")]
-visible = false
 
 [node name="ArenaTerrainDetails" parent="." instance=ExtResource("3_f1fl4")]
 offset_left = -3.0
@@ -50,7 +49,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 0
 size_flags_vertical = 4
-mouse_filter = 2
+mouse_filter = 0
 theme_override_constants/h_separation = 50
 columns = 5
 
