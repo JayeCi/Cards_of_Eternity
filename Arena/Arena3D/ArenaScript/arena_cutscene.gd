@@ -34,21 +34,25 @@ func _intro() -> void:
 	var angle = deg_to_rad(50)
 	camera.position = Vector3(0, sin(angle) * zdist * 1.5, cos(angle) * zdist * 1.5)
 	camera.look_at(board_center, Vector3.UP)
+#
+	#await _fade(0.0, 1.0)
 
-	await _fade(0.0, 1.0)
-	# Reveal leaders with a smooth rise
-	await _reveal_leader_with_rise(core.player_leader, 0.2)
-	await _reveal_leader_with_rise(core.enemy_leader, 0.6)
-
-			#tw.tween_property(m, "scale", Vector3.ONE, 0.4)
-
-	# Enemy Leader fade-in
+	# ---------------------------
+	# ENEMY LEADER FIRST (1s earlier)
+	# ---------------------------
+	await _reveal_leader_with_rise(core.enemy_leader, 0.2)  # 👈 reveal immediately
 	await _fade_in_leader(get_leader_pos(core.ENEMY), "👑 The Enemy Leader has appeared!")
+	await get_tree().create_timer(1.0).timeout                # 👈 wait an extra second before showing player
 
-	# Player Leader fade-in
+	# ---------------------------
+	# PLAYER LEADER SECOND
+	# ---------------------------
+	await _reveal_leader_with_rise(core.player_leader, 0.2)
 	await _fade_in_leader(get_leader_pos(core.PLAYER), "👑 Your Leader enters the battlefield!")
 
-	# Final pull back
+	# ---------------------------
+	# CAMERA RETURN
+	# ---------------------------
 	await get_tree().create_timer(0.6).timeout
 	await _smooth_return()
 	await get_tree().create_timer(0.8).timeout
@@ -57,7 +61,7 @@ func _intro() -> void:
 	core.is_cutscene_active = false  # 🔓 Allow hover again
 	_disable_input(false)
 	_is_cutscene_running = false
-	
+
 	
 	
 # -------------------------------------------------

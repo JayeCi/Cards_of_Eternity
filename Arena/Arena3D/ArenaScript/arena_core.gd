@@ -236,7 +236,7 @@ func _build_decks() -> void:
 	_log("✅ Decks built: Player=%d, Enemy=%d" % [player_deck.size(), enemy_deck.size()])
 
 func _spawn_leaders() -> void:
-	player_leader = UnitData.new().init_from_card(FOREST_FAE, PLAYER)
+	player_leader = UnitData.new().init_from_card(COLD_SLOTH, PLAYER)
 	player_leader.is_leader = true
 	player_leader.hp = 10
 
@@ -406,7 +406,8 @@ func confirm_summon_in_mode(mode: int) -> void:
 	# Deduct cost and place card
 	player_essence -= cost
 	emit_signal("essence_changed", player_essence, enemy_essence)
-
+	
+	player_hand.erase(selected_card)
 	battle_sys.call("place_unit", selected_card, selected_pos, PLAYER, summon_mode, true)
 
 
