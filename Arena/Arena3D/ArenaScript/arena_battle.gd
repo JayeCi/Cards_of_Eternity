@@ -2,6 +2,8 @@
 extends Node
 class_name ArenaBattle
 
+const CARD_MODEL_SCALE := Vector3(0.5, 0.5, 0.5)
+
 var core: ArenaCore
 var board: Node3D
 var ui: ArenaUI
@@ -159,6 +161,16 @@ func _show_move_targets(from: Vector2i) -> void:
 			if t and (t.occupant == null or t.occupant.owner != core.PLAYER):
 				t.set_highlight(true, "•" if t.occupant == null else "⚔")
 
+func spawn_card_model(card_data: CardData) -> Node3D:
+	if not card_data.model_scene:
+		print("No model assigned for card:", card_data.name)
+		return null
+
+	var model_instance = card_data.model_scene.instantiate()
+	model_instance.name = "CardModel"
+	model_instance.position = Vector3(0, 0.5, 0) # centered above tile
+	model_instance.scale = CARD_MODEL_SCALE  # ✅ match leader scale
+	return model_instance
 
 # -----------------------------
 # PLACE / MOVE / BATTLE
@@ -170,23 +182,19 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, mark_acted
 	var tile = board.get_tile(pos.x, pos.y)
 	tile.set_occupant(u)
 
-
 	match u.mode:
 		UnitData.Mode.ATTACK:
 			tile.set_art(card.art, owner == core.ENEMY)
-
 			if card.ability and card.ability.trigger == "on_summon":
 				core._execute_card_ability(u, card.ability)
 		UnitData.Mode.DEFENSE:
 			tile.set_art(card.art, owner == core.ENEMY)
-
 			if tile.has_node("CardMesh"):
 				var mesh = tile.get_node("CardMesh")
 				mesh.rotation_degrees.y = 90
-				mesh.position = Vector3(0, mesh.position.y, 0)  # recenters in case rotation shifts it
+				mesh.position = Vector3(0, mesh.position.y, 0)
 				mesh.position.x = -0.5
 				mesh.position.z = 0.0
-
 		UnitData.Mode.FACEDOWN:
 			tile.set_art(core.CARD_BACK)
 			if tile.has_node("CardMesh"):
@@ -194,18 +202,27 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, mark_acted
 
 	# set badge for ownership
 	tile.set_badge_text("P" if owner == core.PLAYER else "E")
+	
+	# ✅ Spawn the 3D model for this card (if one exists)
+	if card.model_scene:
+		var model_instance = spawn_card_model(card)
+		if model_instance:
+			tile.add_child(model_instance)
 
-	if mark_acted:
-		core.mark_unit_acted(u)
+		# ✅ Make enemy cards face the player
+		if owner == core.ENEMY:
+			model_instance.rotate_y(deg_to_rad(180))
+			
+	# ✅ Once a card is placed, exit placement mode
+	core.clear_card_placement_mode()
 
-	# sounds
-	_play_card_sound(core.CARD_MOVE_SOUND, tile.global_position)
-	_play_card_sound(card.place_sound, tile.global_position)
-	core._apply_terrain_bonus(u, tile.terrain_type)
-
-	# apply passive if needed
-	if card.ability and card.ability.trigger == "on_passive":
-		apply_passive_effect(u, card.ability)
+func normalize_model(model: Node3D, target_height := 1.0):
+	var aabb = model.get_aabb()
+	var current_height = aabb.size.y
+	if current_height == 0:
+		return
+	var scale_factor = target_height / current_height
+	model.scale = Vector3.ONE * scale_factor
 
 func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 	var src = board.get_tile(from.x, from.y)
@@ -235,14 +252,29 @@ func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 	# 🟦 MOVE (no defender)
 	# ------------------------------------------------------------
 	if dst.occupant == null:
+		# Capture reference to model (before clearing src)
+		var model: Node3D = null
+		if src.has_node("CardModel"):
+			model = src.get_node("CardModel")
+
 		dst.set_occupant(attacker)
 		_play_card_sound(core.CARD_MOVE_SOUND, dst.global_position)
-
 		dst.set_art(
 			attacker.card.art if attacker.mode != UnitData.Mode.FACEDOWN else core.CARD_BACK,
 			attacker.owner == core.ENEMY
 		)
 		dst.set_badge_text("P" if attacker.owner == core.PLAYER else "E")
+
+		# Reparent model if found
+		if model:
+			var world_target = dst.global_position + Vector3(0, 0.5, 0)
+			var tw = create_tween()
+			tw.tween_property(model, "global_position", world_target, 0.25)
+			await tw.finished
+
+			src.remove_child(model)
+			dst.add_child(model)
+			model.position = Vector3(0, 0.5, 0)
 
 		src.clear()
 		core.units.erase(from)
@@ -278,14 +310,30 @@ func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 	match result:
 		"attacker_wins":
 			await _kill_unit(defender)  # ✅ wait for death animation to finish
+
+			# --- Move the unit data ---
 			dst.set_occupant(attacker)
 			dst.set_art(attacker.card.art, attacker.owner == core.ENEMY)
 			dst.set_badge_text("P" if attacker.owner == core.PLAYER else "E")
 
+			# --- Move the 3D model (if exists) ---
+			if src.has_node("CardModel"):
+				var model = src.get_node("CardModel")
+				var world_target = dst.global_position + Vector3(0, 0.5, 0)
+				var tw = create_tween()
+				tw.tween_property(model, "global_position", world_target, 0.25)
+				await tw.finished
+
+				src.remove_child(model)
+				dst.add_child(model)
+				model.position = Vector3(0, 0.5, 0)
+
+			# --- Cleanup ---
 			src.clear()
 			core.units.erase(from)
 			core.units[to] = attacker
 			core.mark_unit_acted(attacker)
+
 
 		"defender_wins":
 			_kill_unit(attacker)
@@ -448,13 +496,22 @@ func _kill_unit(u: UnitData) -> void:
 	if not tile:
 		return
 
-	# Fade out & clear mesh
+	# --- Fade out & clear mesh ---
 	if tile.has_node("CardMesh"):
 		var mesh = tile.get_node("CardMesh")
 		var tw = create_tween()
 		tw.tween_property(mesh, "modulate:a", 0.0, 0.3)
 		tw.tween_property(mesh, "scale", mesh.scale * 0.5, 0.3)
-		await tw.finished   # ✅ ensure we wait before erasing
+		await tw.finished
+
+	# --- Fade out & remove 3D model if exists ---
+	if tile.has_node("CardModel"):
+		var model = tile.get_node("CardModel")
+		var tw2 = create_tween()
+		tw2.tween_property(model, "scale", model.scale * 0.3, 0.3)
+		tw2.parallel().tween_property(model, "modulate:a", 0.0, 0.3)
+		await tw2.finished
+		model.queue_free()
 
 	tile.clear()
 	core.units.erase(found_pos)

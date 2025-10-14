@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=3 uid="uid://dymngijkrptcc"]
+[gd_scene load_steps=33 format=3 uid="uid://dymngijkrptcc"]
 
 [ext_resource type="Script" uid="uid://dtfto6htrvfm5" path="res://Arena/tile_3d.gd" id="1_5v3qr"]
 [ext_resource type="PackedScene" uid="uid://cqxo8j6lh1au8" path="res://Downloaded/bricks_A.tscn" id="2_wh67p"]
@@ -12,7 +12,6 @@
 [ext_resource type="Texture2D" uid="uid://dkc013g0vjkfa" path="res://UI/Terrains/grass.png" id="7_haurc"]
 [ext_resource type="Texture2D" uid="uid://c07v4ijon03kv" path="res://UI/Terrains/Forest.png" id="8_2dc0q"]
 [ext_resource type="PackedScene" uid="uid://b226o8whi8uox" path="res://Arena/Terrain_Models/column_stylized_low-poly_3d_model.glb" id="12_3e2tw"]
-[ext_resource type="PackedScene" uid="uid://di4o6ya4vrixt" path="res://Cards/Naga_Model.tscn" id="13_l2kch"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_5v3qr"]
 
@@ -163,6 +162,3 @@ transform = Transform3D(0.164554, 0, 0, 0, 0.214497, 0, 0, 0, 0.164554, -0.44842
 
 [node name="Sketchfab_Scene4" parent="." instance=ExtResource("12_3e2tw")]
 transform = Transform3D(0.164554, 0, 0, 0, 0.214497, 0, 0, 0, 0.164554, 0.430492, -0.919722, -0.465832)
-
-[node name="Naga_Model" parent="." instance=ExtResource("13_l2kch")]
-transform = Transform3D(0.414516, 0, 0, 0, 0.414516, 0, 0, 0, 0.414516, 0, 0, 0)

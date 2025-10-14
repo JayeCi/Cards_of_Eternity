@@ -16,6 +16,7 @@ signal fade_ui(to_alpha: float, dur: float)
 # -----------------------------
 # CONSTANTS / ENUMS
 # -----------------------------
+const CARD_MODEL_SCALE := Vector3(0.75, 0.75, 0.75)
 const BOARD_W := 7
 const BOARD_H := 7
 const PLAYER := 0
@@ -121,14 +122,14 @@ func _ready() -> void:
 	await get_tree().process_frame
 
 	# minimal registry of cards (your collection)
-	CardCollection.add_card(GOBLIN)
-	CardCollection.add_card(DIRT)
-	CardCollection.add_card(IMP)
-	CardCollection.add_card(FYSH)
+	#CardCollection.add_card(GOBLIN)
+	#CardCollection.add_card(DIRT)
+	#CardCollection.add_card(IMP)
+	#CardCollection.add_card(FYSH)
 	CardCollection.add_card(NAGA)
-	CardCollection.add_card(FOREST_FAE)
+	#CardCollection.add_card(FOREST_FAE)
 	CardCollection.add_card(COLD_SLOTH)
-	CardCollection.add_card(LAVA_HARE)
+	#CardCollection.add_card(LAVA_HARE)
 
 	# Pick a random biome
 	var all_biomes = [
@@ -235,7 +236,7 @@ func _build_decks() -> void:
 	_log("✅ Decks built: Player=%d, Enemy=%d" % [player_deck.size(), enemy_deck.size()])
 
 func _spawn_leaders() -> void:
-	player_leader = UnitData.new().init_from_card(IMP, PLAYER)
+	player_leader = UnitData.new().init_from_card(FOREST_FAE, PLAYER)
 	player_leader.is_leader = true
 	player_leader.hp = 10
 
@@ -257,6 +258,14 @@ func _spawn_leaders() -> void:
 		if tile and tile.has_node("CardMesh"):
 			tile.get_node("CardMesh").visible = false
 			
+			
+			# Hide 3D models until cutscene intro
+	for leader in [player_leader, enemy_leader]:
+		if leader.has_meta("leader_model"):
+			leader.get_meta("leader_model").visible = false
+		if leader.has_meta("leader_ring"):
+			leader.get_meta("leader_ring").visible = false
+
 func _place_leader(unit: UnitData, pos: Vector2i) -> void:
 	units[pos] = unit
 	var tile = board.get_tile(pos.x, pos.y)
@@ -264,10 +273,33 @@ func _place_leader(unit: UnitData, pos: Vector2i) -> void:
 		push_error("⚠️ Could not find tile for leader placement at %s" % str(pos))
 		return
 
-	tile.set_occupant(unit)  # ✅ this automatically shows LeaderBadge if is_leader = true
+	tile.set_occupant(unit)
 	tile.set_art(unit.card.art)
 	tile.set_badge_text("L")
-	
+
+	# ✅ Spawn leader's 3D model if available
+	if unit.card and unit.card.model_scene:
+		var model_instance = unit.card.model_scene.instantiate()
+		model_instance.name = "CardModel"
+		model_instance.position = Vector3(0, 0.1, 0)
+		model_instance.scale = CARD_MODEL_SCALE
+
+		# 🔹 Flip enemy model to face the player
+		if unit.owner == self.ENEMY:
+			model_instance.rotate_y(deg_to_rad(180))
+
+		# Add to tile
+		tile.add_child(model_instance)
+		model_instance.scale = CARD_MODEL_SCALE
+		print("Leader model scale after spawn:", model_instance.scale)
+		print_tree_pretty()
+
+		# Start hidden until cutscene intro
+		model_instance.visible = false
+
+		# Store references for cutscene reveal
+		unit.set_meta("leader_model", model_instance)
+
 func get_terrain_multiplier(unit: UnitData, terrain: String) -> float:
 	if not unit or not unit.card:
 		return 1.0
@@ -277,6 +309,16 @@ func get_terrain_multiplier(unit: UnitData, terrain: String) -> float:
 	if not TERRAIN_BONUS[terrain].has(element):
 		return 1.0
 	return TERRAIN_BONUS[terrain][element]
+	
+func clear_card_placement_mode() -> void:
+	dragging_card = null
+	selected_card = null
+	selected_pos = Vector2i(-1, -1)
+	battle_sys.call("clear_highlights")
+	_set_phase(Phase.SUMMON_OR_MOVE)
+	_update_phase_ui()
+	ui_sys.call("fade_hand_in")
+	ui_sys.call("hide_hover")
 
 # -----------------------------
 # DRAW / HAND / ESSENCE

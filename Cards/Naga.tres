@@ -1,7 +1,8 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://bo5wypx5uvg2r"]
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://bo5wypx5uvg2r"]
 
 [ext_resource type="Texture2D" uid="uid://ra8hsar08b5c" path="res://Images/Naga.jpg" id="1_m3xtm"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="1_ma0od"]
+[ext_resource type="PackedScene" uid="uid://di4o6ya4vrixt" path="res://Cards/Models/Naga_Model.tscn" id="2_w1jcx"]
 
 [resource]
 script = ExtResource("1_ma0od")
@@ -10,12 +11,9 @@ rarity = "Epic"
 element = "Fire"
 id = "00005"
 name = "Naga"
-description = ""
 art = ExtResource("1_m3xtm")
 cost = 2
 atk = 17
 def = 19
-hp = 0
-fusion_materials = Array[String]([])
-attack_moves = Array[String]([])
+model_scene = ExtResource("2_w1jcx")
 metadata/_custom_type_script = "uid://57up1u0etcmc"

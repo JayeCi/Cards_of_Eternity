@@ -36,6 +36,11 @@ func _intro() -> void:
 	camera.look_at(board_center, Vector3.UP)
 
 	await _fade(0.0, 1.0)
+	# Reveal leaders with a smooth rise
+	await _reveal_leader_with_rise(core.player_leader, 0.2)
+	await _reveal_leader_with_rise(core.enemy_leader, 0.6)
+
+			#tw.tween_property(m, "scale", Vector3.ONE, 0.4)
 
 	# Enemy Leader fade-in
 	await _fade_in_leader(get_leader_pos(core.ENEMY), "👑 The Enemy Leader has appeared!")
@@ -52,9 +57,29 @@ func _intro() -> void:
 	core.is_cutscene_active = false  # 🔓 Allow hover again
 	_disable_input(false)
 	_is_cutscene_running = false
+	
+	
+	
 # -------------------------------------------------
 # UI Helpers
 # -------------------------------------------------
+func _reveal_leader_with_rise(unit: UnitData, delay := 0.0, rise_height := 0.6, duration := 1.0):
+	if not unit or not unit.has_meta("leader_model"):
+		return
+
+	var model: Node3D = unit.get_meta("leader_model")
+	if not model:
+		return
+
+	await get_tree().create_timer(delay).timeout
+	model.visible = true
+
+	var start_pos = model.position
+	model.position = start_pos - Vector3(0, rise_height, 0)
+	var tw = create_tween()
+	tw.tween_property(model, "position", start_pos, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.tween_property(model, "modulate:a", 1.0, duration * 0.8)
+
 func _hide_battle_ui(hide: bool) -> void:
 	if not core: return
 

@@ -26,9 +26,11 @@ uv1_scale = Vector3(1.765, 1.765, 1.765)
 script = ExtResource("1_2nnof")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(-0.866024, -0.433016, 0.250001, 0, 0.499998, 0.866026, -0.500003, 0.749999, -0.43301, 0, 0, 0)
+transform = Transform3D(-0.86602557, -0.49985066, 0.012216102, 0, 0.024432203, 0.9997011, -0.5000002, 0.86576664, -0.021158906, 0, 0, 0)
 shadow_enabled = true
-shadow_bias = 0.139
+shadow_transmittance_bias = 16.0
+shadow_opacity = 0.79
+shadow_blur = 6.876
 directional_shadow_max_distance = 52.9
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]

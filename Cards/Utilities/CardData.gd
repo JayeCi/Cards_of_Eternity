@@ -14,6 +14,7 @@ class_name CardData
 @export var def: int = 0
 @export var hp: int = 0
 @export var ability: CardAbility
+@export var model_scene: PackedScene
 
 @export var place_sound: AudioStream
 @export var attack_sound: AudioStream
