@@ -18,6 +18,21 @@ class_name ArenaCardDetails
 @onready var def: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer2/Def
 
 var current_unit: UnitData = null
+var last_bonus_state: String = "neutral"  # "buff", "debuff", or "neutral"
+
+func set_stat_color_from_bonus(mult: float) -> void:
+	if mult > 1.0:
+		atk.add_theme_color_override("font_color", Color(0.5, 1.0, 0.5))
+		def.add_theme_color_override("font_color", Color(0.5, 1.0, 0.5))
+		last_bonus_state = "buff"
+	elif mult < 1.0:
+		atk.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
+		def.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
+		last_bonus_state = "debuff"
+	else:
+		atk.add_theme_color_override("font_color", Color(1,1,1))
+		def.add_theme_color_override("font_color", Color(1,1,1))
+		last_bonus_state = "neutral"
 
 func show_unit(unit: UnitData) -> void:
 	if not unit or not unit.card:
@@ -55,13 +70,17 @@ func show_unit(unit: UnitData) -> void:
 	abilities_name.text = ", ".join(ability_list) if ability_list.size() > 0 else "None"
 
 
-	# --- NEW: Terrain art for this unit's tile ---
+
+	# --- Apply terrain-based color tint ---
 	var core_node := get_tree().get_root().find_child("Arena3D", true, false)
 	if core_node and core_node.has_method("get_terrain_for_unit"):
 		var terrain_type = core_node.get_terrain_for_unit(unit)
 		if terrain_type != "":
 			show_terrain(terrain_type)
-
+			# 👇 determine terrain multiplier for color tint
+			if core_node.has_method("get_terrain_multiplier"):
+				var mult = core_node.get_terrain_multiplier(unit, terrain_type)
+				set_stat_color_from_bonus(mult)
 
 func hide_card() -> void:
 	current_unit = null
@@ -74,7 +93,6 @@ func refresh_if_showing(unit: UnitData) -> void:
 		show_unit(unit)
 
 func show_terrain(terrain_type: String) -> void:
-	print(">>> show_terrain called with:", terrain_type)
 	if not terrain:
 		print("❌ Terrain node not found!")
 		return
@@ -96,3 +114,11 @@ func show_terrain(terrain_type: String) -> void:
 		terrain.visible = true
 	else:
 		terrain.visible = false
+
+func flash_stat_change(is_buff: bool) -> void:
+	var color := Color(0.5, 1.0, 0.5) if is_buff else Color(1.0, 0.4, 0.4)
+	var t = create_tween()
+	t.tween_property(atk, "modulate", color, 0.15)
+	t.parallel().tween_property(def, "modulate", color, 0.15)
+	t.tween_property(atk, "modulate", Color(1,1,1), 0.3)
+	t.parallel().tween_property(def, "modulate", Color(1,1,1), 0.3)

@@ -7,6 +7,7 @@
 script = ExtResource("1_wmtkd")
 type = "Elemental"
 rarity = "Legendary"
+element = "Earth"
 id = "00007"
 name = "Forest Fae"
 description = ""

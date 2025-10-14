@@ -1,8 +1,9 @@
 extends Resource
 class_name CardData
 
-@export_enum("Beast", "Demon", "Machine", "Elemental", "Spirit") var type = "Beast"
+@export_enum("Beast", "Demon", "Machine", "Elemental", "Spirit", "Flying") var type = "Beast"
 @export_enum("Common", "Rare", "Epic", "Legendary") var rarity := "Common"  # String
+@export_enum("Fire", "Water", "Earth", "Wind", "Neutral") var element: String = "Neutral"
 
 @export var id: String
 @export var name: String

@@ -25,6 +25,15 @@ const MAX_ENEMY_HAND_SIZE := 5
 const BASE_MOVE_RANGE := 1
 const CARD_BACK := preload("res://Images/CardBack1.png")
 const CARD_MOVE_SOUND := preload("res://Audio/Sound FX/CardMove.mp3")
+const TERRAIN_BONUS := {
+	"Grass": {"Fire": 0.9, "Water": 1.1, "Earth": 1.1, "Wind": 1.0},
+	"Forest": {"Fire": 0.8, "Earth": 1.2, "Water": 1.0, "Wind": 1.0},
+	"Lava": {"Fire": 1.2, "Water": 0.7, "Earth": 1.0, "Wind": 1.0},
+	"Water": {"Water": 1.2, "Fire": 0.7, "Earth": 1.0, "Wind": 1.0},
+	"Stone": {"Earth": 1.1, "Wind": 0.9, "Fire": 1.0, "Water": 1.0},
+	"Ice": {"Water": 1.1, "Wind": 0.9, "Fire": 0.8, "Earth": 1.0},
+	"Meadow": {"Wind": 1.1, "Earth": 0.9, "Fire": 1.0, "Water": 1.0},
+}
 
 enum Phase { SUMMON_OR_MOVE, SELECT_SUMMON_TILE, SELECT_MOVE_TARGET, ENEMY_TURN }
 
@@ -133,8 +142,8 @@ func _ready() -> void:
 
 	# Use randf_range or randi for variety
 	randomize()
-	#board.biome = all_biomes[randi() % all_biomes.size()]
-	board.biome = 1
+	board.biome = all_biomes[randi() % all_biomes.size()]
+	
 	# Generate the map for that biome
 	board._generate_grid()
 
@@ -167,7 +176,42 @@ func _ready() -> void:
 	_draw_starting_hand(5)
 	_set_phase(Phase.SUMMON_OR_MOVE)
 	_update_phase_ui()
+	
+func _apply_terrain_bonus(unit: UnitData, terrain: String) -> void:
+	if not unit or not unit.card:
+		return
+	var element = unit.card.element
+	if not TERRAIN_BONUS.has(terrain):
+		return
+	if not TERRAIN_BONUS[terrain].has(element):
+		return
 
+	var mult = TERRAIN_BONUS[terrain][element]
+	if mult == 1.0:
+		return
+
+	var old_atk = unit.current_atk
+	var old_def = unit.current_def
+	unit.current_atk = int(unit.current_atk * mult)
+	unit.current_def = int(unit.current_def * mult)
+
+	var is_buff = mult > 1.0
+	var color := Color(0.6, 1, 0.6) if is_buff else Color(1, 0.5, 0.5)
+
+	_log("🌿 %s is affected by terrain (%s): ATK %d→%d DEF %d→%d" %
+		[unit.card.name, terrain, old_atk, unit.current_atk, old_def, unit.current_def],
+		color)
+
+	# 🔔 Flash stat change if the card details are currently visible
+	if card_details_ui and card_details_ui.visible:
+		card_details_ui.call("flash_stat_change", is_buff)
+
+	# ✅ Flash using UI system reference
+	if ui_sys and ui_sys.has_node("ArenaCardDetails"):
+		var details_ui = ui_sys.get_node("ArenaCardDetails")
+		if details_ui.visible:
+			details_ui.flash_stat_change(is_buff)
+			
 func _build_decks() -> void:
 	# PLAYER
 	player_deck.clear()
@@ -223,6 +267,16 @@ func _place_leader(unit: UnitData, pos: Vector2i) -> void:
 	tile.set_occupant(unit)  # ✅ this automatically shows LeaderBadge if is_leader = true
 	tile.set_art(unit.card.art)
 	tile.set_badge_text("L")
+	
+func get_terrain_multiplier(unit: UnitData, terrain: String) -> float:
+	if not unit or not unit.card:
+		return 1.0
+	if not TERRAIN_BONUS.has(terrain):
+		return 1.0
+	var element = unit.card.element
+	if not TERRAIN_BONUS[terrain].has(element):
+		return 1.0
+	return TERRAIN_BONUS[terrain][element]
 
 # -----------------------------
 # DRAW / HAND / ESSENCE
@@ -311,7 +365,6 @@ func confirm_summon_in_mode(mode: int) -> void:
 	player_essence -= cost
 	emit_signal("essence_changed", player_essence, enemy_essence)
 
-	print("DEBUG summon:", selected_card, "pos:", selected_pos, "mode:", mode)
 	battle_sys.call("place_unit", selected_card, selected_pos, PLAYER, summon_mode, true)
 
 

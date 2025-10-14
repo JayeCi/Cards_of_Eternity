@@ -7,8 +7,10 @@
 script = ExtResource("1_e2isb")
 type = "Beast"
 rarity = "Rare"
+element = "Fire"
 id = "00006"
 name = "Lava Hare"
+description = ""
 art = ExtResource("1_8y28n")
 cost = 2
 atk = 24

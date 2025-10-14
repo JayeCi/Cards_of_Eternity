@@ -1,19 +1,24 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://l8hkcr570yry"]
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://l8hkcr570yry"]
 
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="1_8dvcv"]
 [ext_resource type="Texture2D" uid="uid://cl0iui7leetm" path="res://Images/Fish.jpg" id="1_pf8oy"]
+[ext_resource type="AudioStream" uid="uid://cwwx8gl27ka35" path="res://Audio/Sound FX/Splash.mp3" id="2_a6j02"]
 
 [resource]
 script = ExtResource("1_8dvcv")
 type = "Beast"
 rarity = "Common"
+element = "Water"
 id = "00004"
 name = "Fysh"
+description = ""
 art = ExtResource("1_pf8oy")
 cost = 1
 atk = 12
 def = 5
 hp = 0
+place_sound = ExtResource("2_a6j02")
+attack_sound = ExtResource("2_a6j02")
 fusion_materials = Array[String]([])
 attack_moves = Array[String]([])
 metadata/_custom_type_script = "uid://57up1u0etcmc"

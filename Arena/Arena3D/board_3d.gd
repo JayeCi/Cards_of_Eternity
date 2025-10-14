@@ -28,12 +28,6 @@ func _ready() -> void:
 		child.queue_free()
 	await get_tree().process_frame
 
-	#_generate_grid()
-
-	for tile in tiles.values():
-		if tile.has_signal("hovered"):
-			tile.hovered.connect(_on_tile_hovered)
-
 # -------------------------------------------------------------
 # TILE HOVER
 # -------------------------------------------------------------

@@ -43,14 +43,36 @@ func _update_hover() -> void:
 
 	if tile:
 		tile.set_highlight(true, "★" if core.dragging_card != null else "")
-
 		hovered_tile = tile
-		#ui.show_hover_for_tile(tile)
+		if ui and ui.has_method("show_hover_for_tile"):
+			ui.show_hover_for_tile(tile)
 		if core.dragging_card:
 			ui.move_ghost_over(tile)
 
+
 	# also tell core about current tile
 	core.hovered_tile = hovered_tile
+	
+func show_hover_for_tile(tile: Node3D) -> void:
+	if not tile:
+		return
+
+	# Skip during cutscenes
+	if core and core.is_cutscene_active:
+		return
+
+	# Show card if occupied
+	if tile.occupant:
+		if has_node("ArenaCardDetails"):
+			$ArenaCardDetails.show_unit(tile.occupant)
+		if has_node("ArenaTerrainDetails"):
+			$ArenaTerrainDetails.visible = false
+	else:
+		# Otherwise show terrain
+		if has_node("ArenaTerrainDetails"):
+			$ArenaTerrainDetails.show_terrain(tile.terrain_type)
+		if has_node("ArenaCardDetails"):
+			$ArenaCardDetails.hide_card()
 
 func _update_ghost_position() -> void:
 	# ghost is moved in UI helper; here only default when no tile
@@ -179,6 +201,7 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, mark_acted
 	# sounds
 	_play_card_sound(core.CARD_MOVE_SOUND, tile.global_position)
 	_play_card_sound(card.place_sound, tile.global_position)
+	core._apply_terrain_bonus(u, tile.terrain_type)
 
 	# apply passive if needed
 	if card.ability and card.ability.trigger == "on_passive":
@@ -188,30 +211,37 @@ func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 	var src = board.get_tile(from.x, from.y)
 	var dst = board.get_tile(to.x, to.y)
 	if not src or not dst: return
+
 	var attacker: UnitData = src.occupant
 	if not attacker: return
-		# 🚫 Prevent attacking or moving onto itself
+
+	# 🚫 Prevent self-targeting
 	if from == to:
 		core._log("⚠️ You can’t attack your own tile!", Color(1, 0.6, 0.4))
 		return
 
+	# 🚫 Ensure attacker can act
 	if not core.can_unit_act(attacker):
-		core._log("⏳ That unit already acted this turn."); return
+		core._log("⏳ That unit already acted this turn.")
+		return
 
-	# distance rule
+	# 🚫 Check move distance
 	var dist = abs(to.x - from.x) + abs(to.y - from.y)
 	if dist > core.BASE_MOVE_RANGE:
-		core._log("⚠️ You can only move 1 tile per turn!", Color(1, 0.6, 0.4)); return
+		core._log("⚠️ You can only move 1 tile per turn!", Color(1, 0.6, 0.4))
+		return
 
+	# ------------------------------------------------------------
+	# 🟦 MOVE (no defender)
+	# ------------------------------------------------------------
 	if dst.occupant == null:
-		# MOVE
 		dst.set_occupant(attacker)
 		_play_card_sound(core.CARD_MOVE_SOUND, dst.global_position)
-		dst.set_art(
-	attacker.card.art if attacker.mode != UnitData.Mode.FACEDOWN else core.CARD_BACK,
-	attacker.owner == core.ENEMY
-)
 
+		dst.set_art(
+			attacker.card.art if attacker.mode != UnitData.Mode.FACEDOWN else core.CARD_BACK,
+			attacker.owner == core.ENEMY
+		)
 		dst.set_badge_text("P" if attacker.owner == core.PLAYER else "E")
 
 		src.clear()
@@ -220,29 +250,36 @@ func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 		core.mark_unit_acted(attacker)
 		return
 
-	# BATTLE
+	# ------------------------------------------------------------
+	# 🟥 BATTLE
+	# ------------------------------------------------------------
 	var defender: UnitData = dst.occupant
+
+	# Flip facedowns before battle
 	if attacker.mode == UnitData.Mode.FACEDOWN:
 		attacker.mode = UnitData.Mode.ATTACK
-		await _flip_faceup(board.get_tile(from.x, from.y), attacker.card.art)
-		core._log("🔄 %s was revealed in attack mode!" % attacker.card.name, Color(1,1,0.6))
+		await _flip_faceup(src, attacker.card.art)
+		core._log("🔄 %s was revealed in Attack Mode!" % attacker.card.name, Color(1, 1, 0.6))
 
 	if defender.mode == UnitData.Mode.FACEDOWN:
 		defender.mode = UnitData.Mode.DEFENSE
-		await _flip_faceup(board.get_tile(to.x, to.y), defender.card.art)
-		core._log("❗ %s was revealed!" % defender.card.name, Color(1,0.9,0.7))
+		await _flip_faceup(dst, defender.card.art)
+		core._log("❗ %s was revealed!" % defender.card.name, Color(1, 0.9, 0.7))
 
-	var result: String = await _play_3d_battle(attacker, defender)
+	# Run cinematic battle and get result
+	var result_data = await _play_2d_battle(attacker, defender)
+	var result: String = result_data["result"]
+	var overflow_damage: int = result_data["overflow"]
 
+
+	# ------------------------------------------------------------
+	# 🎯 Apply result
+	# ------------------------------------------------------------
 	match result:
 		"attacker_wins":
-			_kill_unit(defender)
+			await _kill_unit(defender)  # ✅ wait for death animation to finish
 			dst.set_occupant(attacker)
-			dst.set_art(
-	attacker.card.art if attacker.mode != UnitData.Mode.FACEDOWN else core.CARD_BACK,
-	attacker.owner == core.ENEMY
-)
-			dst.set_occupant(attacker)
+			dst.set_art(attacker.card.art, attacker.owner == core.ENEMY)
 			dst.set_badge_text("P" if attacker.owner == core.PLAYER else "E")
 
 			src.clear()
@@ -252,17 +289,32 @@ func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 
 		"defender_wins":
 			_kill_unit(attacker)
+			core.mark_unit_acted(attacker)
+
 		"both_destroyed":
-			_kill_unit(defender)
-			_kill_unit(attacker)
-		"both_survive", "leader_damaged":
+			await _kill_unit(defender)
+			await _kill_unit(attacker)
+
+
+		"both_survive":
 			dst.flash()
 			core.mark_unit_acted(attacker)
 
-	# final safety
-	if dst.occupant and dst.occupant.current_def <= 0: _kill_unit(dst.occupant)
-	if attacker and attacker.current_def <= 0: _kill_unit(attacker)
-	
+			# ✅ Refresh survivors visually
+			var att_tile = _get_unit_tile(attacker)
+			if att_tile: att_tile.set_art(attacker.card.art, attacker.owner == core.ENEMY)
+
+			var def_tile = _get_unit_tile(defender)
+			if def_tile: def_tile.set_art(defender.card.art, defender.owner == core.ENEMY)
+
+		"leader_damaged":
+			dst.flash()
+			core.mark_unit_acted(attacker)
+
+			# ✅ Refresh attacker visuals in case they fade
+			var att_tile = _get_unit_tile(attacker)
+			if att_tile: att_tile.set_art(attacker.card.art, attacker.owner == core.ENEMY)
+
 func _on_cancel_card_drag():
 	if core.dragging_card:
 		# Hide the ghost
@@ -293,74 +345,68 @@ func _fizzle_out(sprite: Sprite3D) -> void:
 # -----------------------------
 # COMBAT RESOLUTION (no negatives)
 # -----------------------------
-func resolve_battle(att: UnitData, defn: UnitData) -> String:
+func resolve_battle(att: UnitData, defn: UnitData) -> Dictionary:
 	var a := att.current_atk
 	var d := defn.current_def
-	var def_before := d
+	var result := "both_survive"
+	var overflow := 0
+	var damage_to_def := 0
+	var damage_to_att := 0
 
 	core._log("⚔ Battle! %s (ATK %d) vs %s (ATK %d / DEF %d, Mode=%s)" %
 		[att.card.name, a, defn.card.name, defn.current_atk, defn.current_def, str(defn.mode)],
-		Color(1,0.9,0.6))
+		Color(1, 0.9, 0.6))
 
-	var att_tile = _get_unit_tile(att)
-	if att_tile: _play_card_sound(att.card.attack_sound, att_tile.global_position)
-
-	# Leader damage path
+	# --- Direct leader hit ---
 	if defn.is_leader:
 		defn.hp = max(defn.hp - a, 0)
+		damage_to_def = a
+		result = "leader_damaged"
 		core._log("💥 %s attacks the Leader directly for %d damage!" % [att.card.name, a], Color(1, 0.6, 0.6))
 		core.on_leader_damaged(defn.owner, defn.hp)
-		if defn.hp <= 0: core.on_leader_defeated(defn.owner)
-		return "leader_damaged"
+		if defn.hp <= 0:
+			core.on_leader_defeated(defn.owner)
+		return {"result": result, "overflow": overflow, "damage_to_def": damage_to_def, "damage_to_att": 0}
 
-	# Trigger "on_attack"
-	if att.card.ability and att.card.ability.trigger == "on_attack":
-		core._execute_card_ability(att, att.card.ability)
-
-	# Defender in DEFENSE
+	# --- Defense mode ---
 	if defn.mode == UnitData.Mode.DEFENSE:
+		damage_to_def = min(a, d)
 		defn.current_def = max(defn.current_def - a, 0)
-		core.card_details_ui.call("refresh_if_showing", defn)
-		if a > d:
-			core._log("💥 %s breaks through %s’s DEF!" % [att.card.name, defn.card.name], Color(0.7,1,0.7))
-			_play_card_sound(defn.card.death_sound)
-			return "attacker_wins"
+		if a > d or defn.current_def <= 0:
+			overflow = max(a - d, 0)
+			result = "attacker_wins"
+			core._log("💥 %s breaks through %s’s DEF! Overflow %d" %
+				[att.card.name, defn.card.name, overflow], Color(1, 0.8, 0.5))
 		else:
-			core._log("🛡 %s’s DEF reduced from %d → %d" % [defn.card.name, def_before, defn.current_def], Color(0.8,0.8,1))
-			_play_card_sound(defn.card.defense_sound)
-			if defn.current_atk > 0:
-				att.current_def = max(att.current_def - defn.current_atk, 0)
-				core.card_details_ui.call("refresh_if_showing", att)
-				core._log("↩ %s counterattacks for %d! %s DEF → %d" %
-					[defn.card.name, defn.current_atk, att.card.name, att.current_def], Color(1,0.9,0.7))
-				if att.current_def <= 0:
-					_play_card_sound(att.card.death_sound)
-					return "defender_wins"
-			return "both_survive"
+			result = "both_survive"
+		core.card_details_ui.call("refresh_if_showing", defn)
+		return {"result": result, "overflow": overflow, "damage_to_def": damage_to_def, "damage_to_att": 0}
 
-	# Mutual ATTACK
-	if defn.mode == UnitData.Mode.ATTACK and att.mode == UnitData.Mode.ATTACK:
-		core._log("🔥 Both monsters attack head-on!", Color(1,0.8,0.5))
+	# --- Attack vs Attack ---
+	if defn.mode == UnitData.Mode.ATTACK:
+		damage_to_def = min(a, defn.current_def)
+		damage_to_att = min(defn.current_atk, att.current_def)
+
 		defn.current_def = max(defn.current_def - a, 0)
 		att.current_def = max(att.current_def - defn.current_atk, 0)
 		core.card_details_ui.call("refresh_if_showing", defn)
 		core.card_details_ui.call("refresh_if_showing", att)
-		core._log("%s DEF → %d | %s DEF → %d" % [defn.card.name, defn.current_def, att.card.name, att.current_def], Color(1,1,1))
-		var attacker_destroyed = att.current_def <= 0
-		var defender_destroyed = defn.current_def <= 0
-		if attacker_destroyed and defender_destroyed:
-			_play_card_sound(att.card.death_sound); _play_card_sound(defn.card.death_sound)
-			core._log("💀 Both are destroyed in battle!", Color(1,0.4,0.4)); return "both_destroyed"
-		elif defender_destroyed:
-			_play_card_sound(defn.card.death_sound)
-			core._log("💥 %s destroys %s!" % [att.card.name, defn.card.name], Color(0.7,1,0.7)); return "attacker_wins"
-		elif attacker_destroyed:
-			_play_card_sound(att.card.death_sound)
-			core._log("💀 %s is destroyed!" % att.card.name, Color(1,0.4,0.4)); return "defender_wins"
-		else:
-			return "both_survive"
 
-	return "both_survive"
+		var attacker_dead = att.current_def <= 0
+		var defender_dead = defn.current_def <= 0
+
+		if attacker_dead and defender_dead:
+			result = "both_destroyed"
+		elif defender_dead:
+			result = "attacker_wins"
+		elif attacker_dead:
+			result = "defender_wins"
+		else:
+			result = "both_survive"
+
+		return {"result": result, "overflow": 0, "damage_to_def": damage_to_def, "damage_to_att": damage_to_att}
+
+	return {"result": "both_survive", "overflow": 0, "damage_to_def": 0, "damage_to_att": 0}
 
 # -----------------------------
 # PASSIVES / KILL / HELPERS
@@ -379,7 +425,8 @@ func remove_passive_effect(unit: UnitData, ability: CardAbility) -> void:
 	if ability.has_method("remove"): ability.remove(core, unit)
 
 func _kill_unit(u: UnitData) -> void:
-	if u == null:
+	if u == null: return
+	if u.current_def > 0 and not u.is_leader:
 		return
 
 	# Remove passive effects if active
@@ -407,7 +454,7 @@ func _kill_unit(u: UnitData) -> void:
 		var tw = create_tween()
 		tw.tween_property(mesh, "modulate:a", 0.0, 0.3)
 		tw.tween_property(mesh, "scale", mesh.scale * 0.5, 0.3)
-		await tw.finished
+		await tw.finished   # ✅ ensure we wait before erasing
 
 	tile.clear()
 	core.units.erase(found_pos)
@@ -441,141 +488,44 @@ func _get_unit_tile(u: UnitData) -> Node3D:
 # -----------------------------
 # CINEMATIC BATTLE (wraps fade + scene)
 # -----------------------------
-func _play_3d_battle(att: UnitData, defn: UnitData) -> String:
-	var result: String = resolve_battle(att, defn)
-	await _fade(1.0, 0.25)
+func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
+	var result_data = resolve_battle(att, defn)
+	var result: String = result_data["result"]
+	var overflow_damage: int = result_data["overflow"]
+	var damage_to_def: int = result_data["damage_to_def"]
+	var damage_to_att: int = result_data["damage_to_att"]
 
-	# === CREATE ARENA SCENE ===
-	var battle_scene := Node3D.new()
-	core.add_child(battle_scene)
+	await _fade(1.0, 0.2)
 
-	# --- LIGHTING ---
-	var ambient := DirectionalLight3D.new()
-	ambient.rotation_degrees = Vector3(-45, 30, 0)
-	ambient.light_energy = 2.0
-	battle_scene.add_child(ambient)
+	var battle_ui_scene = preload("res://UI/battle_ui.tscn")
+	var ui_instance = battle_ui_scene.instantiate()
+	core.add_child(ui_instance)
 
-	var spot := OmniLight3D.new()
-	spot.light_color = Color(0.3, 0.6, 1.0)
-	spot.light_energy = 5.0
-	spot.omni_range = 15.0
-	battle_scene.add_child(spot)
+	var defender_died = (result == "attacker_wins" or result == "both_destroyed")
+	await ui_instance.play_battle(att, defn, damage_to_def, defender_died)
 
-	# --- CAMERA ---
-	var cam := Camera3D.new()
-	cam.position = Vector3(0, 1.5, 5)
-	cam.look_at(Vector3(0, 0.5, 0))
-	battle_scene.add_child(cam)
+	ui_instance.queue_free()
 
-	# --- FLOOR PLATFORM ---
-	var floor := MeshInstance3D.new()
-	floor.mesh = CylinderMesh.new()
-	floor.scale = Vector3(3, 0.2, 3)
-	var floor_mat := StandardMaterial3D.new()
-	floor_mat.albedo_color = Color(0.2, 0.2, 0.25)
-	floor_mat.emission_enabled = true
-	floor_mat.emission = Color(0.1, 0.2, 0.5)
-	floor.material_override = floor_mat
-	floor.position.y = -0.2
-	battle_scene.add_child(floor)
+	# Refresh visuals
+	var att_tile = _get_unit_tile(att)
+	if att_tile and att_tile.occupant == att:
+		att_tile.set_art(att.card.art, att.owner == core.ENEMY)
+		att_tile.set_badge_text("P" if att.owner == core.PLAYER else "E")
 
-	# --- ENERGY PILLARS ---
-	for i in range(6):
-		var pillar := MeshInstance3D.new()
-		pillar.mesh = CylinderMesh.new()
-		pillar.scale = Vector3(0.05, randf_range(0.8, 1.2), 0.05)
-		pillar.position = Vector3(sin(i * PI / 3.0) * 2.5, pillar.scale.y / 2, cos(i * PI / 3.0) * 2.5)
-		var pm := StandardMaterial3D.new()
-		pm.albedo_color = Color(0.4, 0.7, 1.0)
-		pm.emission_enabled = true
-		pm.emission = pm.albedo_color * 2.0
-		pillar.material_override = pm
-		battle_scene.add_child(pillar)
+	var def_tile = _get_unit_tile(defn)
+	if def_tile and def_tile.occupant == defn:
+		def_tile.set_art(defn.card.art, defn.owner == core.ENEMY)
+		def_tile.set_badge_text("P" if defn.owner == core.PLAYER else "E")
+		
+	# Safety cleanup: if any card's DEF hit 0, remove it
+	if att.current_def <= 0 and not att.is_leader:
+		await _kill_unit(att)
+	if defn.current_def <= 0 and not defn.is_leader:
+		await _kill_unit(defn)
 
-# --- ATTACKER ---
-	var attacker_sprite := Sprite3D.new()
-	attacker_sprite.texture = att.card.art
-	attacker_sprite.pixel_size = 0.002
-	attacker_sprite.scale = Vector3.ONE
-	attacker_sprite.position = Vector3(-2.0, 0.5, 0)
-	battle_scene.add_child(attacker_sprite)
+	await _fade(0.0, 0.2)
+	return result_data
 
-	# --- DEFENDER ---
-	var defender_sprite := Sprite3D.new()
-	defender_sprite.texture = defn.card.art
-	defender_sprite.pixel_size = 0.002
-	defender_sprite.scale = Vector3.ONE
-	defender_sprite.position = Vector3(2.0, 0.5, 0)
-	battle_scene.add_child(defender_sprite)
-
-	# ✅ Add glowing outlines instead of full tint
-	var attacker_glow: Node3D
-	var defender_glow: Node3D
-	if att.owner == core.PLAYER:
-		attacker_glow = _add_card_highlight(attacker_sprite, Color(0.3, 1.0, 0.3))
-		defender_glow = _add_card_highlight(defender_sprite, Color(1.0, 0.3, 0.3))
-	else:
-		attacker_glow = _add_card_highlight(attacker_sprite, Color(1.0, 0.3, 0.3))
-		defender_glow = _add_card_highlight(defender_sprite, Color(0.3, 1.0, 0.3))
-
-	# === INTRO CAMERA PAN ===
-	var cam_tween = create_tween()
-	cam_tween.tween_property(cam, "position:z", 3.5, 0.4)
-	await cam_tween.finished
-	await get_tree().create_timer(0.2).timeout
-
-	# === ATTACKER CHARGE ===
-	var atk_tween = create_tween()
-	_play_card_sound(att.card.attack_sound)
-	atk_tween.tween_property(attacker_sprite, "position:x", 0.5, 0.35)
-	atk_tween.tween_property(cam, "position:x", -0.3, 0.35)
-	await atk_tween.finished
-
-	# === IMPACT FLASH + SHAKE ===
-	var flash := ColorRect.new()
-	flash.color = Color(1, 1, 1, 1)
-	ui.get_tree().root.add_child(flash)
-	flash.size = get_viewport().size
-	var f = create_tween()
-	f.tween_property(flash, "modulate:a", 0.0, 0.2)
-	await f.finished
-	flash.queue_free()
-
-	# Camera shake
-	for i in range(6):
-		cam.position.x += randf_range(-0.1, 0.1)
-		cam.position.y += randf_range(-0.05, 0.05)
-		await get_tree().create_timer(0.03).timeout
-
-	# === DEFENDER REACTION ===
-	var def_tw = create_tween()
-	_play_card_sound(defn.card.defense_sound)
-	def_tw.tween_property(defender_sprite, "rotation_degrees:y", randf_range(-15, 15), 0.1)
-	def_tw.tween_property(defender_sprite, "scale", Vector3(0.9, 0.9, 0.9), 0.1)
-	await def_tw.finished
-
-	# === OUTCOME ===
-	match result:
-		"attacker_wins":
-			await _card_explode(defender_sprite, Color(1, 0.4, 0.4))
-		"defender_wins":
-			await _card_explode(attacker_sprite, Color(0.6, 0.6, 1.0))
-		"both_destroyed":
-			await _card_explode(defender_sprite, Color(1, 0.3, 0.3))
-			await _card_explode(attacker_sprite, Color(1, 0.3, 0.3))
-		"leader_damaged":
-			await _card_pulse(attacker_sprite, Color(1, 0.8, 0.4))
-
-	# Optional: fade tint back before removing
-	var fade_tint := create_tween()
-	fade_tint.tween_property(attacker_sprite, "modulate", Color(1, 1, 1, 1), 0.3)
-	fade_tint.tween_property(defender_sprite, "modulate", Color(1, 1, 1, 1), 0.3)
-
-	await get_tree().create_timer(0.3).timeout
-	battle_scene.queue_free()
-	await _fade(0.0, 0.25)
-	return result
-	
 func _add_card_highlight(sprite: Sprite3D, color: Color) -> Node3D:
 	var glow := MeshInstance3D.new()
 	glow.mesh = QuadMesh.new()

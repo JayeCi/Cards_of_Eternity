@@ -181,7 +181,7 @@ func set_terrain_type(new_type: String) -> void:
 func _apply_terrain_visual() -> void:
 
 	# Hide all terrain meshes first
-	for mesh_variant in [default_tile, water_mesh, stone_mesh, ice_mesh, lava_mesh, grass_mesh, forest_mesh]:
+	for mesh_variant in [ water_mesh, stone_mesh, ice_mesh, lava_mesh, grass_mesh, forest_mesh]:
 		if mesh_variant:
 			mesh_variant.visible = false
 
@@ -213,8 +213,8 @@ func _apply_terrain_visual() -> void:
 					water_mesh.material_override.albedo_color = Color(0.2, 0.4, 0.9)
 					water_mesh.material_override.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 					water_mesh.material_override.albedo_color.a = 0.85
-		_:
-			if default_tile: default_tile.visible = true
+		
+
 
 	# Optional: make highlight match terrain hue slightly
 	if highlight_mesh:
@@ -234,7 +234,6 @@ func _update_highlight_visibility() -> void:
 
 # 🆕 HOVER BEHAVIOR ---
 func _on_mouse_entered() -> void:
-	print("Hovered tile:", terrain_type)
 	hover_highlight = true
 	_update_highlight_visibility()
 	emit_signal("hovered", self)

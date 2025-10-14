@@ -7,8 +7,10 @@
 script = ExtResource("1_t13up")
 type = "Demon"
 rarity = "Rare"
+element = "Fire"
 id = "00003"
 name = "Imp"
+description = ""
 art = ExtResource("1_gynxb")
 cost = 2
 atk = 18

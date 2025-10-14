@@ -10,6 +10,7 @@
 script = ExtResource("1_42yog")
 type = "Beast"
 rarity = "Common"
+element = "Earth"
 id = "00001"
 name = "Goblin"
 description = ""

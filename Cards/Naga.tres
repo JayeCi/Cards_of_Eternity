@@ -7,8 +7,10 @@
 script = ExtResource("1_ma0od")
 type = "Elemental"
 rarity = "Epic"
+element = "Fire"
 id = "00005"
 name = "Naga"
+description = ""
 art = ExtResource("1_m3xtm")
 cost = 2
 atk = 17

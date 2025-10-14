@@ -1,0 +1,93 @@
+[gd_scene load_steps=6 format=3 uid="uid://d3k7rvjpylid4"]
+
+[ext_resource type="Script" uid="uid://dw5qidgo35t0a" path="res://UI/battle_ui.gd" id="1_1bs4s"]
+[ext_resource type="Texture2D" uid="uid://brri5my0sb0rw" path="res://Images/Lava_Hare.jpeg" id="2_pihlp"]
+[ext_resource type="Texture2D" uid="uid://3j8dhf7kmeed" path="res://Images/Goblin.jpg" id="3_c8pq4"]
+
+[sub_resource type="SystemFont" id="SystemFont_pihlp"]
+font_names = PackedStringArray("Tahoma")
+
+[sub_resource type="LabelSettings" id="LabelSettings_c8pq4"]
+font = SubResource("SystemFont_pihlp")
+font_size = 45
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 4
+shadow_color = Color(1, 0, 0, 1)
+
+[node name="BattleUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_1bs4s")
+
+[node name="BackgroundOverlay" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 242.0
+offset_top = 69.0
+offset_right = 242.0
+offset_bottom = 243.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.582411, 0.582411)
+
+[node name="AttackerPanel" type="VBoxContainer" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 2
+
+[node name="AttackerArt" type="TextureRect" parent="HBoxContainer/AttackerPanel"]
+layout_mode = 2
+texture = ExtResource("2_pihlp")
+
+[node name="AttackerName" type="Label" parent="HBoxContainer/AttackerPanel"]
+layout_mode = 2
+
+[node name="AttackerATK" type="Label" parent="HBoxContainer/AttackerPanel"]
+layout_mode = 2
+
+[node name="DefenderPanel" type="VBoxContainer" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 10
+size_flags_vertical = 4
+
+[node name="DefenderArt" type="TextureRect" parent="HBoxContainer/DefenderPanel"]
+layout_mode = 2
+texture = ExtResource("3_c8pq4")
+
+[node name="DefenderName" type="Label" parent="HBoxContainer/DefenderPanel"]
+layout_mode = 2
+
+[node name="DefenderDEF" type="Label" parent="HBoxContainer/DefenderPanel"]
+layout_mode = 2
+
+[node name="DamageLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -11.5
+offset_right = 20.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "15"
+label_settings = SubResource("LabelSettings_c8pq4")
+horizontal_alignment = 1

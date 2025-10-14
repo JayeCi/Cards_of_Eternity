@@ -57,10 +57,21 @@ func _intro() -> void:
 # -------------------------------------------------
 func _hide_battle_ui(hide: bool) -> void:
 	if not core: return
-	if core.has_node("UISystem/ArenaCardDetails"):
-		core.get_node("UISystem/ArenaCardDetails").visible = not hide
-	if core.has_node("UISystem/ArenaTerrainDetails"):
-		core.get_node("UISystem/ArenaTerrainDetails").visible = not hide
+
+	# Grab panels
+	var card_details = core.get_node("UISystem/ArenaCardDetails")
+	var terrain_details = core.get_node("UISystem/ArenaTerrainDetails")
+
+	if hide:
+		# During cutscene — hide immediately
+		card_details.hide_card()
+		card_details.visible = false
+		terrain_details.hide_terrain()
+		terrain_details.visible = false
+	else:
+		# After cutscene — keep hidden until player hovers something
+		card_details.visible = false
+		terrain_details.visible = false
 
 # -------------------------------------------------
 # Rest of your existing methods remain unchanged

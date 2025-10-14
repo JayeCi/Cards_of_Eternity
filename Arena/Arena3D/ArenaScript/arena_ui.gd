@@ -24,6 +24,10 @@ var hover_label: Label3D
 var ghost_card: Sprite3D
 var last_card_ui: Control = null
 
+func _ready():
+	$ArenaCardDetails.visible = false
+	$ArenaTerrainDetails.visible = false
+
 func init_ui(core_ref: ArenaCore) -> void:
 	core = core_ref
 	board = core.board
@@ -177,17 +181,41 @@ func move_ghost_over(tile: Node3D) -> void:
 	if ghost_card.visible:
 		ghost_card.position = (tile.position + Vector3(0,0.03,0)) if tile else ghost_card.position
 
+func show_hover_for_tile(tile: Node3D) -> void:
+	if not tile or (core and core.is_cutscene_active):
+		return
+
+	if tile.occupant:
+		if has_node("ArenaTerrainDetails"):
+			$ArenaTerrainDetails.visible = false
+		if has_node("ArenaCardDetails"):
+			$ArenaCardDetails.show_unit(tile.occupant)
+	else:
+		if has_node("ArenaCardDetails"):
+			$ArenaCardDetails.hide_card()
+		if has_node("ArenaTerrainDetails"):
+			if $ArenaTerrainDetails.has_method("show_terrain"):
+				$ArenaTerrainDetails.show_terrain(tile.terrain_type)
+			else:
+				$ArenaTerrainDetails.visible = true
 
 func hide_hover() -> void:
 	if core and core.is_cutscene_active:
-		return  # 🚫 Skip hiding/fading during cutscene
+		return  # still skip during cutscene
 
-	if not hover_label.visible: return
-	var t = create_tween()
-	t.tween_property(hover_label, "modulate:a", 0.0, 0.15)
-	await t.finished
-	card_details_ui.call("hide_card")
-	hover_label.visible = false
+	# Always hide both panels regardless of hover_label visibility
+	if has_node("ArenaCardDetails"):
+		$ArenaCardDetails.hide_card()
+	if has_node("ArenaTerrainDetails"):
+		if $ArenaTerrainDetails.has_method("hide_terrain"):
+			$ArenaTerrainDetails.hide_terrain()
+		else:
+			$ArenaTerrainDetails.visible = false
+
+	# Keep the label behavior as you like
+	if hover_label:
+		hover_label.visible = false
+		hover_label.modulate.a = 1.0  # reset alpha in case a tween ran
 
 # Labels / log
 func _on_essence_changed(p: int, e: int) -> void:
