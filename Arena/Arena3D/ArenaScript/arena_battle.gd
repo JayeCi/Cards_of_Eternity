@@ -23,6 +23,9 @@ func _input(event):
 
 
 func _process(_dt: float) -> void:
+	# Wait until core and camera are ready
+	if not core or not cam:
+		return
 	_update_hover()
 	_update_ghost_position()
 
@@ -30,6 +33,9 @@ func _process(_dt: float) -> void:
 # HOVER & HIGHLIGHT
 # -----------------------------
 func _update_hover() -> void:
+	if not core or not cam or not cam.has_method("ray_pick"):
+		return
+
 	var result = cam.ray_pick(get_viewport().get_mouse_position())
 	var tile: Node3D = null
 	if result:
@@ -396,6 +402,7 @@ func _fizzle_out(sprite: Sprite3D) -> void:
 func resolve_battle(att: UnitData, defn: UnitData) -> Dictionary:
 	var a := att.current_atk
 	var d := defn.current_def
+
 	var result := "both_survive"
 	var overflow := 0
 	var damage_to_def := 0
@@ -460,14 +467,39 @@ func resolve_battle(att: UnitData, defn: UnitData) -> Dictionary:
 # PASSIVES / KILL / HELPERS
 # -----------------------------
 func apply_all_passives() -> void:
+	print("🧊 apply_all_passives: units=", core.units.size())
 	for pos in core.units.keys():
 		var u: UnitData = core.units[pos]
-		if u.card.ability and u.card.ability.trigger == "on_passive":
-			u.card.ability.execute(core, u)
+		var ab = u.card.ability
+		var trig = ab.trigger if (ab and ab is CardAbility and "trigger" in ab) else "nil"
+		print(" -", u.card.name, " ability:", ab, "type:", typeof(ab), "trigger:", trig)
+
+		if ab and ab is CardAbility and trig == "passive":
+			ab.execute(core, u)
+			print("executed passive ability")
+
+	# ✅ Refresh DEF labels for all tiles after passives
+	for pos in core.units.keys():
+		var tile = core.board.get_tile(pos.x, pos.y)
+		var unit: UnitData = core.units[pos]
+		if tile and tile.occupant == unit:
+			tile.set_art(unit.card.art, unit.owner == core.ENEMY)
+			# 🔹 Optional: if tiles display DEF stat text, update it here
+			if tile.has_method("update_stat_labels"):
+				tile.update_stat_labels(unit.current_atk, unit.current_def)
+
+
+	# ✅ Also refresh the card details panel if visible
+	if core.card_details_ui and core.card_details_ui.visible:
+		core.card_details_ui.call("refresh_if_showing", core.card_details_ui.current_unit)
 
 func apply_passive_effect(unit: UnitData, ability: CardAbility) -> void:
 	ability.execute(core, unit)
 	unit.set_meta("passive_active", true)
+
+func _trigger_ability(unit: UnitData, trigger: String) -> void:
+	if unit.card.ability and unit.card.ability.trigger == trigger:
+		unit.card.ability.execute(core, unit)
 
 func remove_passive_effect(unit: UnitData, ability: CardAbility) -> void:
 	if ability.has_method("remove"): ability.remove(core, unit)
@@ -478,7 +510,7 @@ func _kill_unit(u: UnitData) -> void:
 		return
 
 	# Remove passive effects if active
-	if u.card and u.card.ability and u.card.ability.trigger == "on_passive":
+	if u.card and u.card.ability and u.card.ability.trigger == "passive":
 		remove_passive_effect(u, u.card.ability)
 
 	# Find tile
@@ -546,7 +578,10 @@ func _get_unit_tile(u: UnitData) -> Node3D:
 # CINEMATIC BATTLE (wraps fade + scene)
 # -----------------------------
 func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
+	
+	_trigger_ability(att, "on_attack")
 	var result_data = resolve_battle(att, defn)
+
 	var result: String = result_data["result"]
 	var overflow_damage: int = result_data["overflow"]
 	var damage_to_def: int = result_data["damage_to_def"]

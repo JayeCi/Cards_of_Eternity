@@ -26,7 +26,7 @@ uv1_scale = Vector3(1.765, 1.765, 1.765)
 script = ExtResource("1_2nnof")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(-0.86602557, -0.49985066, 0.012216102, 0, 0.024432203, 0.9997011, -0.5000002, 0.86576664, -0.021158906, 0, 0, 0)
+transform = Transform3D(-0.866026, -0.499851, 0.0122161, 0, 0.0244322, 0.999701, -0.5, 0.865767, -0.0211589, 0, 0, 0)
 shadow_enabled = true
 shadow_transmittance_bias = 16.0
 shadow_opacity = 0.79

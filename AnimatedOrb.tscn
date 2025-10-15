@@ -1,0 +1,50 @@
+[gd_scene load_steps=7 format=3 uid="uid://bx0n6q3sgfabk"]
+
+[ext_resource type="Texture2D" uid="uid://ccsq4ujlcj6ps" path="res://UI/rotating_orbs.png" id="1_t3xg7"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2ekj0"]
+atlas = ExtResource("1_t3xg7")
+region = Rect2(0, 224, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0ics8"]
+atlas = ExtResource("1_t3xg7")
+region = Rect2(32, 224, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_h586e"]
+atlas = ExtResource("1_t3xg7")
+region = Rect2(64, 224, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3k2mm"]
+atlas = ExtResource("1_t3xg7")
+region = Rect2(96, 224, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_auj8w"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2ekj0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0ics8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_h586e")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3k2mm")
+}],
+"loop": true,
+"name": &"default",
+"speed": 8.0
+}]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="AnimatedOrb" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_auj8w")
+autoplay = "default"
+frame_progress = 0.381477

@@ -17,6 +17,7 @@ var hover_timer: Timer
 
 
 func _ready():
+	connect_mouse_signals()
 	await get_tree().process_frame
 	if card_data:
 		refresh()
@@ -26,6 +27,9 @@ func _ready():
 	hover_timer.wait_time = 0.05
 	add_child(hover_timer)
 
+func connect_mouse_signals():
+	connect("mouse_entered", Callable(self, "_on_mouse_enter"))
+	connect("mouse_exited", Callable(self, "_on_mouse_exit"))
 
 func refresh():
 	if card_data == null:
@@ -75,6 +79,28 @@ func refresh():
 		else:
 			cost_label.visible = false
 
+func _on_mouse_enter():
+	if is_hovering:
+		return
+	is_hovering = true
+	emit_signal("request_show_zoom", card_data)
+
+	# Optional visual feedback
+	var t = create_tween()
+	t.tween_property(self, "scale", Vector2(1.05, 1.05), 0.1)
+
+func _on_mouse_exit():
+	hover_timer.start()
+	await hover_timer.timeout
+
+	# Prevent accidental hide if the mouse comes back quickly
+	if not get_global_rect().has_point(get_global_mouse_position()):
+		is_hovering = false
+		emit_signal("request_hide_zoom")
+
+	# Optional shrink back
+	var t = create_tween()
+	t.tween_property(self, "scale", Vector2(1.0, 1.0), 0.1)
 
 # Hover signals
 func _on_card_hovered():

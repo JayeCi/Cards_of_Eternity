@@ -1,11 +1,10 @@
-[gd_scene load_steps=33 format=3 uid="uid://dymngijkrptcc"]
+[gd_scene load_steps=32 format=3 uid="uid://dymngijkrptcc"]
 
 [ext_resource type="Script" uid="uid://dtfto6htrvfm5" path="res://Arena/tile_3d.gd" id="1_5v3qr"]
 [ext_resource type="PackedScene" uid="uid://cqxo8j6lh1au8" path="res://Downloaded/bricks_A.tscn" id="2_wh67p"]
 [ext_resource type="ArrayMesh" uid="uid://dnscntj46qyil" path="res://Cards/Utilities/CardModel/CardMeshExt.res" id="3_mf1uq"]
 [ext_resource type="PackedScene" uid="uid://dnajq0rmf2gw2" path="res://Arena/Terrain_Models/mountains.tscn" id="3_w0pxh"]
 [ext_resource type="Texture2D" uid="uid://cbc5l83bvnhjk" path="res://UI/Terrains/Water.png" id="4_27ivk"]
-[ext_resource type="Texture2D" uid="uid://dkes2i4j5tjot" path="res://Images/Textures/metall005-new-tileable.png" id="4_ifjyk"]
 [ext_resource type="Texture2D" uid="uid://j0dkcfmp3g3d" path="res://UI/Terrains/Ice.png" id="5_nvf5m"]
 [ext_resource type="Texture2D" uid="uid://dp1ew5edt28ly" path="res://UI/Terrains/stone.png" id="5_u8wge"]
 [ext_resource type="Texture2D" uid="uid://cmwi3xrb0nspr" path="res://UI/Terrains/Lava.png" id="6_sa6f8"]
@@ -67,12 +66,11 @@ emission_energy_multiplier = 1.72
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_mf1uq"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_w0pxh"]
-albedo_texture = ExtResource("4_ifjyk")
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_l2kch"]
 
-[sub_resource type="BoxMesh" id="BoxMesh_27ivk"]
-material = SubResource("StandardMaterial3D_w0pxh")
-size = Vector3(0.965, 0.995, 0.795)
+[sub_resource type="TorusMesh" id="TorusMesh_2dc0q"]
+material = SubResource("StandardMaterial3D_l2kch")
+inner_radius = 1.055
 
 [node name="Tile3D" type="Node3D"]
 script = ExtResource("1_5v3qr")
@@ -127,6 +125,7 @@ mesh = SubResource("PlaneMesh_nvf5m")
 
 [node name="CardMesh" type="MeshInstance3D" parent="."]
 transform = Transform3D(1.13, 0, 0, 0, 1.13, 0, 0, 0, 1.13, 0, 0.201595, -0.553633)
+visible = false
 mesh = ExtResource("3_mf1uq")
 
 [node name="Badge" type="Label3D" parent="."]
@@ -147,18 +146,18 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.415144, 0)
 shape = SubResource("BoxShape3D_mf1uq")
 
 [node name="LeaderBadge" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.0840516, 0, 0, 0, 1, 0, 0, 0)
+transform = Transform3D(0.500134, 0, 0, 0, 0.294459, 0, 0, 0, -0.493211, 0, 0.0344763, 0)
 visible = false
-mesh = SubResource("BoxMesh_27ivk")
+mesh = SubResource("TorusMesh_2dc0q")
 
 [node name="Sketchfab_Scene" parent="." instance=ExtResource("12_3e2tw")]
-transform = Transform3D(0.164554, 0, 0, 0, 0.214497, 0, 0, 0, 0.164554, -0.448426, -0.919722, 0.434168)
+transform = Transform3D(0.154267, 0, 0, 0, 0.201087, 0, 0, 0, 0.154267, -0.420953, -0.919722, 0.406036)
 
 [node name="Sketchfab_Scene2" parent="." instance=ExtResource("12_3e2tw")]
-transform = Transform3D(0.164554, 0, 0, 0, 0.214497, 0, 0, 0, 0.164554, 0.430492, -0.919722, 0.434168)
+transform = Transform3D(0.154267, 0, 0, 0, 0.201087, 0, 0, 0, 0.154267, 0.403019, -0.919722, 0.406036)
 
 [node name="Sketchfab_Scene3" parent="." instance=ExtResource("12_3e2tw")]
-transform = Transform3D(0.164554, 0, 0, 0, 0.214497, 0, 0, 0, 0.164554, -0.448426, -0.919722, -0.465832)
+transform = Transform3D(0.154267, 0, 0, 0, 0.201087, 0, 0, 0, 0.154267, -0.420953, -0.919722, -0.4377)
 
 [node name="Sketchfab_Scene4" parent="." instance=ExtResource("12_3e2tw")]
-transform = Transform3D(0.164554, 0, 0, 0, 0.214497, 0, 0, 0, 0.164554, 0.430492, -0.919722, -0.465832)
+transform = Transform3D(0.154267, 0, 0, 0, 0.201087, 0, 0, 0, 0.154267, 0.403019, -0.919722, -0.4377)

@@ -8,5 +8,5 @@ font = SubResource("SystemFont_o4mq8")
 font_size = 13
 outline_size = 2
 outline_color = Color(0, 0, 0, 1)
-shadow_size = 2
-shadow_color = Color(0, 0, 0, 0.698039)
+shadow_size = 4
+shadow_color = Color(0, 0, 0, 0.752941)

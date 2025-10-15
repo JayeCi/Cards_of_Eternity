@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3 uid="uid://dpo8aa3x7hm2t"]
+
+[ext_resource type="Script" uid="uid://b6i55dwor1piy" path="res://UI/essencedisplay.gd" id="1_888q8"]
+[ext_resource type="PackedScene" uid="uid://bx0n6q3sgfabk" path="res://AnimatedOrb.tscn" id="2_sh8oa"]
+
+[node name="OrbGrid" type="GridContainer"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+columns = 10
+script = ExtResource("1_888q8")
+orb_scene = ExtResource("2_sh8oa")
+
+[node name="AnimatedOrb" parent="." instance=ExtResource("2_sh8oa")]
+layout_mode = 2

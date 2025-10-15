@@ -8,14 +8,17 @@ class_name ArenaCardDetails
 @onready var cost_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/Cost
 @onready var abilities_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/Abilities
 @onready var abilities_name: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/AbilitiesName
+@onready var abilities_desc: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/AbilitiesDesc
+
 @onready var terrain: TextureRect = $MarginContainer/PanelContainer/MarginContainer/Terrain
 @onready var terrain_label: Label = $MarginContainer/PanelContainer/MarginContainer/TerrainLabel
 
 # --- Combat stats ---
-@onready var atk_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer2/AtkLabel
-@onready var atk: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer2/Atk
-@onready var def_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer2/DefLabel
-@onready var def: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer2/Def
+
+@onready var atk_label: Label = $VBoxContainer2/AtkLabel
+@onready var atk: Label = $VBoxContainer2/Atk
+@onready var def_label: Label = $VBoxContainer2/DefLabel
+@onready var def: Label = $VBoxContainer2/Def
 
 var current_unit: UnitData = null
 var last_bonus_state: String = "neutral"  # "buff", "debuff", or "neutral"
@@ -51,11 +54,19 @@ func show_unit(unit: UnitData) -> void:
 	name_label.text = card.name
 	rarity_label.text = "Rarity: %s" % str(card.rarity)
 	cost_label.text = "Cost: %d" % int(card.cost)
-	abilities_label.text = "Abilities:"
+	
+	if card.ability and "display_name" in card.ability:
+		abilities_name.text = str(card.ability.display_name)
+		abilities_desc.text = str(card.ability.description)
+	else:
+		abilities_name.text = "—"
+		abilities_desc.text = ""
 
+	
 	# --- ATK / DEF (using dynamic stats) ---
 	atk.text = str(unit.current_atk)
 	def.text = str(unit.current_def)
+
 
 	atk_label.visible = true
 	def_label.visible = true
@@ -67,7 +78,7 @@ func show_unit(unit: UnitData) -> void:
 			ability_list.append(card.ability)
 		elif "name" in card.ability:
 			ability_list.append(card.ability.name)
-	abilities_name.text = ", ".join(ability_list) if ability_list.size() > 0 else "None"
+
 
 
 

@@ -12,9 +12,10 @@ func init_ai(core_ref: ArenaCore) -> void:
 	ui = core.get_node("UISystem")
 
 func run_enemy_turn() -> void:
+	battle.apply_all_passives()
 	await get_tree().create_timer(1.0).timeout
 	_draw_up_to_limit()
-	battle.apply_all_passives()
+
 
 	var has_units := false
 	for pos in core.units.keys():

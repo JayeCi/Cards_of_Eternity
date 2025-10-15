@@ -8,5 +8,5 @@ trigger = "on_attack"
 display_name = "Boost Attack"
 value = 2
 range = 1
-description = "After attacking, increase this unit's attack power by 2 for the rest of this battle."
+description = "Before attacking, increase this unit's attack power by 2 for the rest of this battle."
 metadata/_custom_type_script = "uid://dkjvk43ly654t"

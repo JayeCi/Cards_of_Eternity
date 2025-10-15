@@ -18,6 +18,7 @@ var camera: Camera3D
 @onready var player_essence_label: Label = $EssencePanel/VBoxContainer/PlayerEssence
 @onready var enemy_essence_label: Label = $EssencePanel/VBoxContainer/EnemyEssence
 @onready var card_details_ui: ArenaCardDetails = $ArenaCardDetails
+@onready var orb_grid: GridContainer = $OrbGrid
 
 
 var hover_label: Label3D
@@ -219,11 +220,19 @@ func hide_hover() -> void:
 
 # Labels / log
 func _on_essence_changed(p: int, e: int) -> void:
+	# Update orb grid for player essence
+	if orb_grid and orb_grid.has_method("set_essence"):
+		orb_grid.set_essence(p)
+
+	# Update text labels
 	player_essence_label.text = "Player Essence: %d" % p
 	enemy_essence_label.text = "Enemy Essence: %d" % e
+
+	# Add a quick color pulse effect
 	var tp = create_tween()
 	tp.tween_property(player_essence_label, "modulate", Color(0.6,1,0.6), 0.15)
 	tp.tween_property(player_essence_label, "modulate", Color(1,1,1), 0.25)
+
 	var te = create_tween()
 	te.tween_property(enemy_essence_label, "modulate", Color(1,1,0.5), 0.15)
 	te.tween_property(enemy_essence_label, "modulate", Color(1,1,1), 0.25)

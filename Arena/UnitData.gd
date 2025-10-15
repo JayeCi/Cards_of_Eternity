@@ -28,6 +28,8 @@ func init_from_card(c: CardData, owner_id: int) -> UnitData:
 	hp = c.hp if "hp" in c else 0
 	current_atk = atk
 	current_def = def
+	if c.ability:
+		card.ability = c.ability.duplicate(true)
 	return self
 
 func reset_stats():

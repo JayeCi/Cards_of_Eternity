@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://be24omkufdto6"]
+[gd_scene load_steps=15 format=3 uid="uid://be24omkufdto6"]
 
 [ext_resource type="Script" uid="uid://cgy1ya7ras2uv" path="res://Cards/arena_card_details.gd" id="1_6jj6o"]
 [ext_resource type="Texture2D" uid="uid://ccsxe205y8lva" path="res://Images/Dirt.jpg" id="1_d0of6"]
@@ -18,18 +18,52 @@ corner_radius_bottom_left = 2
 shadow_size = 4
 shadow_offset = Vector2(-1.075, 2.7)
 
-[sub_resource type="SystemFont" id="SystemFont_ky1ik"]
+[sub_resource type="SystemFont" id="SystemFont_owp70"]
+font_names = PackedStringArray("Impact")
+
+[sub_resource type="LabelSettings" id="LabelSettings_2w83o"]
+font = SubResource("SystemFont_owp70")
+font_size = 25
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 4
+shadow_color = Color(0, 0, 0, 0.752941)
+
+[sub_resource type="SystemFont" id="SystemFont_te81p"]
+font_names = PackedStringArray("Tahoma")
+
+[sub_resource type="LabelSettings" id="LabelSettings_owp70"]
+font = SubResource("SystemFont_te81p")
+font_size = 13
+font_color = Color(0, 0.866667, 0.768627, 1)
+outline_size = 1
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 4
+shadow_color = Color(0, 0, 0, 0.952941)
+
+[sub_resource type="SystemFont" id="SystemFont_lmswf"]
 font_names = PackedStringArray("Tahoma")
 subpixel_positioning = 0
 
 [sub_resource type="LabelSettings" id="LabelSettings_1oedn"]
-font = SubResource("SystemFont_ky1ik")
-font_size = 10
+font = SubResource("SystemFont_lmswf")
+font_size = 15
 font_color = Color(1, 1, 0.317647, 1)
 outline_size = 2
 outline_color = Color(0, 0, 0, 1)
 shadow_size = 2
 shadow_color = Color(0, 0, 0, 0.623529)
+
+[sub_resource type="SystemFont" id="SystemFont_wiktu"]
+font_names = PackedStringArray("Tahoma")
+
+[sub_resource type="LabelSettings" id="LabelSettings_te81p"]
+font = SubResource("SystemFont_wiktu")
+font_size = 12
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 4
+shadow_color = Color(0, 0, 0, 1)
 
 [node name="ArenaCardDetails" type="Control"]
 layout_mode = 3
@@ -86,18 +120,19 @@ stretch_mode = 4
 layout_mode = 2
 
 [node name="Art" type="TextureRect" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer"]
-custom_minimum_size = Vector2(150, 200)
+custom_minimum_size = Vector2(150, 238.95)
 layout_mode = 2
 texture = ExtResource("1_d0of6")
 expand_mode = 1
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer"]
 layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="NameLabel" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
 layout_mode = 2
 text = "Name"
-label_settings = ExtResource("3_ky1ik")
+label_settings = SubResource("LabelSettings_2w83o")
 
 [node name="Rarity" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
 layout_mode = 2
@@ -115,37 +150,47 @@ layout_mode = 2
 [node name="Abilities" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
 layout_mode = 2
 text = "Abilities"
-label_settings = ExtResource("3_ky1ik")
+label_settings = SubResource("LabelSettings_owp70")
 
 [node name="AbilitiesName" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
 layout_mode = 2
 text = "Abilities Name"
 label_settings = SubResource("LabelSettings_1oedn")
 
-[node name="VBoxContainer2" type="VBoxContainer" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer"]
+[node name="AbilitiesDesc" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
 layout_mode = 2
-size_flags_horizontal = 10
-size_flags_vertical = 8
+text = "Abilities Text"
+label_settings = SubResource("LabelSettings_te81p")
+autowrap_mode = 3
 
-[node name="AtkLabel" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer2"]
+[node name="VBoxContainer2" type="VBoxContainer" parent="."]
+layout_mode = 2
+offset_left = 1113.66
+offset_top = 36.505
+offset_right = 1136.66
+offset_bottom = 112.505
+size_flags_horizontal = 10
+size_flags_vertical = 0
+
+[node name="AtkLabel" type="Label" parent="VBoxContainer2"]
 layout_mode = 2
 text = "ATK"
 label_settings = ExtResource("3_ky1ik")
 horizontal_alignment = 2
 
-[node name="Atk" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer2"]
+[node name="Atk" type="Label" parent="VBoxContainer2"]
 layout_mode = 2
 text = "10"
 label_settings = ExtResource("3_ky1ik")
 horizontal_alignment = 2
 
-[node name="DefLabel" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer2"]
+[node name="DefLabel" type="Label" parent="VBoxContainer2"]
 layout_mode = 2
 text = "DEF"
 label_settings = ExtResource("3_ky1ik")
 horizontal_alignment = 2
 
-[node name="Def" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer2"]
+[node name="Def" type="Label" parent="VBoxContainer2"]
 layout_mode = 2
 text = "10"
 label_settings = ExtResource("3_ky1ik")

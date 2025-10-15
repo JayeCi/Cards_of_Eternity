@@ -122,14 +122,14 @@ func _ready() -> void:
 	await get_tree().process_frame
 
 	# minimal registry of cards (your collection)
-	#CardCollection.add_card(GOBLIN)
-	#CardCollection.add_card(DIRT)
-	#CardCollection.add_card(IMP)
-	#CardCollection.add_card(FYSH)
+	CardCollection.add_card(GOBLIN)
+	CardCollection.add_card(DIRT)
+	CardCollection.add_card(IMP)
+	CardCollection.add_card(FYSH)
 	CardCollection.add_card(NAGA)
-	#CardCollection.add_card(FOREST_FAE)
+	CardCollection.add_card(FOREST_FAE)
 	CardCollection.add_card(COLD_SLOTH)
-	#CardCollection.add_card(LAVA_HARE)
+	CardCollection.add_card(LAVA_HARE)
 
 	# Pick a random biome
 	var all_biomes = [
@@ -161,6 +161,7 @@ func _ready() -> void:
 
 	# Build decks, spawn leaders, play intro
 	_build_decks()
+
 	_spawn_leaders()
 
 	ui_sys.call("init_ui", self)              # hand, labels, hover/ghost setup
@@ -169,7 +170,7 @@ func _ready() -> void:
 	ai_sys.call("init_ai", self)
 	cutscene_sys.call("init_cutscene", self)
 
-	await cutscene_sys._intro()     # cinematic leader reveal
+	#await cutscene_sys._intro()     # cinematic leader reveal
 
 	emit_signal("essence_changed", player_essence, enemy_essence)
 	ui_sys.call("refresh_hand", player_hand, player_essence)
@@ -177,7 +178,11 @@ func _ready() -> void:
 	_draw_starting_hand(5)
 	_set_phase(Phase.SUMMON_OR_MOVE)
 	_update_phase_ui()
-	
+		
+	if ui_sys.has_node("EssenceDisplay"):
+		var essence_display = ui_sys.get_node("EssenceDisplay")
+		connect("essence_changed", Callable(essence_display, "set_essence"))
+		
 func _apply_terrain_bonus(unit: UnitData, terrain: String) -> void:
 	if not unit or not unit.card:
 		return
@@ -226,7 +231,7 @@ func _build_decks() -> void:
 
 	# ENEMY (fallback)
 	enemy_deck.clear()
-	for id in ["IMP", "GOBLIN"]:
+	for id in ["IMP", "GOBLIN", "LAVA HARE", "FOREST FAE", "COLD SLOTH"]:
 		if ResourceLoader.exists("res://Cards/%s.tres" % id):
 			var card = ResourceLoader.load("res://Cards/%s.tres" % id)
 			for i in range(10):           # ✅ fix loop
@@ -292,7 +297,7 @@ func _place_leader(unit: UnitData, pos: Vector2i) -> void:
 		tile.add_child(model_instance)
 		model_instance.scale = CARD_MODEL_SCALE
 		print("Leader model scale after spawn:", model_instance.scale)
-		print_tree_pretty()
+
 
 		# Start hidden until cutscene intro
 		model_instance.visible = false
@@ -436,13 +441,16 @@ func _on_end_turn_button_pressed() -> void:
 	_start_player_turn()
 
 func _start_player_turn() -> void:
+	print("🕐 _start_player_turn() called at:", Time.get_ticks_msec())
+
 	_reset_action_flags()
 	ui_sys.call("show_battle_message", "Your Turn!", 1.5)
 	_draw_up_to_hand_limit()
 	_set_phase(Phase.SUMMON_OR_MOVE)
 	player_essence += essence_gain_per_turn
 	emit_signal("essence_changed", player_essence, enemy_essence)
-	battle_sys.call("apply_all_passives")
+	battle_sys.apply_all_passives()
+	#battle_sys.call("apply_all_passives")
 	ui_sys.call("fade_hand_in")
 
 	# ✅ clear any leftover card drag state

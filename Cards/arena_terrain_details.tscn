@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://hs2m5kkdydux"]
 
 [ext_resource type="Texture2D" uid="uid://dp1ew5edt28ly" path="res://UI/Terrains/stone.png" id="1_0vugx"]
-[ext_resource type="Script" uid="uid://dun8065c8ikya" path="res://Cards/arena_terrain_details.gd" id="1_yn11x"]
+[ext_resource type="Script" path="res://Cards/arena_terrain_details.gd" id="1_yn11x"]
 [ext_resource type="LabelSettings" uid="uid://bh5cergsoq62" path="res://Cards/TERRAINLABEL.tres" id="3_r7uwu"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6jj6o"]
@@ -17,7 +17,6 @@ shadow_size = 4
 shadow_offset = Vector2(-1.075, 2.7)
 
 [node name="ArenaTerrainDetails" type="Control"]
-visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -68,4 +67,3 @@ size_flags_horizontal = 8
 size_flags_vertical = 0
 text = "Terrain_Name"
 label_settings = ExtResource("3_r7uwu")
-horizontal_alignment = 2

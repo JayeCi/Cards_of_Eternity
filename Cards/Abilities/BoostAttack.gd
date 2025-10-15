@@ -9,5 +9,10 @@ func _init():
 	trigger = "on_attack"
 	
 func execute(arena: Node, unit: UnitData) -> void:
-	unit.atk += value
-	arena.log_message("💥 %s gains +%d ATK!" % [unit.card.name, value], Color(1, 0.9, 0.6))
+	unit.current_atk += value
+	unit.atk += value # Optional: keeps base stat updated for UI consistency
+	arena._log("💥 %s gains +%d ATK!" % [unit.card.name, value], Color(1, 0.9, 0.6))
+
+	# ✅ Refresh card details UI if this unit is currently displayed
+	if arena.card_details_ui:
+		arena.card_details_ui.call("refresh_if_showing", unit)
