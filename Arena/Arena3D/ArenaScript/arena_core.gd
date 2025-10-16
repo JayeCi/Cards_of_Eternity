@@ -244,11 +244,11 @@ func _build_decks() -> void:
 	_log("✅ Decks built: Player=%d, Enemy=%d" % [player_deck.size(), enemy_deck.size()])
 
 func _spawn_leaders() -> void:
-	player_leader = UnitData.new().init_from_card(COLD_SLOTH, PLAYER)
+	player_leader = UnitData.new().init_from_card(LAVA_HARE, PLAYER)
 	player_leader.is_leader = true
 	player_leader.hp = 10
 
-	enemy_leader = UnitData.new().init_from_card(NAGA, ENEMY)
+	enemy_leader = UnitData.new().init_from_card(DIRT, ENEMY)
 	enemy_leader.is_leader = true
 	enemy_leader.hp = 10
 

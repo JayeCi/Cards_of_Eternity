@@ -95,24 +95,25 @@ func _on_mouse_enter():
 	if is_hovering:
 		return
 	is_hovering = true
+
+	# Cancel any running timer so we don't accidentally hide
+	if hover_timer and hover_timer.is_stopped() == false:
+		hover_timer.stop()
+
 	emit_signal("request_show_zoom", card_data)
 
-	# Optional visual feedback
+	# Optional hover visual
 	var t = create_tween()
 	t.tween_property(self, "scale", Vector2(1.05, 1.05), 0.1)
 
-func _on_mouse_exit():
-	hover_timer.start()
-	await hover_timer.timeout
 
-	# Prevent accidental hide if the mouse comes back quickly
-	if not get_global_rect().has_point(get_global_mouse_position()):
+func _on_mouse_exit():
+	if is_hovering and not get_global_rect().has_point(get_global_mouse_position()):
 		is_hovering = false
 		emit_signal("request_hide_zoom")
+		var t = create_tween()
+		t.tween_property(self, "scale", Vector2(1.0, 1.0), 0.1)
 
-	# Optional shrink back
-	var t = create_tween()
-	t.tween_property(self, "scale", Vector2(1.0, 1.0), 0.1)
 
 # Hover signals
 func _on_card_hovered():

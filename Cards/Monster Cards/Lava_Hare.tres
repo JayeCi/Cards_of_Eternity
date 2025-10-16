@@ -1,13 +1,15 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://bmf71xkd1md54"]
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://bmf71xkd1md54"]
 
 [ext_resource type="Texture2D" uid="uid://brri5my0sb0rw" path="res://Images/Lava_Hare.jpeg" id="1_8y28n"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="1_e2isb"]
+[ext_resource type="PackedScene" uid="uid://ddiy3wc88mdif" path="res://Cards/Models/Lava_Hare.tscn" id="2_wl3hy"]
 
 [resource]
 script = ExtResource("1_e2isb")
 type = "Beast"
 rarity = "Rare"
 element = "Fire"
+card_type = 0
 id = "00006"
 name = "Lava Hare"
 description = ""
@@ -16,6 +18,7 @@ cost = 2
 atk = 24
 def = 11
 hp = 0
+model_scene = ExtResource("2_wl3hy")
 fusion_materials = Array[String]([])
 attack_moves = Array[String]([])
 metadata/_custom_type_script = "uid://57up1u0etcmc"

@@ -27,6 +27,7 @@ var is_dragging_card := false
 var hover_label: Label3D
 var ghost_card: Sprite3D
 var last_card_ui: Control = null
+var _is_hovering_hand_card := false
 
 func _ready():
 	$ArenaCardDetails.visible = false
@@ -98,6 +99,11 @@ func refresh_hand(player_hand: Array, player_essence: int) -> void:
 					return
 				core.on_hand_card_clicked(c)
 		)
+		
+		ui.request_show_zoom.connect(Callable(self, "_on_card_hovered_in_hand"))
+		ui.request_hide_zoom.connect(Callable(self, "_on_card_hovered_in_hand_exit"))
+
+
 		hand_grid.add_child(ui)
 		last_card_ui = ui
 		
@@ -207,11 +213,33 @@ func move_ghost_over(tile: Node3D) -> void:
 	if ghost_card.visible:
 		ghost_card.position = (tile.position + Vector3(0,0.03,0)) if tile else ghost_card.position
 
+
+func _on_card_hovered_in_hand(card: CardData) -> void:
+	_is_hovering_hand_card = true
+	if card_details_ui:
+		card_details_ui.show_card(card)
+		card_details_ui.visible = true
+
+func _on_card_hovered_in_hand_exit() -> void:
+	if not _is_hovering_hand_card:
+		return  # already cleared
+	_is_hovering_hand_card = false
+	
+	if card_details_ui:
+		card_details_ui.hide_card()
+		card_details_ui.visible = false
+
+	# Hide terrain/card hover completely when leaving hand cards
+	hide_hover()
+
+
 func show_hover_for_tile(tile: Node3D) -> void:
-	# Skip hover display if we’re dragging a card
-	if is_dragging_card:
+	# 🛑 Don’t update board hover while hovering a card in hand
+	if _is_hovering_hand_card:
 		return
 
+	if is_dragging_card:
+		return
 	if not tile or (core and core.is_cutscene_active):
 		return
 
@@ -230,25 +258,32 @@ func show_hover_for_tile(tile: Node3D) -> void:
 				$ArenaTerrainDetails.visible = true
 
 func hide_hover() -> void:
-
 	if core and core.is_cutscene_active:
-		return  # still skip during cutscene
+		return
 	if is_dragging_card:
 		return
 		
-	# Always hide both panels regardless of hover_label visibility
+	# 👇 only skip this during *active* hand hover
+	if _is_hovering_hand_card:
+		if card_details_ui:
+			card_details_ui.hide_card()
+			card_details_ui.visible = false
+		return
+
+	# Hide both info panels safely
 	if has_node("ArenaCardDetails"):
 		$ArenaCardDetails.hide_card()
+
 	if has_node("ArenaTerrainDetails"):
 		if $ArenaTerrainDetails.has_method("hide_terrain"):
 			$ArenaTerrainDetails.hide_terrain()
 		else:
 			$ArenaTerrainDetails.visible = false
 
-	# Keep the label behavior as you like
+	# Reset hover label too
 	if hover_label:
 		hover_label.visible = false
-		hover_label.modulate.a = 1.0  # reset alpha in case a tween ran
+		hover_label.modulate.a = 1.0
 
 # Labels / log
 func _on_essence_changed(p: int, e: int) -> void:
