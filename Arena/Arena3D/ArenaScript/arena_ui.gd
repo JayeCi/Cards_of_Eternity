@@ -7,6 +7,8 @@ var core: ArenaCore
 var board: Node3D
 var camera: Camera3D
 var is_dragging_card := false
+var _hover_tween: Tween = null
+var _current_hover_card: CardData = null
 
 # UI nodes
 @onready var hand_grid: GridContainer = $BottomContainer/Hand
@@ -28,12 +30,13 @@ var hover_label: Label3D
 var ghost_card: Sprite3D
 var last_card_ui: Control = null
 var _is_hovering_hand_card := false
+var _hover_check_timer := 0.0
 
 func _ready():
 	$ArenaCardDetails.visible = false
 	$ArenaTerrainDetails.visible = false
 	$BottomContainer/OrbGrid/OrbGrid.visible = false 
-	
+
 
 func init_ui(core_ref: ArenaCore) -> void:
 	core = core_ref
@@ -214,29 +217,69 @@ func move_ghost_over(tile: Node3D) -> void:
 		ghost_card.position = (tile.position + Vector3(0,0.03,0)) if tile else ghost_card.position
 
 
+# ----------------------------------------
+# HAND HOVER (smart update, no flicker)
+# ----------------------------------------
+var _hide_timer_task: SceneTreeTimer = null
+
+
+# ----------------------------------------
+# HAND HOVER (Pro system)
+# ----------------------------------------
+var _hide_task: SceneTreeTimer
+var _hover_state := "idle"  # "idle", "showing", "visible", "hiding"
+
 func _on_card_hovered_in_hand(card: CardData) -> void:
+	# 1️⃣ Cancel any scheduled hide
+	if _hide_task:
+		_hide_task = null
+
+	# 2️⃣ If already showing this same card, ignore
+	if _current_hover_card == card and _hover_state == "visible":
+		return
+
+	_current_hover_card = card
 	_is_hovering_hand_card = true
-	if card_details_ui:
-		card_details_ui.show_card(card)
-		card_details_ui.visible = true
+
+	if not card_details_ui:
+		return
+
+	# 3️⃣ Stop ongoing animations
+	if _hover_tween and _hover_tween.is_running():
+		_hover_tween.kill()
+
+	match _hover_state:
+		"idle", "hiding":
+			# Fade in once
+			card_details_ui.modulate.a = 0.0
+			card_details_ui.show_card(card)
+			card_details_ui.visible = true
+			_hover_tween = create_tween()
+			_hover_tween.tween_property(card_details_ui, "modulate:a", 1.0, 0.12).set_trans(Tween.TRANS_SINE)
+			_hover_state = "visible"
+			print("[ArenaUI] 🟢 Showing details for:", card.name)
+		"visible", "showing":
+			# Just update instantly — no flicker
+			card_details_ui.show_card(card)
+			print("[ArenaUI] 🔁 Updating details for:", card.name)
 
 func _on_card_hovered_in_hand_exit() -> void:
 	if not _is_hovering_hand_card:
-		return  # already cleared
+		return
+
 	_is_hovering_hand_card = false
-	
-	if card_details_ui:
-		card_details_ui.hide_card()
-		card_details_ui.visible = false
-
-	# Hide terrain/card hover completely when leaving hand cards
-	hide_hover()
-
+	card_details_ui.visible = false
 
 func show_hover_for_tile(tile: Node3D) -> void:
 	# 🛑 Don’t update board hover while hovering a card in hand
 	if _is_hovering_hand_card:
+		# ensure it stays hidden even if something external tried to show it
+		if has_node("ArenaTerrainDetails"):
+			if $ArenaTerrainDetails.has_method("hide_terrain"):
+				$ArenaTerrainDetails.hide_terrain()
+			$ArenaTerrainDetails.visible = false
 		return
+	# ... (rest unchanged)
 
 	if is_dragging_card:
 		return
