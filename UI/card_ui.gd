@@ -18,14 +18,26 @@ var hover_timer: Timer
 
 func _ready():
 	connect_mouse_signals()
+	_disable_child_mouse_filters(self)
 	await get_tree().process_frame
 	if card_data:
 		refresh()
-
 	hover_timer = Timer.new()
 	hover_timer.one_shot = true
 	hover_timer.wait_time = 0.05
 	add_child(hover_timer)
+	
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		emit_signal("request_show_zoom", card_data)
+
+# --- Add this utility ---
+func _disable_child_mouse_filters(node: Node):
+	for child in node.get_children():
+		if child is Control:
+			child.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			_disable_child_mouse_filters(child)
+
 
 func connect_mouse_signals():
 	connect("mouse_entered", Callable(self, "_on_mouse_enter"))

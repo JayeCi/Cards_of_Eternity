@@ -69,14 +69,14 @@ var essence_gain_per_turn: int = 1
 # Card back
 const CARD_BACK = preload("res://Images/CardBack1.png")
 
-const DIRT = preload("res://Cards/Dirt.tres")
-const GOBLIN = preload("res://Cards/Goblin.tres")
-const IMP = preload("res://Cards/Imp.tres")
-const FYSH = preload("res://Cards/Fish.tres")
-const NAGA = preload("res://Cards/Naga.tres")
-const COLD_SLOTH = preload("res://Cards/Cold_Sloth.tres")
-const LAVA_HARE = preload("res://Cards/Lava_Hare.tres")
-const FOREST_FAE = preload("res://Cards/Forest_Fae.tres")
+const DIRT = preload("res://Cards/Monster Cards/Dirt.tres")
+const GOBLIN = preload("res://Cards/Monster Cards/Goblin.tres")
+const IMP = preload("res://Cards/Monster Cards/Imp.tres")
+const FYSH = preload("res://Cards/Monster Cards/Fish.tres")
+const NAGA = preload("res://Cards/Monster Cards/Naga.tres")
+const COLD_SLOTH = preload("res://Cards/Monster Cards/Cold_Sloth.tres")
+const LAVA_HARE = preload("res://Cards/Monster Cards/Lava_Hare.tres")
+const FOREST_FAE = preload("res://Cards/Monster Cards/Forest_Fae.tres")
 
 const MAX_HAND_SIZE := 5
 const MAX_ENEMY_HAND_SIZE := 5

@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=6 format=3 uid="uid://bo5wypx5uvg2r"]
+
+[ext_resource type="Texture2D" uid="uid://ra8hsar08b5c" path="res://Images/Naga.jpg" id="1_3qc4n"]
+[ext_resource type="AudioStream" uid="uid://cy4wmg11mdyp7" path="res://Audio/Sound FX/Naga/alligatorhiss.mp3" id="2_saokm"]
+[ext_resource type="PackedScene" uid="uid://di4o6ya4vrixt" path="res://Cards/Models/Naga_Model.tscn" id="3_33knx"]
+[ext_resource type="AudioStream" uid="uid://debvvfktdp07g" path="res://Audio/Sound FX/Naga/snakehiss.mp3" id="4_1xccu"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="5_8p5k8"]
+
+[resource]
+script = ExtResource("5_8p5k8")
+type = "Elemental"
+rarity = "Epic"
+element = "Fire"
+card_type = 0
+id = "00005"
+name = "Naga"
+description = ""
+art = ExtResource("1_3qc4n")
+cost = 2
+atk = 17
+def = 19
+hp = 0
+model_scene = ExtResource("3_33knx")
+place_sound = ExtResource("4_1xccu")
+attack_sound = ExtResource("2_saokm")
+fusion_materials = Array[String]([])
+attack_moves = Array[String]([])
+metadata/_custom_type_script = "uid://57up1u0etcmc"

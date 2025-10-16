@@ -1,28 +1,28 @@
+# File: res://UI/orb_grid.gd
 extends Control
 
-@onready var grid: GridContainer = $"."
-@export var orb_scene: PackedScene
+@export var orb_scene: PackedScene = preload("res://AnimatedOrb.tscn") # or whatever orb icon scene you use
 var current_essence := 0
 
+func _ready():
+	clear_orbs()
+
 func set_essence(amount: int) -> void:
-	# Only rebuild if value changed
 	if amount == current_essence:
 		return
 	current_essence = amount
+	_refresh_grid()
 
-	# Clear old orbs
-	for c in grid.get_children():
-		c.queue_free()
+func _refresh_grid() -> void:
+	clear_orbs()
+	for i in range(current_essence):
+		var orb = orb_scene.instantiate()
+		add_child(orb)
+		# Optional pop-in animation
+		orb.scale = Vector2(0, 0)
+		var t = create_tween()
+		t.tween_property(orb, "scale", Vector2(1, 1), 0.2).set_delay(i * 0.05)
 
-	# Add new orbs
-	for i in range(amount):
-		var orb := orb_scene.instantiate()
-		grid.add_child(orb)
-		
-		# If orb_scene is a Control wrapper with AnimatedSprite2D inside:
-		if orb.has_node("Orb"):
-			var sprite: AnimatedSprite2D = orb.get_node("Orb")
-			sprite.play("rotate")
-		elif orb is AnimatedSprite2D:
-			# If orb_scene is directly an AnimatedSprite2D
-			orb.play("rotate")
+func clear_orbs() -> void:
+	for child in get_children():
+		child.queue_free()

@@ -51,7 +51,7 @@ enum Phase { SUMMON_OR_MOVE, SELECT_SUMMON_TILE, SELECT_MOVE_TARGET, ENEMY_TURN 
 # -----------------------------
 @onready var board: Board3D = $Board3D
 
-@onready var ui_root: CanvasLayer = $UISystem
+@onready var ui_root: Control = $UISystem
 @onready var camera: Camera3D = $CameraSystem
 
 
@@ -87,6 +87,7 @@ var essence_gain_per_turn: int = 1
 # Leaders / Units
 var player_leader: UnitData
 var enemy_leader: UnitData
+
 var units := {}  # Dictionary<Vector2i, UnitData>
 
 # Input / selection
@@ -105,15 +106,16 @@ var is_cutscene_active: bool = false
 # -----------------------------
 # CARDS (preloads you used)
 # -----------------------------
-const DIRT = preload("res://Cards/Dirt.tres")
-const GOBLIN = preload("res://Cards/Goblin.tres")
-const IMP = preload("res://Cards/Imp.tres")
-const FYSH = preload("res://Cards/Fish.tres")
-const NAGA = preload("res://Cards/Naga.tres")
-const COLD_SLOTH = preload("res://Cards/Cold_Sloth.tres")
-const LAVA_HARE = preload("res://Cards/Lava_Hare.tres")
-const FOREST_FAE = preload("res://Cards/Forest_Fae.tres")
+const DIRT = preload("res://Cards/Monster Cards/Dirt.tres")
+const GOBLIN = preload("res://Cards/Monster Cards/Goblin.tres")
+const IMP = preload("res://Cards/Monster Cards/Imp.tres")
+const FYSH = preload("res://Cards/Monster Cards/Fish.tres")
+const NAGA = preload("res://Cards/Monster Cards/Naga.tres")
+const COLD_SLOTH = preload("res://Cards/Monster Cards/Cold_Sloth.tres")
+const LAVA_HARE = preload("res://Cards/Monster Cards/Lava_Hare.tres")
+const FOREST_FAE = preload("res://Cards/Monster Cards/Forest_Fae.tres")
 
+const FIREBALL = preload("res://Cards/Spell Cards/Fireball.tres")
 # -----------------------------
 # LIFECYCLE
 # -----------------------------
@@ -122,6 +124,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 
 	# minimal registry of cards (your collection)
+	CardCollection.add_card(FIREBALL)
 	CardCollection.add_card(GOBLIN)
 	CardCollection.add_card(DIRT)
 	CardCollection.add_card(IMP)
@@ -170,8 +173,8 @@ func _ready() -> void:
 	ai_sys.call("init_ai", self)
 	cutscene_sys.call("init_cutscene", self)
 
-	#await cutscene_sys._intro()     # cinematic leader reveal
-
+	await cutscene_sys._intro()     # cinematic leader reveal
+	
 	emit_signal("essence_changed", player_essence, enemy_essence)
 	ui_sys.call("refresh_hand", player_hand, player_essence)
 
@@ -179,8 +182,8 @@ func _ready() -> void:
 	_set_phase(Phase.SUMMON_OR_MOVE)
 	_update_phase_ui()
 		
-	if ui_sys.has_node("EssenceDisplay"):
-		var essence_display = ui_sys.get_node("EssenceDisplay")
+	if ui_sys.has_node("OrbGrid"):
+		var essence_display = ui_sys.get_node("OrbGrid")
 		connect("essence_changed", Callable(essence_display, "set_essence"))
 		
 func _apply_terrain_bonus(unit: UnitData, terrain: String) -> void:
@@ -232,8 +235,8 @@ func _build_decks() -> void:
 	# ENEMY (fallback)
 	enemy_deck.clear()
 	for id in ["IMP", "GOBLIN", "LAVA HARE", "FOREST FAE", "COLD SLOTH"]:
-		if ResourceLoader.exists("res://Cards/%s.tres" % id):
-			var card = ResourceLoader.load("res://Cards/%s.tres" % id)
+		if ResourceLoader.exists("res://Cards/Monster Cards/%s.tres" % id):
+			var card = ResourceLoader.load("res://Cards/Monster Cards/%s.tres" % id)
 			for i in range(10):           # ✅ fix loop
 				enemy_deck.append(card.duplicate())
 	enemy_deck.shuffle()
@@ -304,6 +307,21 @@ func _place_leader(unit: UnitData, pos: Vector2i) -> void:
 
 		# Store references for cutscene reveal
 		unit.set_meta("leader_model", model_instance)
+		
+func damage_leader(target: int, amount: int) -> void:
+	var leader: UnitData = player_leader if target == PLAYER else enemy_leader
+	if leader == null:
+		push_warning("No leader found for target %d" % target)
+		return
+
+	leader.hp = max(leader.hp - amount, 0)
+	emit_signal("hp_changed", leader.owner, leader.hp)
+
+	var who = "Your" if target == PLAYER else "Enemy"
+	_log("%s Leader takes %d damage!" % [who, amount], Color(1, 0.5, 0.5))
+
+	if ui_sys and ui_sys.has_method("update_leader_hp"):
+		ui_sys.update_leader_hp(player_leader.hp, enemy_leader.hp)
 
 func get_terrain_multiplier(unit: UnitData, terrain: String) -> float:
 	if not unit or not unit.card:
@@ -423,7 +441,6 @@ func confirm_summon_in_mode(mode: int) -> void:
 	selected_pos = Vector2i(-1, -1)
 	ui_sys.call("refresh_hand", player_hand, player_essence)
 	battle_sys.call("clear_highlights")
-
 	_set_phase(Phase.SUMMON_OR_MOVE)
 	_update_phase_ui()
 	
@@ -450,7 +467,6 @@ func _start_player_turn() -> void:
 	player_essence += essence_gain_per_turn
 	emit_signal("essence_changed", player_essence, enemy_essence)
 	battle_sys.apply_all_passives()
-	#battle_sys.call("apply_all_passives")
 	ui_sys.call("fade_hand_in")
 
 	# ✅ clear any leftover card drag state
@@ -514,10 +530,13 @@ func _unhandled_input(event: InputEvent) -> void:
 				battle_sys.call("on_board_click", event.position)
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
 			selected_card = null
+			ui_sys.hide_hover()
 			selected_pos = Vector2i(-1,-1)
 			dragging_card = null
 			battle_sys.call("clear_highlights")
-			_set_phase(Phase.SUMMON_OR_MOVE); _update_phase_ui()
+			_set_phase(Phase.SUMMON_OR_MOVE)
+			_update_phase_ui()
+			ui_sys.call("cancel_drag")  # 🧹 FIX — reset ArenaUI drag state & hide details
 
 	if event is InputEventKey and event.keycode == KEY_SHIFT:
 		camera_sys.call_deferred("toggle_freelook", event.pressed)

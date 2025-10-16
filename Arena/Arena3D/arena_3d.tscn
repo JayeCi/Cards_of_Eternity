@@ -77,3 +77,4 @@ script = ExtResource("6_i42j4")
 [connection signal="pressed" from="UISystem/SummonMode/VBoxContainer/FaceDown" to="." method="_on_facedown_mode_pressed"]
 
 [editable path="UISystem"]
+[editable path="UISystem/BottomContainer/OrbGrid"]

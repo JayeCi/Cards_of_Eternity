@@ -5,6 +5,9 @@ class_name CardData
 @export_enum("Common", "Rare", "Epic", "Legendary") var rarity := "Common"  # String
 @export_enum("Fire", "Water", "Earth", "Wind", "Neutral") var element: String = "Neutral"
 
+enum CardType { MONSTER, SPELL, EVENT }
+
+@export var card_type: CardType = CardType.MONSTER
 @export var id: String
 @export var name: String
 @export var description: String

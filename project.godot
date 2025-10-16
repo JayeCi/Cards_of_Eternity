@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Game_Unknown_1"
 run/main_scene="uid://camg64m8fg43w"
-config/features=PackedStringArray("4.4", "Forward Plus")
+config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
@@ -21,6 +21,10 @@ CardCollection="*res://UI/CardCollection.gd"
 BattleManager="*res://UI/BattleManager.gd"
 DialogueManager="*res://Dialogue/DialogueManager.gd"
 TerrainManager="*res://UI/Terrains/TerrainManager.gd"
+
+[display]
+
+window/stretch/mode="canvas_items"
 
 [editor_plugins]
 

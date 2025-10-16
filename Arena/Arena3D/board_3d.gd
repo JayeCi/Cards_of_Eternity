@@ -127,6 +127,7 @@ func _generate_grid() -> void:
 	for y in range(height):
 		for x in range(width):
 			var tile := tile_scene.instantiate()
+			tile.set_core(core)
 			tile.x = x
 			tile.y = y
 			tile.terrain_type = map[y][x]

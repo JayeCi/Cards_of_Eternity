@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://b8phdygianthw"]
+
+[ext_resource type="Resource" uid="uid://nll7kmaeduah" path="res://Cards/Abilities/FireballAbility.tres" id="1_ftp1j"]
+[ext_resource type="Texture2D" uid="uid://w72nsnrgeunl" path="res://Cards/Spell Cards/fireball.jpg" id="1_xliqf"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="1_xtjjk"]
+
+[resource]
+script = ExtResource("1_xtjjk")
+type = "Beast"
+rarity = "Common"
+element = "Fire"
+card_type = 1
+id = "10000"
+name = "Fireball"
+description = "When placed face up, inflict 10 damage to the enemy leader."
+art = ExtResource("1_xliqf")
+cost = 1
+atk = 0
+def = 0
+hp = 0
+ability = ExtResource("1_ftp1j")
+fusion_materials = Array[String]([])
+attack_moves = Array[String]([])
+metadata/_custom_type_script = "uid://57up1u0etcmc"

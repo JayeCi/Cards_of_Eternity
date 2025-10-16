@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=6 format=3 uid="uid://bw1sf4rk66258"]
+
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="1_42yog"]
+[ext_resource type="Texture2D" uid="uid://3j8dhf7kmeed" path="res://Images/Goblin.jpg" id="1_c0fva"]
+[ext_resource type="AudioStream" uid="uid://d2apf0h6ewjvv" path="res://Audio/Sound FX/Goblin/Goblin_Attack.mp3" id="2_bcobc"]
+[ext_resource type="AudioStream" uid="uid://7pc68qawmn13" path="res://Audio/Sound FX/Goblin/Goblin_Death.mp3" id="3_xsj54"]
+[ext_resource type="AudioStream" uid="uid://ca8spincq8ixl" path="res://Audio/Sound FX/Goblin/Goblin_Place.mp3" id="4_xsj54"]
+
+[resource]
+script = ExtResource("1_42yog")
+type = "Beast"
+rarity = "Common"
+element = "Earth"
+id = "00001"
+name = "Goblin"
+description = ""
+art = ExtResource("1_c0fva")
+cost = 1
+atk = 12
+def = 15
+hp = 0
+place_sound = ExtResource("4_xsj54")
+attack_sound = ExtResource("2_bcobc")
+death_sound = ExtResource("3_xsj54")
+fusion_materials = Array[String]([])
+attack_moves = Array[String]([])
+metadata/_custom_type_script = "uid://57up1u0etcmc"

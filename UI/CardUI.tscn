@@ -1,9 +1,21 @@
-[gd_scene load_steps=10 format=3 uid="uid://ccivih8mxlv61"]
+[gd_scene load_steps=11 format=3 uid="uid://ccivih8mxlv61"]
 
 [ext_resource type="Script" uid="uid://bkgieridxbqpf" path="res://UI/card_ui.gd" id="1_qbe4h"]
 [ext_resource type="Texture2D" uid="uid://3j8dhf7kmeed" path="res://Images/Goblin.jpg" id="2_f3yd6"]
 [ext_resource type="Texture2D" uid="uid://ddm5ino8m58bj" path="res://Cards/Utilities/sprite_sheet.png" id="2_nfm18"]
-[ext_resource type="LabelSettings" uid="uid://cwdlq55ib3mtl" path="res://ATK_DEF_LABEL.tres" id="4_vs81k"]
+[ext_resource type="LabelSettings" uid="uid://cwdlq55ib3mtl" path="res://UI/ATK_DEF_LABEL.tres" id="4_vs81k"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vs81k"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.1, 0.1, 0.1, 0.6)
+corner_radius_top_left = 2786
+corner_radius_top_right = 7845
+corner_radius_bottom_right = 11700
+corner_radius_bottom_left = 12293
+corner_detail = 5
 
 [sub_resource type="SystemFont" id="SystemFont_vs81k"]
 font_names = PackedStringArray("Tahoma")
@@ -33,17 +45,11 @@ shadow_color = Color(0, 0, 0, 0.701961)
 shadow_offset = Vector2(-1.585, 1)
 
 [node name="LegendaryCardUI" type="Control"]
-custom_minimum_size = Vector2(75, 153)
+custom_minimum_size = Vector2(102.165, 168.025)
 layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 6.0
-offset_top = 7.0
-offset_right = -1071.0
-offset_bottom = -488.0
-grow_horizontal = 2
-grow_vertical = 2
+anchors_preset = 0
+offset_right = 75.0
+offset_bottom = 153.0
 size_flags_horizontal = 4
 size_flags_vertical = 4
 script = ExtResource("1_qbe4h")
@@ -55,7 +61,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 1
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_vs81k")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer"]
 layout_mode = 2
@@ -63,7 +70,7 @@ size_flags_horizontal = 4
 
 [node name="ArtPanel" type="Sprite2D" parent="PanelContainer/VBoxContainer"]
 z_index = 1
-position = Vector2(9, 37)
+position = Vector2(0, 43.1125)
 scale = Vector2(1.575, 1.575)
 texture = ExtResource("2_nfm18")
 region_enabled = true
@@ -83,7 +90,7 @@ stretch_mode = 5
 
 [node name="NamePlate" type="Sprite2D" parent="PanelContainer/VBoxContainer"]
 z_index = 2
-position = Vector2(9, 75)
+position = Vector2(0, 81.1125)
 scale = Vector2(1.475, 1.475)
 texture = ExtResource("2_nfm18")
 region_enabled = true
@@ -110,7 +117,7 @@ max_lines_visible = 1
 
 [node name="RarityPlate" type="Sprite2D" parent="PanelContainer/VBoxContainer"]
 z_index = 2
-position = Vector2(9, 2)
+position = Vector2(0, 8.1125)
 scale = Vector2(1.475, 1.475)
 texture = ExtResource("2_nfm18")
 region_enabled = true
@@ -137,7 +144,7 @@ max_lines_visible = 1
 
 [node name="StatPlate" type="Sprite2D" parent="PanelContainer/VBoxContainer"]
 z_index = 2
-position = Vector2(9, 116)
+position = Vector2(0, 122.113)
 scale = Vector2(1.475, 1.475)
 texture = ExtResource("2_nfm18")
 region_enabled = true
@@ -153,6 +160,7 @@ offset_right = -28.0
 offset_bottom = -20.5
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 1
 
 [node name="AtkContainer" type="VBoxContainer" parent="PanelContainer/VBoxContainer/StatPlate/Panel"]
 layout_mode = 0
@@ -205,7 +213,7 @@ vertical_alignment = 1
 
 [node name="CostPlate" type="Sprite2D" parent="PanelContainer/VBoxContainer"]
 z_index = 2
-position = Vector2(50, 5)
+position = Vector2(41, 11.1125)
 scale = Vector2(0.75, 0.75)
 texture = ExtResource("2_nfm18")
 region_enabled = true
@@ -230,7 +238,7 @@ theme_override_font_sizes/font_size = 18
 text = "3"
 
 [node name="Card" type="Sprite2D" parent="PanelContainer/VBoxContainer"]
-position = Vector2(9, 78)
+position = Vector2(0, 84.1125)
 scale = Vector2(1.575, 1.575)
 texture = ExtResource("2_nfm18")
 region_enabled = true
@@ -239,8 +247,10 @@ region_rect = Rect2(55.7399, 563.994, 64.5758, 106.178)
 [node name="CountLabel" type="Label" parent="."]
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 0
-offset_right = 20.0
-offset_bottom = 23.0
+offset_left = -9.0
+offset_top = 6.1125
+offset_right = 11.0
+offset_bottom = 29.1125
 size_flags_horizontal = 0
 size_flags_vertical = 0
 

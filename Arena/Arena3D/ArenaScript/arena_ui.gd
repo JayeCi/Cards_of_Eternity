@@ -6,19 +6,22 @@ class_name ArenaUI
 var core: ArenaCore
 var board: Node3D
 var camera: Camera3D
+var is_dragging_card := false
 
 # UI nodes
-@onready var hand_grid: GridContainer = $Hand
+@onready var hand_grid: GridContainer = $BottomContainer/Hand
 @onready var phase_label: Label = $PhaseLabel
-@onready var player_hp_label: Label = $HPPanel/PlayerHP
-@onready var enemy_hp_label: Label = $HPPanel/EnemyHP
+@onready var player_hp_label: Label = $PlayerHP/TextureRect/HPLabel
+@onready var enemy_hp_label: Label = $EnemyHP/TextureRect/HPLabel
 @onready var fade_rect: ColorRect = $FadeRect
 @onready var summon_mode_popup: PopupPanel = $SummonMode
 @onready var battle_log: RichTextLabel = $VBoxContainer/BattleLogLabel
-@onready var player_essence_label: Label = $EssencePanel/VBoxContainer/PlayerEssence
-@onready var enemy_essence_label: Label = $EssencePanel/VBoxContainer/EnemyEssence
 @onready var card_details_ui: ArenaCardDetails = $ArenaCardDetails
-@onready var orb_grid: GridContainer = $OrbGrid
+@onready var orb_grid: Control = $BottomContainer/OrbGrid/OrbGrid
+@onready var battle_sys: ArenaBattle = $"../BattleSystem"
+@onready var hp_progress_bar: ProgressBar = $PlayerHP/TextureRect/HPProgressBar
+@onready var enemy_hp_progress_bar: ProgressBar = $EnemyHP/TextureRect/HPProgressBar
+
 
 
 var hover_label: Label3D
@@ -28,12 +31,20 @@ var last_card_ui: Control = null
 func _ready():
 	$ArenaCardDetails.visible = false
 	$ArenaTerrainDetails.visible = false
+	$BottomContainer/OrbGrid/OrbGrid.visible = false 
+	
 
 func init_ui(core_ref: ArenaCore) -> void:
 	core = core_ref
 	board = core.board
 	camera = core.camera
-
+	hp_progress_bar.max_value = core.player_leader.hp  # 🟢 set max HP
+	hp_progress_bar.value = core.player_leader.hp      # full at start
+	hp_progress_bar.min_value = 0
+	enemy_hp_progress_bar.max_value = core.enemy_leader.hp  # 🟢 set max HP
+	enemy_hp_progress_bar.value = core.enemy_leader.hp      # full at start
+	enemy_hp_progress_bar.min_value = 0
+	
 	# signals
 	core.connect("log_line", Callable(self, "_on_log"))
 	core.connect("essence_changed", Callable(self, "_on_essence_changed"))
@@ -89,7 +100,10 @@ func refresh_hand(player_hand: Array, player_essence: int) -> void:
 		)
 		hand_grid.add_child(ui)
 		last_card_ui = ui
-
+		
+	if orb_grid:
+		orb_grid.visible = player_hand.size() > 0
+		
 func get_last_hand_card_ui() -> Control:
 	return last_card_ui
 
@@ -136,26 +150,37 @@ func _on_facedown_mode_pressed() -> void:
 
 # Ghost/drag UI
 func on_drag_start(card: CardData) -> void:
-	ghost_card.texture = card.art
-	ghost_card.visible = true
-	hand_grid.visible = false
-	var forward = -camera.global_transform.basis.z
-	ghost_card.position = camera.global_position + forward * 5.0
+	is_dragging_card = true  # 🟢 mark drag active
+	
+	$ArenaTerrainDetails.visible = false
+	if ghost_card:
+		ghost_card.visible = false
+	if hand_grid:
+		hand_grid.visible = false
+	if orb_grid:
+		orb_grid.visible = false
+
+	if card_details_ui:
+		card_details_ui.show_card(card)
+		card_details_ui.visible = true
+
 
 func cancel_drag() -> void:
-	if not ghost_card:
-		return
-	
-	# Fade the ghost card out
-	if ghost_card.visible:
-		var t = create_tween()
-		t.tween_property(ghost_card, "modulate:a", 0.0, 0.2)
-		await t.finished
-	ghost_card.visible = false
-	ghost_card.modulate.a = 0.8  # reset for next time
+	is_dragging_card = false  # 🔴 allow hover updates again
+	$ArenaTerrainDetails.visible = true
 
-	# Bring back the hand
+	# 💡 Clear card details immediately and reset state
+	if card_details_ui:
+		card_details_ui.hide_card()
+		card_details_ui.visible = false
+		card_details_ui.current_unit = null  # 🧹 fully reset the last card reference
+
+	# Make sure hover panels also clear
+	hide_hover()
+
 	fade_hand_in()
+	set_process(false)
+
 
 func fade_hand_in() -> void:
 	hand_grid.visible = true
@@ -183,6 +208,10 @@ func move_ghost_over(tile: Node3D) -> void:
 		ghost_card.position = (tile.position + Vector3(0,0.03,0)) if tile else ghost_card.position
 
 func show_hover_for_tile(tile: Node3D) -> void:
+	# Skip hover display if we’re dragging a card
+	if is_dragging_card:
+		return
+
 	if not tile or (core and core.is_cutscene_active):
 		return
 
@@ -201,9 +230,12 @@ func show_hover_for_tile(tile: Node3D) -> void:
 				$ArenaTerrainDetails.visible = true
 
 func hide_hover() -> void:
+
 	if core and core.is_cutscene_active:
 		return  # still skip during cutscene
-
+	if is_dragging_card:
+		return
+		
 	# Always hide both panels regardless of hover_label visibility
 	if has_node("ArenaCardDetails"):
 		$ArenaCardDetails.hide_card()
@@ -224,26 +256,16 @@ func _on_essence_changed(p: int, e: int) -> void:
 	if orb_grid and orb_grid.has_method("set_essence"):
 		orb_grid.set_essence(p)
 
-	# Update text labels
-	player_essence_label.text = "Player Essence: %d" % p
-	enemy_essence_label.text = "Enemy Essence: %d" % e
-
-	# Add a quick color pulse effect
-	var tp = create_tween()
-	tp.tween_property(player_essence_label, "modulate", Color(0.6,1,0.6), 0.15)
-	tp.tween_property(player_essence_label, "modulate", Color(1,1,1), 0.25)
-
-	var te = create_tween()
-	te.tween_property(enemy_essence_label, "modulate", Color(1,1,0.5), 0.15)
-	te.tween_property(enemy_essence_label, "modulate", Color(1,1,1), 0.25)
 
 func _on_hp_changed(owner: int, hp: int) -> void:
 	if owner == core.PLAYER:
-		player_hp_label.text = "Player Leader HP: %d" % hp
+		player_hp_label.text = str(hp)
 		_flash(player_hp_label)
+		_update_hp_bar()  # 🟢 Add this line
 	else:
-		enemy_hp_label.text = "Enemy Leader HP: %d" % hp
+		enemy_hp_label.text = str(hp)
 		_flash(enemy_hp_label)
+		_update_hp_bar()
 
 func _flash(lbl: Label) -> void:
 	var t = create_tween()
@@ -268,9 +290,14 @@ func show_battle_message(text: String, duration := 2.0) -> void:
 	var t2 = create_tween()
 	t2.tween_property(label, "modulate:a", 0.0, 0.5)
 
+func _update_hp_bar() -> void:
+	var t = create_tween()
+	t.tween_property(hp_progress_bar, "value", core.player_leader.hp, 0.25).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	t.tween_property(enemy_hp_progress_bar, "value", core.enemy_leader.hp, 0.25).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
 func _update_hp_labels() -> void:
-	player_hp_label.text = "Player Leader HP: %d" % core.player_leader.hp
-	enemy_hp_label.text = "Enemy Leader HP: %d" % core.enemy_leader.hp
+	player_hp_label.text = str(core.player_leader.hp)
+	enemy_hp_label.text = str(core.enemy_leader.hp)
 
 
 func _on_face_down_pressed() -> void:

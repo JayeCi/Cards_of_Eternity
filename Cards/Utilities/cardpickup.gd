@@ -47,7 +47,7 @@ func _physics_process(delta: float) -> void:
 	# Check for player interaction
 	if player_in_range and player:
 		var dist = global_position.distance_to(player.global_position)
-		if dist <= pickup_distance and Input.is_action_just_pressed(pickup_key):
+		if dist <= pickup_distance and Input.is_action_just_pressed("interact"):
 			_pickup()
 
 # --- Animation helpers ---
@@ -107,7 +107,7 @@ func _on_body_exited(body):
 
 # --- Random Card Selection ---
 func _randomize_card() -> void:
-	var dir = DirAccess.open("res://cards")
+	var dir = DirAccess.open("res://Cards/Monster Cards")
 	if dir == null:
 		push_warning("Could not open res://cards directory")
 		return
@@ -126,5 +126,5 @@ func _randomize_card() -> void:
 		return
 
 	var random_file = card_files[randi() % card_files.size()]
-	card_data = ResourceLoader.load("res://cards/" + random_file)
+	card_data = ResourceLoader.load("res://Cards/Monster Cards/" + random_file)
 	print("Spawned CardPickup with random card:", card_data.name)

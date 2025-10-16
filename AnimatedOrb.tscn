@@ -47,4 +47,4 @@ offset_bottom = 40.0
 [node name="AnimatedOrb" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_auj8w")
 autoplay = "default"
-frame_progress = 0.381477
+frame_progress = 0.343298

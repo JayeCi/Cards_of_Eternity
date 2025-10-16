@@ -9,7 +9,7 @@ metadata={
 "vram_texture": true
 }
 generator_parameters={
-"md5": "6a189a10135dd57d0554b1f806156f68"
+"md5": "5512aeff300bdb4671f4394368e6ec21"
 }
 
 [deps]
@@ -22,6 +22,8 @@ dest_files=["res://.godot/imported/mountains_0.jpg-b9b8475444a0a42417f7a27eb218b
 compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
+compress/uastc_level=0
+compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0

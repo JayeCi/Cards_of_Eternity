@@ -6,10 +6,12 @@ class_name Tile
 @export var terrain_type: String = "Stone"
 
 
+
 var occupant = null
 var highlighted = false
 var hover_highlight = false 
 var summon_highlight := false  
+var core: ArenaCore
 
 @onready var highlight_mesh: MeshInstance3D = $Highlight
 @onready var card_mesh: MeshInstance3D = $CardMesh
@@ -18,6 +20,7 @@ var summon_highlight := false
 @onready var hover_area: Area3D = $HoveredArea
 @onready var leader_badge: MeshInstance3D = $LeaderBadge
 @onready var default_tile: Node3D = $TileMesh/DefaultTile
+@onready var move_highlight: MeshInstance3D = $MoveHighlight
 
 #TILEMESHES
 @onready var water_mesh: MeshInstance3D = $TileMesh/WaterMesh
@@ -86,6 +89,9 @@ func set_highlight(state: bool, symbol: String = "") -> void:
 		label.visible = state and symbol != ""
 	if highlight_mesh:
 		highlight_mesh.visible = state
+		
+func set_move_highlight(state: bool) -> void:
+	move_highlight.visible = state if move_highlight else false
 
 
 func set_badge_text(text: String) -> void:
@@ -229,9 +235,47 @@ func _update_highlight_visibility() -> void:
 		return
 	
 	# Always visible if any highlight type is active
-	highlight_mesh.visible = highlighted or hover_highlight or summon_highlight
+	highlight_mesh.visible = highlighted or hover_highlight or summon_highlight or move_highlight.visible
 
+func pulse_move_highlight() -> void:
+	if not move_highlight or not move_highlight.visible:
+		return
 
+	var mat := move_highlight.get_surface_override_material(0)
+	if not mat:
+		var base := move_highlight.mesh.surface_get_material(0)
+		mat = base.duplicate() if base else StandardMaterial3D.new()
+		move_highlight.set_surface_override_material(0, mat)
+
+	# Ensure transparency is enabled
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_color.a = 0.8
+	if occupant and occupant.owner != core.PLAYER:
+		mat.emission = Color(1, 0, 0)
+		mat.emission_energy_multiplier = 3.0
+	else:
+		var tw = create_tween()
+		tw.tween_property(mat, "albedo_color:a", 0.4, 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		tw.tween_property(mat, "albedo_color:a", 0.8, 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		tw.set_loops()
+	
+func set_move_highlight_tint(color: Color) -> void:
+	if not move_highlight:
+		return
+
+	var mat := move_highlight.get_surface_override_material(0)
+	if not mat:
+		var base := move_highlight.mesh.surface_get_material(0)
+		mat = base.duplicate() if base else StandardMaterial3D.new()
+		move_highlight.set_surface_override_material(0, mat)
+
+	mat.albedo_color = color
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_color.a = 0.7
+	move_highlight.visible = true
+	
+func set_core(core_ref: ArenaCore) -> void:
+	core = core_ref
 # 🆕 HOVER BEHAVIOR ---
 func _on_mouse_entered() -> void:
 	hover_highlight = true

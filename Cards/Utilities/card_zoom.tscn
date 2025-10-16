@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://3j8dhf7kmeed" path="res://Images/Goblin.jpg" id="2_6vw8o"]
 [ext_resource type="LabelSettings" uid="uid://bx3701todekh2" path="res://Cards/Utilities/DescriptionLabel.tres" id="2_8mo6d"]
 [ext_resource type="Texture2D" uid="uid://ddm5ino8m58bj" path="res://Cards/Utilities/sprite_sheet.png" id="2_dl2o5"]
-[ext_resource type="LabelSettings" uid="uid://deppmgiebdv6n" path="res://ATK_DEF_LABEL_ZOOM.tres" id="4_4wle8"]
+[ext_resource type="LabelSettings" uid="uid://deppmgiebdv6n" path="res://UI/ATK_DEF_LABEL_ZOOM.tres" id="4_4wle8"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dl2o5"]
 bg_color = Color(0.298039, 0.321569, 0.364706, 1)

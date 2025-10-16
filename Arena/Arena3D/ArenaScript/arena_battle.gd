@@ -96,30 +96,53 @@ func clear_highlights() -> void:
 	for y in core.BOARD_H:
 		for x in core.BOARD_W:
 			var t = board.get_tile(x, y)
-			if t: t.set_highlight(false)
+			if t:
+				t.set_highlight(false)
+				# 🔹 Hide MoveHighlight mesh
+				if t.has_node("MoveHighlight"):
+					t.get_node("MoveHighlight").visible = false
 
 func show_valid_summon_tiles():
+	clear_highlights()
+	
 	var leader_pos = core.get_leader_pos(core.PLAYER)
 	var tiles_to_highlight: Array = []
 
 	for y in range(core.BOARD_H):
 		for x in range(core.BOARD_W):
 			var tile = core.board.get_tile(x, y)
-			if not tile: continue
+			if not tile:
+				continue
+
 			var dist = Vector2i(x, y).distance_to(leader_pos)
 			if dist == 1 and tile.occupant == null:
 				tiles_to_highlight.append(tile)
 
 	for tile in tiles_to_highlight:
+		# --- Set summon flag and highlight ---
 		tile.summon_highlight = true
 		tile.set_highlight(true)
-		
+		tile.set_badge_text("⬆")  # optional symbol for clarity
+
+		# --- NEW: Enable MoveHighlight visual ---
+		if tile.has_node("MoveHighlight"):
+			var mh = tile.get_node("MoveHighlight")
+			mh.visible = true
+
+			# Pulse for visibility
+			if tile.has_method("pulse_move_highlight"):
+				tile.pulse_move_highlight()
+
 func clear_summon_highlights():
 	for tile in core.board.tiles.values():
 		if tile.summon_highlight:
 			tile.summon_highlight = false
-			if not tile.highlighted:
-				tile.set_highlight(false)
+			tile.set_highlight(false)
+
+			if tile.has_node("MoveHighlight"):
+				var mh = tile.get_node("MoveHighlight")
+				mh.visible = false
+
 
 # -----------------------------
 # BOARD INTERACTION
@@ -166,6 +189,22 @@ func _show_move_targets(from: Vector2i) -> void:
 			var t = board.get_tile(p.x, p.y)
 			if t and (t.occupant == null or t.occupant.owner != core.PLAYER):
 				t.set_highlight(true, "•" if t.occupant == null else "⚔")
+
+				# 🔹 Color enemy tiles red, empty tiles blue
+				var highlight_color := Color(0.3, 0.7, 1.0)  # blue for open
+				if t.occupant and t.occupant.owner != core.PLAYER:
+					highlight_color = Color(1.0, 0.3, 0.3)   # red for enemy
+
+				if t.has_method("set_move_highlight_tint"):
+					t.set_move_highlight_tint(highlight_color)
+				elif t.has_node("MoveHighlight"):
+					var mh = t.get_node("MoveHighlight")
+					mh.visible = true
+
+				# Optional: keep pulsing effect
+				if t.has_method("pulse_move_highlight"):
+					t.pulse_move_highlight()
+
 
 func spawn_card_model(card_data: CardData) -> Node3D:
 	if not card_data.model_scene:
@@ -238,6 +277,7 @@ func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 	var attacker: UnitData = src.occupant
 	if not attacker: return
 
+
 	# 🚫 Prevent self-targeting
 	if from == to:
 		core._log("⚠️ You can’t attack your own tile!", Color(1, 0.6, 0.4))
@@ -287,7 +327,9 @@ func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 		core.units[to] = attacker
 		core.mark_unit_acted(attacker)
 		return
-
+	if attacker.is_leader:
+		core._log("🚫 Leaders cannot attack.", Color(1, 0.6, 0.4))
+		return
 	# ------------------------------------------------------------
 	# 🟥 BATTLE
 	# ------------------------------------------------------------
@@ -440,10 +482,17 @@ func resolve_battle(att: UnitData, defn: UnitData) -> Dictionary:
 	# --- Attack vs Attack ---
 	if defn.mode == UnitData.Mode.ATTACK:
 		damage_to_def = min(a, defn.current_def)
-		damage_to_att = min(defn.current_atk, att.current_def)
+
+		# 🛑 Leaders do not attack or counter-attack
+		if defn.is_leader:
+			damage_to_att = 0
+			core._log("%s cannot counter-attack!" % defn.card.name, Color(1, 0.6, 0.6))
+		else:
+			damage_to_att = min(defn.current_atk, att.current_def)
+			att.current_def = max(att.current_def - defn.current_atk, 0)
 
 		defn.current_def = max(defn.current_def - a, 0)
-		att.current_def = max(att.current_def - defn.current_atk, 0)
+
 		core.card_details_ui.call("refresh_if_showing", defn)
 		core.card_details_ui.call("refresh_if_showing", att)
 
