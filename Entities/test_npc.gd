@@ -75,7 +75,7 @@ func _give_reward_card() -> void:
 		return
 
 	var random_id = card_ids[randi() % card_ids.size()]
-	var path = "res://Cards/" + random_id + ".tres"
+	var path = "res://Cards/Monster Cards/" + random_id + ".tres"
 	if not ResourceLoader.exists(path):
 		push_warning("⚠️ Reward card missing: " + path)
 		return

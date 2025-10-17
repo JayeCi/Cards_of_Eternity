@@ -14,15 +14,19 @@ class_name ArenaCardDetails
 @onready var terrain_label: Label = $MarginContainer/PanelContainer/MarginContainer/TerrainLabel
 
 # --- Combat stats ---
-
 @onready var atk_label: Label = $VBoxContainer2/AtkLabel
 @onready var atk: Label = $VBoxContainer2/Atk
 @onready var def_label: Label = $VBoxContainer2/DefLabel
 @onready var def: Label = $VBoxContainer2/Def
 
+# --- Data tracking ---
+var card_data: CardData = null
 var current_unit: UnitData = null
 var last_bonus_state: String = "neutral"  # "buff", "debuff", or "neutral"
 
+# -------------------------------------------------------------
+# STAT COLORING
+# -------------------------------------------------------------
 func set_stat_color_from_bonus(mult: float) -> void:
 	if mult > 1.0:
 		atk.add_theme_color_override("font_color", Color(0.5, 1.0, 0.5))
@@ -33,18 +37,22 @@ func set_stat_color_from_bonus(mult: float) -> void:
 		def.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
 		last_bonus_state = "debuff"
 	else:
-		atk.add_theme_color_override("font_color", Color(1,1,1))
-		def.add_theme_color_override("font_color", Color(1,1,1))
+		atk.add_theme_color_override("font_color", Color(1, 1, 1))
+		def.add_theme_color_override("font_color", Color(1, 1, 1))
 		last_bonus_state = "neutral"
+
+# -------------------------------------------------------------
+# STATIC CARD PREVIEW (hand hover)
+# -------------------------------------------------------------
 func show_card(card: CardData) -> void:
 	if not card:
 		hide_card()
 		return
 
+	card_data = card
 	current_unit = null
 	visible = true
 
-	# --- Basic Info ---
 	if art:
 		art.texture = card.art if card.art else null
 
@@ -52,20 +60,12 @@ func show_card(card: CardData) -> void:
 	rarity_label.text = "Rarity: %s" % str(card.rarity)
 	cost_label.text = "Cost: %d" % int(card.cost)
 
-	# --- ATK / DEF (static card stats) ---
-	if "atk" in card:
-		atk.text = str(card.atk)
-	else:
-		atk.text = "—"
-	if "def" in card:
-		def.text = str(card.def)
-	else:
-		def.text = "—"
+	atk.text = str(card.atk) if "atk" in card else "—"
+	def.text = str(card.def) if "def" in card else "—"
 
 	atk_label.visible = true
 	def_label.visible = true
 
-	# --- Abilities ---
 	if card.ability and "display_name" in card.ability:
 		abilities_name.text = str(card.ability.display_name)
 		abilities_desc.text = str(card.ability.description)
@@ -73,30 +73,38 @@ func show_card(card: CardData) -> void:
 		abilities_name.text = "—"
 		abilities_desc.text = ""
 
-	# --- Terrain info (hide for hand preview) ---
 	if terrain:
 		terrain.visible = false
 	if terrain_label:
 		terrain_label.text = ""
 
+# -------------------------------------------------------------
+# ACTIVE UNIT VIEW (board hover or updates)
+# -------------------------------------------------------------
 func show_unit(unit: UnitData) -> void:
 	if not unit or not unit.card:
 		hide_card()
 		return
 
 	current_unit = unit
+	card_data = unit.card
 	visible = true
 
 	var card = unit.card
-
-	# --- Basic Info ---
 	if art:
 		art.texture = card.art if card.art else null
 
 	name_label.text = card.name
 	rarity_label.text = "Rarity: %s" % str(card.rarity)
 	cost_label.text = "Cost: %d" % int(card.cost)
-	
+
+	# ✅ Always use live stats
+	atk.text = str(unit.current_atk)
+	def.text = str(unit.current_def)
+	atk_label.visible = true
+	def_label.visible = true
+
+	# --- Ability info ---
 	if card.ability and "display_name" in card.ability:
 		abilities_name.text = str(card.ability.display_name)
 		abilities_desc.text = str(card.ability.description)
@@ -104,62 +112,46 @@ func show_unit(unit: UnitData) -> void:
 		abilities_name.text = "—"
 		abilities_desc.text = ""
 
-	
-	# --- ATK / DEF (using dynamic stats) ---
-	atk.text = str(unit.current_atk)
-	def.text = str(unit.current_def)
-
-
-	atk_label.visible = true
-	def_label.visible = true
-
-	# --- Abilities ---
-	var ability_list := []
-	if card.ability:
-		if typeof(card.ability) == TYPE_STRING:
-			ability_list.append(card.ability)
-		elif "name" in card.ability:
-			ability_list.append(card.ability.name)
-
-
-
-
-	# --- Apply terrain-based color tint ---
+	# --- Terrain info ---
 	var core_node := get_tree().get_root().find_child("Arena3D", true, false)
 	if core_node and core_node.has_method("get_terrain_for_unit"):
 		var terrain_type = core_node.get_terrain_for_unit(unit)
 		if terrain_type != "":
 			show_terrain(terrain_type)
-			# 👇 determine terrain multiplier for color tint
 			if core_node.has_method("get_terrain_multiplier"):
 				var mult = core_node.get_terrain_multiplier(unit, terrain_type)
 				set_stat_color_from_bonus(mult)
+	else:
+		set_stat_color_from_bonus(1.0)
 
+# -------------------------------------------------------------
+# SUPPORT
+# -------------------------------------------------------------
 func hide_card() -> void:
+	card_data = null
 	current_unit = null
 	visible = false
 
 func refresh_if_showing(unit: UnitData) -> void:
-	if not visible or not current_unit:
+	if not visible or not card_data:
 		return
-	if unit and unit == current_unit:
-		show_unit(unit)
+	# ✅ Always pull latest unit state from ArenaCore if available
+	var arena_core := get_tree().get_root().find_child("ArenaCore", true, false)
+	if arena_core and arena_core.has_method("_get_unit_tile"):
+		for pos in arena_core.units.keys():
+			if arena_core.units[pos] == unit:
+				unit = arena_core.units[pos]
+				break
+	show_unit(unit)
 
 func show_terrain(terrain_type: String) -> void:
 	if not terrain:
-		print("❌ Terrain node not found!")
 		return
 
 	var texture: Texture2D = null
-
-	if Engine.has_singleton("TerrainTextures"):
-		var tman = Engine.get_singleton("TerrainTextures")
-		texture = tman.TERRAIN_TEXTURES.get(terrain_type, null)
-	else:
-		# fallback if not autoloaded
-		var path = "res://UI/Terrains/%s.png" % terrain_type.to_lower()
-		if ResourceLoader.exists(path):
-			texture = load(path)
+	var path = "res://UI/Terrains/%s.png" % terrain_type.to_lower()
+	if ResourceLoader.exists(path):
+		texture = load(path)
 
 	if texture:
 		terrain_label.text = terrain_type

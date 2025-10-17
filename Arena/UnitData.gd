@@ -14,12 +14,12 @@ enum Mode { ATTACK, DEFENSE, FACEDOWN }
 # Runtime (not exported)
 var current_atk: int
 var current_def: int
+var max_def: int
 
 func init_from_card(c: CardData, owner_id: int) -> UnitData:
 	if c == null:
 		push_error("❌ UnitData.init_from_card called with null CardData!")
 		return self
-	# rest of your code…
 
 	card = c
 	owner = owner_id
@@ -28,6 +28,8 @@ func init_from_card(c: CardData, owner_id: int) -> UnitData:
 	hp = c.hp if "hp" in c else 0
 	current_atk = atk
 	current_def = def
+	max_def = def 
+	
 	if c.ability:
 		card.ability = c.ability.duplicate(true)
 	return self
@@ -35,6 +37,7 @@ func init_from_card(c: CardData, owner_id: int) -> UnitData:
 func reset_stats():
 	current_atk = atk
 	current_def = def
-
+	max_def = def
+	
 func is_facedown() -> bool:
 	return mode == Mode.FACEDOWN

@@ -24,10 +24,6 @@ uv1_scale = Vector3(1.765, 1.765, 1.765)
 
 [node name="Arena3D" type="Node3D" groups=["battle_scene"]]
 script = ExtResource("1_2nnof")
-camera_move_speed = null
-camera_zoom_speed = null
-min_zoom = null
-max_zoom = null
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(-0.866026, -0.499851, 0.0122161, 0, 0.0244322, 0.999701, -0.5, 0.865767, -0.0211589, 0, 0, 0)
@@ -64,10 +60,6 @@ far = 101.25
 script = ExtResource("5_2nnof")
 
 [node name="UISystem" parent="." instance=ExtResource("2_opwpc")]
-
-[node name="VBoxContainer" parent="UISystem/SummonMode" index="1"]
-offset_right = 124.0
-offset_bottom = 105.0
 
 [node name="BattleSystem" type="Node3D" parent="."]
 script = ExtResource("8_08t7x")

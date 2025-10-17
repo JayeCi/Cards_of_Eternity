@@ -49,11 +49,15 @@ func init_ui(core_ref: ArenaCore) -> void:
 	enemy_hp_progress_bar.value = core.enemy_leader.hp      # full at start
 	enemy_hp_progress_bar.min_value = 0
 	
+
 	# signals
 	core.connect("log_line", Callable(self, "_on_log"))
 	core.connect("essence_changed", Callable(self, "_on_essence_changed"))
 	core.connect("hp_changed", Callable(self, "_on_hp_changed"))
 	core.connect("phase_changed", Callable(self, "_on_phase_changed"))
+
+	# 🟢 Add a periodic UI refresh for DEF/ATK changes
+	core.connect("unit_stats_changed", Callable(self, "_on_unit_stats_changed"))
 
 	# Hover label
 	hover_label = Label3D.new()
@@ -262,13 +266,24 @@ func _on_card_hovered_in_hand(card: CardData) -> void:
 			# Just update instantly — no flicker
 			card_details_ui.show_card(card)
 			print("[ArenaUI] 🔁 Updating details for:", card.name)
-
+			
 func _on_card_hovered_in_hand_exit() -> void:
 	if not _is_hovering_hand_card:
 		return
 
 	_is_hovering_hand_card = false
-	card_details_ui.visible = false
+
+	# Fade out or hide details
+	if card_details_ui:
+		card_details_ui.hide_card()
+		card_details_ui.visible = false
+
+	# 🔁 Reset hover state to allow re-hover of the same card
+	_current_hover_card = null
+	_hover_state = "idle"
+
+	print("[ArenaUI] 🔻 Hover ended — state reset.")
+
 
 func show_hover_for_tile(tile: Node3D) -> void:
 	# 🛑 Don’t update board hover while hovering a card in hand
@@ -279,7 +294,6 @@ func show_hover_for_tile(tile: Node3D) -> void:
 				$ArenaTerrainDetails.hide_terrain()
 			$ArenaTerrainDetails.visible = false
 		return
-	# ... (rest unchanged)
 
 	if is_dragging_card:
 		return
@@ -301,6 +315,9 @@ func show_hover_for_tile(tile: Node3D) -> void:
 				$ArenaTerrainDetails.visible = true
 
 func hide_hover() -> void:
+
+	if _is_hovering_hand_card:
+		return
 	if core and core.is_cutscene_active:
 		return
 	if is_dragging_card:
@@ -353,10 +370,36 @@ func _flash(lbl: Label) -> void:
 func _on_phase_changed(new_phase: int) -> void:
 	update_phase_label(new_phase)
 
+	match new_phase:
+		core.Phase.SUMMON_OR_MOVE, core.Phase.SELECT_SUMMON_TILE, core.Phase.SELECT_MOVE_TARGET:
+			# Player turn phases — show hand and orbs
+			_show_hand_and_orbs(true)
+		core.Phase.ENEMY_TURN:
+			# Hide UI when enemy is acting
+			_show_hand_and_orbs(false)
+
+func _show_hand_and_orbs(visible: bool) -> void:
+	var target_alpha := 1.0 if visible else 0.0
+	var t = create_tween()
+	if hand_grid:
+		t.tween_property(hand_grid, "modulate:a", target_alpha, 0.25)
+	if orb_grid:
+		t.tween_property(orb_grid, "modulate:a", target_alpha, 0.25)
+	await t.finished
+	hand_grid.visible = visible
+	orb_grid.visible = visible
+
 func _on_log(msg: String, color := Color.WHITE) -> void:
 	if not battle_log: return
 	battle_log.append_text("[color=%s]%s[/color]\n" % [color.to_html(false), msg])
 	battle_log.scroll_to_line(battle_log.get_line_count() - 1)
+# 🟢 Called whenever a unit's ATK/DEF changes (e.g., Vampirism heal)
+
+func _on_unit_stats_changed(unit: UnitData) -> void:
+	if not unit:
+		return
+	if card_details_ui and card_details_ui.visible:
+		card_details_ui.call("refresh_if_showing", unit)
 
 func show_battle_message(text: String, duration := 2.0) -> void:
 	var label: Label = $"../UISystem/BattlePopup"

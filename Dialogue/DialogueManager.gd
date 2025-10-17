@@ -25,7 +25,7 @@ func start_dialogue(lines: Array[String]) -> void:
 	emit_signal("dialogue_started")
 
 	current_ui = dialogue_ui.instantiate()
-	get_tree().root.add_child(current_ui)
+	get_tree().root.add_child.call_deferred(current_ui)
 
 	current_ui.finished.connect(Callable(self, "_on_dialogue_finished").bind(lines))
 

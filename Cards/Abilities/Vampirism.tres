@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="Vampirism" load_steps=2 format=3 uid="uid://ilxoxport87v"]
+
+[ext_resource type="Script" uid="uid://dhv2jr4u8uvyk" path="res://Cards/Abilities/Vampirism.gd" id="1_oy8s6"]
+
+[resource]
+script = ExtResource("1_oy8s6")
+trigger = "on_attack"
+display_name = "Vampirism"
+value = 5
+range = 1
+description = "Steal 5 DEF after every attack."
+metadata/_custom_type_script = "uid://dhv2jr4u8uvyk"

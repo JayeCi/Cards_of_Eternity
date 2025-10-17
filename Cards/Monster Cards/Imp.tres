@@ -1,5 +1,6 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://bymlax4cwtbnq"]
+[gd_resource type="Resource" script_class="CardData" load_steps=5 format=3 uid="uid://bymlax4cwtbnq"]
 
+[ext_resource type="Resource" uid="uid://ilxoxport87v" path="res://Cards/Abilities/Vampirism.tres" id="1_ca7id"]
 [ext_resource type="Texture2D" uid="uid://caqg12eqtvgh2" path="res://Images/Imp.jpg" id="1_gynxb"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="1_t13up"]
 [ext_resource type="PackedScene" uid="uid://cnueqengii15f" path="res://Cards/Models/imp.tscn" id="2_i5kou"]
@@ -12,12 +13,13 @@ element = "Fire"
 card_type = 0
 id = "00003"
 name = "Imp"
-description = ""
+description = "Scary"
 art = ExtResource("1_gynxb")
-cost = 2
+cost = 1
 atk = 18
-def = 10
+def = 25
 hp = 0
+ability = ExtResource("1_ca7id")
 model_scene = ExtResource("2_i5kou")
 fusion_materials = Array[String]([])
 attack_moves = Array[String]([])

@@ -7,13 +7,27 @@ const MOUSE_SENSITIVITY = 0.003
 @onready var cam: Camera3D = $Head/Camera3D
 @onready var head = $Head
 @onready var collection_ui: Control = $"../CollectionUI"
+@onready var dialogue_ui: Node = $"../DialogueUI"
 
 var rotation_x = 0.0
 var mouse_locked = true
 
 func _ready() -> void:
 	_lock_mouse()
+	_disable_controls() # prevent movement/input
+	_start_intro_dialogue()
 
+func _disable_controls():
+	set_physics_process(false)
+	set_process_input(false)
+	set_process_unhandled_input(true) # ✅ still lets dialogue receive input
+	mouse_locked = false
+	_unlock_mouse()
+
+func _enable_controls():
+	set_physics_process(true)
+	set_process_input(true)
+	set_process_unhandled_input(true)
 
 func _input(event):
 	if event.is_action_pressed("interact"):
@@ -91,3 +105,26 @@ func _lock_mouse():
 func _unlock_mouse():
 	mouse_locked = false
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+
+
+func _start_intro_dialogue():
+	if not DialogueManager:
+		push_error("❌ DialogueManager not found as autoload!")
+		_enable_controls()
+		return
+
+	var lines: Array[String] = [
+		"Player: What the...",
+		"Player: The air here feels heavy — and my head! Ugh...",
+		"Player: I need to find out where I am..."
+	]
+
+	DialogueManager.start_dialogue(lines)
+
+
+	await DialogueManager.dialogue_ended
+	_on_dialogue_finished()
+
+func _on_dialogue_finished():
+	_enable_controls()
+	_lock_mouse()

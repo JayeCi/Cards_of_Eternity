@@ -1,13 +1,15 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://d2snus2l750wy"]
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://d2snus2l750wy"]
 
 [ext_resource type="Texture2D" uid="uid://c073p1prcpbuq" path="res://Images/Nature_Fae.jpeg" id="1_64214"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="1_wmtkd"]
+[ext_resource type="PackedScene" uid="uid://dgsyt3kwo4xl6" path="res://Cards/Models/Forest_Fae.tscn" id="2_kr0ab"]
 
 [resource]
 script = ExtResource("1_wmtkd")
 type = "Elemental"
 rarity = "Legendary"
 element = "Earth"
+card_type = 0
 id = "00007"
 name = "Forest Fae"
 description = ""
@@ -16,6 +18,7 @@ cost = 2
 atk = 25
 def = 25
 hp = 0
+model_scene = ExtResource("2_kr0ab")
 fusion_materials = Array[String]([])
 attack_moves = Array[String]([])
 metadata/_custom_type_script = "uid://57up1u0etcmc"

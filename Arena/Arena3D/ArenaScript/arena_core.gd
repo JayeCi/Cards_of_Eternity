@@ -1,6 +1,33 @@
-# File: arena_core.gd
 extends Node3D
 class_name ArenaCore
+
+# ==========================================================
+# 🧩 FAST LAZY CARD LOADER
+# ==========================================================
+var _card_cache: Dictionary = {}
+
+func get_card(path: String) -> Resource:
+	if not _card_cache.has(path):
+		_card_cache[path] = load(path)
+	return _card_cache[path]
+
+
+# ==========================================================
+# 🔧 EXAMPLE USAGE:
+#   instead of:   GOBLIN
+#   use:          get_card(CARD_PATHS.GOBLIN)
+# ==========================================================
+const CARD_PATHS := {
+	"DIRT":        "res://Cards/Monster Cards/Dirt.tres",
+	"GOBLIN":      "res://Cards/Monster Cards/Goblin.tres",
+	"IMP":         "res://Cards/Monster Cards/Imp.tres",
+	"FYSH":        "res://Cards/Monster Cards/Fish.tres",
+	"NAGA":        "res://Cards/Monster Cards/Naga.tres",
+	"COLD_SLOTH":  "res://Cards/Monster Cards/Cold_Sloth.tres",
+	"LAVA_HARE":   "res://Cards/Monster Cards/Lava_Hare.tres",
+	"FOREST_FAE":  "res://Cards/Monster Cards/Forest_Fae.tres",
+	"FIREBALL":    "res://Cards/Spell Cards/Fireball.tres",
+}
 
 # -----------------------------
 # PUBLIC SIGNALS
@@ -12,6 +39,7 @@ signal phase_changed(new_phase: int)
 signal log_line(text: String, color: Color)
 signal focus_camera(world_pos: Vector3, zoom_mult: float, duration: float)
 signal fade_ui(to_alpha: float, dur: float)
+signal unit_stats_changed(unit: UnitData)
 
 # -----------------------------
 # CONSTANTS / ENUMS
@@ -95,59 +123,50 @@ var selected_card: CardData = null
 var selected_pos := Vector2i(-1,-1)
 var dragging_card: CardData = null
 var hovered_tile: Node3D = null
-
+var _cache := {}
 # Turn bookkeeping
 var acted_this_turn := {} # {UnitData: true}
 
 # Camera lock used by focus tweens/cutscenes
 var _is_camera_locked := false
 var is_cutscene_active: bool = false
+	# Pick a random biome
+var all_biomes = [
+	board.Biome.OCEAN,
+	board.Biome.VOLCANO,
+	board.Biome.FOREST,
+	board.Biome.MEADOW,
+	board.Biome.MOUNTAIN,
+	board.Biome.TUNDRA
+]
 
-# -----------------------------
-# CARDS (preloads you used)
-# -----------------------------
-const DIRT = preload("res://Cards/Monster Cards/Dirt.tres")
-const GOBLIN = preload("res://Cards/Monster Cards/Goblin.tres")
-const IMP = preload("res://Cards/Monster Cards/Imp.tres")
-const FYSH = preload("res://Cards/Monster Cards/Fish.tres")
-const NAGA = preload("res://Cards/Monster Cards/Naga.tres")
-const COLD_SLOTH = preload("res://Cards/Monster Cards/Cold_Sloth.tres")
-const LAVA_HARE = preload("res://Cards/Monster Cards/Lava_Hare.tres")
-const FOREST_FAE = preload("res://Cards/Monster Cards/Forest_Fae.tres")
 
-const FIREBALL = preload("res://Cards/Spell Cards/Fireball.tres")
 # -----------------------------
 # LIFECYCLE
 # -----------------------------
 func _ready() -> void:
 	# let UI initialize its references
 	await get_tree().process_frame
-
+	call_deferred("_deferred_startup")
 	# minimal registry of cards (your collection)
-	CardCollection.add_card(FIREBALL)
-	CardCollection.add_card(GOBLIN)
-	CardCollection.add_card(DIRT)
-	CardCollection.add_card(IMP)
-	CardCollection.add_card(FYSH)
-	CardCollection.add_card(NAGA)
-	CardCollection.add_card(FOREST_FAE)
-	CardCollection.add_card(COLD_SLOTH)
-	CardCollection.add_card(LAVA_HARE)
 
-	# Pick a random biome
-	var all_biomes = [
-		board.Biome.OCEAN,
-		board.Biome.VOLCANO,
-		board.Biome.FOREST,
-		board.Biome.MEADOW,
-		board.Biome.MOUNTAIN,
-		board.Biome.TUNDRA
-	]
-
-	# Use randf_range or randi for variety
+	CardCollection.add_card(get_card(CARD_PATHS.GOBLIN))
+	CardCollection.add_card(get_card(CARD_PATHS.DIRT))
+	CardCollection.add_card(get_card(CARD_PATHS.COLD_SLOTH))
+	CardCollection.add_card(get_card(CARD_PATHS.FYSH))
+	CardCollection.add_card(get_card(CARD_PATHS.FOREST_FAE))
+	CardCollection.add_card(get_card(CARD_PATHS.IMP))
+	CardCollection.add_card(get_card(CARD_PATHS.LAVA_HARE))
+	CardCollection.add_card(get_card(CARD_PATHS.NAGA))
+	CardCollection.add_card(get_card(CARD_PATHS.FIREBALL))
+		
+	if ui_sys.has_node("OrbGrid"):
+		var essence_display = ui_sys.get_node("OrbGrid")
+		connect("essence_changed", Callable(essence_display, "set_essence"))
+		
+func _deferred_startup():
 	randomize()
 	board.biome = all_biomes[randi() % all_biomes.size()]
-	
 	# Generate the map for that biome
 	board._generate_grid()
 
@@ -164,7 +183,6 @@ func _ready() -> void:
 
 	# Build decks, spawn leaders, play intro
 	_build_decks()
-
 	_spawn_leaders()
 
 	ui_sys.call("init_ui", self)              # hand, labels, hover/ghost setup
@@ -181,10 +199,7 @@ func _ready() -> void:
 	_draw_starting_hand(5)
 	_set_phase(Phase.SUMMON_OR_MOVE)
 	_update_phase_ui()
-		
-	if ui_sys.has_node("OrbGrid"):
-		var essence_display = ui_sys.get_node("OrbGrid")
-		connect("essence_changed", Callable(essence_display, "set_essence"))
+
 		
 func _apply_terrain_bonus(unit: UnitData, terrain: String) -> void:
 	if not unit or not unit.card:
@@ -244,11 +259,11 @@ func _build_decks() -> void:
 	_log("✅ Decks built: Player=%d, Enemy=%d" % [player_deck.size(), enemy_deck.size()])
 
 func _spawn_leaders() -> void:
-	player_leader = UnitData.new().init_from_card(LAVA_HARE, PLAYER)
+	player_leader = UnitData.new().init_from_card(get_card(CARD_PATHS.LAVA_HARE), PLAYER)
 	player_leader.is_leader = true
 	player_leader.hp = 10
 
-	enemy_leader = UnitData.new().init_from_card(DIRT, ENEMY)
+	enemy_leader  = UnitData.new().init_from_card(get_card(CARD_PATHS.DIRT), ENEMY)
 	enemy_leader.is_leader = true
 	enemy_leader.hp = 10
 

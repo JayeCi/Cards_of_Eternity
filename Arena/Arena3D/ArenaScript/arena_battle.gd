@@ -47,7 +47,9 @@ func _update_hover() -> void:
 	if hovered_tile and hovered_tile != tile:
 		hovered_tile.set_highlight(false)
 		hovered_tile = null
-		ui.hide_hover()
+		if ui and not ui._is_hovering_hand_card:
+			ui.hide_hover()
+
 
 	if tile:
 		tile.set_highlight(true, "★" if core.dragging_card != null else "")
@@ -441,17 +443,21 @@ func _fizzle_out(sprite: Sprite3D) -> void:
 # -----------------------------
 # COMBAT RESOLUTION (no negatives)
 # -----------------------------
+# -----------------------------
+# COMBAT RESOLUTION (color-coded)
+# -----------------------------
 func resolve_battle(att: UnitData, defn: UnitData) -> Dictionary:
 	var a := att.current_atk
 	var d := defn.current_def
-
 	var result := "both_survive"
 	var overflow := 0
 	var damage_to_def := 0
 	var damage_to_att := 0
 
-	core._log("⚔ Battle! %s (ATK %d) vs %s (ATK %d / DEF %d, Mode=%s)" %
-		[att.card.name, a, defn.card.name, defn.current_atk, defn.current_def, str(defn.mode)],
+	core._log("────────────────────────────────────", Color(0.6, 0.6, 0.6))
+	core._log("⚔️  BATTLE COMMENCES!", Color(1, 1, 0.7))
+	core._log("%s (ATK %d / DEF %d) ➤ %s (ATK %d / DEF %d, Mode: %s)" %
+		[_colorize_name(att), a, att.current_def, _colorize_name(defn), defn.current_atk, defn.current_def, str(defn.mode)],
 		Color(1, 0.9, 0.6))
 
 	# --- Direct leader hit ---
@@ -459,57 +465,117 @@ func resolve_battle(att: UnitData, defn: UnitData) -> Dictionary:
 		defn.hp = max(defn.hp - a, 0)
 		damage_to_def = a
 		result = "leader_damaged"
-		core._log("💥 %s attacks the Leader directly for %d damage!" % [att.card.name, a], Color(1, 0.6, 0.6))
+		core._log("💥 %s strikes directly at the LEADER for %d damage!" %
+			[_colorize_name(att), a], Color(1, 0.6, 0.6))
+		core._log("🏁 Leader HP: %d → %d" % [defn.hp + a, defn.hp], Color(1, 0.8, 0.8))
 		core.on_leader_damaged(defn.owner, defn.hp)
 		if defn.hp <= 0:
+			core._log("💀 The Leader has been defeated!", Color(1, 0.4, 0.4))
 			core.on_leader_defeated(defn.owner)
+		core._log("────────────────────────────────────", Color(0.6, 0.6, 0.6))
 		return {"result": result, "overflow": overflow, "damage_to_def": damage_to_def, "damage_to_att": 0}
 
-	# --- Defense mode ---
+	# --- Defense Mode ---
 	if defn.mode == UnitData.Mode.DEFENSE:
-		damage_to_def = min(a, d)
+		core._log("🛡 %s defends against the attack!" %
+			[_colorize_name(defn)], Color(0.7, 0.9, 1.0))
+		var old_def := defn.current_def
 		defn.current_def = max(defn.current_def - a, 0)
-		if a > d or defn.current_def <= 0:
-			overflow = max(a - d, 0)
+		damage_to_def = min(a, old_def)
+
+		if a > old_def or defn.current_def <= 0:
 			result = "attacker_wins"
-			core._log("💥 %s breaks through %s’s DEF! Overflow %d" %
-				[att.card.name, defn.card.name, overflow], Color(1, 0.8, 0.5))
+			overflow = max(a - old_def, 0)
+			core._log("💥 Defense broken! %s takes %d damage." %
+				[_colorize_name(defn), damage_to_def], Color(1, 0.8, 0.5))
+
+			if overflow > 0:
+				var target_owner := defn.owner
+				core.damage_leader(target_owner, overflow)
+				core._log("💔 %s Leader takes %d overflow damage!" %
+					["[color=#FF6666]Enemy[/color]" if target_owner == core.ENEMY else "[color=#55CCFF]Player[/color]", overflow],
+					Color(1, 0.7, 0.7))
+
+				if (target_owner == core.PLAYER and core.player_leader.hp <= 0) \
+				or (target_owner == core.ENEMY and core.enemy_leader.hp <= 0):
+					core._log("💀 The Leader has been defeated!", Color(1, 0.4, 0.4))
+					core.on_leader_defeated(target_owner)
+					
 		else:
 			result = "both_survive"
-		core.card_details_ui.call("refresh_if_showing", defn)
+			core._log("🪨 %s withstands the attack! Remaining DEF: %d" %
+				[_colorize_name(defn), defn.current_def], Color(0.6, 1.0, 0.6))
+
 		return {"result": result, "overflow": overflow, "damage_to_def": damage_to_def, "damage_to_att": 0}
 
 	# --- Attack vs Attack ---
 	if defn.mode == UnitData.Mode.ATTACK:
-		damage_to_def = min(a, defn.current_def)
+		core._log("⚔️  Both units attack simultaneously!", Color(1, 0.9, 0.6))
 
-		# 🛑 Leaders do not attack or counter-attack
-		if defn.is_leader:
-			damage_to_att = 0
-			core._log("%s cannot counter-attack!" % defn.card.name, Color(1, 0.6, 0.6))
-		else:
+		var old_def_defn := defn.current_def
+		var old_def_att := att.current_def
+
+		defn.current_def = max(defn.current_def - a, 0)
+		damage_to_def = min(a, old_def_defn)
+
+		if not defn.is_leader:
 			damage_to_att = min(defn.current_atk, att.current_def)
 			att.current_def = max(att.current_def - defn.current_atk, 0)
 
-		defn.current_def = max(defn.current_def - a, 0)
+		core._log("💢 %s inflicts %d damage on %s (%d → %d DEF)" %
+			[_colorize_name(att), damage_to_def, _colorize_name(defn), old_def_defn, defn.current_def],
+			Color(1, 0.8, 0.5))
+			
+		_trigger_ability(att, "on_attack")
 
+		if not defn.is_leader:
+			core._log("💢 %s counterattacks for %d damage on %s (%d → %d DEF)" %
+				[_colorize_name(defn), damage_to_att, _colorize_name(att), old_def_att, att.current_def],
+				Color(1, 0.8, 0.5))
+				
+
+		
 		core.card_details_ui.call("refresh_if_showing", defn)
 		core.card_details_ui.call("refresh_if_showing", att)
 
-		var attacker_dead = att.current_def <= 0
-		var defender_dead = defn.current_def <= 0
+		var attacker_dead := att.current_def <= 0
+		var defender_dead := defn.current_def <= 0
 
+		# 🩸 Overflow check happens BEFORE deciding final outcome
+		if defender_dead:
+			overflow = max(a - old_def_defn, 0)
+			if overflow > 0:
+				var target_owner := defn.owner
+				core.damage_leader(target_owner, overflow)
+				core._log("💔 %s Leader takes %d overflow damage!" %
+					["[color=#FF6666]Enemy[/color]" if target_owner == core.ENEMY else "[color=#55CCFF]Player[/color]", overflow],
+					Color(1, 0.7, 0.7))
+
+				if (target_owner == core.PLAYER and core.player_leader.hp <= 0) \
+				or (target_owner == core.ENEMY and core.enemy_leader.hp <= 0):
+					core._log("💀 The Leader has been defeated!", Color(1, 0.4, 0.4))
+					core.on_leader_defeated(target_owner)
+
+		# 🎯 Decide battle outcome
 		if attacker_dead and defender_dead:
 			result = "both_destroyed"
+			core._log("☠️  Both units are destroyed!", Color(1, 0.5, 0.5))
 		elif defender_dead:
 			result = "attacker_wins"
+			core._log("🏆 %s defeats %s!" %
+				[_colorize_name(att), _colorize_name(defn)], Color(0.7, 1.0, 0.7))
 		elif attacker_dead:
-			result = "defender_wins"
+			core._log(("❌ %s falls in battle." % [_colorize_name(att)]), Color(1, 0.4, 0.4))
 		else:
 			result = "both_survive"
+			core._log("🤜 Both fighters remain standing!", Color(0.8, 0.8, 1.0))
 
-		return {"result": result, "overflow": 0, "damage_to_def": damage_to_def, "damage_to_att": damage_to_att}
+		core._log("────────────────────────────────────", Color(0.6, 0.6, 0.6))
+		return {"result": result, "overflow": overflow, "damage_to_def": damage_to_def, "damage_to_att": damage_to_att}
 
+	core._log("⚠️  Unexpected mode in battle between %s and %s" %
+		[_colorize_name(att), _colorize_name(defn)], Color(1, 0.7, 0.4))
+	core._log("────────────────────────────────────", Color(0.6, 0.6, 0.6))
 	return {"result": "both_survive", "overflow": 0, "damage_to_def": 0, "damage_to_att": 0}
 
 # -----------------------------
@@ -541,14 +607,29 @@ func apply_all_passives() -> void:
 	# ✅ Also refresh the card details panel if visible
 	if core.card_details_ui and core.card_details_ui.visible:
 		core.card_details_ui.call("refresh_if_showing", core.card_details_ui.current_unit)
+		
+func _colorize_name(unit: UnitData) -> String:
+	if not unit or not unit.card:
+		return ""
+	var color = "#55CCFF" if unit.owner == core.PLAYER else "#FF6666"
+	return "[color=%s]%s[/color]" % [color, unit.card.name]
 
 func apply_passive_effect(unit: UnitData, ability: CardAbility) -> void:
 	ability.execute(core, unit)
 	unit.set_meta("passive_active", true)
 
 func _trigger_ability(unit: UnitData, trigger: String) -> void:
-	if unit.card.ability and unit.card.ability.trigger == trigger:
-		unit.card.ability.execute(core, unit)
+	if not unit or not unit.card or not unit.card.ability:
+		return
+
+	var ab = unit.card.ability
+	if ab.trigger == trigger:
+		ab.execute(core, unit)
+
+		# ✅ Always refresh UI after ability triggers
+		if core and core.card_details_ui and core.card_details_ui.visible:
+			core.card_details_ui.call("refresh_if_showing", unit)
+
 
 func remove_passive_effect(unit: UnitData, ability: CardAbility) -> void:
 	if ability.has_method("remove"): ability.remove(core, unit)
@@ -570,7 +651,6 @@ func _kill_unit(u: UnitData) -> void:
 			break
 
 	if found_pos == Vector2i(-1, -1):
-		core._log("⚠️ Tried to kill a unit not on board: %s" % u.card.name)
 		return
 
 	var tile = core.board.get_tile(found_pos.x, found_pos.y)
@@ -627,17 +707,28 @@ func _get_unit_tile(u: UnitData) -> Node3D:
 # CINEMATIC BATTLE (wraps fade + scene)
 # -----------------------------
 func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
-	
-	_trigger_ability(att, "on_attack")
-	var result_data = resolve_battle(att, defn)
+	# --- Snapshot BEFORE we compute (so we can visually defer)
+	var att_def_before := att.current_def
+	var def_def_before := defn.current_def
+	var def_leader_hp_before := defn.hp  # used only if defender is leader
+	var att_leader_hp_before := att.hp   # (symmetry; not used currently)
 
+	# Compute result & (side effect currently mutates)...
+	var result_data = resolve_battle(att, defn)
 	var result: String = result_data["result"]
-	var overflow_damage: int = result_data["overflow"]
 	var damage_to_def: int = result_data["damage_to_def"]
 	var damage_to_att: int = result_data["damage_to_att"]
+	var overflow_damage: int = result_data["overflow"]
+
+	# --- Restore so numbers don't drop before the animation
+	att.current_def = att_def_before
+	defn.current_def = def_def_before
+	if defn.is_leader:
+		defn.hp = def_leader_hp_before
 
 	await _fade(1.0, 0.2)
 
+	# Play cinematic using the computed values
 	var battle_ui_scene = preload("res://UI/battle_ui.tscn")
 	var ui_instance = battle_ui_scene.instantiate()
 	core.add_child(ui_instance)
@@ -646,6 +737,25 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 	await ui_instance.play_battle(att, defn, damage_to_def, defender_died)
 
 	ui_instance.queue_free()
+
+	# --- Now APPLY the result to the actual stats (post-animation)
+	# Defender damage
+	if not defn.is_leader:
+		defn.current_def = max(def_def_before - damage_to_def, 0)
+	else:
+		# direct leader hit path
+		# Note: when defn is leader, damage_to_def is the direct hit amount 'a'
+		defn.hp = max(def_leader_hp_before - damage_to_def, 0)
+		core.on_leader_damaged(defn.owner, defn.hp)
+
+	# Attacker counter-damage (only when defender isn't leader)
+	if damage_to_att > 0:
+		att.current_def = max(att_def_before - damage_to_att, 0)
+
+	# Overflow (to defender’s leader)
+	if overflow_damage > 0:
+		var target_owner := defn.owner
+		core.damage_leader(target_owner, overflow_damage)
 
 	# Refresh visuals
 	var att_tile = _get_unit_tile(att)
@@ -657,8 +767,8 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 	if def_tile and def_tile.occupant == defn:
 		def_tile.set_art(defn.card.art, defn.owner == core.ENEMY)
 		def_tile.set_badge_text("P" if defn.owner == core.PLAYER else "E")
-		
-	# Safety cleanup: if any card's DEF hit 0, remove it
+
+	# Clean up destroyed units (after we’ve applied the damage)
 	if att.current_def <= 0 and not att.is_leader:
 		await _kill_unit(att)
 	if defn.current_def <= 0 and not defn.is_leader:
