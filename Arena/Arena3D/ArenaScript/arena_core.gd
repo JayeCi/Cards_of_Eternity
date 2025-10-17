@@ -261,11 +261,11 @@ func _build_decks() -> void:
 func _spawn_leaders() -> void:
 	player_leader = UnitData.new().init_from_card(get_card(CARD_PATHS.LAVA_HARE), PLAYER)
 	player_leader.is_leader = true
-	player_leader.hp = 10
+	player_leader.hp = 100
 
 	enemy_leader  = UnitData.new().init_from_card(get_card(CARD_PATHS.DIRT), ENEMY)
 	enemy_leader.is_leader = true
-	enemy_leader.hp = 10
+	enemy_leader.hp = 100
 
 	_place_leader(player_leader, Vector2i(BOARD_W/2, 0))
 	_place_leader(enemy_leader, Vector2i(BOARD_W/2, BOARD_H-1))

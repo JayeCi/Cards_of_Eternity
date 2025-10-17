@@ -25,7 +25,7 @@ var _current_hover_card: CardData = null
 @onready var enemy_hp_progress_bar: ProgressBar = $EnemyHP/TextureRect/HPProgressBar
 
 
-
+var _lock_hp_updates := false
 var hover_label: Label3D
 var ghost_card: Sprite3D
 var last_card_ui: Control = null
@@ -353,14 +353,19 @@ func _on_essence_changed(p: int, e: int) -> void:
 
 
 func _on_hp_changed(owner: int, hp: int) -> void:
+	# 🛑 Skip HP updates during active battle animations
+	if _lock_hp_updates:
+		return
+
 	if owner == core.PLAYER:
 		player_hp_label.text = str(hp)
 		_flash(player_hp_label)
-		_update_hp_bar()  # 🟢 Add this line
 	else:
 		enemy_hp_label.text = str(hp)
 		_flash(enemy_hp_label)
-		_update_hp_bar()
+
+	_update_hp_bar()
+
 
 func _flash(lbl: Label) -> void:
 	var t = create_tween()
@@ -388,6 +393,37 @@ func _show_hand_and_orbs(visible: bool) -> void:
 	await t.finished
 	hand_grid.visible = visible
 	orb_grid.visible = visible
+	
+func play_attack_step(attacker: UnitData, defender: UnitData, damage: int) -> void:
+	# 🔹 Optional: name labels
+	if has_node("AttackerLabel"):
+		$AttackerLabel.text = "%s attacks!" % attacker.card.name
+	if has_node("DefenderLabel"):
+		$DefenderLabel.text = "vs %s" % defender.card.name
+
+	# 🔹 Optional: damage label
+	if has_node("DamageLabel"):
+		$DamageLabel.text = "-%d DEF" % damage
+		$DamageLabel.modulate = Color(1, 0.3, 0.3)
+		$DamageLabel.visible = true
+
+	# 🔹 Safely locate the defender's tile through the battle system
+	if defender:
+		var tile = core.battle_sys._get_unit_tile(defender)
+		if tile and tile.has_node("CardMesh"):
+			var mesh = tile.get_node("CardMesh")
+			if mesh:
+				var tw = create_tween()
+				tw.tween_property(mesh, "scale", mesh.scale * 1.2, 0.1)
+				tw.tween_property(mesh, "scale", mesh.scale, 0.2)
+				await tw.finished
+
+	# 🔹 Add a brief pause for pacing
+	await get_tree().create_timer(0.4).timeout
+
+	# 🔹 Hide temporary UI after animation
+	if has_node("DamageLabel"):
+		$DamageLabel.visible = false
 
 func _on_log(msg: String, color := Color.WHITE) -> void:
 	if not battle_log: return

@@ -9,7 +9,7 @@ metadata={
 "vram_texture": true
 }
 generator_parameters={
-"md5": "619161231feae35ba83b62ad1b5391e7"
+"md5": "f2c8a380747f47726cec8f61ed8f5247"
 }
 
 [deps]
@@ -22,6 +22,8 @@ dest_files=["res://.godot/imported/Stone_0.jpg-67b4ab3ac1d1e6eccdade3b0cbcb02f5.
 compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
+compress/uastc_level=0
+compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0

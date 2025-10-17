@@ -2,14 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cak2i8wseg38f"
+uid="uid://beccdb0fceq2p"
 path.s3tc="res://.godot/imported/amy_roses_deck_part_3_0.png-ab679336dcfbaeb45315b7042d941f80.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
-}
-generator_parameters={
-"md5": "4010f2092b79730425a9bf451aed029b"
 }
 
 [deps]
@@ -22,6 +19,8 @@ dest_files=["res://.godot/imported/amy_roses_deck_part_3_0.png-ab679336dcfbaeb45
 compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
+compress/uastc_level=0
+compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
