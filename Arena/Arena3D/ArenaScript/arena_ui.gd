@@ -31,6 +31,8 @@ var ghost_card: Sprite3D
 var last_card_ui: Control = null
 var _is_hovering_hand_card := false
 var _hover_check_timer := 0.0
+var hand_forced_hidden := false
+var _hand_orb_tween: Tween = null
 
 func _ready():
 	$ArenaCardDetails.visible = false
@@ -119,6 +121,26 @@ func refresh_hand(player_hand: Array, player_essence: int) -> void:
 		
 func get_last_hand_card_ui() -> Control:
 	return last_card_ui
+	
+func force_hide_hand(on: bool) -> void:
+	hand_forced_hidden = on
+
+	# kill any in-flight show/hide tween to prevent a late 'visible = true'
+	if _hand_orb_tween and _hand_orb_tween.is_running():
+		_hand_orb_tween.kill()
+		_hand_orb_tween = null
+
+	# apply immediately
+	if hand_grid:
+		hand_grid.modulate.a = 0.0
+		hand_grid.visible = not on and hand_grid.visible and hand_grid.visible # no-op unless allowed
+		if on:
+			hand_grid.visible = false
+
+	if orb_grid:
+		orb_grid.modulate.a = 0.0
+		if on:
+			orb_grid.visible = false
 
 func _animate_card_draw(card_ui: Control) -> void:
 	if not card_ui: return
@@ -196,16 +218,20 @@ func cancel_drag() -> void:
 
 
 func fade_hand_in() -> void:
+	if hand_forced_hidden:
+		return
 	hand_grid.visible = true
 	hand_grid.modulate.a = 0.0
 	var t = create_tween()
 	t.tween_property(hand_grid, "modulate:a", 1.0, 0.25)
 
 func fade_hand_out() -> void:
+	if hand_forced_hidden:
+		return
 	hand_grid.modulate.a = 0.0
 	var t = create_tween()
 	t.tween_property(hand_grid, "modulate:a", 1.0, 0.25)
-	
+
 func return_card_to_hand(card_data: CardData):
 	if not card_data:
 		return
@@ -384,16 +410,25 @@ func _on_phase_changed(new_phase: int) -> void:
 			_show_hand_and_orbs(false)
 
 func _show_hand_and_orbs(visible: bool) -> void:
+	# Don’t touch hand while battle is running or we’re forcibly hiding it
+	if (core and core.battle_sys and core.battle_sys._is_battle_in_progress) or hand_forced_hidden:
+		return
+
+	# cancel previous tween so it can't finish later and flip visibility
+	if _hand_orb_tween and _hand_orb_tween.is_running():
+		_hand_orb_tween.kill()
+		_hand_orb_tween = null
+
 	var target_alpha := 1.0 if visible else 0.0
-	var t = create_tween()
+	_hand_orb_tween = create_tween()
 	if hand_grid:
-		t.tween_property(hand_grid, "modulate:a", target_alpha, 0.25)
+		_hand_orb_tween.tween_property(hand_grid, "modulate:a", target_alpha, 0.25)
 	if orb_grid:
-		t.tween_property(orb_grid, "modulate:a", target_alpha, 0.25)
-	await t.finished
+		_hand_orb_tween.tween_property(orb_grid, "modulate:a", target_alpha, 0.25)
+	await _hand_orb_tween.finished
 	hand_grid.visible = visible
 	orb_grid.visible = visible
-	
+
 func play_attack_step(attacker: UnitData, defender: UnitData, damage: int) -> void:
 	# 🔹 Optional: name labels
 	if has_node("AttackerLabel"):

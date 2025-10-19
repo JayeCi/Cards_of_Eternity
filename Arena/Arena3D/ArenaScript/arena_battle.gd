@@ -8,6 +8,11 @@ var core: ArenaCore
 var board: Node3D
 var ui: ArenaUI
 var cam: ArenaCamera
+var _is_battle_in_progress := false
+var _camera_locked: bool = false
+var _battle_cam_default_pos: Vector3
+var _battle_cam_default_fov: float
+@onready var hand: GridContainer = $"../UISystem/BottomContainer/Hand"
 
 var hovered_tile: Node3D = null
 
@@ -21,7 +26,6 @@ func _input(event):
 	if event.is_action_pressed("cancel_action"):
 		_on_cancel_card_drag()
 
-
 func _process(_dt: float) -> void:
 	# Wait until core and camera are ready
 	if not core or not cam:
@@ -34,6 +38,15 @@ func _process(_dt: float) -> void:
 # -----------------------------
 func _update_hover() -> void:
 	if not core or not cam or not cam.has_method("ray_pick"):
+		return
+
+	# 🚫 Block hover/updates during cinematic/battle
+	if _is_battle_in_progress or (core and core.is_cutscene_active):
+		if hovered_tile:
+			hovered_tile.set_highlight(false)
+			hovered_tile = null
+		if ui and not ui._is_hovering_hand_card:
+			ui.hide_hover()
 		return
 
 	var result = cam.ray_pick(get_viewport().get_mouse_position())
@@ -50,7 +63,6 @@ func _update_hover() -> void:
 		if ui and not ui._is_hovering_hand_card:
 			ui.hide_hover()
 
-
 	if tile:
 		tile.set_highlight(true, "★" if core.dragging_card != null else "")
 		hovered_tile = tile
@@ -59,7 +71,6 @@ func _update_hover() -> void:
 		if core.dragging_card:
 			ui.move_ghost_over(tile)
 
-
 	# also tell core about current tile
 	core.hovered_tile = hovered_tile
 	
@@ -67,8 +78,8 @@ func show_hover_for_tile(tile: Node3D) -> void:
 	if not tile:
 		return
 
-	# Skip during cutscenes
-	if core and core.is_cutscene_active:
+	# Skip during cutscenes/battle
+	if (core and core.is_cutscene_active) or _is_battle_in_progress:
 		return
 
 	# Show card if occupied
@@ -145,11 +156,14 @@ func clear_summon_highlights():
 				var mh = tile.get_node("MoveHighlight")
 				mh.visible = false
 
-
 # -----------------------------
 # BOARD INTERACTION
 # -----------------------------
 func on_board_click(screen_pos: Vector2) -> void:
+	# 🚫 Ignore clicks during cinematic/battle
+	if _is_battle_in_progress or (core and core.is_cutscene_active):
+		return
+
 	var result = cam.ray_pick(screen_pos)
 	if not result: return
 	var node = result.collider
@@ -176,6 +190,10 @@ func on_board_click(screen_pos: Vector2) -> void:
 				core._update_phase_ui()
 
 func _show_move_targets(from: Vector2i) -> void:
+	# 🚫 Don't draw targets during battle/cinematic
+	if _is_battle_in_progress or (core and core.is_cutscene_active):
+		return
+
 	clear_highlights()
 	var src = board.get_tile(from.x, from.y)
 	if not src or not src.occupant: return
@@ -207,26 +225,42 @@ func _show_move_targets(from: Vector2i) -> void:
 				if t.has_method("pulse_move_highlight"):
 					t.pulse_move_highlight()
 
-
+# -----------------------------------
+# 🟩 CARD SPAWNING (uses model_path)
+# -----------------------------------
 func spawn_card_model(card_data: CardData) -> Node3D:
-	if not card_data.model_scene:
-		print("No model assigned for card:", card_data.name)
+	if not card_data or card_data.model_path == "":
+		print("No model path assigned for card:", card_data.name)
 		return null
 
-	var model_instance = card_data.model_scene.instantiate()
+	var model_scene: PackedScene = load(card_data.model_path)
+	if not model_scene:
+		push_warning("⚠️ Could not load model scene at: %s" % card_data.model_path)
+		return null
+
+	var model_instance: Node3D = model_scene.instantiate()
 	model_instance.name = "CardModel"
-	model_instance.position = Vector3(0, 0.5, 0) # centered above tile
-	model_instance.scale = CARD_MODEL_SCALE  # ✅ match leader scale
+	model_instance.position = Vector3(0, 0.5, 0)
+	model_instance.scale = CARD_MODEL_SCALE
 	return model_instance
 
 # -----------------------------
 # PLACE / MOVE / BATTLE
 # -----------------------------
+
+# -----------------------------------
+# 🟨 UNIT PLACEMENT ON BOARD
+# -----------------------------------
 func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, mark_acted := true) -> void:
 	var u := UnitData.new().init_from_card(card, owner)
 	u.mode = mode
 	core.units[pos] = u
+
 	var tile = board.get_tile(pos.x, pos.y)
+	if not tile:
+		push_error("⚠️ Tried to place a unit at invalid tile position: %s" % str(pos))
+		return
+
 	tile.set_occupant(u)
 
 	match u.mode:
@@ -239,7 +273,6 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, mark_acted
 			if tile.has_node("CardMesh"):
 				var mesh = tile.get_node("CardMesh")
 				mesh.rotation_degrees.y = 90
-				mesh.position = Vector3(0, mesh.position.y, 0)
 				mesh.position.x = -0.5
 				mesh.position.z = 0.0
 		UnitData.Mode.FACEDOWN:
@@ -247,21 +280,32 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, mark_acted
 			if tile.has_node("CardMesh"):
 				tile.get_node("CardMesh").rotation_degrees.y = 0
 
-	# set badge for ownership
+	# 🟢 Set ownership badge
 	tile.set_badge_text("P" if owner == core.PLAYER else "E")
-	
-	# ✅ Spawn the 3D model for this card (if one exists)
-	if card.model_scene:
-		var model_instance = spawn_card_model(card)
+
+	# ✅ Spawn 3D model from model_path (lazy load)
+	if card.model_path != "":
+		var model_instance := spawn_card_model(card)
 		if model_instance:
 			tile.add_child(model_instance)
 
-		# ✅ Make enemy cards face the player
-		if owner == core.ENEMY:
-			model_instance.rotate_y(deg_to_rad(180))
-			
-	# ✅ Once a card is placed, exit placement mode
+			# 🔄 Flip enemy model to face the player
+			if owner == core.ENEMY:
+				model_instance.rotate_y(deg_to_rad(180))
+
+	# 🎵 Play per-card placement sound if available
+	if "place_sound" in card and card.place_sound:
+		_play_card_sound(card.place_sound, tile.global_position)
+	else:
+		# fallback move/placement sound (optional)
+		if core.CARD_MOVE_SOUND:
+			_play_card_sound(core.CARD_MOVE_SOUND, tile.global_position)
+
+	# ✅ Exit placement mode safely
 	core.clear_card_placement_mode()
+
+	# Optional log
+	core._log("📥 %s summoned at %s" % [card.name, str(pos)], Color(0.7, 1, 0.7))
 
 func normalize_model(model: Node3D, target_height := 1.0):
 	var aabb = model.get_aabb()
@@ -272,38 +316,53 @@ func normalize_model(model: Node3D, target_height := 1.0):
 	model.scale = Vector3.ONE * scale_factor
 
 func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
+	# 🚫 Prevent re-entry if already battling or moving
+	if _is_battle_in_progress:
+		return
+	_is_battle_in_progress = true
+
 	var src = board.get_tile(from.x, from.y)
 	var dst = board.get_tile(to.x, to.y)
-	if not src or not dst: return
+	if not src or not dst:
+		_is_battle_in_progress = false
+		return
 
 	var attacker: UnitData = src.occupant
-	if not attacker: return
-
+	if not attacker:
+		_is_battle_in_progress = false
+		return
 
 	# 🚫 Prevent self-targeting
 	if from == to:
 		core._log("⚠️ You can’t attack your own tile!", Color(1, 0.6, 0.4))
+		_is_battle_in_progress = false
 		return
 
 	# 🚫 Ensure attacker can act
 	if not core.can_unit_act(attacker):
 		core._log("⏳ That unit already acted this turn.")
+		_is_battle_in_progress = false
 		return
 
 	# 🚫 Check move distance
 	var dist = abs(to.x - from.x) + abs(to.y - from.y)
 	if dist > core.BASE_MOVE_RANGE:
 		core._log("⚠️ You can only move 1 tile per turn!", Color(1, 0.6, 0.4))
+		_is_battle_in_progress = false
 		return
-
 	# ------------------------------------------------------------
 	# 🟦 MOVE (no defender)
 	# ------------------------------------------------------------
 	if dst.occupant == null:
-		# Capture reference to model (before clearing src)
+		# Hide any highlights/hover before moving
+		clear_highlights()
+		if ui and not ui._is_hovering_hand_card:
+			ui.hide_hover()
+
 		var model: Node3D = null
-		if src.has_node("CardModel"):
-			model = src.get_node("CardModel")
+		var model_path := NodePath("CardModel")
+		if src.has_node(model_path):
+			model = src.get_node(model_path)
 
 		dst.set_occupant(attacker)
 		_play_card_sound(core.CARD_MOVE_SOUND, dst.global_position)
@@ -313,25 +372,36 @@ func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 		)
 		dst.set_badge_text("P" if attacker.owner == core.PLAYER else "E")
 
-		# Reparent model if found
-		if model:
+		if model and is_instance_valid(model) and not model.is_queued_for_deletion():
 			var world_target = dst.global_position + Vector3(0, 0.5, 0)
 			var tw = create_tween()
 			tw.tween_property(model, "global_position", world_target, 0.25)
 			await tw.finished
 
-			src.remove_child(model)
-			dst.add_child(model)
-			model.position = Vector3(0, 0.5, 0)
+		# ✅ Only move if still valid and attached
+		if is_instance_valid(model):
+			if is_instance_valid(src) and model.get_parent() == src:
+				src.remove_child(model)
+			if is_instance_valid(dst):
+				# Double-check it's not freed before re-adding
+				if not model.is_queued_for_deletion():
+					dst.add_child(model)
+					model.position = Vector3(0, 0.5, 0)
+
 
 		src.clear()
 		core.units.erase(from)
 		core.units[to] = attacker
 		core.mark_unit_acted(attacker)
+		_is_battle_in_progress = false
 		return
+
+	# 🚫 Leaders cannot attack
 	if attacker.is_leader:
 		core._log("🚫 Leaders cannot attack.", Color(1, 0.6, 0.4))
+		_is_battle_in_progress = false
 		return
+
 	# ------------------------------------------------------------
 	# 🟥 BATTLE
 	# ------------------------------------------------------------
@@ -348,70 +418,77 @@ func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 		await _flip_faceup(dst, defender.card.art)
 		core._log("❗ %s was revealed!" % defender.card.name, Color(1, 0.9, 0.7))
 
-	# Run cinematic battle and get result
+	# 🧹 Hide all highlights + hover, and enter "cinematic" lock
+	clear_highlights()
+	if ui and not ui._is_hovering_hand_card:
+		ui.hide_hover()
+	var prev_cutscene_state := core.is_cutscene_active if core and "is_cutscene_active" in core else false
+	if core and "is_cutscene_active" in core:
+		core.is_cutscene_active = true
+
+	# Run cinematic battle
 	var result_data = await _play_2d_battle(attacker, defender)
+
+	# 🔓 Leave cinematic lock
+	if core and "is_cutscene_active" in core:
+		core.is_cutscene_active = prev_cutscene_state
+
 	var result: String = result_data["result"]
 	var overflow_damage: int = result_data["overflow"]
 
-
-	# ------------------------------------------------------------
-	# 🎯 Apply result
-	# ------------------------------------------------------------
+	# 🧩 Apply result as before
 	match result:
 		"attacker_wins":
-			await _kill_unit(defender)  # ✅ wait for death animation to finish
+			# Defender was already killed in _play_2d_battle()
+			# Move attacker into dst if attacker is still alive
+			if attacker.current_def > 0:
+				dst.set_occupant(attacker)
+				dst.set_art(attacker.card.art, attacker.owner == core.ENEMY)
+				dst.set_badge_text("P" if attacker.owner == core.PLAYER else "E")
 
-			# --- Move the unit data ---
-			dst.set_occupant(attacker)
-			dst.set_art(attacker.card.art, attacker.owner == core.ENEMY)
-			dst.set_badge_text("P" if attacker.owner == core.PLAYER else "E")
+				# move 3D model if it exists
+				if src.has_node("CardModel"):
+					var model = src.get_node("CardModel")
+					if is_instance_valid(model):
+						var world_target = dst.global_position + Vector3(0, 0.5, 0)
+						var tw = create_tween()
+						tw.tween_property(model, "global_position", world_target, 0.25)
+						await tw.finished
+						if model.get_parent() == src:
+							src.remove_child(model)
+						if is_instance_valid(dst):
+							dst.add_child(model)
+							model.position = Vector3(0, 0.5, 0)
 
-			# --- Move the 3D model (if exists) ---
-			if src.has_node("CardModel"):
-				var model = src.get_node("CardModel")
-				var world_target = dst.global_position + Vector3(0, 0.5, 0)
-				var tw = create_tween()
-				tw.tween_property(model, "global_position", world_target, 0.25)
-				await tw.finished
-
-				src.remove_child(model)
-				dst.add_child(model)
-				model.position = Vector3(0, 0.5, 0)
-
-			# --- Cleanup ---
-			src.clear()
-			core.units.erase(from)
-			core.units[to] = attacker
+				src.clear()
+				core.units.erase(from)
+				core.units[to] = attacker
 			core.mark_unit_acted(attacker)
 
-
 		"defender_wins":
-			_kill_unit(attacker)
+			# Attacker was already killed
 			core.mark_unit_acted(attacker)
 
 		"both_destroyed":
-			await _kill_unit(defender)
-			await _kill_unit(attacker)
-
+			# Already handled
+			pass
 
 		"both_survive":
 			dst.flash()
 			core.mark_unit_acted(attacker)
-
-			# ✅ Refresh survivors visually
 			var att_tile = _get_unit_tile(attacker)
 			if att_tile: att_tile.set_art(attacker.card.art, attacker.owner == core.ENEMY)
-
-			var def_tile = _get_unit_tile(defender)
-			if def_tile: def_tile.set_art(defender.card.art, defender.owner == core.ENEMY)
+			var def_tile = _get_unit_tile(dst.occupant)
+			if def_tile: def_tile.set_art(dst.occupant.card.art, dst.occupant.owner == core.ENEMY)
 
 		"leader_damaged":
 			dst.flash()
 			core.mark_unit_acted(attacker)
-
-			# ✅ Refresh attacker visuals in case they fade
 			var att_tile = _get_unit_tile(attacker)
 			if att_tile: att_tile.set_art(attacker.card.art, attacker.owner == core.ENEMY)
+
+	# ✅ Unlock after everything completes
+	_is_battle_in_progress = false
 
 func _on_cancel_card_drag():
 	if core.dragging_card:
@@ -439,176 +516,97 @@ func _fizzle_out(sprite: Sprite3D) -> void:
 	tw.tween_property(sprite, "scale", Vector3.ZERO, 0.3)
 	tw.parallel().tween_property(sprite, "modulate:a", 0.0, 0.3)
 	await tw.finished
+	
+func _focus_camera_on_battle(att_tile: Node3D, def_tile: Node3D, zoom_in := true) -> void:
+	if not cam or not att_tile or not def_tile:
+		return
 
-# -----------------------------
-# COMBAT RESOLUTION (no negatives)
-# -----------------------------
+	if zoom_in:
+		_camera_locked = true
+		_battle_cam_default_pos = cam.position
+		_battle_cam_default_fov = cam.fov
+
+		var midpoint := (att_tile.global_position + def_tile.global_position) / 2.0
+		var target_pos := midpoint + Vector3(0, 3, 6)  # adjust for your board scale
+
+		var tw = create_tween()
+		tw.tween_property(cam, "position", target_pos, 0.6)
+		tw.parallel().tween_property(cam, "fov", _battle_cam_default_fov * 0.7, 0.6)
+		await tw.finished
+	else:
+		var tw = create_tween()
+		tw.tween_property(cam, "position", _battle_cam_default_pos, 0.6)
+		tw.parallel().tween_property(cam, "fov", _battle_cam_default_fov, 0.6)
+		await tw.finished
+		_camera_locked = false
+
 # -----------------------------
 # COMBAT RESOLUTION (color-coded)
 # -----------------------------
 func resolve_battle(att: UnitData, defn: UnitData, silent := false) -> Dictionary:
-	var a := att.current_atk
-	var d := defn.current_def
+	# NEVER mutate units here. Compute only.
+	var a_atk := att.current_atk
+	var a_def := att.current_def
+	var d_atk := defn.current_atk
+	var d_def := defn.current_def
+
 	var result := "both_survive"
 	var overflow := 0
-	var damage_to_def := 0
-	var damage_to_att := 0
+	var damage_to_def := 0     # defender takes from attacker
+	var damage_to_att := 0     # attacker takes from defender (counter)
 
+	# Log (optional)
 	if not silent:
 		core._log("────────────────────────────────────", Color(0.6, 0.6, 0.6))
-		core._log("⚔️  BATTLE COMMENCES!", Color(1, 1, 0.7))
+		core._log("⚔️  BATTLE PREVIEW", Color(1,1,0.7))
 		core._log("%s (ATK %d / DEF %d) ➤ %s (ATK %d / DEF %d, Mode: %s)" %
-			[_colorize_name(att), a, att.current_def, _colorize_name(defn),
-			defn.current_atk, defn.current_def, str(defn.mode)],
-			Color(1, 0.9, 0.6))
+			[_colorize_name(att), a_atk, a_def, _colorize_name(defn), d_atk, d_def, str(defn.mode)],
+			Color(1,0.9,0.6))
 
-	# --- Direct leader hit ---
+	# --- Direct attack on Leader ---
 	if defn.is_leader:
-		if not silent:
-			core._log("📊  Damage Calc: %d (ATK) - 0 (Leader DEF) = %d Leader damage" % [a, a],
-				Color(0.9, 0.9, 0.9))
-		defn.hp = max(defn.hp - a, 0)
-		damage_to_def = a
+		damage_to_def = a_atk           # all goes to leader HP; no counter
 		result = "leader_damaged"
-
 		if not silent:
-			core._log("💥 %s strikes directly at the LEADER for %d damage!" %
-				[_colorize_name(att), a], Color(1, 0.6, 0.6))
-			core._log("🏁 Leader HP: %d → %d" % [defn.hp + a, defn.hp], Color(1, 0.8, 0.8))
-		core.on_leader_damaged(defn.owner, defn.hp)
-		if defn.hp <= 0:
-			if not silent:
-				core._log("💀 The Leader has been defeated!", Color(1, 0.4, 0.4))
-			core.on_leader_defeated(defn.owner)
-		if not silent:
-			core._log("────────────────────────────────────", Color(0.6, 0.6, 0.6))
-		return {"result": result, "overflow": overflow, "damage_to_def": damage_to_def, "damage_to_att": 0}
+			core._log("Leader attack: %d damage (no counter)." % damage_to_def, Color(1,0.8,0.8))
+		return {"result": result, "overflow": 0, "damage_to_def": damage_to_def, "damage_to_att": 0}
 
-	# --- Defense Mode ---
+	# --- Defender in DEFENSE ---
 	if defn.mode == UnitData.Mode.DEFENSE:
-		if not silent:
-			core._log("🛡 %s defends against the attack!" % [_colorize_name(defn)], Color(0.7, 0.9, 1.0))
-			core._log("📊  Damage Calc: %d (ATK) - %d (DEF) = %d" %
-				[a, defn.current_def, a - defn.current_def], Color(0.9, 0.9, 0.9))
-
-		var old_def := defn.current_def
-		defn.current_def = max(defn.current_def - a, 0)
-		damage_to_def = min(a, old_def)
-
-		if a > old_def or defn.current_def <= 0:
+		damage_to_def = min(a_atk, d_def)
+		var d_def_after := d_def - damage_to_def
+		if d_def_after <= 0:
 			result = "attacker_wins"
-			overflow = max(a - old_def, 0)
-			if not silent:
-				core._log("💥 Defense broken! %s takes %d damage." %
-					[_colorize_name(defn), damage_to_def], Color(1, 0.8, 0.5))
-
-			if overflow > 0:
-				var target_owner := defn.owner
-				if not silent:
-					core._log("📊  Overflow: %d (ATK) - %d (DEF) = %d → Leader damage" %
-						[a, old_def, overflow], Color(0.9, 0.9, 0.9))
-				core.damage_leader(target_owner, overflow)
-				if not silent:
-					core._log("💔 %s Leader takes %d overflow damage!" %
-						["[color=#FF6666]Enemy[/color]" if target_owner == core.ENEMY else "[color=#55CCFF]Player[/color]",
-						overflow], Color(1, 0.7, 0.7))
-
-				if (target_owner == core.PLAYER and core.player_leader.hp <= 0) \
-				or (target_owner == core.ENEMY and core.enemy_leader.hp <= 0):
-					if not silent:
-						core._log("💀 The Leader has been defeated!", Color(1, 0.4, 0.4))
-					core.on_leader_defeated(target_owner)
+			overflow = max(a_atk - d_def, 0)
 		else:
 			result = "both_survive"
-			if not silent:
-				core._log("🪨 %s withstands the attack! Remaining DEF: %d" %
-					[_colorize_name(defn), defn.current_def], Color(0.6, 1.0, 0.6))
 		return {"result": result, "overflow": overflow, "damage_to_def": damage_to_def, "damage_to_att": 0}
 
-	# --- Attack vs Attack ---
+	# --- Defender in ATTACK (mutual damage) ---
 	if defn.mode == UnitData.Mode.ATTACK:
-		if not silent:
-			core._log("⚔️  Both units attack simultaneously!", Color(1, 0.9, 0.6))
-			core._log("📊  Attack Step: %d (ATK) - %d (DEF) = %d damage to defender" %
-				[a, defn.current_def, max(a - defn.current_def, 0)], Color(0.9, 0.9, 0.9))
+		damage_to_def = min(a_atk, d_def)
+		damage_to_att = min(d_atk, a_def)
 
-		var old_def_defn := defn.current_def
-		var old_def_att := att.current_def
+		var d_def_after := d_def - damage_to_def
+		var a_def_after := a_def - damage_to_att
 
-		defn.current_def = max(defn.current_def - a, 0)
-		damage_to_def = min(a, old_def_defn)
+		if d_def_after <= 0:
+			overflow = max(a_atk - d_def, 0)
 
-		if not defn.is_leader:
-			if not silent:
-				core._log("📊  Counter Step: %d (ATK) - %d (DEF) = %d damage to attacker" %
-					[defn.current_atk, att.current_def, max(defn.current_atk - att.current_def, 0)],
-					Color(0.9, 0.9, 0.9))
-			damage_to_att = min(defn.current_atk, att.current_def)
-			att.current_def = max(att.current_def - defn.current_atk, 0)
-
-		if not silent:
-			core._log("💢 %s inflicts %d damage on %s (%d → %d DEF)" %
-				[_colorize_name(att), damage_to_def, _colorize_name(defn),
-				old_def_defn, defn.current_def], Color(1, 0.8, 0.5))
-		_trigger_ability(att, "on_attack")
-
-		if not defn.is_leader and not silent:
-			core._log("💢 %s counterattacks for %d damage on %s (%d → %d DEF)" %
-				[_colorize_name(defn), damage_to_att, _colorize_name(att),
-				old_def_att, att.current_def], Color(1, 0.8, 0.5))
-
-		core.card_details_ui.call("refresh_if_showing", defn)
-		core.card_details_ui.call("refresh_if_showing", att)
-
-		var attacker_dead := att.current_def <= 0
-		var defender_dead := defn.current_def <= 0
-
-		# 🩸 Overflow check happens BEFORE deciding final outcome
-		if defender_dead:
-			overflow = max(a - old_def_defn, 0)
-			if overflow > 0:
-				var target_owner := defn.owner
-				if not silent:
-					core._log("📊  Overflow: %d (ATK) - %d (DEF) = %d → Leader damage" %
-						[a, old_def_defn, overflow], Color(0.9, 0.9, 0.9))
-				core.damage_leader(target_owner, overflow)
-				if not silent:
-					core._log("💔 %s Leader takes %d overflow damage!" %
-						["[color=#FF6666]Enemy[/color]" if target_owner == core.ENEMY else "[color=#55CCFF]Player[/color]",
-						overflow], Color(1, 0.7, 0.7))
-
-				if (target_owner == core.PLAYER and core.player_leader.hp <= 0) \
-				or (target_owner == core.ENEMY and core.enemy_leader.hp <= 0):
-					if not silent:
-						core._log("💀 The Leader has been defeated!", Color(1, 0.4, 0.4))
-					core.on_leader_defeated(target_owner)
-
-		# 🎯 Decide battle outcome
-		if attacker_dead and defender_dead:
+		if a_def_after <= 0 and d_def_after <= 0:
 			result = "both_destroyed"
-			if not silent:
-				core._log("☠️  Both units are destroyed!", Color(1, 0.5, 0.5))
-		elif defender_dead:
+		elif d_def_after <= 0:
 			result = "attacker_wins"
-			if not silent:
-				core._log("🏆 %s defeats %s!" %
-					[_colorize_name(att), _colorize_name(defn)], Color(0.7, 1.0, 0.7))
-		elif attacker_dead:
-			if not silent:
-				core._log(("❌ %s falls in battle." % [_colorize_name(att)]), Color(1, 0.4, 0.4))
+		elif a_def_after <= 0:
+			result = "defender_wins"
 		else:
 			result = "both_survive"
-			if not silent:
-				core._log("🤜 Both fighters remain standing!", Color(0.8, 0.8, 1.0))
 
-		if not silent:
-			core._log("────────────────────────────────────", Color(0.6, 0.6, 0.6))
 		return {"result": result, "overflow": overflow, "damage_to_def": damage_to_def, "damage_to_att": damage_to_att}
 
+	# Fallback (shouldn't happen)
 	if not silent:
-		core._log("⚠️  Unexpected mode in battle between %s and %s" %
-			[_colorize_name(att), _colorize_name(defn)], Color(1, 0.7, 0.4))
-		core._log("────────────────────────────────────", Color(0.6, 0.6, 0.6))
+		core._log("⚠️ Unexpected mode in battle preview.", Color(1,0.7,0.4))
 	return {"result": "both_survive", "overflow": 0, "damage_to_def": 0, "damage_to_att": 0}
 
 # -----------------------------
@@ -636,7 +634,6 @@ func apply_all_passives() -> void:
 			if tile.has_method("update_stat_labels"):
 				tile.update_stat_labels(unit.current_atk, unit.current_def)
 
-
 	# ✅ Also refresh the card details panel if visible
 	if core.card_details_ui and core.card_details_ui.visible:
 		core.card_details_ui.call("refresh_if_showing", core.card_details_ui.current_unit)
@@ -663,7 +660,6 @@ func _trigger_ability(unit: UnitData, trigger: String) -> void:
 		if core and core.card_details_ui and core.card_details_ui.visible:
 			core.card_details_ui.call("refresh_if_showing", unit)
 
-
 func remove_passive_effect(unit: UnitData, ability: CardAbility) -> void:
 	if ability.has_method("remove"): ability.remove(core, unit)
 
@@ -689,6 +685,11 @@ func _kill_unit(u: UnitData, silent := false) -> void:
 	var tile = core.board.get_tile(found_pos.x, found_pos.y)
 	if not tile:
 		return
+	# 🎵 Death sound (3D positional)
+	if u.card and "death_sound" in u.card and u.card.death_sound:
+		_play_card_sound(u.card.death_sound, tile.global_position)
+	else:
+		_play_card_sound(core.CARD_DEATH_SOUND, tile.global_position)
 
 	# --- Fade out & clear mesh ---
 	if tile.has_node("CardMesh"):
@@ -697,21 +698,31 @@ func _kill_unit(u: UnitData, silent := false) -> void:
 		tw.tween_property(mesh, "modulate:a", 0.0, 0.3)
 		tw.tween_property(mesh, "scale", mesh.scale * 0.5, 0.3)
 		await tw.finished
-
+		
 	# --- Fade out & remove 3D model if exists ---
 	if tile.has_node("CardModel"):
 		var model = tile.get_node("CardModel")
-		var tw2 = create_tween()
-		tw2.tween_property(model, "scale", model.scale * 0.3, 0.3)
-		tw2.parallel().tween_property(model, "modulate:a", 0.0, 0.3)
-		await tw2.finished
-		model.queue_free()
+
+		if is_instance_valid(model):
+			var tw2 = create_tween()
+			tw2.tween_property(model, "scale", model.scale * 0.3, 0.3)
+			tw2.parallel().tween_property(model, "modulate:a", 0.0, 0.3)
+			await tw2.finished
+
+			# ✅ Wait one frame so any tweens or visuals complete
+			await get_tree().process_frame
+
+			# ✅ Then safely free the model (only if still valid)
+			if is_instance_valid(model):
+				model.queue_free()
 
 	tile.clear()
 	core.units.erase(found_pos)
 	core.card_details_ui.call("hide_card")
 	if not silent:
 		core._log("💀 %s was destroyed." % u.card.name, Color(1, 0.4, 0.4))
+
+
 func clear_exhausted_tiles() -> void:
 	for pos in core.units.keys():
 		var t = board.get_tile(pos.x, pos.y)
@@ -740,146 +751,129 @@ func _get_unit_tile(u: UnitData) -> Node3D:
 # CINEMATIC BATTLE (wraps fade + scene)
 # -----------------------------
 func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
-	# Temporarily disable HP bar updates during battle
+	if ui:
+		ui.force_hide_hand(true)   # 🔒 hard-lock the hand hidden
+
+	if ui and ui.hand_grid:
+		ui.hand_grid.visible = false
+		ui.hand_grid.modulate.a = 0.0
+
+	if is_instance_valid(hand):
+		hand.visible = false
+		await get_tree().process_frame
+
 	if ui:
 		ui._lock_hp_updates = true
 
-	var att_def_before := att.current_def
-	var def_def_before := defn.current_def
-	var def_leader_hp_before := defn.hp
-	var att_leader_hp_before := att.hp
-
-	# --- Compute result silently (no logs yet) ---
 	var result_data = resolve_battle(att, defn, true)
-	var result: String = result_data["result"]
 	var damage_to_def: int = result_data["damage_to_def"]
 	var damage_to_att: int = result_data["damage_to_att"]
-	var overflow_damage: int = result_data["overflow"]
-# --- Add math summary for clarity ---
 
-	# --- Restore for visuals ---
-	att.current_def = att_def_before
-	defn.current_def = def_def_before
+	var battle_ui: BattleUI = core.get_node_or_null("UISystem/BattleUI")
+	if not battle_ui:
+		push_error("❌ Could not find BattleUI in UISystem — add a node named 'BattleUI'.")
+		if is_instance_valid(hand):
+			hand.visible = true
+		return result_data
+
+	if is_instance_valid(hand):
+		hand.visible = false
+
+	# --- 1️⃣ ATTACK PHASE ---
+	# Refresh before animation so the defender shows correct starting stats
+	battle_ui.refresh_stats(att, defn)
+	await battle_ui.play_attack_phase(att, defn, damage_to_def)
+
+	# Apply defender’s damage immediately and refresh again (before flash)
 	if defn.is_leader:
-		defn.hp = def_leader_hp_before
-
-	await _fade(1.0, 0.2)
-
-	# --- Announce battle ---
-	core._log("────────────────────────────────────", Color(0.6, 0.6, 0.6))
-	core._log("⚔️  BATTLE COMMENCES!", Color(1, 1, 0.7))
-	core._log("%s engages %s!" % [_colorize_name(att), _colorize_name(defn)], Color(1, 0.9, 0.6))
-	await get_tree().create_timer(0.5).timeout
-
-	# Find tile visuals
-	var att_tile := _get_unit_tile(att)
-	var def_tile := _get_unit_tile(defn)
-	var att_mesh := att_tile.get_node("CardMesh") if att_tile and att_tile.has_node("CardMesh") else null
-	var def_mesh := def_tile.get_node("CardMesh") if def_tile and def_tile.has_node("CardMesh") else null
-
-
-
-	# 1️⃣ Attacker strikes
-	core._log("💢 %s attacks for %d!" % [_colorize_name(att), damage_to_def], Color(1, 0.8, 0.5))
-	if ui and ui.has_method("play_attack_step"):
-		await ui.play_attack_step(att, defn, damage_to_def)
-
-	if def_mesh:
-		await _card_pulse(def_mesh, Color(1, 0.5, 0.5))
-		_float_text(def_mesh.global_position, "-%d" % damage_to_def)
-		_camera_shake(0.07, 0.2)
-		_play_card_sound(core.CARD_MOVE_SOUND, def_mesh.global_position)
-
-	await get_tree().create_timer(0.4).timeout
-
-	# 2️⃣ Counterattack (if any)
-	if damage_to_att > 0:
-		core._log("🛡 %s counterattacks for %d!" % [_colorize_name(defn), damage_to_att], Color(1, 0.8, 0.5))
-		if ui and ui.has_method("play_attack_step"):
-			await ui.play_attack_step(defn, att, damage_to_att)
-		if att_mesh:
-			await _card_pulse(att_mesh, Color(0.6, 0.8, 1))
-			_float_text(att_mesh.global_position, "-%d" % damage_to_att, Color(0.6,0.8,1))
-			_camera_shake(0.06, 0.15)
-			_play_card_sound(core.CARD_MOVE_SOUND, att_mesh.global_position)
-		await get_tree().create_timer(0.3).timeout
-
-	# 3️⃣ Overflow damage
-# 3️⃣ Overflow damage (visual only — already applied in resolve_battle)
-	if overflow_damage > 0:
-		await _float_text(def_mesh.global_position, "-%d" % overflow_damage, Color(1,0.7,0.7))
-		_camera_shake(0.1, 0.25)
-		await get_tree().create_timer(0.3).timeout
-
-	# 4️⃣ Result & aftermath
-	match result:
-		"attacker_wins":
-			core._log("🏆 %s defeats %s!" % [_colorize_name(att), _colorize_name(defn)], Color(0.7, 1.0, 0.7))
-		"defender_wins":
-			core._log("❌ %s falls in battle." % _colorize_name(att), Color(1, 0.4, 0.4))
-		"both_destroyed":
-			core._log("☠️  Both units are destroyed!", Color(1, 0.5, 0.5))
-		"both_survive":
-			core._log("🤜 Both fighters remain standing!", Color(0.8, 0.8, 1.0))
-		"leader_damaged":
-			core._log("💥 %s directly hits the leader!" % _colorize_name(att), Color(1, 0.6, 0.6))
-	
-	core._log("📊  Battle Math Summary:", Color(0.9, 0.9, 0.9))
-	core._log("• %s ATK: %d  |  %s DEF: %d" %
-		[_colorize_name(att), att.current_atk, _colorize_name(defn), defn.current_def],
-		Color(0.9, 0.9, 0.9))
-	core._log("• Damage to Defender: %d  |  Damage to Attacker: %d  |  Overflow: %d" %
-		[damage_to_def, damage_to_att, overflow_damage],
-		Color(0.9, 0.9, 0.9))
-
-	core._log("────────────────────────────────────", Color(0.6, 0.6, 0.6))
-	await get_tree().create_timer(0.6).timeout
-
-	# Apply final results visually
-	if not defn.is_leader:
-		defn.current_def = max(def_def_before - damage_to_def, 0)
-	else:
-		defn.hp = max(def_leader_hp_before - damage_to_def, 0)
+		defn.hp = max(defn.hp - damage_to_def, 0)
 		core.on_leader_damaged(defn.owner, defn.hp)
+	else:
+		defn.current_def = max(defn.current_def - damage_to_def, 0)
+	battle_ui.refresh_stats(att, defn)
 
-	if damage_to_att > 0:
-		att.current_def = max(att_def_before - damage_to_att, 0)
+	# --- 2️⃣ COUNTER PHASE ---
+	var defender_was_alive_for_counter := (
+		not defn.is_leader and defn.current_def > 0 and damage_to_att > 0
+	)
 
-	#if overflow_damage > 0:
-		#var target_owner := defn.owner
-		#core.damage_leader(target_owner, overflow_damage)
 
-	# Refresh visuals
-	if att_tile: att_tile.set_art(att.card.art, att.owner == core.ENEMY)
-	if def_tile: def_tile.set_art(defn.card.art, defn.owner == core.ENEMY)
+	# Refresh before the counter animation
+	battle_ui.refresh_stats(att, defn)
+	await battle_ui.play_counter_phase(defn, att, damage_to_att)
 
-	# Kill animations if destroyed
-	if att.current_def <= 0 and not att.is_leader:
-		await _kill_unit(att, true)
-	if defn.current_def <= 0 and not defn.is_leader:
-		await _kill_unit(defn, true)
+	# Apply attacker’s damage immediately after counter starts
+	att.current_def = max(att.current_def - damage_to_att, 0)
+	battle_ui.refresh_stats(att, defn)
 
-	await _fade(0.0, 0.2)
-		# ✅ Now allow HP updates and sync bars to final HP
+	await get_tree().create_timer(0.25).timeout  # small pause for pacing
+
+	await get_tree().process_frame
+
+	# --- 3️⃣ CLEANUP + OVERFLOW ---
+	var overflow := 0
+	if not defn.is_leader and defn.current_def <= 0:
+		overflow = result_data["overflow"]
+		if overflow > 0:
+			core.damage_leader(defn.owner, overflow)
+
+	var attacker_dead := (not att.is_leader and att.current_def <= 0)
+	var defender_dead := (not defn.is_leader and defn.current_def <= 0)
+
+	if defender_dead:
+		await _kill_unit(defn)
+	if attacker_dead:
+		await _kill_unit(att)
+
+	# --- 4️⃣ Refresh battlefield visuals ---
+	var att_tile := _get_unit_tile(att)
+	if att_tile and att.current_def > 0:
+		att_tile.set_art(att.card.art, att.owner == core.ENEMY)
+
+	var def_tile := _get_unit_tile(defn)
+	if def_tile and defn.current_def > 0:
+		def_tile.set_art(defn.card.art, defn.owner == core.ENEMY)
+
+	# --- 5️⃣ Wrap up ---
 	if ui:
 		ui._lock_hp_updates = false
 		ui._update_hp_labels()
 		ui._update_hp_bar()
 
+	if battle_ui:
+		await battle_ui.fade_out_battle()
+	if hand:
+		hand.visible = true
+	if ui:
+		ui.force_hide_hand(false)  # 🔓 release lock; phase logic can show it again
+		# Optionally re-apply phase-driven visibility right away:
+		ui._show_hand_and_orbs(core.phase != core.Phase.ENEMY_TURN)
+
 	return result_data
-	# Helper for floating text
-func _float_text(pos: Vector3, text: String, color := Color(1,0.3,0.3)):
+
+# Helper for floating text
+func _float_text(pos: Vector3, text: String, color := Color(1, 0.3, 0.3)):
 	var lbl := Label3D.new()
 	lbl.text = text
 	lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	lbl.pixel_size = 0.0025
+	lbl.pixel_size = 0.0045  # 🔹 Larger text size (was 0.0025)
 	lbl.modulate = color
-	lbl.position = pos + Vector3(0, 0.5, 0)
+	lbl.outline_size = 4
+	lbl.outline_modulate = Color(0, 0, 0, 0.8)  # 🔹 Adds dark outline for contrast
+	lbl.font_size = 48  # 🔹 Ensures thick readable text (if using dynamic fonts)
+	lbl.position = pos + Vector3(0, 0.8, 0)
+
 	core.add_child(lbl)
-	var tw = create_tween()
-	tw.tween_property(lbl, "position:y", lbl.position.y + 0.8, 0.6)
-	tw.parallel().tween_property(lbl, "modulate:a", 0.0, 0.6)
+
+	# 🔸 Spawn with a pop (scale + fade + rise)
+	lbl.scale = Vector3(0.6, 0.6, 0.6)
+
+	var tw := create_tween()
+	tw.tween_property(lbl, "scale", Vector3.ONE, 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(lbl, "position:y", lbl.position.y + 1.0, 0.8)
+	tw.parallel().tween_property(lbl, "modulate:a", 0.0, 0.8)
 	await tw.finished
+
 	lbl.queue_free()
 
 # Helper for shake
@@ -892,6 +886,7 @@ func _camera_shake(intensity := 0.1, duration := 0.2):
 		await get_tree().process_frame
 		t += get_process_delta_time()
 	cam.position = base_pos
+
 func _add_card_highlight(sprite: Sprite3D, color: Color) -> Node3D:
 	var glow := MeshInstance3D.new()
 	glow.mesh = QuadMesh.new()

@@ -3,24 +3,20 @@
 [ext_resource type="Resource" uid="uid://ilxoxport87v" path="res://Cards/Abilities/Vampirism.tres" id="1_ca7id"]
 [ext_resource type="Texture2D" uid="uid://caqg12eqtvgh2" path="res://Images/Imp.jpg" id="1_gynxb"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="1_t13up"]
-[ext_resource type="PackedScene" uid="uid://cnueqengii15f" path="res://Cards/Models/imp.tscn" id="2_i5kou"]
+[ext_resource type="AudioStream" uid="uid://5i8iffyuuo" path="res://Audio/Sound FX/Imp.mp3" id="3_ca7id"]
 
 [resource]
 script = ExtResource("1_t13up")
 type = "Demon"
 rarity = "Rare"
 element = "Fire"
-card_type = 0
 id = "00003"
 name = "Imp"
 description = "Scary"
 art = ExtResource("1_gynxb")
-cost = 1
 atk = 18
 def = 25
-hp = 0
 ability = ExtResource("1_ca7id")
-model_scene = ExtResource("2_i5kou")
-fusion_materials = Array[String]([])
-attack_moves = Array[String]([])
+model_path = "res://Cards/Models/IMP_MODEL.tscn"
+place_sound = ExtResource("3_ca7id")
 metadata/_custom_type_script = "uid://57up1u0etcmc"

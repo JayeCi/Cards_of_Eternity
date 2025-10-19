@@ -189,9 +189,9 @@ func _deferred_startup():
 	camera_sys.call("init_camera", self)      # places camera top-down
 	battle_sys.call("init_battle", self)      # links helpers/consts
 	ai_sys.call("init_ai", self)
-	cutscene_sys.call("init_cutscene", self)
+	#cutscene_sys.call("init_cutscene", self)
 
-	await cutscene_sys._intro()     # cinematic leader reveal
+	#await cutscene_sys._intro()     # cinematic leader reveal
 	
 	emit_signal("essence_changed", player_essence, enemy_essence)
 	ui_sys.call("refresh_hand", player_hand, player_essence)
@@ -263,27 +263,20 @@ func _spawn_leaders() -> void:
 	player_leader.is_leader = true
 	player_leader.hp = 100
 
-	enemy_leader  = UnitData.new().init_from_card(get_card(CARD_PATHS.DIRT), ENEMY)
+	enemy_leader = UnitData.new().init_from_card(get_card(CARD_PATHS.DIRT), ENEMY)
 	enemy_leader.is_leader = true
 	enemy_leader.hp = 100
 
-	_place_leader(player_leader, Vector2i(BOARD_W/2, 0))
-	_place_leader(enemy_leader, Vector2i(BOARD_W/2, BOARD_H-1))
+	# ✅ Place both leaders (this now handles model spawning)
+	_place_leader(player_leader, Vector2i(BOARD_W / 2, 0))
+	_place_leader(enemy_leader, Vector2i(BOARD_W / 2, BOARD_H - 1))
 
-	# Hide both leaders visually until cutscene intro plays
+	# ✅ Hide leader meshes until the intro cutscene
 	for leader in [player_leader, enemy_leader]:
 		var tile = board.get_tile_position_for_unit(leader)
-		if not tile:
-			for pos in units.keys():
-				if units[pos] == leader:
-					tile = board.get_tile(pos.x, pos.y)
-					break
 		if tile and tile.has_node("CardMesh"):
 			tile.get_node("CardMesh").visible = false
-			
-			
-			# Hide 3D models until cutscene intro
-	for leader in [player_leader, enemy_leader]:
+
 		if leader.has_meta("leader_model"):
 			leader.get_meta("leader_model").visible = false
 		if leader.has_meta("leader_ring"):
@@ -300,29 +293,25 @@ func _place_leader(unit: UnitData, pos: Vector2i) -> void:
 	tile.set_art(unit.card.art)
 	tile.set_badge_text("L")
 
-	# ✅ Spawn leader's 3D model if available
-	if unit.card and unit.card.model_scene:
-		var model_instance = unit.card.model_scene.instantiate()
-		model_instance.name = "CardModel"
-		model_instance.position = Vector3(0, 0.1, 0)
-		model_instance.scale = CARD_MODEL_SCALE
+	# ✅ Spawn leader's 3D model lazily if a path is set
+	if unit.card and unit.card.model_path != "":
+		var model_scene: PackedScene = load(unit.card.model_path)
+		if model_scene:
+			var model_instance: Node3D = model_scene.instantiate()
+			model_instance.name = "CardModel"
+			model_instance.position = Vector3(0, 0.1, 0)
+			model_instance.scale = CARD_MODEL_SCALE
 
-		# 🔹 Flip enemy model to face the player
-		if unit.owner == self.ENEMY:
-			model_instance.rotate_y(deg_to_rad(180))
+			# 🔹 Flip enemy model to face the player
+			if unit.owner == ENEMY:
+				model_instance.rotate_y(deg_to_rad(180))
 
-		# Add to tile
-		tile.add_child(model_instance)
-		model_instance.scale = CARD_MODEL_SCALE
-		print("Leader model scale after spawn:", model_instance.scale)
+			tile.add_child(model_instance)
+			unit.set_meta("leader_model", model_instance)
+			model_instance.visible = false
+		else:
+			push_warning("⚠️ Could not load model scene at path: %s" % unit.card.model_path)
 
-
-		# Start hidden until cutscene intro
-		model_instance.visible = false
-
-		# Store references for cutscene reveal
-		unit.set_meta("leader_model", model_instance)
-		
 func damage_leader(target: int, amount: int) -> void:
 	var leader: UnitData = player_leader if target == PLAYER else enemy_leader
 	if leader == null:

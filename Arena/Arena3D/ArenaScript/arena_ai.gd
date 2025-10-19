@@ -56,7 +56,7 @@ func _try_summon() -> void:
 	if core.enemy_essence <= 0: return
 	if core.enemy_hand.is_empty() and core.enemy_deck.is_empty(): return
 
-	var leader_pos := battle.get_leader_pos(core.ENEMY)
+	var leader_pos = battle.get_leader_pos(core.ENEMY)
 	var valid: Array = []
 	for d in [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]:
 		var p = leader_pos + d
@@ -65,7 +65,7 @@ func _try_summon() -> void:
 		if t and t.occupant == null: valid.append(p)
 	if valid.is_empty(): return
 
-	var player_leader_pos := battle.get_leader_pos(core.PLAYER)
+	var player_leader_pos = battle.get_leader_pos(core.PLAYER)
 	valid.sort_custom(func(a, b):
 		return a.distance_to(player_leader_pos) < b.distance_to(player_leader_pos)
 	)
@@ -92,7 +92,7 @@ func _try_summon() -> void:
 	core._log("🤖 Enemy summoned %s at %s" % [card.name, str(pos)], Color(0.8,0.8,1))
 
 func _try_move_or_attack() -> void:
-	var player_pos := battle.get_leader_pos(core.PLAYER)
+	var player_pos = battle.get_leader_pos(core.PLAYER)
 	var movables: Array = []
 	for pos in core.units.keys():
 		var u: UnitData = core.units[pos]

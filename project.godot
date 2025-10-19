@@ -18,7 +18,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 CardCollection="*res://UI/CardCollection.gd"
-BattleManager="*res://UI/BattleManager.gd"
+BattleManager="*res://Arena/Arena3D/BattleManager.gd"
 DialogueManager="*res://Dialogue/DialogueManager.gd"
 TerrainManager="*res://UI/Terrains/TerrainManager.gd"
 

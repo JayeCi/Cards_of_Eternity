@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bsc3hitly21d7"
+path="res://.godot/imported/Goblin.mp3-da9770e2cf7f9afd698cb01d9bbee108.mp3str"
+
+[deps]
+
+source_file="res://Audio/Sound FX/Goblin.mp3"
+dest_files=["res://.godot/imported/Goblin.mp3-da9770e2cf7f9afd698cb01d9bbee108.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

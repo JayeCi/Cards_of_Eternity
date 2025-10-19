@@ -17,12 +17,12 @@ enum CardType { MONSTER, SPELL, EVENT }
 @export var def: int = 0
 @export var hp: int = 0
 @export var ability: CardAbility
-@export var model_scene: PackedScene
+@export var model_path: String = ""
 
 @export var place_sound: AudioStream
 @export var attack_sound: AudioStream
 @export var defense_sound: AudioStream
-@export var death_sound: AudioStream
+@export var death_sound: AudioStream = preload("res://Audio/Sound FX/CardDeath.mp3")
 
 @export var fusion_materials: Array[String] = []
 @export var attack_moves: Array[String] = []

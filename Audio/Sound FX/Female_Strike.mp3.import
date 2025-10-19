@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bdnk0v84htk04"
+path="res://.godot/imported/Female_Strike.mp3-30173260434a5d591fa32ea96fdd6edf.mp3str"
+
+[deps]
+
+source_file="res://Audio/Sound FX/Female_Strike.mp3"
+dest_files=["res://.godot/imported/Female_Strike.mp3-30173260434a5d591fa32ea96fdd6edf.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

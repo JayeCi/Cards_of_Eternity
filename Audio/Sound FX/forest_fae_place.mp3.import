@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bcscy3e3oxvpk"
+path="res://.godot/imported/forest_fae_place.mp3-36a430b819b9711aff996a9f66a5ac70.mp3str"
+
+[deps]
+
+source_file="res://Audio/Sound FX/forest_fae_place.mp3"
+dest_files=["res://.godot/imported/forest_fae_place.mp3-36a430b819b9711aff996a9f66a5ac70.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
