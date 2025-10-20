@@ -27,7 +27,7 @@ func _input(event):
 		_on_cancel_card_drag()
 
 func _try_toggle_face() -> void:
-	# --- Existing tile toggle (for cards already placed) ---
+	# --- Resolve which tile we are acting on ---
 	var tile: Node3D = null
 	if core.selected_pos != Vector2i(-1, -1):
 		tile = board.get_tile(core.selected_pos.x, core.selected_pos.y)
@@ -35,47 +35,53 @@ func _try_toggle_face() -> void:
 		tile = core.hovered_tile
 	else:
 		return
-
 	if not tile or not tile.occupant:
 		return
 
 	var unit = tile.occupant
 
-	# 🚫 Player-only, not enemy turn, not hard-locked
+	# 🚫 Player-only, not enemy turn
 	if unit.owner != core.PLAYER: return
 	if core.phase == core.Phase.ENEMY_TURN: return
-	if unit.has_meta("flipped_permanent") and unit.get_meta("flipped_permanent"): return
 
-	# ✅ Two-way toggle only during a "facedown selection session"
+	# 🔒 Lock flag (but do not early-return; we handle directionally below)
+	var is_locked = unit.has_meta("flipped_permanent") and unit.get_meta("flipped_permanent")
 	var allow_session_toggle = unit.has_meta("allow_face_toggle_session") and unit.get_meta("allow_face_toggle_session")
 
-	if unit.is_facedown or (unit.has_meta("is_facedown") and unit.get_meta("is_facedown")):
-		# Facedown -> Face-up
+	# Current face state
+	var is_down = unit.is_facedown or (unit.has_meta("is_facedown") and unit.get_meta("is_facedown"))
+
+	if is_down:
+		# ✅ Facedown → Face-up is ALWAYS allowed for the player (even if locked)
 		unit.is_facedown = false
 		unit.set_meta("is_facedown", false)
 		unit.mode = UnitData.Mode.ATTACK
 		tile.set_art(unit.card.art, unit.owner == core.ENEMY)
 		tile.set_badge_text("A")
 		core._log("⚡ %s flipped face-up!" % unit.card.name, Color(1.0, 1.0, 0.6))
+
 		if unit.has_meta("model_instance"):
 			var m = unit.get_meta("model_instance")
 			if is_instance_valid(m): m.visible = true
+
 		core.refresh_tile_art_safe(core.board.get_unit_position(unit))
 	else:
-		# Face-up -> Facedown ONLY if session toggle is allowed
-		if allow_session_toggle:
+		# 🔁 Face-up → Facedown only if we're in a "session" (clicked this unit) AND not hard-locked
+		if allow_session_toggle and not is_locked:
 			unit.is_facedown = true
 			unit.set_meta("is_facedown", true)
 			unit.mode = UnitData.Mode.FACEDOWN
 			tile.set_art(core.CARD_BACK)
 			tile.set_badge_text("?")
 			core._log("🃏 %s was set facedown." % unit.card.name, Color(0.8, 0.8, 1.0))
+
 			if unit.has_meta("model_instance"):
 				var m2 = unit.get_meta("model_instance")
 				if is_instance_valid(m2): m2.visible = false
+
 			core.refresh_tile_art_safe(core.board.get_unit_position(unit))
 		else:
-			core._log("⛔ Face-up cards cannot be set facedown.", Color(1, 0.6, 0.6))
+			core._log("⛔ Face-up cards cannot be set facedown now.", Color(1, 0.6, 0.6))
 
 func _clear_toggle_session_flag():
 	if core and core.selected_pos != Vector2i(-1, -1):
@@ -87,10 +93,11 @@ func _unhandled_input(event):
 	if event.is_action_pressed("cancel_action"):
 		_on_cancel_card_drag()
 
-	# 🔹 Allow R toggle during placement (SELECT_SUMMON_TILE) or move targeting
+	# 🔹 Allow R toggle for both placement and facedown cards on board
 	if event.is_action_pressed("toggle_face"):
-		if core.phase in [core.Phase.SELECT_SUMMON_TILE, core.Phase.SELECT_MOVE_TARGET, core.Phase.SUMMON_OR_MOVE]:
+		if core.phase in [core.Phase.SUMMON_OR_MOVE, core.Phase.SELECT_SUMMON_TILE, core.Phase.SELECT_MOVE_TARGET]:
 			_try_toggle_face()
+
 
 func _process(_dt: float) -> void:
 	# Wait until core and camera are ready

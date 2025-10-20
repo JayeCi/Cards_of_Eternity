@@ -532,22 +532,31 @@ func confirm_summon_in_mode(mode: int) -> void:
 	battle_sys.call("place_unit", selected_card, selected_pos, PLAYER, summon_mode, true)
 
 
-	# Clean up
-	ui_sys.call("cancel_drag")  # ✅ hides ghost + shows hand again
+	# ✅ Clean up placement session
 	player_hand.erase(selected_card)
-	selected_card = null
-	selected_pos = Vector2i(-1, -1)
 	ui_sys.call("refresh_hand", player_hand, player_essence)
 	battle_sys.call("clear_highlights")
-	_set_phase(Phase.SUMMON_OR_MOVE)
-	
-		# ✅ Lock newly placed card’s face state once placement ends
+
+	# ✅ Lock only if NOT placed facedown (facedown stays toggleable on click)
 	var placed_tile := board.get_tile(selected_pos.x, selected_pos.y)
 	if placed_tile and placed_tile.occupant and placed_tile.occupant.owner == PLAYER:
 		var unit = placed_tile.occupant
-		unit.set_meta("flipped_permanent", true)
+		var placed_face_down := (summon_mode == UnitData.Mode.FACEDOWN)
+		unit.set_meta("flipped_permanent", not placed_face_down)
 
+
+	# ✅ Fully exit placement mode
+	selected_card = null
+	selected_pos = Vector2i(-1, -1)
+	dragging_card = null
+	ui_sys.call("cancel_drag")
+	ui_sys.call("fade_hand_in")
+	battle_sys.call("_reset_hover_state")
+	_set_phase(Phase.SUMMON_OR_MOVE)
 	_update_phase_ui()
+
+	_log("🎴 Card placed successfully", Color(0.7, 1.0, 0.7))
+
 
 # -----------------------------
 # TURN FLOW
