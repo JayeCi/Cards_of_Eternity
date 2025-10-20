@@ -65,6 +65,15 @@ func _try_toggle_face() -> void:
 			if is_instance_valid(m): m.visible = true
 
 		core.refresh_tile_art_safe(core.board.get_unit_position(unit))
+	# 🔹 Mark ability as pending instead of triggering immediately
+	if unit.card and unit.card.ability:
+		var ab = unit.card.ability
+		var is_placing = (core.phase == core.Phase.SELECT_SUMMON_TILE)
+		if not is_placing and ab.trigger in ["on_summon", "on_flip"]:
+			unit.set_meta("pending_ability", ab)
+			core._log("💡 %s ability ready — click to activate." % ab.display_name, Color(0.8, 0.8, 1.0))
+
+
 	else:
 		# 🔁 Face-up → Facedown only if we're in a "session" (clicked this unit) AND not hard-locked
 		if allow_session_toggle and not is_locked:
@@ -254,6 +263,42 @@ func on_board_click(screen_pos: Vector2) -> void:
 	if not node: return
 
 	var tile = node
+
+			
+	# ✅ Handle pending ability trigger — both on the same tile OR when moving
+	var pending_unit: UnitData = null
+	var pending_ability: CardAbility = null
+
+	# Check if the clicked tile itself has a pending ability
+	if tile and tile.occupant and tile.occupant.has_meta("pending_ability"):
+		pending_unit = tile.occupant
+		pending_ability = pending_unit.get_meta("pending_ability")
+
+	# Or if player has a selected unit (e.g., about to move) with a pending ability
+	elif core.selected_pos != Vector2i(-1, -1):
+		var src_tile = board.get_tile(core.selected_pos.x, core.selected_pos.y)
+		if src_tile and src_tile.occupant and src_tile.occupant.has_meta("pending_ability"):
+			pending_unit = src_tile.occupant
+			pending_ability = pending_unit.get_meta("pending_ability")
+#
+	## 🔹 Execute ability if found
+	#if pending_unit and pending_ability:
+		#core._execute_card_ability(pending_unit, pending_ability)
+		#pending_unit.set_meta("pending_ability", null)
+		#core._log("✨ %s ability activated!" % pending_ability.display_name, Color(1.0, 1.0, 0.6))
+#
+		## Exit placement/selection phase after triggering
+		#core.selected_pos = Vector2i(-1, -1)
+		#clear_highlights()
+		#if ui:
+			#ui.hide_hover()
+			#ui._show_hand_and_orbs(true)
+#
+		#core._set_phase(core.Phase.SUMMON_OR_MOVE)
+		#core._update_phase_ui()
+		#return
+
+
 	match core.phase:
 		core.Phase.SUMMON_OR_MOVE:
 			core.selected_pos = Vector2i(tile.x, tile.y)
@@ -396,10 +441,10 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, is_player:
 	var terrain = tile.terrain_type
 	core._apply_terrain_bonus(unit, terrain)
 
-	# --- Trigger abilities only if card is face-up ---
-	if not is_facedown:
-		if card.ability and card.ability.trigger == "on_summon":
-			core._execute_card_ability(unit, card.ability)
+# --- Trigger abilities only after placement completes and card is visible ---
+	await get_tree().process_frame  # ensures model and tile visuals exist first
+	if not is_facedown and card.ability and card.ability.trigger == "on_summon":
+		core._execute_card_ability(unit, card.ability)
 
 
 	# --- Play placement SFX ---
@@ -490,6 +535,19 @@ func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 				if not model.is_queued_for_deletion():
 					dst.add_child(model)
 					model.position = Vector3(0, 0.5, 0)
+			
+		if attacker.has_meta("pending_ability"):
+			var ab = attacker.get_meta("pending_ability")
+			if ab:
+				core._log("✨ %s ability triggered on new tile!" % ab.display_name, Color(1.0, 1.0, 0.6))
+				
+				# 🔹 Ensure Eruption and similar effects use the destination tile
+				if ab.has_method("execute_at"):
+					ab.execute_at(core, attacker, to)
+				else:
+					core._execute_card_ability(attacker, ab)
+				
+				attacker.set_meta("pending_ability", null)
 
 
 		src.clear()
@@ -550,6 +608,9 @@ func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 	var prev_cutscene_state := core.is_cutscene_active if core and "is_cutscene_active" in core else false
 	if core and "is_cutscene_active" in core:
 		core.is_cutscene_active = true
+		
+	if def_tile and def_tile.has_method("pulse_move_highlight"):
+		def_tile.pulse_move_highlight()
 
 	# Run cinematic battle
 	var result_data = await _play_2d_battle(attacker, defender)
@@ -703,6 +764,12 @@ func resolve_battle(att: UnitData, defn: UnitData, silent = false) -> Dictionary
 
 	var damage_to_def := 0
 	var damage_to_att := 0
+	
+	# 🟫 Apply tile-based modifiers based on defender’s location
+	var def_tile := core.board.get_tile(core.board.get_unit_position(defn).x, core.board.get_unit_position(defn).y)
+	if def_tile:
+		core._apply_terrain_bonus(att, def_tile.terrain_type)
+		core._apply_terrain_bonus(defn, def_tile.terrain_type)
 
 	if not silent:
 		core._log("────────────────────────────────────", Color(0.6, 0.6, 0.6))
@@ -944,6 +1011,21 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 		push_error("❌ Could not find BattleUI in UISystem — add a node named 'BattleUI'.")
 		if is_instance_valid(hand): hand.visible = true
 		return result_data
+		
+	# --- Ensure defender's tile context applies ---
+	var defender_pos := core.board.get_unit_position(defn)
+	var attacker_pos := core.board.get_unit_position(att)
+	var defender_tile := core.board.get_tile(defender_pos.x, defender_pos.y)
+	var attacker_tile := core.board.get_tile(attacker_pos.x, attacker_pos.y)
+
+	# ✅ Apply defender tile’s terrain bonus and adjacency effects
+	if defender_tile:
+		core._apply_terrain_bonus(att, defender_tile.terrain_type)
+		core._apply_terrain_bonus(defn, defender_tile.terrain_type)
+		
+		# Optional: If adjacency abilities (like “gain +2 DEF if ally adjacent”) exist:
+		if core.has_method("_apply_adjacency_effects"):
+			core._apply_adjacency_effects(defn, defender_pos)
 
 	# --- ATTACK PHASE ---
 	battle_ui.refresh_stats(att, defn)
@@ -1006,8 +1088,6 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 		await _kill_unit(att)
 
 	# Battlefield visuals refresh …
-	# (unchanged)
-	# ...
 
 	# --- Wrap up ---
 	if ui:

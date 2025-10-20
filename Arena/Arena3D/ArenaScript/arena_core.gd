@@ -220,46 +220,69 @@ func refresh_tile_art_safe(pos: Vector2i):
 func _apply_terrain_bonus(unit: UnitData, terrain: String) -> void:
 	if not unit or not unit.card:
 		return
-
+	if not TERRAIN_BONUS.has(terrain):
+		return
 	var element := unit.card.element
-	if not TERRAIN_BONUS.has(terrain) or not TERRAIN_BONUS[terrain].has(element):
+	if not TERRAIN_BONUS[terrain].has(element):
 		return
 
-	var mult = TERRAIN_BONUS[terrain][element]
-
-	if unit.has_meta("last_terrain_mult") and unit.get_meta("last_terrain_mult") == mult:
-		return
-
+	# 🧩 Cache base stats once
 	if not unit.has_meta("base_atk"):
-		unit.set_meta("base_atk", unit.current_atk)
+		unit.set_meta("base_atk", unit.card.atk)
 	if not unit.has_meta("base_def"):
-		unit.set_meta("base_def", unit.current_def)
+		unit.set_meta("base_def", unit.card.def)
 
-	var base_atk := float(unit.get_meta("base_atk"))
-	var base_def := float(unit.get_meta("base_def"))
+	var base_atk: float = float(unit.get_meta("base_atk"))
+	var base_def: float = float(unit.get_meta("base_def"))
 
-	var def_ratio := 1.0
-	if base_def > 0:
-		def_ratio = float(unit.current_def) / float(base_def)
-	def_ratio = clamp(def_ratio, 0.0, 1.0)
+	# --- Retrieve old multiplier if known ---
+	var old_mult := 1.0
+	if unit.has_meta("last_terrain_mult"):
+		old_mult = float(unit.get_meta("last_terrain_mult"))
 
-	unit.current_atk = int(round(base_atk * mult))
-	unit.current_def = int(round(base_def * mult * def_ratio))
-	unit.set_meta("last_terrain_mult", mult)
+	var new_mult = TERRAIN_BONUS[terrain][element]
+	if abs(new_mult - old_mult) < 0.001:
+		return  # no effective change
 
-	var is_buff = mult > 1.0
+	# --- Preserve % HP ratio ---
+	var old_max_def := base_def * old_mult
+	var ratio := 1.0
+	if old_max_def > 0:
+		ratio = clamp(unit.current_def / old_max_def, 0.0, 1.0)
+
+	# --- Apply new stats ---
+	unit.current_atk = int(round(base_atk * new_mult))
+	unit.current_def = int(round(base_def * new_mult * ratio))
+	unit.set_meta("last_terrain_mult", new_mult)
+
+	# --- Determine buff/debuff ---
+	var diff_percent = ((new_mult / old_mult) - 1.0) * 100.0
+	var is_buff = diff_percent > 0.0
 	var color := Color(0.6, 1.0, 0.6) if is_buff else Color(1.0, 0.5, 0.5)
-	_log("🌿 %s affected by %s terrain: ATK %d → %d | DEF %d → %d" %
-		[unit.card.name, terrain, int(base_atk), unit.current_atk, int(base_def * def_ratio), unit.current_def], color)
+	var sign := "+" if is_buff else ""
 
-	# ✅ Safe refresh
+	# --- Log improvement with percentage ---
+	_log("🌿 %s adapts to %s terrain: ATK %.1f→%d | DEF %.1f→%d (%.0f%% preserved, %s%.1f%% %s)" %
+		[unit.card.name, terrain,
+		base_atk * old_mult, unit.current_atk,
+		base_def * old_mult, unit.current_def,
+		ratio * 100.0,
+		sign, abs(diff_percent), ("buff" if is_buff else "debuff")],
+		color)
+
+	# --- Safe refresh of visuals ---
 	var pos = board.get_unit_position(unit)
 	if pos != Vector2i(-1, -1):
 		refresh_tile_art_safe(pos)
-
 	var tile := board.get_tile_position_for_unit(unit)
 	if tile and tile.has_method("update_stat_labels"):
 		tile.update_stat_labels(unit.current_atk, unit.current_def)
+		var pos3d = tile.global_position + Vector3(0, 1.2, 0)
+		_float_text(pos3d, "%s%.1f%% %s" % [sign, abs(diff_percent), ("buff" if is_buff else "debuff")], color)
+
+func _float_text(world_pos: Vector3, text: String, color: Color = Color.WHITE) -> void:
+	if ui_sys and ui_sys.has_method("_float_text"):
+		ui_sys._float_text(world_pos, text, color)
 
 # Regenerate DEF for all units belonging to a specific owner,
 # capped by terrain-adjusted maximum DEF.

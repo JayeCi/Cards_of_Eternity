@@ -99,17 +99,48 @@ func set_badge_text(text: String) -> void:
 		label.text = text
 		label.visible = text != ""
 
+func refresh_card_art() -> void:
+	# 🧩 Ensures card art stays visible after terrain or mesh refresh
+	if occupant and occupant.card and card_mesh:
+		var mat := card_mesh.get_surface_override_material(0)
+		if not mat:
+			var base := card_mesh.mesh.surface_get_material(0)
+			mat = base.duplicate() if base else StandardMaterial3D.new()
+			card_mesh.set_surface_override_material(0, mat)
+
+		mat.albedo_texture = occupant.card.art
+		mat.albedo_color = Color(1, 1, 1, 1)
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
+		card_mesh.visible = true
 
 func clear() -> void:
+	# --- fully reset the art mesh ---
 	if card_mesh:
-		card_mesh.visible = false
+		card_mesh.visible = false              # hide the old card
 		card_mesh.scale = Vector3.ONE
+		var mat := card_mesh.get_surface_override_material(0)
+		if not mat and card_mesh.mesh:
+			var base := card_mesh.mesh.surface_get_material(0)
+			mat = base.duplicate() if base else StandardMaterial3D.new()
+			card_mesh.set_surface_override_material(0, mat)
+		if mat:
+			mat.albedo_texture = null           # ✅ remove leftover card art
+			mat.albedo_color = Color(1, 1, 1, 1)
+			mat.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
+
+	# --- clear tile data ---
 	set_badge_text("")
 	set_highlight(false)
 	occupant = null
 
 	if leader_badge:
 		leader_badge.visible = false
+
+	if move_highlight:
+		move_highlight.visible = false
+
+	# --- restore terrain visuals ---
+	_apply_terrain_visual()
 
 func set_occupant(unit: UnitData) -> void:
 	occupant = unit
@@ -182,6 +213,11 @@ func set_exhausted(state: bool) -> void:
 # --- TERRAIN COLOR SYSTEM ---
 func set_terrain_type(new_type: String) -> void:
 	terrain_type = new_type
+	if card_mesh and card_mesh.visible and occupant:
+		var mat := card_mesh.get_surface_override_material(0)
+		if mat:
+			mat.albedo_texture = occupant.card.art
+
 	_apply_terrain_visual()
 
 func update_terrain_visual(terrain_type: String) -> void:
@@ -249,23 +285,10 @@ func _apply_terrain_visual() -> void:
 					water_mesh.material_override.albedo_color = Color(0.2, 0.4, 0.9)
 					water_mesh.material_override.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 					water_mesh.material_override.albedo_color.a = 0.85
-		
-
-
-	## Optional: make highlight match terrain hue slightly
-	#if highlight_mesh:
-		#var hmat := highlight_mesh.get_surface_override_material(0)
-		#if not hmat:
-			#hmat = StandardMaterial3D.new()
-			#highlight_mesh.set_surface_override_material(0, hmat)
-		##hmat.albedo_color = mat.albedo_color.lightened(0.4)
-
-#func _update_highlight_visibility() -> void:
-	##if not highlight_mesh:
-		##return
-	
-	## Always visible if any highlight type is active
-	#highlight_mesh.visible = highlighted or hover_highlight or summon_highlight or move_highlight.visible
+			
+	# ✅ Re-apply card art if this tile already has an occupant
+	if occupant and occupant.card:
+		refresh_card_art()
 
 func pulse_move_highlight() -> void:
 	if not move_highlight or not move_highlight.visible:
