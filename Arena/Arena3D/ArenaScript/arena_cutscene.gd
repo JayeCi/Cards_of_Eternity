@@ -5,6 +5,10 @@ var core: ArenaCore
 var board: Node3D
 var camera: Camera3D
 var _is_cutscene_running := false
+signal camera_focus_on_player_started
+
+func wait_for_camera_focus_on_player() -> void:
+	await camera_focus_on_player_started
 
 func init_cutscene(core_ref: ArenaCore) -> void:
 	core = core_ref
@@ -35,13 +39,14 @@ func _intro() -> void:
 	camera.position = Vector3(0, sin(angle) * zdist * 1.5, cos(angle) * zdist * 1.5)
 	camera.look_at(board_center, Vector3.UP)
 #
-	#await _fade(0.0, 1.0)
+	await _fade(0.0, 1.0)
 
 	# ---------------------------
 	# ENEMY LEADER FIRST (1s earlier)
 	# ---------------------------
 	await _reveal_leader_with_rise(core.enemy_leader, 0.2)  # 👈 reveal immediately
 	await _fade_in_leader(get_leader_pos(core.ENEMY), "👑 The Enemy Leader has appeared!")
+	
 	await get_tree().create_timer(1.0).timeout                # 👈 wait an extra second before showing player
 
 	# ---------------------------
@@ -49,6 +54,11 @@ func _intro() -> void:
 	# ---------------------------
 	await _reveal_leader_with_rise(core.player_leader, 0.2)
 	await _fade_in_leader(get_leader_pos(core.PLAYER), "👑 Your Leader enters the battlefield!")
+		# ✅ Ensure enemy leader stays visible after player reveal
+	var enemy_tile = board.get_tile(get_leader_pos(core.ENEMY).x, get_leader_pos(core.ENEMY).y)
+	if enemy_tile and enemy_tile.has_node("CardMesh"):
+		enemy_tile.get_node("CardMesh").visible = true
+
 
 	# ---------------------------
 	# CAMERA RETURN
@@ -59,6 +69,19 @@ func _intro() -> void:
 
 	_hide_battle_ui(false)
 	core.is_cutscene_active = false  # 🔓 Allow hover again
+		# ✅ Ensure both leaders stay visible after cutscene
+	for leader in [core.player_leader, core.enemy_leader]:
+		var pos = get_leader_pos(leader.owner)
+		var tile = board.get_tile(pos.x, pos.y)
+		if tile and tile.has_node("CardMesh"):
+			var mesh = tile.get_node("CardMesh")
+			mesh.visible = true
+			if mesh.get_surface_override_material(0):
+				var mat = mesh.get_surface_override_material(0)
+				var color = mat.albedo_color
+				color.a = 1.0
+				mat.albedo_color = color
+
 	_disable_input(false)
 	_is_cutscene_running = false
 
@@ -82,7 +105,7 @@ func _reveal_leader_with_rise(unit: UnitData, delay := 0.0, rise_height := 0.6, 
 	model.position = start_pos - Vector3(0, rise_height, 0)
 	var tw = create_tween()
 	tw.tween_property(model, "position", start_pos, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	tw.tween_property(model, "modulate:a", 1.0, duration * 0.8)
+	#tw.tween_property(model, "modulate:a", 1.0, duration * 0.8)
 
 func _hide_battle_ui(hide: bool) -> void:
 	if not core: return
@@ -121,47 +144,45 @@ func _fade_in_leader(pos: Vector2i, label: String):
 	var mesh = tile.get_node("CardMesh")
 	mesh.visible = true
 
-	# ---- Prepare material for fade ----
+	# ---- Use a persistent material ----
 	var mat = mesh.get_surface_override_material(0)
 	if mat == null:
 		mat = StandardMaterial3D.new()
-	else:
-		mat = mat.duplicate()
-	mesh.set_surface_override_material(0, mat)
+		mesh.set_surface_override_material(0, mat)
+	# ⚠️ Do NOT duplicate the material again — keep it persistent
+
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.flags_transparent = true
 
+	# Always start from a known good alpha
 	var color = mat.albedo_color
 	color.a = 0.0
 	mat.albedo_color = color
 
-	# ---- Instantly snap camera to leader ----
+	# ---- Camera snap ----
 	var target_pos: Vector3 = tile.global_position + Vector3(0, 0.25, 0)
 	var zoom_angle := deg_to_rad(65)
 	var zoom_distance := 3.5
-
-	# Compute the exact camera position
-	var cam_pos := target_pos + Vector3(
-		0,
-		sin(zoom_angle) * zoom_distance,
-		cos(zoom_angle) * zoom_distance * 0.5
-	)
-
+	var cam_pos := target_pos + Vector3(0, sin(zoom_angle) * zoom_distance, cos(zoom_angle) * zoom_distance * 0.5)
 	camera.global_position = cam_pos
 	camera.look_at(target_pos, Vector3.UP)
 
-	# ---- Fade & Rise (cinematic) ----
+	# ---- Fade & Rise ----
 	var start_pos = mesh.position
 	mesh.position = start_pos - Vector3(0, 0.3, 0)
 
 	var rise_tween := create_tween().set_trans(Tween.TRANS_SINE)
 	rise_tween.tween_property(mesh, "position", start_pos, 1.2)
 
-	# Smooth fade-in of alpha
+	# Smooth fade-in
 	for step in range(0, 12):
 		await get_tree().create_timer(0.07).timeout
 		color.a = float(step) / 12.0
 		mat.albedo_color = color
+
+	# ✅ Make sure final alpha = 1.0 (so future renders stay visible)
+	color.a = 1.0
+	mat.albedo_color = color
 
 	await get_tree().create_timer(0.4).timeout
 	core._log(label)

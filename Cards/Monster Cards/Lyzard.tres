@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=5 format=3 uid="uid://du4fq2g8pgtq5"]
+
+[ext_resource type="Resource" uid="uid://y5xgyyio4rgi" path="res://Cards/Abilities/Dampen.tres" id="1_5v0h7"]
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_hrka2"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_1c73e"]
+[ext_resource type="Texture2D" uid="uid://dvsw67k7ropu" path="res://Images/LyzardRevamped_512x768.png" id="2_5v0h7"]
+
+[resource]
+script = ExtResource("2_1c73e")
+type = "Elemental"
+rarity = "Epic"
+element = "Water"
+id = "00009"
+name = "Lyzard"
+art = ExtResource("2_5v0h7")
+cost = 2
+atk = 16
+def = 20
+ability = ExtResource("1_5v0h7")
+model_path = "res://Cards/Models/LYZARD_MODEL.tscn"
+metadata/_custom_type_script = "uid://57up1u0etcmc"

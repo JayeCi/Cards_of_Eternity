@@ -85,7 +85,7 @@ offset_right = 62.3016
 offset_bottom = 81.5873
 scale = Vector2(0.362, 0.362)
 texture = ExtResource("2_f3yd6")
-expand_mode = 1
+expand_mode = 3
 stretch_mode = 5
 
 [node name="NamePlate" type="Sprite2D" parent="PanelContainer/VBoxContainer"]

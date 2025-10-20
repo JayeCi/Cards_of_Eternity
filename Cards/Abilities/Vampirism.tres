@@ -6,7 +6,6 @@
 script = ExtResource("1_oy8s6")
 trigger = "on_attack"
 display_name = "Vampirism"
-value = 5
-range = 1
-description = "Steal 5 DEF after every attack."
+value = 3
+description = "Steal 3 DEF after every attack."
 metadata/_custom_type_script = "uid://dhv2jr4u8uvyk"

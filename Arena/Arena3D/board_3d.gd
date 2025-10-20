@@ -47,6 +47,13 @@ func _on_tile_hover_exited(tile: Node3D) -> void:
 		return
 	if card_ui: card_ui.hide_card()
 	if terrain_ui: terrain_ui.hide_terrain()
+	
+func get_unit_position(unit: UnitData) -> Vector2i:
+	for pos in tiles.keys():
+		var tile = tiles[pos]
+		if tile and tile.occupant == unit:
+			return pos
+	return Vector2i(-1, -1)
 
 # -------------------------------------------------------------
 # GRID GENERATION

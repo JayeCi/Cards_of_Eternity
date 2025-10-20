@@ -15,7 +15,8 @@ enum Mode { ATTACK, DEFENSE, FACEDOWN }
 var current_atk: int
 var current_def: int
 var max_def: int
-
+var is_facedown: bool = false
+ 
 func init_from_card(c: CardData, owner_id: int) -> UnitData:
 	if c == null:
 		push_error("❌ UnitData.init_from_card called with null CardData!")
@@ -39,5 +40,3 @@ func reset_stats():
 	current_def = def
 	max_def = def
 	
-func is_facedown() -> bool:
-	return mode == Mode.FACEDOWN

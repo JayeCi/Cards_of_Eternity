@@ -27,6 +27,8 @@ const CARD_PATHS := {
 	"LAVA_HARE":   "res://Cards/Monster Cards/Lava_Hare.tres",
 	"FOREST_FAE":  "res://Cards/Monster Cards/Forest_Fae.tres",
 	"FIREBALL":    "res://Cards/Spell Cards/Fireball.tres",
+	"LYZARD":      "res://Cards/Monster Cards/Lyzard.tres",
+	"ERUPTION":    "res://Cards/Spell Cards/Eruption.tres",
 }
 
 # -----------------------------
@@ -44,6 +46,8 @@ signal unit_stats_changed(unit: UnitData)
 # -----------------------------
 # CONSTANTS / ENUMS
 # -----------------------------
+const HEAL_SOUND := preload("res://Audio/Sound FX/heal.mp3")
+const LEADER_IN_SOUND := preload("res://Audio/Sound FX/leaderslide.mp3")
 const CARD_MODEL_SCALE := Vector3(0.75, 0.75, 0.75)
 const BOARD_W := 7
 const BOARD_H := 7
@@ -159,7 +163,9 @@ func _ready() -> void:
 	CardCollection.add_card(get_card(CARD_PATHS.LAVA_HARE))
 	CardCollection.add_card(get_card(CARD_PATHS.NAGA))
 	CardCollection.add_card(get_card(CARD_PATHS.FIREBALL))
-		
+	CardCollection.add_card(get_card(CARD_PATHS.LYZARD))
+	CardCollection.add_card(get_card(CARD_PATHS.ERUPTION))
+	
 	if ui_sys.has_node("OrbGrid"):
 		var essence_display = ui_sys.get_node("OrbGrid")
 		connect("essence_changed", Callable(essence_display, "set_essence"))
@@ -189,9 +195,9 @@ func _deferred_startup():
 	camera_sys.call("init_camera", self)      # places camera top-down
 	battle_sys.call("init_battle", self)      # links helpers/consts
 	ai_sys.call("init_ai", self)
-	#cutscene_sys.call("init_cutscene", self)
+	cutscene_sys.call("init_cutscene", self)
 
-	#await cutscene_sys._intro()     # cinematic leader reveal
+	await cutscene_sys._intro()     # cinematic leader reveal
 	
 	emit_signal("essence_changed", player_essence, enemy_essence)
 	ui_sys.call("refresh_hand", player_hand, player_essence)
@@ -199,43 +205,95 @@ func _deferred_startup():
 	_draw_starting_hand(5)
 	_set_phase(Phase.SUMMON_OR_MOVE)
 	_update_phase_ui()
+	
+func refresh_tile_art_safe(pos: Vector2i):
+	if not units.has(pos): return
+	var u: UnitData = units[pos]
+	var t = board.get_tile(pos.x, pos.y)
+	if not t: return
+	if u.is_facedown:
+		t.set_art(CARD_BACK)
+	else:
+		t.set_art(u.card.art, u.owner == ENEMY)
 
 		
 func _apply_terrain_bonus(unit: UnitData, terrain: String) -> void:
 	if not unit or not unit.card:
 		return
-	var element = unit.card.element
-	if not TERRAIN_BONUS.has(terrain):
-		return
-	if not TERRAIN_BONUS[terrain].has(element):
+
+	var element := unit.card.element
+	if not TERRAIN_BONUS.has(terrain) or not TERRAIN_BONUS[terrain].has(element):
 		return
 
 	var mult = TERRAIN_BONUS[terrain][element]
-	if mult == 1.0:
+
+	if unit.has_meta("last_terrain_mult") and unit.get_meta("last_terrain_mult") == mult:
 		return
 
-	var old_atk = unit.current_atk
-	var old_def = unit.current_def
-	unit.current_atk = int(unit.current_atk * mult)
-	unit.current_def = int(unit.current_def * mult)
+	if not unit.has_meta("base_atk"):
+		unit.set_meta("base_atk", unit.current_atk)
+	if not unit.has_meta("base_def"):
+		unit.set_meta("base_def", unit.current_def)
+
+	var base_atk := float(unit.get_meta("base_atk"))
+	var base_def := float(unit.get_meta("base_def"))
+
+	var def_ratio := 1.0
+	if base_def > 0:
+		def_ratio = float(unit.current_def) / float(base_def)
+	def_ratio = clamp(def_ratio, 0.0, 1.0)
+
+	unit.current_atk = int(round(base_atk * mult))
+	unit.current_def = int(round(base_def * mult * def_ratio))
+	unit.set_meta("last_terrain_mult", mult)
 
 	var is_buff = mult > 1.0
-	var color := Color(0.6, 1, 0.6) if is_buff else Color(1, 0.5, 0.5)
+	var color := Color(0.6, 1.0, 0.6) if is_buff else Color(1.0, 0.5, 0.5)
+	_log("🌿 %s affected by %s terrain: ATK %d → %d | DEF %d → %d" %
+		[unit.card.name, terrain, int(base_atk), unit.current_atk, int(base_def * def_ratio), unit.current_def], color)
 
-	_log("🌿 %s is affected by terrain (%s): ATK %d→%d DEF %d→%d" %
-		[unit.card.name, terrain, old_atk, unit.current_atk, old_def, unit.current_def],
-		color)
+	# ✅ Safe refresh
+	var pos = board.get_unit_position(unit)
+	if pos != Vector2i(-1, -1):
+		refresh_tile_art_safe(pos)
 
-	# 🔔 Flash stat change if the card details are currently visible
-	if card_details_ui and card_details_ui.visible:
-		card_details_ui.call("flash_stat_change", is_buff)
+	var tile := board.get_tile_position_for_unit(unit)
+	if tile and tile.has_method("update_stat_labels"):
+		tile.update_stat_labels(unit.current_atk, unit.current_def)
 
-	# ✅ Flash using UI system reference
-	if ui_sys and ui_sys.has_node("ArenaCardDetails"):
-		var details_ui = ui_sys.get_node("ArenaCardDetails")
-		if details_ui.visible:
-			details_ui.flash_stat_change(is_buff)
-			
+# Regenerate DEF for all units belonging to a specific owner,
+# capped by terrain-adjusted maximum DEF.
+func regen_units_for_owner(owner: int, amount: int = 2) -> void:
+	for pos in units.keys():
+		var u: UnitData = units[pos]
+		if u == null:
+			continue
+		if u.is_leader or u.owner != owner:
+			continue
+		if u.is_facedown:
+			continue 
+
+		var tile := board.get_tile(pos.x, pos.y)
+		if tile == null:
+			continue
+
+		var mult := get_terrain_multiplier(u, tile.terrain_type)
+		var base_def: float = float(u.get_meta("base_def")) if u.has_meta("base_def") else float(u.card.def)
+		var max_def_for_tile := int(round(base_def * mult))
+
+		var old_def := u.current_def
+		u.current_def = min(u.current_def + amount, max_def_for_tile)
+
+		if u.current_def != old_def:
+			var color := Color(0.6, 1.0, 0.6) if owner == PLAYER else Color(1.0, 0.6, 0.6)
+			_log("🛠 %s regenerates %d DEF (%d → %d)" % [u.card.name, amount, old_def, u.current_def], color)
+
+		if tile.has_method("update_stat_labels"):
+			tile.update_stat_labels(u.current_atk, u.current_def)
+
+	if card_details_ui and card_details_ui.visible and card_details_ui.has_method("refresh_if_showing"):
+		card_details_ui.call("refresh_if_showing", card_details_ui.current_unit)
+
 func _build_decks() -> void:
 	# PLAYER
 	player_deck.clear()
@@ -259,6 +317,14 @@ func _build_decks() -> void:
 	_log("✅ Decks built: Player=%d, Enemy=%d" % [player_deck.size(), enemy_deck.size()])
 
 func _spawn_leaders() -> void:
+	
+	# ✅ Step 0: Hide all existing leader visuals before spawning (prevent flicker/disappear)
+	for leader in [player_leader, enemy_leader]:
+		if leader and leader.has_meta("leader_model"):
+			var mdl = leader.get_meta("leader_model")
+			if mdl: mdl.visible = false
+
+	# ✅ Step 1: Initialize both leaders' data
 	player_leader = UnitData.new().init_from_card(get_card(CARD_PATHS.LAVA_HARE), PLAYER)
 	player_leader.is_leader = true
 	player_leader.hp = 100
@@ -267,22 +333,51 @@ func _spawn_leaders() -> void:
 	enemy_leader.is_leader = true
 	enemy_leader.hp = 100
 
-	# ✅ Place both leaders (this now handles model spawning)
-	_place_leader(player_leader, Vector2i(BOARD_W / 2, 0))
+	# ✅ Step 2: Place enemy leader first
 	_place_leader(enemy_leader, Vector2i(BOARD_W / 2, BOARD_H - 1))
+	_play_leader_spawn_sound(enemy_leader)
+	_log("👿 Enemy Leader enters the battlefield...", Color(1, 0.4, 0.4))
 
-	# ✅ Hide leader meshes until the intro cutscene
-	for leader in [player_leader, enemy_leader]:
-		var tile = board.get_tile_position_for_unit(leader)
-		if tile and tile.has_node("CardMesh"):
-			tile.get_node("CardMesh").visible = false
+	# Wait while camera shows enemy intro
+	await get_tree().create_timer(3.5).timeout
 
-		if leader.has_meta("leader_model"):
-			leader.get_meta("leader_model").visible = false
-		if leader.has_meta("leader_ring"):
-			leader.get_meta("leader_ring").visible = false
+	# ✅ Step 3: Place player leader second
+	_place_leader(player_leader, Vector2i(BOARD_W / 2, 0))
+	_play_leader_spawn_sound(player_leader)
+
+
+
+func _play_leader_spawn_sound(leader: UnitData) -> void:
+	if not leader:
+		return
+	var tile = board.get_tile_position_for_unit(leader)
+	if not tile:
+		return
+	var pos = tile.global_position if tile else Vector3.ZERO
+
+	var p := AudioStreamPlayer3D.new()
+	add_child(p)
+	p.stream = LEADER_IN_SOUND
+	p.global_position = pos
+	p.volume_db = -12.0
+	p.pitch_scale = randf_range(0.97, 1.03)
+	p.unit_size = 6.0
+	p.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+	p.play()
+	p.connect("finished", Callable(p, "queue_free"))
 
 func _place_leader(unit: UnitData, pos: Vector2i) -> void:
+	# ✅ Safety: clear any prior occupant from this tile first
+	if units.has(pos):
+		var prev = units[pos]
+		if prev and prev != unit:
+			var prev_tile = board.get_tile(pos.x, pos.y)
+			if prev_tile:
+				prev_tile.set_occupant(null)
+				prev_tile.set_art(null)
+		units.erase(pos)
+
+	# ✅ Set new occupant
 	units[pos] = unit
 	var tile = board.get_tile(pos.x, pos.y)
 	if not tile:
@@ -293,7 +388,7 @@ func _place_leader(unit: UnitData, pos: Vector2i) -> void:
 	tile.set_art(unit.card.art)
 	tile.set_badge_text("L")
 
-	# ✅ Spawn leader's 3D model lazily if a path is set
+	# ✅ Spawn leader's 3D model if available
 	if unit.card and unit.card.model_path != "":
 		var model_scene: PackedScene = load(unit.card.model_path)
 		if model_scene:
@@ -302,7 +397,6 @@ func _place_leader(unit: UnitData, pos: Vector2i) -> void:
 			model_instance.position = Vector3(0, 0.1, 0)
 			model_instance.scale = CARD_MODEL_SCALE
 
-			# 🔹 Flip enemy model to face the player
 			if unit.owner == ENEMY:
 				model_instance.rotate_y(deg_to_rad(180))
 
@@ -446,22 +540,31 @@ func confirm_summon_in_mode(mode: int) -> void:
 	ui_sys.call("refresh_hand", player_hand, player_essence)
 	battle_sys.call("clear_highlights")
 	_set_phase(Phase.SUMMON_OR_MOVE)
-	_update_phase_ui()
 	
+		# ✅ Lock newly placed card’s face state once placement ends
+	var placed_tile := board.get_tile(selected_pos.x, selected_pos.y)
+	if placed_tile and placed_tile.occupant and placed_tile.occupant.owner == PLAYER:
+		var unit = placed_tile.occupant
+		unit.set_meta("flipped_permanent", true)
+
+	_update_phase_ui()
+
 # -----------------------------
 # TURN FLOW
 # -----------------------------
 func _on_end_turn_button_pressed() -> void:
-	if phase != Phase.SUMMON_OR_MOVE: return
+	if phase != Phase.SUMMON_OR_MOVE:
+		return
 	_log("📜 Player ends their turn.")
-	_set_phase(Phase.ENEMY_TURN)
 	ui_sys.call("fade_hand_out")
+	battle_sys.call("_reset_hover_state")
 
-	await ai_sys.call("run_enemy_turn")
-	_log("🔁 Enemy turn finished.")
-	_start_player_turn()
+	# Hand off to enemy (enemy regen + AI handled there)
+	await _start_enemy_turn()
 
 func _start_player_turn() -> void:
+	battle_sys.call("_reset_hover_state")
+
 	print("🕐 _start_player_turn() called at:", Time.get_ticks_msec())
 
 	_reset_action_flags()
@@ -470,10 +573,15 @@ func _start_player_turn() -> void:
 	_set_phase(Phase.SUMMON_OR_MOVE)
 	player_essence += essence_gain_per_turn
 	emit_signal("essence_changed", player_essence, enemy_essence)
+
+	# 💚 Sound + regen for player side
+	_play_heal_sound()
+	_log("💚 Player's army restores 2 DEF.", Color(0.7, 1.0, 0.7))
+	regen_units_for_owner(PLAYER, 2)
+
 	battle_sys.apply_all_passives()
 	ui_sys.call("fade_hand_in")
 
-	# ✅ clear any leftover card drag state
 	dragging_card = null
 	selected_card = null
 	selected_pos = Vector2i(-1, -1)
@@ -481,8 +589,48 @@ func _start_player_turn() -> void:
 	print("Player essence now:", player_essence)
 	battle_sys.core = self
 	ui_sys.call("refresh_hand", player_hand, player_essence)
+	for pos in units.keys():
+		var u: UnitData = units[pos]
+		if u and u.is_facedown:
+			var tile = board.get_tile(pos.x, pos.y)
+			if tile:
+				tile.set_art(CARD_BACK)
+
+	for pos in units.keys():
+		var u: UnitData = units[pos]
+		if u and u.is_facedown:
+			refresh_tile_art_safe(pos)
+
 	get_viewport().gui_release_focus()
 
+func _start_enemy_turn() -> void:
+	battle_sys.call("_reset_hover_state")
+
+	_reset_action_flags()
+	ui_sys.call("show_battle_message", "Enemy Turn!", 1.5)
+	_set_phase(Phase.ENEMY_TURN)
+	enemy_essence += essence_gain_per_turn
+	emit_signal("essence_changed", player_essence, enemy_essence)
+
+	# ❤️ Sound + regen for enemy side
+	_play_heal_sound()
+	_log("❤️ Enemy's army restores 2 DEF.", Color(1.0, 0.6, 0.6))
+	regen_units_for_owner(ENEMY, 2)
+
+	battle_sys.apply_all_passives()
+
+	await get_tree().create_timer(0.5).timeout
+	await ai_sys.call("run_enemy_turn")
+
+	_log("🔁 Enemy turn finished.")
+	for pos in units.keys():
+		var u: UnitData = units[pos]
+		if u and u.is_facedown:
+			var tile = board.get_tile(pos.x, pos.y)
+			if tile:
+				tile.set_art(CARD_BACK)
+
+	_start_player_turn()
 
 func _draw_up_to_hand_limit() -> void:
 	while player_hand.size() < MAX_HAND_SIZE and not player_deck.is_empty():
@@ -494,6 +642,33 @@ func _draw_up_to_hand_limit() -> void:
 func _reset_action_flags() -> void:
 	acted_this_turn.clear()
 	battle_sys.call("clear_exhausted_tiles")
+	
+func _play_card_place_sound() -> void:
+	var sound := preload("res://Audio/Sound FX/Cardfacedown.mp3")  # 🔊 pick your desired sound
+	if not sound:
+		return
+	var p := AudioStreamPlayer3D.new()
+	add_child(p)
+	p.stream = sound
+	p.volume_db = -10.0
+	p.pitch_scale = randf_range(0.95, 1.05)
+	p.unit_size = 5.0
+	p.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+	p.play()
+	p.connect("finished", Callable(p, "queue_free"))
+
+func _play_heal_sound() -> void:
+	if not HEAL_SOUND:
+		return
+	var p := AudioStreamPlayer3D.new()
+	add_child(p)
+	p.stream = HEAL_SOUND
+	p.volume_db = -10.0
+	p.pitch_scale = randf_range(0.95, 1.05)
+	p.unit_size = 5.0
+	p.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+	p.play()
+	p.connect("finished", Callable(p, "queue_free"))
 
 # -----------------------------
 # PHASE / LOG / HP
@@ -533,6 +708,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			else:
 				battle_sys.call("on_board_click", event.position)
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			if selected_pos != Vector2i(-1, -1):
+				var t = battle_sys.board.get_tile(selected_pos.x, selected_pos.y)
+				if t and t.occupant:
+					t.occupant.set_meta("allow_face_toggle_session", false)
+
 			selected_card = null
 			ui_sys.hide_hover()
 			selected_pos = Vector2i(-1,-1)

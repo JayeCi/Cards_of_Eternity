@@ -19,6 +19,7 @@ shadow_size = 14
 shadow_color = Color(0, 0, 0, 1)
 
 [node name="BattleUI" type="Control"]
+z_index = 4
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

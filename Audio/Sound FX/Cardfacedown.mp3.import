@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bn74st0c1vtx2"
+path="res://.godot/imported/Cardfacedown.mp3-ba6b4f3099e6f6b483f943dbd97d176e.mp3str"
+
+[deps]
+
+source_file="res://Audio/Sound FX/Cardfacedown.mp3"
+dest_files=["res://.godot/imported/Cardfacedown.mp3-ba6b4f3099e6f6b483f943dbd97d176e.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

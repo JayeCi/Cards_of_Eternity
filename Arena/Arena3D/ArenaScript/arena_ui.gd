@@ -327,18 +327,22 @@ func show_hover_for_tile(tile: Node3D) -> void:
 		return
 
 	if tile.occupant:
-		if has_node("ArenaTerrainDetails"):
-			$ArenaTerrainDetails.visible = false
-		if has_node("ArenaCardDetails"):
-			$ArenaCardDetails.show_unit(tile.occupant)
-	else:
-		if has_node("ArenaCardDetails"):
-			$ArenaCardDetails.hide_card()
-		if has_node("ArenaTerrainDetails"):
-			if $ArenaTerrainDetails.has_method("show_terrain"):
-				$ArenaTerrainDetails.show_terrain(tile.terrain_type)
-			else:
-				$ArenaTerrainDetails.visible = true
+		var unit = tile.occupant
+		var is_enemy = unit.owner != core.PLAYER
+		var is_facedown = unit.has_meta("is_facedown") and unit.get_meta("is_facedown")
+
+		if is_enemy and is_facedown:
+			# Hide card details, just show question mark or nothing
+			if has_node("ArenaCardDetails"):
+				$ArenaCardDetails.hide_card()
+			if has_node("ArenaTerrainDetails"):
+				$ArenaTerrainDetails.visible = false
+			return
+		else:
+			if has_node("ArenaCardDetails"):
+				$ArenaCardDetails.show_unit(unit)
+			if has_node("ArenaTerrainDetails"):
+				$ArenaTerrainDetails.visible = false
 
 func hide_hover() -> void:
 
@@ -490,7 +494,3 @@ func _update_hp_bar() -> void:
 func _update_hp_labels() -> void:
 	player_hp_label.text = str(core.player_leader.hp)
 	enemy_hp_label.text = str(core.enemy_leader.hp)
-
-
-func _on_face_down_pressed() -> void:
-	pass # Replace with function body.

@@ -26,6 +26,72 @@ func _input(event):
 	if event.is_action_pressed("cancel_action"):
 		_on_cancel_card_drag()
 
+func _try_toggle_face() -> void:
+	# --- Existing tile toggle (for cards already placed) ---
+	var tile: Node3D = null
+	if core.selected_pos != Vector2i(-1, -1):
+		tile = board.get_tile(core.selected_pos.x, core.selected_pos.y)
+	elif core.hovered_tile:
+		tile = core.hovered_tile
+	else:
+		return
+
+	if not tile or not tile.occupant:
+		return
+
+	var unit = tile.occupant
+
+	# 🚫 Player-only, not enemy turn, not hard-locked
+	if unit.owner != core.PLAYER: return
+	if core.phase == core.Phase.ENEMY_TURN: return
+	if unit.has_meta("flipped_permanent") and unit.get_meta("flipped_permanent"): return
+
+	# ✅ Two-way toggle only during a "facedown selection session"
+	var allow_session_toggle = unit.has_meta("allow_face_toggle_session") and unit.get_meta("allow_face_toggle_session")
+
+	if unit.is_facedown or (unit.has_meta("is_facedown") and unit.get_meta("is_facedown")):
+		# Facedown -> Face-up
+		unit.is_facedown = false
+		unit.set_meta("is_facedown", false)
+		unit.mode = UnitData.Mode.ATTACK
+		tile.set_art(unit.card.art, unit.owner == core.ENEMY)
+		tile.set_badge_text("A")
+		core._log("⚡ %s flipped face-up!" % unit.card.name, Color(1.0, 1.0, 0.6))
+		if unit.has_meta("model_instance"):
+			var m = unit.get_meta("model_instance")
+			if is_instance_valid(m): m.visible = true
+		core.refresh_tile_art_safe(core.board.get_unit_position(unit))
+	else:
+		# Face-up -> Facedown ONLY if session toggle is allowed
+		if allow_session_toggle:
+			unit.is_facedown = true
+			unit.set_meta("is_facedown", true)
+			unit.mode = UnitData.Mode.FACEDOWN
+			tile.set_art(core.CARD_BACK)
+			tile.set_badge_text("?")
+			core._log("🃏 %s was set facedown." % unit.card.name, Color(0.8, 0.8, 1.0))
+			if unit.has_meta("model_instance"):
+				var m2 = unit.get_meta("model_instance")
+				if is_instance_valid(m2): m2.visible = false
+			core.refresh_tile_art_safe(core.board.get_unit_position(unit))
+		else:
+			core._log("⛔ Face-up cards cannot be set facedown.", Color(1, 0.6, 0.6))
+
+func _clear_toggle_session_flag():
+	if core and core.selected_pos != Vector2i(-1, -1):
+		var t = board.get_tile(core.selected_pos.x, core.selected_pos.y)
+		if t and t.occupant:
+			t.occupant.set_meta("allow_face_toggle_session", false)
+
+func _unhandled_input(event):
+	if event.is_action_pressed("cancel_action"):
+		_on_cancel_card_drag()
+
+	# 🔹 Allow R toggle during placement (SELECT_SUMMON_TILE) or move targeting
+	if event.is_action_pressed("toggle_face"):
+		if core.phase in [core.Phase.SELECT_SUMMON_TILE, core.Phase.SELECT_MOVE_TARGET, core.Phase.SUMMON_OR_MOVE]:
+			_try_toggle_face()
+
 func _process(_dt: float) -> void:
 	# Wait until core and camera are ready
 	if not core or not cam:
@@ -74,6 +140,15 @@ func _update_hover() -> void:
 	# also tell core about current tile
 	core.hovered_tile = hovered_tile
 	
+func _reset_hover_state() -> void:
+	_is_battle_in_progress = false
+	if core:
+		core.is_cutscene_active = false
+	if ui:
+		ui._is_hovering_hand_card = false
+		ui.is_dragging_card = false
+		ui.hide_hover()
+
 func show_hover_for_tile(tile: Node3D) -> void:
 	if not tile:
 		return
@@ -174,13 +249,19 @@ func on_board_click(screen_pos: Vector2) -> void:
 	var tile = node
 	match core.phase:
 		core.Phase.SUMMON_OR_MOVE:
-			if tile.occupant and tile.occupant.owner == core.PLAYER:
-				if not core.can_unit_act(tile.occupant):
-					core._log("⏳ That unit already acted this turn."); return
-				core.selected_pos = Vector2i(tile.x, tile.y)
-				_show_move_targets(core.selected_pos)
-				core._set_phase(core.Phase.SELECT_MOVE_TARGET)
-				core._update_phase_ui()
+			core.selected_pos = Vector2i(tile.x, tile.y)
+
+			# NEW: enable session toggle if the unit started facedown
+			if tile.occupant and (tile.occupant.is_facedown or (tile.occupant.has_meta("is_facedown") and tile.occupant.get_meta("is_facedown"))):
+				tile.occupant.set_meta("allow_face_toggle_session", true)
+			else:
+				if tile.occupant:
+					tile.occupant.set_meta("allow_face_toggle_session", false)
+
+			_show_move_targets(core.selected_pos)
+			core._set_phase(core.Phase.SELECT_MOVE_TARGET)
+			core._update_phase_ui()
+
 		core.Phase.SELECT_MOVE_TARGET:
 			if tile.highlighted:
 				await _move_or_battle(core.selected_pos, Vector2i(tile.x, tile.y))
@@ -251,61 +332,75 @@ func spawn_card_model(card_data: CardData) -> Node3D:
 # -----------------------------------
 # 🟨 UNIT PLACEMENT ON BOARD
 # -----------------------------------
-func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, mark_acted := true) -> void:
-	var u := UnitData.new().init_from_card(card, owner)
-	u.mode = mode
-	core.units[pos] = u
-
+func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, is_player: bool = false) -> void:
 	var tile = board.get_tile(pos.x, pos.y)
 	if not tile:
-		push_error("⚠️ Tried to place a unit at invalid tile position: %s" % str(pos))
+		core._log("⚠️ Tried to place unit on invalid tile: %s" % str(pos))
 		return
 
-	tile.set_occupant(u)
+	if tile.occupant != null:
+		core._log("⚠️ Tile already occupied at %s" % str(pos))
+		return
 
-	match u.mode:
-		UnitData.Mode.ATTACK:
-			tile.set_art(card.art, owner == core.ENEMY)
-			if card.ability and card.ability.trigger == "on_summon":
-				core._execute_card_ability(u, card.ability)
-		UnitData.Mode.DEFENSE:
-			tile.set_art(card.art, owner == core.ENEMY)
-			if tile.has_node("CardMesh"):
-				var mesh = tile.get_node("CardMesh")
-				mesh.rotation_degrees.y = 90
-				mesh.position.x = -0.5
-				mesh.position.z = 0.0
-		UnitData.Mode.FACEDOWN:
-			tile.set_art(core.CARD_BACK)
-			if tile.has_node("CardMesh"):
-				tile.get_node("CardMesh").rotation_degrees.y = 0
+	# --- Create the UnitData ---
+	var unit := UnitData.new().init_from_card(card, owner)
+	unit.mode = mode
+	core.units[pos] = unit
+	tile.set_occupant(unit)
 
-	# 🟢 Set ownership badge
-	tile.set_badge_text("P" if owner == core.PLAYER else "E")
+	# --- Determine if facedown ---
+	var is_facedown := (mode == UnitData.Mode.FACEDOWN)
 
-	# ✅ Spawn 3D model from model_path (lazy load)
+	if is_facedown:
+		tile.set_art(core.CARD_BACK)
+		unit.is_facedown = true
+		unit.set_meta("is_facedown", true)
+	else:
+		tile.set_art(card.art)
+		unit.is_facedown = false
+		unit.set_meta("is_facedown", false)
+
+	# --- Spawn 3D model if available ---
 	if card.model_path != "":
-		var model_instance := spawn_card_model(card)
-		if model_instance:
+		var model_scene: PackedScene = load(card.model_path)
+		if model_scene:
+			var model_instance: Node3D = model_scene.instantiate()
+			model_instance.name = "CardModel"
+			model_instance.scale = core.CARD_MODEL_SCALE
+			model_instance.position = Vector3(0, 0.1, 0)
 			tile.add_child(model_instance)
-
-			# 🔄 Flip enemy model to face the player
+			unit.set_meta("model_instance", model_instance)
 			if owner == core.ENEMY:
 				model_instance.rotate_y(deg_to_rad(180))
+			
+			# Hide the model for facedown cards
+			model_instance.visible = not is_facedown
 
-	# 🎵 Play per-card placement sound if available
-	if "place_sound" in card and card.place_sound:
-		_play_card_sound(card.place_sound, tile.global_position)
-	else:
-		# fallback move/placement sound (optional)
-		if core.CARD_MOVE_SOUND:
-			_play_card_sound(core.CARD_MOVE_SOUND, tile.global_position)
+	# --- Show badge for mode ---
+	match mode:
+		UnitData.Mode.ATTACK:
+			tile.set_badge_text("A")
+		UnitData.Mode.DEFENSE:
+			tile.set_badge_text("D")
+		UnitData.Mode.FACEDOWN:
+			tile.set_badge_text("?")
 
-	# ✅ Exit placement mode safely
-	core.clear_card_placement_mode()
+	# --- Apply terrain bonuses ---
+	var terrain = tile.terrain_type
+	core._apply_terrain_bonus(unit, terrain)
 
-	# Optional log
-	core._log("📥 %s summoned at %s" % [card.name, str(pos)], Color(0.7, 1, 0.7))
+	# --- Trigger abilities only if card is face-up ---
+	if not is_facedown:
+		if card.ability and card.ability.trigger == "on_summon":
+			core._execute_card_ability(unit, card.ability)
+
+
+	# --- Play placement SFX ---
+	core._play_card_place_sound()
+
+	# --- Log ---
+	var name_str = card.name if not is_facedown else "a facedown card"
+	core._log("🎴 %s placed on (%d,%d)" % [name_str, pos.x, pos.y])
 
 func normalize_model(model: Node3D, target_height := 1.0):
 	var aabb = model.get_aabb()
@@ -371,6 +466,7 @@ func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 			attacker.owner == core.ENEMY
 		)
 		dst.set_badge_text("P" if attacker.owner == core.PLAYER else "E")
+		core._apply_terrain_bonus(attacker, dst.terrain_type)
 
 		if model and is_instance_valid(model) and not model.is_queued_for_deletion():
 			var world_target = dst.global_position + Vector3(0, 0.5, 0)
@@ -412,11 +508,33 @@ func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 		attacker.mode = UnitData.Mode.ATTACK
 		await _flip_faceup(src, attacker.card.art)
 		core._log("🔄 %s was revealed in Attack Mode!" % attacker.card.name, Color(1, 1, 0.6))
+		
+	# 🔓 Permanently mark attacker as face-up
+	attacker.is_facedown = false
+	attacker.set_meta("is_facedown", false)
+	var attacker_tile = board.get_tile(from.x, from.y)
+	if attacker_tile:
+		core.refresh_tile_art_safe(from)
+		if attacker_tile.has_node("CardModel"):
+			var m = attacker_tile.get_node("CardModel")
+			if is_instance_valid(m):
+				m.visible = true
 
 	if defender.mode == UnitData.Mode.FACEDOWN:
 		defender.mode = UnitData.Mode.DEFENSE
 		await _flip_faceup(dst, defender.card.art)
 		core._log("❗ %s was revealed!" % defender.card.name, Color(1, 0.9, 0.7))
+		
+	# 🔓 Permanently mark defender as face-up
+	defender.is_facedown = false
+	defender.set_meta("is_facedown", false)
+	var def_tile = board.get_tile(to.x, to.y)
+	if def_tile:
+		core.refresh_tile_art_safe(to)
+		if def_tile.has_node("CardModel"):
+			var m = def_tile.get_node("CardModel")
+			if is_instance_valid(m):
+				m.visible = true
 
 	# 🧹 Hide all highlights + hover, and enter "cinematic" lock
 	clear_highlights()
@@ -428,6 +546,13 @@ func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 
 	# Run cinematic battle
 	var result_data = await _play_2d_battle(attacker, defender)
+	
+	# ✅ Immediately mark attacker as acted before any unlock
+	core.mark_unit_acted(attacker)
+
+	# ✅ Lock board actions until battle fully resolves
+	core._set_phase(core.Phase.ENEMY_TURN)
+	core._update_phase_ui()
 
 	# 🔓 Leave cinematic lock
 	if core and "is_cutscene_active" in core:
@@ -474,21 +599,37 @@ func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 			pass
 
 		"both_survive":
-			dst.flash()
+			#dst.flash()
 			core.mark_unit_acted(attacker)
 			var att_tile = _get_unit_tile(attacker)
 			if att_tile: att_tile.set_art(attacker.card.art, attacker.owner == core.ENEMY)
-			var def_tile = _get_unit_tile(dst.occupant)
 			if def_tile: def_tile.set_art(dst.occupant.card.art, dst.occupant.owner == core.ENEMY)
 
 		"leader_damaged":
-			dst.flash()
+			#dst.flash()
 			core.mark_unit_acted(attacker)
 			var att_tile = _get_unit_tile(attacker)
 			if att_tile: att_tile.set_art(attacker.card.art, attacker.owner == core.ENEMY)
 
-	# ✅ Unlock after everything completes
+	# ✅ Unlock and restore proper phase
 	_is_battle_in_progress = false
+
+
+	# If the attacker was the player, don’t reset turn — wait for End Turn button.
+	# Only resume to SUMMON_OR_MOVE if player still has unacted units.
+	if attacker.owner == core.PLAYER:
+		var any_can_act := false
+		for u in core.units.values():
+			if u.owner == core.PLAYER and core.can_unit_act(u):
+				any_can_act = true
+				break
+
+		if any_can_act:
+			core._set_phase(core.Phase.SUMMON_OR_MOVE)
+		else:
+			core._set_phase(core.Phase.ENEMY_TURN)
+
+		core._update_phase_ui()
 
 func _on_cancel_card_drag():
 	if core.dragging_card:
@@ -540,22 +681,22 @@ func _focus_camera_on_battle(att_tile: Node3D, def_tile: Node3D, zoom_in := true
 		await tw.finished
 		_camera_locked = false
 
+
+# COMBAT RESOLUTION (returns both overflows)
 # -----------------------------
-# COMBAT RESOLUTION (color-coded)
-# -----------------------------
-func resolve_battle(att: UnitData, defn: UnitData, silent := false) -> Dictionary:
-	# NEVER mutate units here. Compute only.
-	var a_atk := att.current_atk
-	var a_def := att.current_def
-	var d_atk := defn.current_atk
-	var d_def := defn.current_def
+func resolve_battle(att: UnitData, defn: UnitData, silent = false) -> Dictionary:
+	var a_atk = att.current_atk
+	var a_def = att.current_def
+	var d_atk = defn.current_atk
+	var d_def = defn.current_def
 
 	var result := "both_survive"
-	var overflow := 0
-	var damage_to_def := 0     # defender takes from attacker
-	var damage_to_att := 0     # attacker takes from defender (counter)
+	var overflow_to_def_leader := 0  # from attacker hitting defender
+	var overflow_to_att_leader := 0  # from defender's counter hitting attacker
 
-	# Log (optional)
+	var damage_to_def := 0
+	var damage_to_att := 0
+
 	if not silent:
 		core._log("────────────────────────────────────", Color(0.6, 0.6, 0.6))
 		core._log("⚔️  BATTLE PREVIEW", Color(1,1,0.7))
@@ -563,35 +704,51 @@ func resolve_battle(att: UnitData, defn: UnitData, silent := false) -> Dictionar
 			[_colorize_name(att), a_atk, a_def, _colorize_name(defn), d_atk, d_def, str(defn.mode)],
 			Color(1,0.9,0.6))
 
-	# --- Direct attack on Leader ---
+	# Leader target: no counter, no overflow concept (direct HP dmg)
 	if defn.is_leader:
-		damage_to_def = a_atk           # all goes to leader HP; no counter
+		damage_to_def = a_atk
 		result = "leader_damaged"
 		if not silent:
 			core._log("Leader attack: %d damage (no counter)." % damage_to_def, Color(1,0.8,0.8))
-		return {"result": result, "overflow": 0, "damage_to_def": damage_to_def, "damage_to_att": 0}
+		return {
+			"result": result,
+			"overflow": 0,
+			"overflow_to_def_leader": 0,
+			"overflow_to_att_leader": 0,
+			"damage_to_def": damage_to_def,
+			"damage_to_att": 0
+		}
 
-	# --- Defender in DEFENSE ---
+	# Defender in DEFENSE: no counter, only attacker overflow
 	if defn.mode == UnitData.Mode.DEFENSE:
 		damage_to_def = min(a_atk, d_def)
-		var d_def_after := d_def - damage_to_def
+		var d_def_after = d_def - damage_to_def
 		if d_def_after <= 0:
 			result = "attacker_wins"
-			overflow = max(a_atk - d_def, 0)
+			overflow_to_def_leader = max(a_atk - d_def, 0)
 		else:
 			result = "both_survive"
-		return {"result": result, "overflow": overflow, "damage_to_def": damage_to_def, "damage_to_att": 0}
+		return {
+			"result": result,
+			"overflow": overflow_to_def_leader,
+			"overflow_to_def_leader": overflow_to_def_leader,
+			"overflow_to_att_leader": 0,
+			"damage_to_def": damage_to_def,
+			"damage_to_att": 0
+		}
 
-	# --- Defender in ATTACK (mutual damage) ---
+	# Both in ATTACK: mutual damage, both sides can overflow
 	if defn.mode == UnitData.Mode.ATTACK:
 		damage_to_def = min(a_atk, d_def)
 		damage_to_att = min(d_atk, a_def)
 
-		var d_def_after := d_def - damage_to_def
-		var a_def_after := a_def - damage_to_att
+		var d_def_after = d_def - damage_to_def
+		var a_def_after = a_def - damage_to_att
 
 		if d_def_after <= 0:
-			overflow = max(a_atk - d_def, 0)
+			overflow_to_def_leader = max(a_atk - d_def, 0)
+		if a_def_after <= 0:
+			overflow_to_att_leader = max(d_atk - a_def, 0)
 
 		if a_def_after <= 0 and d_def_after <= 0:
 			result = "both_destroyed"
@@ -602,42 +759,59 @@ func resolve_battle(att: UnitData, defn: UnitData, silent := false) -> Dictionar
 		else:
 			result = "both_survive"
 
-		return {"result": result, "overflow": overflow, "damage_to_def": damage_to_def, "damage_to_att": damage_to_att}
+		return {
+			"result": result,
+			"overflow": overflow_to_def_leader,              # keep legacy key
+			"overflow_to_def_leader": overflow_to_def_leader, # attacker→def leader
+			"overflow_to_att_leader": overflow_to_att_leader, # defender→att leader (counter overflow)
+			"damage_to_def": damage_to_def,
+			"damage_to_att": damage_to_att
+		}
 
-	# Fallback (shouldn't happen)
 	if not silent:
 		core._log("⚠️ Unexpected mode in battle preview.", Color(1,0.7,0.4))
-	return {"result": "both_survive", "overflow": 0, "damage_to_def": 0, "damage_to_att": 0}
+	return {
+		"result": "both_survive",
+		"overflow": 0,
+		"overflow_to_def_leader": 0,
+		"overflow_to_att_leader": 0,
+		"damage_to_def": 0,
+		"damage_to_att": 0
+	}
 
 # -----------------------------
 # PASSIVES / KILL / HELPERS
 # -----------------------------
 func apply_all_passives() -> void:
 	print("🧊 apply_all_passives: units=", core.units.size())
-	for pos in core.units.keys():
-		var u: UnitData = core.units[pos]
-		var ab = u.card.ability
-		var trig = ab.trigger if (ab and ab is CardAbility and "trigger" in ab) else "nil"
-		print(" -", u.card.name, " ability:", ab, "type:", typeof(ab), "trigger:", trig)
 
-		if ab and ab is CardAbility and trig == "passive":
-			ab.execute(core, u)
-			print("executed passive ability")
-
-	# ✅ Refresh DEF labels for all tiles after passives
 	for pos in core.units.keys():
 		var tile = core.board.get_tile(pos.x, pos.y)
 		var unit: UnitData = core.units[pos]
-		if tile and tile.occupant == unit:
-			tile.set_art(unit.card.art, unit.owner == core.ENEMY)
-			# 🔹 Optional: if tiles display DEF stat text, update it here
-			if tile.has_method("update_stat_labels"):
-				tile.update_stat_labels(unit.current_atk, unit.current_def)
+		if not tile or tile.occupant != unit:
+			continue
 
-	# ✅ Also refresh the card details panel if visible
+		var facedown = unit.is_facedown or (unit.has_meta("is_facedown") and unit.get_meta("is_facedown"))
+
+		# 🧩 Keep facedown cards hidden
+		if facedown:
+			tile.set_art(core.CARD_BACK)
+		else:
+			core.refresh_tile_art_safe(pos)
+
+
+			# Run passive ability only if face-up
+			if unit.card and unit.card.ability and unit.card.ability.trigger == "passive":
+				unit.card.ability.execute(core, unit)
+
+		# Update stat labels quietly
+		if tile.has_method("update_stat_labels"):
+			tile.update_stat_labels(unit.current_atk, unit.current_def)
+
+	# ✅ Refresh the details panel if visible
 	if core.card_details_ui and core.card_details_ui.visible:
 		core.card_details_ui.call("refresh_if_showing", core.card_details_ui.current_unit)
-		
+
 func _colorize_name(unit: UnitData) -> String:
 	if not unit or not unit.card:
 		return ""
@@ -752,17 +926,6 @@ func _get_unit_tile(u: UnitData) -> Node3D:
 # -----------------------------
 func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 	if ui:
-		ui.force_hide_hand(true)   # 🔒 hard-lock the hand hidden
-
-	if ui and ui.hand_grid:
-		ui.hand_grid.visible = false
-		ui.hand_grid.modulate.a = 0.0
-
-	if is_instance_valid(hand):
-		hand.visible = false
-		await get_tree().process_frame
-
-	if ui:
 		ui._lock_hp_updates = true
 
 	var result_data = resolve_battle(att, defn, true)
@@ -772,50 +935,60 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 	var battle_ui: BattleUI = core.get_node_or_null("UISystem/BattleUI")
 	if not battle_ui:
 		push_error("❌ Could not find BattleUI in UISystem — add a node named 'BattleUI'.")
-		if is_instance_valid(hand):
-			hand.visible = true
+		if is_instance_valid(hand): hand.visible = true
 		return result_data
 
-	if is_instance_valid(hand):
-		hand.visible = false
-
-	# --- 1️⃣ ATTACK PHASE ---
-	# Refresh before animation so the defender shows correct starting stats
+	# --- ATTACK PHASE ---
 	battle_ui.refresh_stats(att, defn)
 	await battle_ui.play_attack_phase(att, defn, damage_to_def)
 
-	# Apply defender’s damage immediately and refresh again (before flash)
+	# Apply attack damage
 	if defn.is_leader:
 		defn.hp = max(defn.hp - damage_to_def, 0)
 		core.on_leader_damaged(defn.owner, defn.hp)
 	else:
 		defn.current_def = max(defn.current_def - damage_to_def, 0)
+
 	battle_ui.refresh_stats(att, defn)
 
-	# --- 2️⃣ COUNTER PHASE ---
-	var defender_was_alive_for_counter := (
-		not defn.is_leader and defn.current_def > 0 and damage_to_att > 0
-	)
+	# 🟢 NOW trigger on_attack (e.g., Vampirism) — “after every attack”
+	_trigger_ability(att, "on_attack")
+	battle_ui.refresh_stats(att, defn)
 
-
-	# Refresh before the counter animation
+	# --- COUNTER PHASE ---
 	battle_ui.refresh_stats(att, defn)
 	await battle_ui.play_counter_phase(defn, att, damage_to_att)
 
-	# Apply attacker’s damage immediately after counter starts
 	att.current_def = max(att.current_def - damage_to_att, 0)
 	battle_ui.refresh_stats(att, defn)
 
-	await get_tree().create_timer(0.25).timeout  # small pause for pacing
-
+	await get_tree().create_timer(0.25).timeout
 	await get_tree().process_frame
 
-	# --- 3️⃣ CLEANUP + OVERFLOW ---
-	var overflow := 0
-	if not defn.is_leader and defn.current_def <= 0:
-		overflow = result_data["overflow"]
-		if overflow > 0:
-			core.damage_leader(defn.owner, overflow)
+	# --- CLEANUP + BOTH OVERFLOWS ---
+	var result  = result_data["result"]
+	var of_def  = result_data.get("overflow_to_def_leader", result_data.get("overflow", 0))
+	var of_att  = result_data.get("overflow_to_att_leader", 0)
+
+	# Temporarily unlock so hp_changed updates bars mid-battle
+	if ui:
+		ui._lock_hp_updates = false
+
+	# Attacker overflow → defender's leader (defender died or mutual)
+	if of_def > 0 and not defn.is_leader:
+		if defn.current_def <= 0:
+			core._log("💥 Overflow to defender leader: %d" % of_def, Color(1, 0.6, 0.3))
+			core.damage_leader(defn.owner, of_def)
+
+	# Counter overflow → attacker’s leader (attacker died or mutual)
+	if of_att > 0 and not att.is_leader:
+		if att.current_def <= 0:
+			core._log("💥 Counter overflow to attacker leader: %d" % of_att, Color(1, 0.6, 0.3))
+			core.damage_leader(att.owner, of_att)
+
+	# Re-lock for the remaining wrap-up animation
+	if ui:
+		ui._lock_hp_updates = true
 
 	var attacker_dead := (not att.is_leader and att.current_def <= 0)
 	var defender_dead := (not defn.is_leader and defn.current_def <= 0)
@@ -825,16 +998,11 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 	if attacker_dead:
 		await _kill_unit(att)
 
-	# --- 4️⃣ Refresh battlefield visuals ---
-	var att_tile := _get_unit_tile(att)
-	if att_tile and att.current_def > 0:
-		att_tile.set_art(att.card.art, att.owner == core.ENEMY)
+	# Battlefield visuals refresh …
+	# (unchanged)
+	# ...
 
-	var def_tile := _get_unit_tile(defn)
-	if def_tile and defn.current_def > 0:
-		def_tile.set_art(defn.card.art, defn.owner == core.ENEMY)
-
-	# --- 5️⃣ Wrap up ---
+	# --- Wrap up ---
 	if ui:
 		ui._lock_hp_updates = false
 		ui._update_hp_labels()
@@ -845,8 +1013,7 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 	if hand:
 		hand.visible = true
 	if ui:
-		ui.force_hide_hand(false)  # 🔓 release lock; phase logic can show it again
-		# Optionally re-apply phase-driven visibility right away:
+		ui.force_hide_hand(false)
 		ui._show_hand_and_orbs(core.phase != core.Phase.ENEMY_TURN)
 
 	return result_data
@@ -1002,6 +1169,32 @@ func _fade(to_alpha: float, dur: float):
 	var tw = create_tween()
 	tw.tween_property(rect, "modulate:a", to_alpha, dur)
 	await tw.finished
+	
+func reveal_card(pos: Vector2i) -> void:
+	if not core.units.has(pos):
+		return
+	var unit: UnitData = core.units[pos]
+	if not unit or unit.mode != UnitData.Mode.FACEDOWN:
+		return
+
+	unit.mode = UnitData.Mode.ATTACK
+	var tile = board.get_tile(pos.x, pos.y)
+	if tile:
+		tile.set_art(unit.card.art)
+		tile.set_badge_text("A")
+
+		if unit.has_meta("model_instance"):
+			var model_instance = unit.get_meta("model_instance")
+			if is_instance_valid(model_instance):
+				model_instance.visible = true
+
+	core._log("⚡ %s was flipped face-up!" % unit.card.name, Color(1, 1, 0.7))
+
+	# --- 🔥 Trigger abilities that activate when flipped ---
+	if unit.card.ability:
+		var ab = unit.card.ability
+		if ab.trigger in ["on_flip", "on_summon"]:
+			core._execute_card_ability(unit, ab)
 
 func _play_card_sound(sound: AudioStream, position := Vector3.ZERO):
 	if not sound: return

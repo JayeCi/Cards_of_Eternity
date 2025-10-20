@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=5 format=3 uid="uid://dd2c50etc7n8n"]
+[gd_resource type="Resource" script_class="CardData" load_steps=6 format=3 uid="uid://dd2c50etc7n8n"]
 
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="1_4nhxv"]
 [ext_resource type="Resource" uid="uid://x45v62harukd" path="res://Cards/Abilities/Frozen_Aura.tres" id="1_a4v32"]
 [ext_resource type="Texture2D" uid="uid://bruotfy06ok7x" path="res://Images/Cold_Sloth.jpeg" id="1_xas3p"]
 [ext_resource type="AudioStream" uid="uid://cu6brbtp0685b" path="res://Audio/Sound FX/SnowWinds.mp3" id="3_lpr3s"]
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="4_thbam"]
 
 [resource]
 script = ExtResource("1_4nhxv")

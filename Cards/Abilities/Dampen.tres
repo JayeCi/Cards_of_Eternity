@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="Dampen" load_steps=2 format=3 uid="uid://y5xgyyio4rgi"]
+
+[ext_resource type="Script" uid="uid://hwy5cmxnqlse" path="res://Cards/Abilities/Dampen.gd" id="1_ge5fb"]
+
+[resource]
+script = ExtResource("1_ge5fb")
+trigger = "passive"
+display_name = "Dampen"
+value = 2
+description = "At the start of each turn, decreases ATK of adjacent enemy units permenantly by 2"
+metadata/_custom_type_script = "uid://hwy5cmxnqlse"

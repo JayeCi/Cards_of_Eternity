@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://b3takotia4qps"
+path="res://.godot/imported/Impd.mp3-daf7dfd326e2f98bb6d2495a1a181fbf.mp3str"
+
+[deps]
+
+source_file="res://Audio/Sound FX/Impd.mp3"
+dest_files=["res://.godot/imported/Impd.mp3-daf7dfd326e2f98bb6d2495a1a181fbf.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

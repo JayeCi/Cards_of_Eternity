@@ -7,6 +7,5 @@ script = ExtResource("1_ek1vp")
 trigger = "passive"
 display_name = "Frozen Aura"
 value = 2
-range = 1
-description = "At the start of each turn, decreases DEF of adjacent enemy units permenantly by 1"
+description = "At the start of each turn, decreases DEF of adjacent enemy units permenantly by 2"
 metadata/_custom_type_script = "uid://bdpq7b324yu08"

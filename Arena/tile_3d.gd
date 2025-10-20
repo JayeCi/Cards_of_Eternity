@@ -13,7 +13,7 @@ var hover_highlight = false
 var summon_highlight := false  
 var core: ArenaCore
 
-@onready var highlight_mesh: MeshInstance3D = $Highlight
+
 @onready var card_mesh: MeshInstance3D = $CardMesh
 @onready var mesh: MeshInstance3D = $TileMesh
 @onready var label: Label3D = $Badge
@@ -87,9 +87,9 @@ func set_highlight(state: bool, symbol: String = "") -> void:
 	if label:
 		label.text = symbol
 		label.visible = state and symbol != ""
-	if highlight_mesh:
-		highlight_mesh.visible = state
-		
+	#if highlight_mesh:
+		#highlight_mesh.visible = state
+		#
 func set_move_highlight(state: bool) -> void:
 	move_highlight.visible = state if move_highlight else false
 
@@ -140,27 +140,27 @@ func _update_leader_badge() -> void:
 	else:
 		leader_badge.visible = false
 
-func flash() -> void:
-	if not highlight_mesh:
-		return
-	var mat := highlight_mesh.get_surface_override_material(0)
-	if not mat:
-		var base := highlight_mesh.mesh.surface_get_material(0)
-		mat = base.duplicate() if base else StandardMaterial3D.new()
-		highlight_mesh.set_surface_override_material(0, mat)
-
-	mat.emission_enabled = true
-	mat.emission = Color(1, 0.5, 0.5)
-	mat.emission_energy_multiplier = 4.0
-	highlight_mesh.visible = true
-
-	var tw = create_tween()
-	tw.tween_property(mat, "emission_energy_multiplier", 0.0, 0.3)
-	await tw.finished
-
-	mat.emission_enabled = false
-	mat.emission = Color(0, 0, 0)
-	highlight_mesh.visible = false
+#func flash() -> void:
+	#if not highlight_mesh:
+		#return
+	#var mat := highlight_mesh.get_surface_override_material(0)
+	#if not mat:
+		#var base := highlight_mesh.mesh.surface_get_material(0)
+		#mat = base.duplicate() if base else StandardMaterial3D.new()
+		#highlight_mesh.set_surface_override_material(0, mat)
+#
+	#mat.emission_enabled = true
+	#mat.emission = Color(1, 0.5, 0.5)
+	#mat.emission_energy_multiplier = 4.0
+	#highlight_mesh.visible = true
+#
+	#var tw = create_tween()
+	#tw.tween_property(mat, "emission_energy_multiplier", 0.0, 0.3)
+	#await tw.finished
+#
+	#mat.emission_enabled = false
+	#mat.emission = Color(0, 0, 0)
+	#highlight_mesh.visible = false
 
 
 func set_exhausted(state: bool) -> void:
@@ -183,6 +183,36 @@ func set_exhausted(state: bool) -> void:
 func set_terrain_type(new_type: String) -> void:
 	terrain_type = new_type
 	_apply_terrain_visual()
+
+func update_terrain_visual(terrain_type: String) -> void:
+	# Find the mesh or Sprite3D that displays the tile
+	var mesh: MeshInstance3D = $MeshInstance3D if has_node("MeshInstance3D") else null
+	var sprite: Sprite3D = $Sprite3D if has_node("Sprite3D") else null
+
+	# Define textures (you can adjust these paths)
+	var textures := {
+		"Grass": preload("res://UI/Terrains/grass.png"),
+		"Lava": preload("res://UI/Terrains/Lava.png"),
+		"Forest": preload("res://UI/Terrains/Forest.png"),
+		"Water": preload("res://UI/Terrains/Water.png"),
+		"Ice": preload("res://UI/Terrains/Ice.png"),
+		"Stone": preload("res://UI/Terrains/stone.png"),
+		#"Shadow": preload("res://ui/Terrain/Shadow.png"),
+	}
+
+	if sprite:
+		if textures.has(terrain_type):
+			sprite.texture = textures[terrain_type]
+	elif mesh and mesh.get_active_material(0):
+		var mat := mesh.get_active_material(0)
+		if mat and mat is StandardMaterial3D:
+			if textures.has(terrain_type):
+				mat.albedo_texture = textures[terrain_type]
+
+	# Optional: subtle flash when it changes
+	var tw := create_tween()
+	tw.tween_property(self, "modulate", Color(0.8, 1.0, 0.8), 0.15)
+	tw.tween_property(self, "modulate", Color(1, 1, 1), 0.15)
 
 func _apply_terrain_visual() -> void:
 
@@ -222,20 +252,20 @@ func _apply_terrain_visual() -> void:
 		
 
 
-	# Optional: make highlight match terrain hue slightly
-	if highlight_mesh:
-		var hmat := highlight_mesh.get_surface_override_material(0)
-		if not hmat:
-			hmat = StandardMaterial3D.new()
-			highlight_mesh.set_surface_override_material(0, hmat)
-		#hmat.albedo_color = mat.albedo_color.lightened(0.4)
+	## Optional: make highlight match terrain hue slightly
+	#if highlight_mesh:
+		#var hmat := highlight_mesh.get_surface_override_material(0)
+		#if not hmat:
+			#hmat = StandardMaterial3D.new()
+			#highlight_mesh.set_surface_override_material(0, hmat)
+		##hmat.albedo_color = mat.albedo_color.lightened(0.4)
 
-func _update_highlight_visibility() -> void:
-	if not highlight_mesh:
-		return
+#func _update_highlight_visibility() -> void:
+	##if not highlight_mesh:
+		##return
 	
-	# Always visible if any highlight type is active
-	highlight_mesh.visible = highlighted or hover_highlight or summon_highlight or move_highlight.visible
+	## Always visible if any highlight type is active
+	#highlight_mesh.visible = highlighted or hover_highlight or summon_highlight or move_highlight.visible
 
 func pulse_move_highlight() -> void:
 	if not move_highlight or not move_highlight.visible:
@@ -279,14 +309,14 @@ func set_core(core_ref: ArenaCore) -> void:
 # 🆕 HOVER BEHAVIOR ---
 func _on_mouse_entered() -> void:
 	hover_highlight = true
-	_update_highlight_visibility()
+	#_update_highlight_visibility()
 	emit_signal("hovered", self)
 	
 func _on_mouse_exited() -> void:
 	hover_highlight = false
 
-	# 🧠 Only hide hover highlights if NOT system-marked
-	if not highlighted and not summon_highlight and highlight_mesh:
-		highlight_mesh.visible = false
+	## 🧠 Only hide hover highlights if NOT system-marked
+	#if not highlighted and not summon_highlight and highlight_mesh:
+		#highlight_mesh.visible = false
 
 	emit_signal("unhovered", self)

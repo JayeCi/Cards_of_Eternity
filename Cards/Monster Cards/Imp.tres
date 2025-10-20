@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=5 format=3 uid="uid://bymlax4cwtbnq"]
+[gd_resource type="Resource" script_class="CardData" load_steps=6 format=3 uid="uid://bymlax4cwtbnq"]
 
 [ext_resource type="Resource" uid="uid://ilxoxport87v" path="res://Cards/Abilities/Vampirism.tres" id="1_ca7id"]
 [ext_resource type="Texture2D" uid="uid://caqg12eqtvgh2" path="res://Images/Imp.jpg" id="1_gynxb"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="1_t13up"]
-[ext_resource type="AudioStream" uid="uid://5i8iffyuuo" path="res://Audio/Sound FX/Imp.mp3" id="3_ca7id"]
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="3_0ifik"]
+[ext_resource type="AudioStream" uid="uid://b3takotia4qps" path="res://Audio/Sound FX/Impd.mp3" id="4_qwb0t"]
 
 [resource]
 script = ExtResource("1_t13up")
@@ -18,5 +19,5 @@ atk = 18
 def = 25
 ability = ExtResource("1_ca7id")
 model_path = "res://Cards/Models/IMP_MODEL.tscn"
-place_sound = ExtResource("3_ca7id")
+place_sound = ExtResource("4_qwb0t")
 metadata/_custom_type_script = "uid://57up1u0etcmc"
