@@ -18,17 +18,21 @@ func get_card(path: String) -> Resource:
 #   use:          get_card(CARD_PATHS.GOBLIN)
 # ==========================================================
 const CARD_PATHS := {
-	"DIRT":        "res://Cards/Monster Cards/Dirt.tres",
-	"GOBLIN":      "res://Cards/Monster Cards/Goblin.tres",
-	"IMP":         "res://Cards/Monster Cards/Imp.tres",
-	"FYSH":        "res://Cards/Monster Cards/Fish.tres",
-	"NAGA":        "res://Cards/Monster Cards/Naga.tres",
-	"COLD_SLOTH":  "res://Cards/Monster Cards/Cold_Sloth.tres",
-	"LAVA_HARE":   "res://Cards/Monster Cards/Lava_Hare.tres",
-	"FOREST_FAE":  "res://Cards/Monster Cards/Forest_Fae.tres",
-	"FIREBALL":    "res://Cards/Spell Cards/Fireball.tres",
-	"LYZARD":      "res://Cards/Monster Cards/Lyzard.tres",
-	"ERUPTION":    "res://Cards/Spell Cards/Eruption.tres",
+	"DIRT":               "res://Cards/Monster Cards/Dirt.tres",
+	"GOBLIN":             "res://Cards/Monster Cards/Goblin.tres",
+	"IMP":                "res://Cards/Monster Cards/Imp.tres",
+	"FYSH":               "res://Cards/Monster Cards/Fish.tres",
+	"NAGA":               "res://Cards/Monster Cards/Naga.tres",
+	"COLD_SLOTH":         "res://Cards/Monster Cards/Cold_Sloth.tres",
+	"LAVA_HARE":          "res://Cards/Monster Cards/Lava_Hare.tres",
+	"FOREST_FAE":         "res://Cards/Monster Cards/Forest_Fae.tres",
+	"FIREBALL":           "res://Cards/Spell Cards/Fireball.tres",
+	"LYZARD":             "res://Cards/Monster Cards/Lyzard.tres",
+	"ERUPTION":           "res://Cards/Spell Cards/Eruption.tres",
+	"DRAKE_OF_EMERALD":   "res://Cards/Monster Cards/Drake of Emerald.tres",
+	"FLAME_FAE":          "res://Cards/Monster Cards/Flame_Fae.tres",
+	"AXO_THE_KNIGHT":     "res://Cards/Monster Cards/Axo The Knight.tres",
+	"STONE_FAE":          "res://Cards/Monster Cards/Stone_Fae.tres",
 }
 
 # -----------------------------
@@ -154,17 +158,21 @@ func _ready() -> void:
 	call_deferred("_deferred_startup")
 	# minimal registry of cards (your collection)
 
-	CardCollection.add_card(get_card(CARD_PATHS.GOBLIN))
-	CardCollection.add_card(get_card(CARD_PATHS.DIRT))
-	CardCollection.add_card(get_card(CARD_PATHS.COLD_SLOTH))
-	CardCollection.add_card(get_card(CARD_PATHS.FYSH))
-	CardCollection.add_card(get_card(CARD_PATHS.FOREST_FAE))
-	CardCollection.add_card(get_card(CARD_PATHS.IMP))
-	CardCollection.add_card(get_card(CARD_PATHS.LAVA_HARE))
-	CardCollection.add_card(get_card(CARD_PATHS.NAGA))
-	CardCollection.add_card(get_card(CARD_PATHS.FIREBALL))
-	CardCollection.add_card(get_card(CARD_PATHS.LYZARD))
-	CardCollection.add_card(get_card(CARD_PATHS.ERUPTION))
+	#CardCollection.add_card(get_card(CARD_PATHS.GOBLIN))
+	#CardCollection.add_card(get_card(CARD_PATHS.DIRT))
+	#CardCollection.add_card(get_card(CARD_PATHS.COLD_SLOTH))
+	#CardCollection.add_card(get_card(CARD_PATHS.FYSH))
+	#CardCollection.add_card(get_card(CARD_PATHS.FOREST_FAE))
+	#CardCollection.add_card(get_card(CARD_PATHS.IMP))
+	#CardCollection.add_card(get_card(CARD_PATHS.LAVA_HARE))
+	#CardCollection.add_card(get_card(CARD_PATHS.NAGA))
+	#CardCollection.add_card(get_card(CARD_PATHS.FIREBALL))
+	#CardCollection.add_card(get_card(CARD_PATHS.LYZARD))
+	#CardCollection.add_card(get_card(CARD_PATHS.ERUPTION))
+	CardCollection.add_card(get_card(CARD_PATHS.DRAKE_OF_EMERALD))
+	CardCollection.add_card(get_card(CARD_PATHS.FLAME_FAE))
+	CardCollection.add_card(get_card(CARD_PATHS.AXO_THE_KNIGHT))
+	CardCollection.add_card(get_card(CARD_PATHS.STONE_FAE))
 	
 	if ui_sys.has_node("OrbGrid"):
 		var essence_display = ui_sys.get_node("OrbGrid")

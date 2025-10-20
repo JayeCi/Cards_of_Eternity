@@ -1,14 +1,17 @@
 [gd_resource type="Resource" script_class="CardData" load_steps=6 format=3 uid="uid://ykwehvr5q7wb"]
 
 [ext_resource type="Script" uid="uid://d7dl4wk8jcyr" path="res://Cards/Abilities/ChangeTerrain.gd" id="1_vgk8i"]
-[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_wfvkj"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_l182c"]
 [ext_resource type="Texture2D" uid="uid://bw4bqtbm54eof" path="res://Cards/Spell Cards/LAVA_CARD_ART.png" id="2_vgk8i"]
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="3_vgk8i"]
 
 [sub_resource type="Resource" id="Resource_b23iv"]
 script = ExtResource("1_vgk8i")
 new_terrain = "Lava"
+trigger = "on_summon"
 display_name = "Eruption"
+value = 0
+range = 1
 description = "Lava erupts and transforms the surrounding tiles to lava."
 metadata/_custom_type_script = "uid://d7dl4wk8jcyr"
 
@@ -17,11 +20,19 @@ script = ExtResource("2_l182c")
 type = "Elemental"
 rarity = "Rare"
 element = "Fire"
+preferred_terrain = "GRASS"
 card_type = 1
-id = "00010"
+id = "10001"
 name = "Eruption"
 description = "Lava erupts and transforms the surrounding tiles to lava."
 art = ExtResource("2_vgk8i")
 cost = 3
+atk = 0
+def = 0
+hp = 0
 ability = SubResource("Resource_b23iv")
+model_path = ""
+death_sound = ExtResource("3_vgk8i")
+fusion_materials = Array[String]([])
+attack_moves = Array[String]([])
 metadata/_custom_type_script = "uid://57up1u0etcmc"

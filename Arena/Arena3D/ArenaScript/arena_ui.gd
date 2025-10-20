@@ -271,6 +271,13 @@ func _on_card_hovered_in_hand(card: CardData) -> void:
 	_current_hover_card = card
 	_is_hovering_hand_card = true
 
+	# 🧩 NEW FIX — hide terrain when hovering a hand card
+	if has_node("ArenaTerrainDetails"):
+		if $ArenaTerrainDetails.has_method("hide_terrain"):
+			$ArenaTerrainDetails.hide_terrain()
+		else:
+			$ArenaTerrainDetails.visible = false
+
 	if not card_details_ui:
 		return
 
@@ -280,7 +287,6 @@ func _on_card_hovered_in_hand(card: CardData) -> void:
 
 	match _hover_state:
 		"idle", "hiding":
-			# Fade in once
 			card_details_ui.modulate.a = 0.0
 			card_details_ui.show_card(card)
 			card_details_ui.visible = true
@@ -289,10 +295,9 @@ func _on_card_hovered_in_hand(card: CardData) -> void:
 			_hover_state = "visible"
 			print("[ArenaUI] 🟢 Showing details for:", card.name)
 		"visible", "showing":
-			# Just update instantly — no flicker
 			card_details_ui.show_card(card)
 			print("[ArenaUI] 🔁 Updating details for:", card.name)
-			
+	
 func _on_card_hovered_in_hand_exit() -> void:
 	if not _is_hovering_hand_card:
 		return
@@ -312,37 +317,52 @@ func _on_card_hovered_in_hand_exit() -> void:
 
 
 func show_hover_for_tile(tile: Node3D) -> void:
-	# 🛑 Don’t update board hover while hovering a card in hand
-	if _is_hovering_hand_card:
-		# ensure it stays hidden even if something external tried to show it
-		if has_node("ArenaTerrainDetails"):
-			if $ArenaTerrainDetails.has_method("hide_terrain"):
-				$ArenaTerrainDetails.hide_terrain()
-			$ArenaTerrainDetails.visible = false
-		return
-
-	if is_dragging_card:
-		return
 	if not tile or (core and core.is_cutscene_active):
 		return
 
+	# Block terrain hover ONLY if dragging a card
+	if is_dragging_card:
+		return
+
+	# Hide hand hover effects but allow terrain hover
+	if _is_hovering_hand_card:
+		if has_node("ArenaCardDetails"):
+			$ArenaCardDetails.visible = false
+		# Continue to terrain hover
+		pass
+
+	# --- TILE WITH UNIT ---
 	if tile.occupant:
 		var unit = tile.occupant
 		var is_enemy = unit.owner != core.PLAYER
 		var is_facedown = unit.has_meta("is_facedown") and unit.get_meta("is_facedown")
 
+		# 🧩 NEW FIX — hide terrain when hovering a unit card
+		if has_node("ArenaTerrainDetails"):
+			if $ArenaTerrainDetails.has_method("hide_terrain"):
+				$ArenaTerrainDetails.hide_terrain()
+			else:
+				$ArenaTerrainDetails.visible = false
+
 		if is_enemy and is_facedown:
-			# Hide card details, just show question mark or nothing
 			if has_node("ArenaCardDetails"):
 				$ArenaCardDetails.hide_card()
+			# Show terrain only for facedown enemies
 			if has_node("ArenaTerrainDetails"):
-				$ArenaTerrainDetails.visible = false
+				$ArenaTerrainDetails.show_terrain(tile.terrain_type)
+				$ArenaTerrainDetails.visible = true
 			return
 		else:
 			if has_node("ArenaCardDetails"):
 				$ArenaCardDetails.show_unit(unit)
-			if has_node("ArenaTerrainDetails"):
-				$ArenaTerrainDetails.visible = false
+			# Terrain stays hidden while showing card details
+	else:
+		# --- EMPTY TILE: SHOW TERRAIN DETAILS ONLY ---
+		if has_node("ArenaCardDetails"):
+			$ArenaCardDetails.hide_card()
+		if has_node("ArenaTerrainDetails"):
+			$ArenaTerrainDetails.show_terrain(tile.terrain_type)
+			$ArenaTerrainDetails.visible = true
 
 func hide_hover() -> void:
 

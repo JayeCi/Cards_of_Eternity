@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://cd3sihq52ta22"]
+
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_2va8d"]
+[ext_resource type="Texture2D" uid="uid://cmew7hwrnkfvt" path="res://Images/Fire_Fae.png" id="1_cib0h"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_cib0h"]
+
+[resource]
+script = ExtResource("2_cib0h")
+type = "Elemental"
+rarity = "Rare"
+element = "Fire"
+preferred_terrain = "LAVA"
+card_type = 0
+id = "00012"
+name = "Flame Fae"
+description = ""
+art = ExtResource("1_cib0h")
+cost = 1
+atk = 26
+def = 15
+hp = 0
+model_path = "res://Cards/Models/FLAME_FAE_MODEL.tscn"
+death_sound = ExtResource("1_2va8d")
+fusion_materials = Array[String]([])
+attack_moves = Array[String]([])
+metadata/_custom_type_script = "uid://57up1u0etcmc"

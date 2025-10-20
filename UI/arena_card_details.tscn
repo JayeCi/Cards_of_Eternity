@@ -108,7 +108,7 @@ theme_override_constants/margin_bottom = 3
 z_index = 1
 layout_mode = 2
 size_flags_horizontal = 8
-size_flags_vertical = 0
+size_flags_vertical = 8
 text = "Stone"
 label_settings = ExtResource("2_lmswf")
 
@@ -133,9 +133,10 @@ layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="NameLabel" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 35)
 layout_mode = 2
-text = "Name"
 label_settings = SubResource("LabelSettings_2w83o")
+text_overrun_behavior = 3
 
 [node name="Rarity" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
 layout_mode = 2

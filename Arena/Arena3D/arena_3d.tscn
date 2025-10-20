@@ -62,6 +62,10 @@ script = ExtResource("5_2nnof")
 
 [node name="UISystem" parent="." instance=ExtResource("2_opwpc")]
 
+[node name="VBoxContainer" parent="UISystem/SummonMode" index="1"]
+offset_right = 96.0
+offset_bottom = 96.0
+
 [node name="BattleUI" parent="UISystem" instance=ExtResource("10_2nnof")]
 visible = false
 layout_mode = 1
