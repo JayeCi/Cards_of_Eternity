@@ -173,6 +173,11 @@ func _pick_weighted(weights: Dictionary) -> String:
 			return key
 	return weights.keys()[0]
 
+func is_in_bounds(pos: Vector2i) -> bool:
+	if not core:
+		return false
+	return pos.x >= 0 and pos.y >= 0 and pos.x < core.BOARD_W and pos.y < core.BOARD_H
+
 func _seed_cluster(map: Array, terrain: String, base_terrain: String) -> void:
 	var h = map.size()
 	var w = map[0].size()

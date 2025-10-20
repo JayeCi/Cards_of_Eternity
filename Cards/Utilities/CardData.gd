@@ -4,6 +4,7 @@ class_name CardData
 @export_enum("Beast", "Demon", "Machine", "Elemental", "Spirit", "Flying") var type = "Beast"
 @export_enum("Common", "Rare", "Epic", "Legendary") var rarity := "Common"  # String
 @export_enum("Fire", "Water", "Earth", "Wind", "Neutral") var element: String = "Neutral"
+@export_enum("WATER", "LAVA", "FOREST", "GRASS", "STONE", "ICE") var preferred_terrain: String  = "GRASS"
 
 enum CardType { MONSTER, SPELL, EVENT }
 
@@ -18,6 +19,7 @@ enum CardType { MONSTER, SPELL, EVENT }
 @export var hp: int = 0
 @export var ability: CardAbility
 @export var model_path: String = ""
+
 
 @export var place_sound: AudioStream
 @export var attack_sound: AudioStream

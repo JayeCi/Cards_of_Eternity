@@ -462,7 +462,8 @@ func normalize_model(model: Node3D, target_height := 1.0):
 	var scale_factor = target_height / current_height
 	model.scale = Vector3.ONE * scale_factor
 
-func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
+func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false) -> void:
+
 	# 🚫 Prevent re-entry if already battling or moving
 	if _is_battle_in_progress:
 		return
@@ -478,6 +479,12 @@ func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 	if not attacker:
 		_is_battle_in_progress = false
 		return
+	# 🚫 Prevent player from controlling enemy units unless bypassed (AI)
+	if not bypass_control_check and attacker.owner != core.PLAYER:
+		core._log("🚫 You can’t control enemy cards!", Color(1, 0.5, 0.5))
+		_is_battle_in_progress = false
+		return
+
 
 	# 🚫 Prevent self-targeting
 	if from == to:
@@ -554,6 +561,7 @@ func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 		core.units.erase(from)
 		core.units[to] = attacker
 		core.mark_unit_acted(attacker)
+
 		_is_battle_in_progress = false
 		return
 
@@ -568,12 +576,17 @@ func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 	# ------------------------------------------------------------
 	var defender: UnitData = dst.occupant
 
-	# Flip facedowns before battle
 	if attacker.mode == UnitData.Mode.FACEDOWN:
 		attacker.mode = UnitData.Mode.ATTACK
 		await _flip_faceup(src, attacker.card.art)
+
+		# 🔹 Restore proper stats from card data
+		attacker.current_atk = attacker.card.atk
+		attacker.current_def = attacker.card.def
+		core._apply_terrain_bonus(attacker, src.terrain_type)
+
 		core._log("🔄 %s was revealed in Attack Mode!" % attacker.card.name, Color(1, 1, 0.6))
-		
+
 	# 🔓 Permanently mark attacker as face-up
 	attacker.is_facedown = false
 	attacker.set_meta("is_facedown", false)
@@ -584,12 +597,21 @@ func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 			var m = attacker_tile.get_node("CardModel")
 			if is_instance_valid(m):
 				m.visible = true
-
+				
 	if defender.mode == UnitData.Mode.FACEDOWN:
-		defender.mode = UnitData.Mode.DEFENSE
+		# Determine the reveal mode dynamically
+		var reveal_mode = UnitData.Mode.ATTACK
+
+
+		defender.mode = reveal_mode
 		await _flip_faceup(dst, defender.card.art)
-		core._log("❗ %s was revealed!" % defender.card.name, Color(1, 0.9, 0.7))
-		
+
+		# Restore proper stats and apply bonuses
+		defender.current_atk = defender.card.atk
+		defender.current_def = defender.card.def
+		core._apply_terrain_bonus(defender, dst.terrain_type)
+
+
 	# 🔓 Permanently mark defender as face-up
 	defender.is_facedown = false
 	defender.set_meta("is_facedown", false)
@@ -628,6 +650,35 @@ func _move_or_battle(from: Vector2i, to: Vector2i) -> void:
 
 	var result: String = result_data["result"]
 	var overflow_damage: int = result_data["overflow"]
+	
+	# ------------------------------------------------------------
+	# 🧩 Auto-advance AI attacker into defeated player's tile
+	# ------------------------------------------------------------
+	if attacker.owner == core.ENEMY and result == "attacker_wins":
+		if not dst.occupant and attacker.current_def > 0:
+			dst.set_occupant(attacker)
+			dst.set_art(attacker.card.art, attacker.owner == core.ENEMY)
+			dst.set_badge_text("E")
+
+			# Move 3D model visually
+			if src.has_node("CardModel"):
+				var model = src.get_node("CardModel")
+				if is_instance_valid(model):
+					var world_target = dst.global_position + Vector3(0, 0.5, 0)
+					var tw = create_tween()
+					tw.tween_property(model, "global_position", world_target, 0.25)
+					await tw.finished
+					if model.get_parent() == src:
+						src.remove_child(model)
+					if is_instance_valid(dst):
+						dst.add_child(model)
+						model.position = Vector3(0, 0.5, 0)
+
+			src.clear()
+			core.units.erase(from)
+			core.units[to] = attacker
+			core._log("🤖 Enemy advances into conquered tile (%s → %s)" %
+				[str(from), str(to)], Color(0.8, 0.9, 1.0))
 
 	# 🧩 Apply result as before
 	match result:

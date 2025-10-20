@@ -9,6 +9,7 @@
 [resource]
 script = ExtResource("1_42yog")
 element = "Earth"
+preferred_terrain = "FOREST"
 id = "00001"
 name = "Goblin"
 art = ExtResource("1_c0fva")
