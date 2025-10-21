@@ -22,12 +22,12 @@ const CARD_PATHS := {
 	"GOBLIN":             "res://Cards/Monster Cards/Goblin.tres",
 	"IMP":                "res://Cards/Monster Cards/Imp.tres",
 	"FYSH":               "res://Cards/Monster Cards/Fysh.tres",
-	"NAGA":               "res://Cards/Monster Cards/Naga.tres",
+	"NAGA":               "res://Cards/Monster Cards/Naga of the Pyre.tres",
 	"COLD_SLOTH":         "res://Cards/Monster Cards/Cold_Sloth.tres",
 	"LAVA_HARE":          "res://Cards/Monster Cards/Lava_Hare.tres",
 	"FOREST_FAE":         "res://Cards/Monster Cards/Forest_Fae.tres",
 	"FIREBALL":           "res://Cards/Spell Cards/Fireball.tres",
-	"LYZARD":             "res://Cards/Monster Cards/Lyzard.tres",
+	"LYZARD":             "res://Cards/Monster Cards/Aqua Lyzard.tres",
 	"ERUPTION":           "res://Cards/Spell Cards/Eruption.tres",
 	"DRAKE_OF_EMERALD":   "res://Cards/Monster Cards/Drake of Emerald.tres",
 	"FLAME_FAE":          "res://Cards/Monster Cards/Flame_Fae.tres",
@@ -42,6 +42,12 @@ const CARD_PATHS := {
 	"FUNGOO":             "res://Cards/Monster Cards/Fungoo.tres",
 	"ORB_OF_DARKNESS":    "res://Cards/Spell Cards/Orb_Of_Darkness.tres",
 	"SHADOW_CANDLES":     "res://Cards/Spell Cards/Shadow_Candles.tres",
+	"JESTER_OF_FLAMES":   "res://Cards/Monster Cards/Jester_of_Flames.tres",
+	"VOIDLING_ERO":       "res://Cards/Monster Cards/Voidling_Ero.tres",
+	"MUSHMONK":           "res://Cards/Monster Cards/Mushmonk.tres",
+	
+	
+	
 	#"":                  "res://Cards/Monster Cards/.tres",
 }
 
@@ -172,28 +178,28 @@ func _ready() -> void:
 	CardCollection.add_card(get_card(CARD_PATHS.DIRT))
 	CardCollection.add_card(get_card(CARD_PATHS.COLD_SLOTH))
 	CardCollection.add_card(get_card(CARD_PATHS.FYSH))
-	CardCollection.add_card(get_card(CARD_PATHS.FOREST_FAE))
-	CardCollection.add_card(get_card(CARD_PATHS.IMP))
-	CardCollection.add_card(get_card(CARD_PATHS.LAVA_HARE))
-	CardCollection.add_card(get_card(CARD_PATHS.NAGA))
-	CardCollection.add_card(get_card(CARD_PATHS.FIREBALL))
-	CardCollection.add_card(get_card(CARD_PATHS.LYZARD))
-	CardCollection.add_card(get_card(CARD_PATHS.ERUPTION))
-	CardCollection.add_card(get_card(CARD_PATHS.DRAKE_OF_EMERALD))
-	CardCollection.add_card(get_card(CARD_PATHS.FLAME_FAE))
-	CardCollection.add_card(get_card(CARD_PATHS.AXO_THE_KNIGHT))
-	CardCollection.add_card(get_card(CARD_PATHS.FINN))
-	CardCollection.add_card(get_card(CARD_PATHS.FALCREEP))
-	CardCollection.add_card(get_card(CARD_PATHS.SNAPTRAP))
-	CardCollection.add_card(get_card(CARD_PATHS.MOLTEN_PIG))
-	CardCollection.add_card(get_card(CARD_PATHS.NINJOAD))
-	CardCollection.add_card(get_card(CARD_PATHS.BOOGLES))
-	CardCollection.add_card(get_card(CARD_PATHS.FUNGOO))
-	CardCollection.add_card(get_card(CARD_PATHS.ORB_OF_DARKNESS))
-	CardCollection.add_card(get_card(CARD_PATHS.SHADOW_CANDLES))
-	
-	
-	
+	#CardCollection.add_card(get_card(CARD_PATHS.FOREST_FAE))
+	#CardCollection.add_card(get_card(CARD_PATHS.IMP))
+	#CardCollection.add_card(get_card(CARD_PATHS.LAVA_HARE))
+	#CardCollection.add_card(get_card(CARD_PATHS.NAGA))
+	#CardCollection.add_card(get_card(CARD_PATHS.FIREBALL))
+	#CardCollection.add_card(get_card(CARD_PATHS.LYZARD))
+	#CardCollection.add_card(get_card(CARD_PATHS.ERUPTION))
+	#CardCollection.add_card(get_card(CARD_PATHS.DRAKE_OF_EMERALD))
+	#CardCollection.add_card(get_card(CARD_PATHS.FLAME_FAE))
+	#CardCollection.add_card(get_card(CARD_PATHS.AXO_THE_KNIGHT))
+	#CardCollection.add_card(get_card(CARD_PATHS.FINN))
+	#CardCollection.add_card(get_card(CARD_PATHS.FALCREEP))
+	#CardCollection.add_card(get_card(CARD_PATHS.SNAPTRAP))
+	#CardCollection.add_card(get_card(CARD_PATHS.MOLTEN_PIG))
+	#CardCollection.add_card(get_card(CARD_PATHS.NINJOAD))
+	#CardCollection.add_card(get_card(CARD_PATHS.BOOGLES))
+	#CardCollection.add_card(get_card(CARD_PATHS.FUNGOO))
+	#CardCollection.add_card(get_card(CARD_PATHS.ORB_OF_DARKNESS))
+	#CardCollection.add_card(get_card(CARD_PATHS.SHADOW_CANDLES))
+	#CardCollection.add_card(get_card(CARD_PATHS.JESTER_OF_FLAMES))
+	#CardCollection.add_card(get_card(CARD_PATHS.VOIDLING_ERO))
+	#CardCollection.add_card(get_card(CARD_PATHS.MUSHMONK))
 	
 	
 	if ui_sys.has_node("OrbGrid"):

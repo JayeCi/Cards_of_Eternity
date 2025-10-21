@@ -18,5 +18,6 @@ atk = 2
 def = 25
 ability = ExtResource("1_wxqri")
 model_path = "res://Cards/Models/DIRT_MODEL.tscn"
+model_scale = Vector3(0.4, 0.4, 0.4)
 attack_sound = ExtResource("3_wxqri")
 metadata/_custom_type_script = "uid://57up1u0etcmc"

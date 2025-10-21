@@ -16,4 +16,5 @@ cost = 2
 atk = 10
 def = 20
 model_path = "res://Cards/Models/DRAKE_OF_EMERALD_MODEL.tscn"
+model_scale = Vector3(0.55, 0.55, 0.55)
 metadata/_custom_type_script = "uid://57up1u0etcmc"

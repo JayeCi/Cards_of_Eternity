@@ -151,12 +151,13 @@ func _evaluate_card(card: CardData, pos: Vector2i) -> float:
 
 
 # ---------------------------------------------------------
-# ADVANCE / ATTACK BEHAVIOR
+# ADVANCE / ATTACK BEHAVIOR (Rewritten + "stuck fix")
 # ---------------------------------------------------------
 func _smart_move_and_attack() -> void:
 	var player_leader_pos = battle.get_leader_pos(core.PLAYER)
 	var movable: Array[Vector2i] = []
 
+	# Gather all ready enemy units (excluding leader)
 	for pos in core.units.keys():
 		var u = core.units[pos]
 		if u.owner == core.ENEMY and not u.is_leader and core.can_unit_act(u):
@@ -164,28 +165,84 @@ func _smart_move_and_attack() -> void:
 	if movable.is_empty():
 		return
 
-	# Sort most powerful first
+	# Sort strongest ATK first (aggression bias)
 	movable.sort_custom(func(a, b):
 		return core.units[b].current_atk > core.units[a].current_atk
 	)
 
+	# Loop through every movable enemy
 	for from in movable:
 		var unit: UnitData = core.units[from]
-		var tile = core.board.get_tile(from.x, from.y)
+		if not unit:
+			continue
 
-		# If near weak target — attack
+		# 1️⃣ Try to attack something in range
 		if await _find_and_attack_target(from):
-			return
+			continue
 
-		# If low DEF, retreat slightly
+		# 2️⃣ Try to move toward a reachable attack position
+		var near_target := await _find_attack_position(from)
+		if near_target != from:
+			await battle._move_or_battle(from, near_target, true)
+			# Try again to attack after moving
+			await _find_and_attack_target(near_target)
+			continue
+
+		# 3️⃣ If weak → retreat slightly
 		if unit.current_def < unit.max_def * CAUTION:
 			await _tactical_retreat(from)
-			return
+			continue
 
-		# Otherwise advance
+		# 4️⃣ Otherwise, advance toward the player leader
+		var before := from
 		await _advance_toward_player(from, player_leader_pos)
-		return
+		
+		# 🧩 Check if still stuck in same place after advance attempt
+		var now := _find_unit_position(unit)
+		if now == before:
+			core._log("🧩 %s is trapped — evaluating sacrifice..." % unit.card.name, Color(1, 0.6, 0.6))
+			await _sacrifice_weakest_adjacent(from)
 
+	# ✅ After loop, small pause before ending turn
+	await get_tree().create_timer(0.4).timeout
+
+
+# 🧩 NEW HELPER: sacrifice weakest adjacent ally to clear space
+func _sacrifice_weakest_adjacent(from: Vector2i) -> void:
+	var weakest = null
+	var weakest_pos := Vector2i(-1, -1)
+	var lowest_score := INF
+
+	for dx in range(-1, 2):
+		for dy in range(-1, 2):
+			if abs(dx) + abs(dy) != 1:
+				continue
+			var pos := from + Vector2i(dx, dy)
+			if not core.board.is_in_bounds(pos):
+				continue
+			var tile = core.board.get_tile(pos.x, pos.y)
+			if tile and tile.occupant and tile.occupant.owner == core.ENEMY and not tile.occupant.is_leader:
+				var score = tile.occupant.current_def + tile.occupant.current_atk
+				if score < lowest_score:
+					lowest_score = score
+					weakest = tile.occupant
+					weakest_pos = pos
+
+	if weakest and weakest_pos != Vector2i(-1, -1):
+		core._log("💀 %s sacrifices %s to make room!" %
+			[core.units[from].card.name, weakest.card.name], Color(1, 0.5, 0.5))
+		await battle._kill_unit(weakest)
+	else:
+		core._log("⚠️ No valid ally to sacrifice near %s." %
+			core.units[from].card.name, Color(1, 0.7, 0.4))
+
+
+# 🧩 Tiny helper to find the latest position of a unit
+func _find_unit_position(u: UnitData) -> Vector2i:
+	for pos in core.units.keys():
+		if core.units[pos] == u:
+			return pos
+	return Vector2i(-1, -1)
 
 func _find_and_attack_target(from: Vector2i) -> bool:
 	var range := ATTACK_RADIUS
@@ -193,28 +250,78 @@ func _find_and_attack_target(from: Vector2i) -> bool:
 	if attacker == null:
 		return false
 
+	var best_target = null
+	var best_score := -INF
+
 	for dx in range(-range, range + 1):
 		for dy in range(-range, range + 1):
 			var dist = abs(dx) + abs(dy)
 			if dist == 0 or dist > range:
 				continue
 
-			var target = from + Vector2i(dx, dy)
+			var target := from + Vector2i(dx, dy)
 			if not core.board.is_in_bounds(target):
 				continue
 
-			var t = core.board.get_tile(target.x, target.y)
+			var t := core.board.get_tile(target.x, target.y)
 			if not t or not t.occupant:
 				continue
+			if t.occupant.owner != core.PLAYER:
+				continue
 
-			# ✅ Only attack PLAYER-owned units
-			if t.occupant.owner == core.PLAYER:
-				var name_att = attacker.card.name if attacker and attacker.card else "Unknown"
-				var name_def = t.occupant.card.name if t.occupant and t.occupant.card else "Unknown"
-				core._log("⚔ %s attacks %s!" % [name_att, name_def], Color(1, 0.7, 0.7))
-				await battle._move_or_battle(from, target, true)
-				return true
+			# --- Score: prefers low DEF enemies and closer distance ---
+			var score = (10.0 - float(t.occupant.current_def)) - dist
+			if t.occupant.is_leader:
+				score += 8.0 # prioritize direct damage opportunity
+			if score > best_score:
+				best_score = score
+				best_target = target
+
+	if best_target:
+		var name_att = attacker.card.name if attacker.card else "Unknown"
+		var name_def = core.units[best_target].card.name if core.units.has(best_target) else "Unknown"
+		core._log("⚔ %s attacks %s!" % [name_att, name_def], Color(1, 0.7, 0.7))
+		await battle._move_or_battle(from, best_target, true)
+		return true
+
 	return false
+
+func _find_attack_position(from: Vector2i) -> Vector2i:
+	var attacker = core.units.get(from, null)
+	if not attacker:
+		return from
+
+	var closest_enemy = null
+	var closest_dist := INF
+
+	for pos in core.units.keys():
+		var u = core.units[pos]
+		if u.owner == core.PLAYER:
+			var d = from.distance_to(pos)
+			if d < closest_dist:
+				closest_dist = d
+				closest_enemy = pos
+
+	if not closest_enemy:
+		return from
+
+	# Move closer one tile toward enemy
+	var best := from
+	var best_dist := from.distance_to(closest_enemy)
+	for dx in range(-1, 2):
+		for dy in range(-1, 2):
+			if abs(dx) + abs(dy) != 1:
+				continue
+			var step := from + Vector2i(dx, dy)
+			if not core.board.is_in_bounds(step):
+				continue
+			var tile = core.board.get_tile(step.x, step.y)
+			if tile and tile.occupant == null:
+				var new_dist := step.distance_to(closest_enemy)
+				if new_dist < best_dist:
+					best = step
+					best_dist = new_dist
+	return best
 
 func _advance_toward_player(from: Vector2i, goal: Vector2i) -> void:
 	var range := core.BASE_MOVE_RANGE

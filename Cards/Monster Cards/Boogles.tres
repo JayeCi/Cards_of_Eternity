@@ -17,4 +17,5 @@ art = ExtResource("1_vmarj")
 atk = 5
 def = 5
 model_path = "res://Cards/Models/BOOGLES_MODEL.tscn"
+model_scale = Vector3(0.4, 0.4, 0.4)
 metadata/_custom_type_script = "uid://57up1u0etcmc"

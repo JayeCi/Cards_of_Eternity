@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://creh2y0d3xax5"]
+
+[ext_resource type="Texture2D" uid="uid://debvkrhcid66e" path="res://Images/Mushmonk.jpeg" id="1_1qbt4"]
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_ho6ha"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_1qbt4"]
+
+[resource]
+script = ExtResource("2_1qbt4")
+element = "Earth"
+id = "00023"
+name = "Mushmonk"
+art = ExtResource("1_1qbt4")
+atk = 10
+def = 10
+model_path = "res://Cards/Models/MUSHMONK_MODEL.tscn"
+model_scale = Vector3(0.5, 0.5, 0.5)
+metadata/_custom_type_script = "uid://57up1u0etcmc"

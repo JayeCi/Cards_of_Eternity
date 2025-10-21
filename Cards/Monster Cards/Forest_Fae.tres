@@ -19,6 +19,7 @@ cost = 2
 atk = 25
 def = 25
 model_path = "res://Cards/Models/FOREST_FAE_MODEL.tscn"
+model_scale = Vector3(0.7, 0.7, 0.7)
 place_sound = ExtResource("3_heqfc")
 attack_sound = ExtResource("2_kr0ab")
 metadata/_custom_type_script = "uid://57up1u0etcmc"

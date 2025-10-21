@@ -19,6 +19,7 @@ atk = 18
 def = 22
 ability = ExtResource("1_a4v32")
 model_path = "res://Cards/Models/COLD_SLOTH_MODEL.tscn"
+model_scale = Vector3(0.4, 0.4, 0.4)
 place_sound = ExtResource("3_lpr3s")
 attack_sound = ExtResource("3_lpr3s")
 metadata/_custom_type_script = "uid://57up1u0etcmc"

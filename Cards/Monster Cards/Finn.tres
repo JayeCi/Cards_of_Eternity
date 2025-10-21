@@ -17,4 +17,5 @@ cost = 2
 atk = 16
 def = 11
 model_path = "res://Cards/Models/FINN_MODEL.tscn"
+model_scale = Vector3(0.75, 0.75, 0.75)
 metadata/_custom_type_script = "uid://57up1u0etcmc"

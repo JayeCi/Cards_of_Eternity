@@ -17,6 +17,7 @@ art = ExtResource("1_c0fva")
 atk = 12
 def = 15
 model_path = "res://Cards/Models/GOBLIN_MODEL.tscn"
+model_scale = Vector3(0.52, 0.52, 0.52)
 place_sound = ExtResource("4_mn8vs")
 attack_sound = ExtResource("2_8mx0u")
 metadata/_custom_type_script = "uid://57up1u0etcmc"

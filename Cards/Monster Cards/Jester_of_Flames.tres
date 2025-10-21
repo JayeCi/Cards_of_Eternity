@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://dfig2wcoxt3fu"]
+
+[ext_resource type="Texture2D" uid="uid://b03jwbojyba53" path="res://Images/Jester of Flames.jpeg" id="1_ssdyc"]
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_vhoyp"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_ssdyc"]
+
+[resource]
+script = ExtResource("2_ssdyc")
+types = Array[String](["Demon"])
+rarity = "epic"
+element = "Fire"
+preferred_terrain = "LAVA"
+id = "00021"
+name = "Jester of Flames"
+art = ExtResource("1_ssdyc")
+atk = 22
+def = 20
+model_path = "res://Cards/Models/JESTER_OF_FLAMES_MODEL.tscn"
+model_scale = Vector3(0.75, 0.75, 0.75)
+metadata/_custom_type_script = "uid://57up1u0etcmc"

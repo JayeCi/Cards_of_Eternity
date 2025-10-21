@@ -32,6 +32,8 @@ enum CardType { MONSTER, SPELL, EVENT }
 @export var hp: int = 0
 @export var ability: CardAbility
 @export var model_path: String = ""
+@export var model_scale: Vector3 = Vector3(.5, .5, .5)
+@export var model_position: Vector3 = Vector3(0, 0, 0)
 
 # --- AUDIO ---
 @export var place_sound: AudioStream

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://baicwkb3hlfm2"]
+
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_r4vwo"]
+[ext_resource type="Texture2D" uid="uid://dw1w13ficgn8e" path="res://Images/Voidling Ero.png" id="1_ywx1r"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_ywx1r"]
+
+[resource]
+script = ExtResource("2_ywx1r")
+types = Array[String](["Demon", "Elemental"])
+rarity = "uncommon"
+element = "Fire"
+preferred_terrain = "LAVA"
+id = "00022"
+name = "Voidling Ero"
+art = ExtResource("1_ywx1r")
+cost = 2
+atk = 12
+def = 8
+model_path = "res://Cards/Models/VOIDLING_ERO_MODEL.tscn"
+model_scale = Vector3(0.5, 0.5, 0.5)
+metadata/_custom_type_script = "uid://57up1u0etcmc"

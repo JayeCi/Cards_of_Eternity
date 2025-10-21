@@ -329,6 +329,7 @@ func set_move_highlight_tint(color: Color) -> void:
 	
 func set_core(core_ref: ArenaCore) -> void:
 	core = core_ref
+	
 # 🆕 HOVER BEHAVIOR ---
 func _on_mouse_entered() -> void:
 	hover_highlight = true

@@ -19,4 +19,5 @@ atk = 16
 def = 20
 ability = ExtResource("1_5v0h7")
 model_path = "res://Cards/Models/LYZARD_MODEL.tscn"
+model_scale = Vector3(0.4, 0.4, 0.4)
 metadata/_custom_type_script = "uid://57up1u0etcmc"

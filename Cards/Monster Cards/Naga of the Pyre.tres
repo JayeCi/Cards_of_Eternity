@@ -19,6 +19,7 @@ cost = 2
 atk = 17
 def = 19
 model_path = "res://Cards/Models/NAGA_MODEL.tscn"
+model_scale = Vector3(0.4, 0.4, 0.4)
 place_sound = ExtResource("4_1xccu")
 attack_sound = ExtResource("2_saokm")
 metadata/_custom_type_script = "uid://57up1u0etcmc"

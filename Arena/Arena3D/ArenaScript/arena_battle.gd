@@ -2,7 +2,7 @@
 extends Node
 class_name ArenaBattle
 
-const CARD_MODEL_SCALE := Vector3(0.5, 0.5, 0.5)
+#const CARD_MODEL_SCALE := Vector3(0.25, 0.25, 0.25)
 
 var core: ArenaCore
 var board: Node3D
@@ -114,6 +114,12 @@ func _process(_dt: float) -> void:
 		return
 	_update_hover()
 	_update_ghost_position()
+	
+# 🔹 Reapply any accumulated ATK boosts (e.g., BoostAttack)
+func _apply_attack_bonus(unit: UnitData) -> void:
+	if unit and unit.has_meta("boost_attack_bonus"):
+		var bonus = unit.get_meta("boost_attack_bonus")
+		unit.current_atk = unit.card.atk + bonus
 
 # -----------------------------
 # HOVER & HIGHLIGHT
@@ -361,21 +367,25 @@ func _show_move_targets(from: Vector2i) -> void:
 # -----------------------------------
 # 🟩 CARD SPAWNING (uses model_path)
 # -----------------------------------
-func spawn_card_model(card_data: CardData) -> Node3D:
-	if not card_data or card_data.model_path == "":
-		print("No model path assigned for card:", card_data.name)
-		return null
-
-	var model_scene: PackedScene = load(card_data.model_path)
-	if not model_scene:
-		push_warning("⚠️ Could not load model scene at: %s" % card_data.model_path)
-		return null
-
-	var model_instance: Node3D = model_scene.instantiate()
-	model_instance.name = "CardModel"
-	model_instance.position = Vector3(0, 0.5, 0)
-	model_instance.scale = CARD_MODEL_SCALE
-	return model_instance
+#func spawn_card_model(card_data: CardData) -> Node3D:
+	#if not card_data or card_data.model_path == "":
+		#print("No model path assigned for card:", card_data.name)
+		#return null
+#
+	#var model_scene: PackedScene = load(card_data.model_path)
+	#if not model_scene:
+		#push_warning("⚠️ Could not load model scene at: %s" % card_data.model_path)
+		#return null
+#
+	#var model_instance: Node3D = model_scene.instantiate()
+	#model_instance.name = "CardModel"
+	#model_instance.position = Vector3(0, 0.5, 0)
+#
+	## 🟢 Use model's own scale from its scene — do not override here
+	## (optional: if you want to apply a small global tweak, multiply)
+	## model_instance.scale *= Vector3(1, 1, 1)  # fine-tune globally if ever needed
+#
+	#return model_instance
 
 # -----------------------------
 # PLACE / MOVE / BATTLE
@@ -418,15 +428,24 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, is_player:
 		if model_scene:
 			var model_instance: Node3D = model_scene.instantiate()
 			model_instance.name = "CardModel"
-			model_instance.scale = core.CARD_MODEL_SCALE
-			model_instance.position = Vector3(0, 0.1, 0)
+			if card.model_position != Vector3(0 , 0 , 0):
+				model_instance.position = card.model_position
+				
+			if card.model_scale != Vector3(.5, .5, .5):
+				model_instance.scale = card.model_scale
+
 			tile.add_child(model_instance)
 			unit.set_meta("model_instance", model_instance)
 			if owner == core.ENEMY:
 				model_instance.rotate_y(deg_to_rad(180))
-			
-			# Hide the model for facedown cards
-			model_instance.visible = not is_facedown
+						
+			# ✅ Proper visibility logic for player/enemy placement
+			if is_facedown:
+				model_instance.visible = false
+			else:
+				# Only show player cards face-up immediately
+				model_instance.visible 
+
 
 	# --- Show badge for mode ---
 	match mode:
@@ -528,7 +547,11 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		core._apply_terrain_bonus(attacker, dst.terrain_type)
 
 		if model and is_instance_valid(model) and not model.is_queued_for_deletion():
-			var world_target = dst.global_position + Vector3(0, 0.5, 0)
+			var offset = Vector3(0, 0.1, 0)
+			if attacker.card and attacker.card.model_position != Vector3.ZERO:
+				offset = attacker.card.model_position
+			var world_target = dst.global_position + offset
+
 			var tw = create_tween()
 			tw.tween_property(model, "global_position", world_target, 0.25)
 			await tw.finished
@@ -541,7 +564,7 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 				# Double-check it's not freed before re-adding
 				if not model.is_queued_for_deletion():
 					dst.add_child(model)
-					model.position = Vector3(0, 0.5, 0)
+					model.position = Vector3(0, 0.1, 0)
 			
 		if attacker.has_meta("pending_ability"):
 			var ab = attacker.get_meta("pending_ability")
@@ -664,7 +687,11 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 			if src.has_node("CardModel"):
 				var model = src.get_node("CardModel")
 				if is_instance_valid(model):
-					var world_target = dst.global_position + Vector3(0, 0.5, 0)
+					var offset = Vector3(0, 0.1, 0)
+					if attacker.card and attacker.card.model_position != Vector3.ZERO:
+						offset = attacker.card.model_position
+					var world_target = dst.global_position + offset
+
 					var tw = create_tween()
 					tw.tween_property(model, "global_position", world_target, 0.25)
 					await tw.finished
@@ -672,7 +699,7 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 						src.remove_child(model)
 					if is_instance_valid(dst):
 						dst.add_child(model)
-						model.position = Vector3(0, 0.5, 0)
+						model.position = Vector3(0, 0.1, 0)
 
 			src.clear()
 			core.units.erase(from)
@@ -694,7 +721,11 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 				if src.has_node("CardModel"):
 					var model = src.get_node("CardModel")
 					if is_instance_valid(model):
-						var world_target = dst.global_position + Vector3(0, 0.5, 0)
+						var offset = Vector3(0, 0.1, 0)
+						if attacker.card and attacker.card.model_position != Vector3.ZERO:
+							offset = attacker.card.model_position
+						var world_target = dst.global_position + offset
+
 						var tw = create_tween()
 						tw.tween_property(model, "global_position", world_target, 0.25)
 						await tw.finished
@@ -1080,6 +1111,9 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 
 	# --- ATTACK PHASE ---
 	battle_ui.refresh_stats(att, defn)
+	_apply_attack_bonus(att)
+	_apply_attack_bonus(defn)
+
 	await battle_ui.play_attack_phase(att, defn, damage_to_def)
 
 	# Apply attack damage
@@ -1099,8 +1133,14 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 	battle_ui.refresh_stats(att, defn)
 	await battle_ui.play_counter_phase(defn, att, damage_to_att)
 
+	# Apply counter damage
 	att.current_def = max(att.current_def - damage_to_att, 0)
 	battle_ui.refresh_stats(att, defn)
+
+	# 🟣 NEW: Trigger on_attack for defender during counterattacks
+	if damage_to_att > 0 and defn.current_def > 0:
+		_trigger_ability(defn, "on_attack")
+		battle_ui.refresh_stats(att, defn)
 
 	await get_tree().create_timer(0.25).timeout
 	await get_tree().process_frame
@@ -1295,11 +1335,18 @@ func _flip_faceup(tile: Node3D, new_texture: Texture2D):
 	var tw = create_tween()
 	tw.tween_property(mesh, "rotation_degrees:y", 90, 0.15)
 	await tw.finished
+
 	tile.set_art(new_texture, tile.occupant.owner == core.ENEMY)
 
 	tw = create_tween()
 	tw.tween_property(mesh, "rotation_degrees:y", 0, 0.15)
 	await tw.finished
+
+	# ✅ Ensure 3D model becomes visible when flipped face-up
+	if tile.has_node("CardModel"):
+		var model = tile.get_node("CardModel")
+		if is_instance_valid(model):
+			model.visible = true
 
 func _fade(to_alpha: float, dur: float):
 	var rect: ColorRect = core.get_node("UISystem/FadeRect")
