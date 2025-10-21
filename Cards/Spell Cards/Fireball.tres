@@ -7,7 +7,7 @@
 
 [resource]
 script = ExtResource("1_xtjjk")
-types = Array[String]([])
+types = Array[String](["Magic", "Direct"])
 element = "Fire"
 card_type = 1
 id = "00100"

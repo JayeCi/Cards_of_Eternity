@@ -6,7 +6,7 @@
 
 [resource]
 script = ExtResource("2_paeep")
-types = Array[String]([])
+types = Array[String](["Magic"])
 card_type = 1
 id = "00104"
 name = "Shadow Candles"

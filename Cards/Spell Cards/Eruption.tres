@@ -14,7 +14,7 @@ metadata/_custom_type_script = "uid://d7dl4wk8jcyr"
 
 [resource]
 script = ExtResource("2_l182c")
-types = Array[String]([])
+types = Array[String](["Magic", "Terrain"])
 rarity = "rare"
 element = "Fire"
 card_type = 1

@@ -6,7 +6,7 @@
 
 [resource]
 script = ExtResource("2_xk4v5")
-types = Array[String]([])
+types = Array[String](["Magic"])
 rarity = "rare"
 card_type = 1
 id = "00103"
