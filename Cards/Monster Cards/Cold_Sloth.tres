@@ -8,11 +8,13 @@
 
 [resource]
 script = ExtResource("1_4nhxv")
-rarity = "Epic"
+rarity = "epic"
 element = "Water"
 id = "00008"
 name = "Cold Sloth"
+description = "A glacial beast who moves at the pace of glaciers themselves. Its icy fur and breath freeze all that draws near. Few realize its lethargy hides an ancient patience — and an uncanny resilience against harm."
 art = ExtResource("1_xas3p")
+cost = 2
 atk = 18
 def = 22
 ability = ExtResource("1_a4v32")

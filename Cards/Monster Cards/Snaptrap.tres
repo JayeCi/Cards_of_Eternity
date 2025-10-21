@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://bvrwuto3015ss"]
+
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_6codu"]
+[ext_resource type="Texture2D" uid="uid://dlrigoyd5ugia" path="res://Images/Snaptrap.jpeg" id="1_eqhbn"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_eqhbn"]
+
+[resource]
+script = ExtResource("2_eqhbn")
+types = Array[String](["Beast", "Elemental"])
+rarity = "legendary"
+element = "Earth"
+id = "00017"
+name = "Snaptrap"
+description = "A turtle humanoid whose immense shell serves as both fortress and weapon. When threatened, it slams down with enough force to crack stone. Rumors say its shell holds markings of ancient runes — the remnants of battles long past."
+art = ExtResource("1_eqhbn")
+cost = 3
+atk = 23
+def = 16
+model_path = "res://Cards/Models/SNAPTRAP_MODEL.tscn"
+metadata/_custom_type_script = "uid://57up1u0etcmc"

@@ -6,21 +6,14 @@
 
 [resource]
 script = ExtResource("2_xrivy")
-type = "Beast"
-rarity = "Rare"
+rarity = "rare"
 element = "Water"
 preferred_terrain = "WATER"
-card_type = 0
 id = "00011"
 name = "Axo the Knight"
-description = ""
+description = "Once a curious amphibian, Axo found the path of honor beneath the waves. Trained by forgotten knights who perished in a flood, he now wields their spirit in his blade. Calm, loyal, and noble — yet dangerous when his home is threatened."
 art = ExtResource("1_xrivy")
-cost = 1
 atk = 12
 def = 23
-hp = 0
 model_path = "res://Cards/Models/AXO_THE_KNIGHT_MODEL.tscn"
-death_sound = ExtResource("1_81jul")
-fusion_materials = Array[String]([])
-attack_moves = Array[String]([])
 metadata/_custom_type_script = "uid://57up1u0etcmc"

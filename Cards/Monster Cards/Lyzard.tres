@@ -7,11 +7,12 @@
 
 [resource]
 script = ExtResource("2_1c73e")
-type = "Elemental"
-rarity = "Epic"
+types = Array[String](["Beast", "Elemental"])
+rarity = "epic"
 element = "Water"
 id = "00009"
-name = "Lyzard"
+name = "Aqua Lyzard"
+description = "A predator of coral reefs and flooded caverns, armored in plates of living shell. The Aqua Lyzard’s cold stare can paralyze prey before the strike. Some scholars claim they were once guardians of sunken temples, cursed to wander forever below."
 art = ExtResource("2_5v0h7")
 cost = 2
 atk = 16

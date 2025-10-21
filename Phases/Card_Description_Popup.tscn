@@ -1,0 +1,21 @@
+[gd_scene load_steps=3 format=3 uid="uid://de6gwgsbmpf3y"]
+
+[ext_resource type="PackedScene" uid="uid://cghuuo1jwh48x" path="res://Cards/Utilities/card_zoom.tscn" id="1_ll5ws"]
+[ext_resource type="PackedScene" uid="uid://bnccqdqhcj703" path="res://Cards/Utilities/card_pickup_manager.tscn" id="2_w74pf"]
+
+[node name="CanvasLayer" type="CanvasLayer"]
+
+[node name="FadeRect" type="ColorRect" parent="."]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="CardZoom" parent="." instance=ExtResource("1_ll5ws")]
+visible = false
+mouse_default_cursor_shape = 2
+
+[node name="CardPickupManager" parent="." instance=ExtResource("2_w74pf")]

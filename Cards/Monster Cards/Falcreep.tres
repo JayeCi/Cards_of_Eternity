@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://xrp0akg8ejnj"]
+
+[ext_resource type="Texture2D" uid="uid://db45ilfu71eul" path="res://Images/Falcreep.png" id="1_j6gld"]
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_q1tcp"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_j6gld"]
+
+[resource]
+script = ExtResource("2_j6gld")
+element = "Wind"
+preferred_terrain = "FOREST"
+id = "00015"
+name = "Falcreep"
+description = "A silent assassin born of shadow and feather. Once a noble guardian of the skies, now a harbinger of unseen death. Those who glimpse his silhouette rarely live long enough to confirm they did."
+art = ExtResource("1_j6gld")
+atk = 11
+def = 14
+model_path = "res://Cards/Models/FALCREEP_MODEL.tscn"
+metadata/_custom_type_script = "uid://57up1u0etcmc"

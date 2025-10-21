@@ -21,7 +21,7 @@ const CARD_PATHS := {
 	"DIRT":               "res://Cards/Monster Cards/Dirt.tres",
 	"GOBLIN":             "res://Cards/Monster Cards/Goblin.tres",
 	"IMP":                "res://Cards/Monster Cards/Imp.tres",
-	"FYSH":               "res://Cards/Monster Cards/Fish.tres",
+	"FYSH":               "res://Cards/Monster Cards/Fysh.tres",
 	"NAGA":               "res://Cards/Monster Cards/Naga.tres",
 	"COLD_SLOTH":         "res://Cards/Monster Cards/Cold_Sloth.tres",
 	"LAVA_HARE":          "res://Cards/Monster Cards/Lava_Hare.tres",
@@ -33,6 +33,16 @@ const CARD_PATHS := {
 	"FLAME_FAE":          "res://Cards/Monster Cards/Flame_Fae.tres",
 	"AXO_THE_KNIGHT":     "res://Cards/Monster Cards/Axo The Knight.tres",
 	"STONE_FAE":          "res://Cards/Monster Cards/Stone_Fae.tres",
+	"FINN":               "res://Cards/Monster Cards/Finn.tres",
+	"FALCREEP":           "res://Cards/Monster Cards/Falcreep.tres",
+	"SNAPTRAP":           "res://Cards/Monster Cards/Snaptrap.tres",
+	"MOLTEN_PIG":         "res://Cards/Monster Cards/Molten_Pig.tres",
+	"NINJOAD":            "res://Cards/Monster Cards/Ninjoad.tres",
+	"BOOGLES":            "res://Cards/Monster Cards/Boogles.tres",
+	"FUNGOO":             "res://Cards/Monster Cards/Fungoo.tres",
+	"ORB_OF_DARKNESS":    "res://Cards/Spell Cards/Orb_Of_Darkness.tres",
+	"SHADOW_CANDLES":     "res://Cards/Spell Cards/Shadow_Candles.tres",
+	#"":                  "res://Cards/Monster Cards/.tres",
 }
 
 # -----------------------------
@@ -158,21 +168,33 @@ func _ready() -> void:
 	call_deferred("_deferred_startup")
 	# minimal registry of cards (your collection)
 
-	#CardCollection.add_card(get_card(CARD_PATHS.GOBLIN))
-	#CardCollection.add_card(get_card(CARD_PATHS.DIRT))
-	#CardCollection.add_card(get_card(CARD_PATHS.COLD_SLOTH))
-	#CardCollection.add_card(get_card(CARD_PATHS.FYSH))
-	#CardCollection.add_card(get_card(CARD_PATHS.FOREST_FAE))
-	#CardCollection.add_card(get_card(CARD_PATHS.IMP))
-	#CardCollection.add_card(get_card(CARD_PATHS.LAVA_HARE))
-	#CardCollection.add_card(get_card(CARD_PATHS.NAGA))
-	#CardCollection.add_card(get_card(CARD_PATHS.FIREBALL))
-	#CardCollection.add_card(get_card(CARD_PATHS.LYZARD))
-	#CardCollection.add_card(get_card(CARD_PATHS.ERUPTION))
+	CardCollection.add_card(get_card(CARD_PATHS.GOBLIN))
+	CardCollection.add_card(get_card(CARD_PATHS.DIRT))
+	CardCollection.add_card(get_card(CARD_PATHS.COLD_SLOTH))
+	CardCollection.add_card(get_card(CARD_PATHS.FYSH))
+	CardCollection.add_card(get_card(CARD_PATHS.FOREST_FAE))
+	CardCollection.add_card(get_card(CARD_PATHS.IMP))
+	CardCollection.add_card(get_card(CARD_PATHS.LAVA_HARE))
+	CardCollection.add_card(get_card(CARD_PATHS.NAGA))
+	CardCollection.add_card(get_card(CARD_PATHS.FIREBALL))
+	CardCollection.add_card(get_card(CARD_PATHS.LYZARD))
+	CardCollection.add_card(get_card(CARD_PATHS.ERUPTION))
 	CardCollection.add_card(get_card(CARD_PATHS.DRAKE_OF_EMERALD))
 	CardCollection.add_card(get_card(CARD_PATHS.FLAME_FAE))
 	CardCollection.add_card(get_card(CARD_PATHS.AXO_THE_KNIGHT))
-	CardCollection.add_card(get_card(CARD_PATHS.STONE_FAE))
+	CardCollection.add_card(get_card(CARD_PATHS.FINN))
+	CardCollection.add_card(get_card(CARD_PATHS.FALCREEP))
+	CardCollection.add_card(get_card(CARD_PATHS.SNAPTRAP))
+	CardCollection.add_card(get_card(CARD_PATHS.MOLTEN_PIG))
+	CardCollection.add_card(get_card(CARD_PATHS.NINJOAD))
+	CardCollection.add_card(get_card(CARD_PATHS.BOOGLES))
+	CardCollection.add_card(get_card(CARD_PATHS.FUNGOO))
+	CardCollection.add_card(get_card(CARD_PATHS.ORB_OF_DARKNESS))
+	CardCollection.add_card(get_card(CARD_PATHS.SHADOW_CANDLES))
+	
+	
+	
+	
 	
 	if ui_sys.has_node("OrbGrid"):
 		var essence_display = ui_sys.get_node("OrbGrid")

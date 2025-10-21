@@ -18,6 +18,7 @@ class_name ArenaCardDetails
 @onready var atk: Label = $VBoxContainer2/Atk
 @onready var def_label: Label = $VBoxContainer2/DefLabel
 @onready var def: Label = $VBoxContainer2/Def
+@onready var type_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/Type
 
 # --- Data tracking ---
 var card_data: CardData = null
@@ -42,6 +43,29 @@ func set_stat_color_from_bonus(mult: float) -> void:
 		last_bonus_state = "neutral"
 
 # -------------------------------------------------------------
+# RARITY COLORING
+# -------------------------------------------------------------
+func set_rarity_color(rarity: String) -> void:
+	if not rarity_label:
+		return
+
+	var rarity_lower := rarity.to_lower()
+	var color := Color(1, 1, 1) # default
+
+	match rarity_lower:
+		"common": color = Color(0.8, 0.8, 0.8)
+		"uncommon": color = Color(0.5, 1.0, 0.5)
+		"rare": color = Color(0.4, 0.6, 1.0)
+		"epic": color = Color(0.414, 0.002, 0.67)
+		"legendary": color = Color(0.626, 0.399, 0.0)
+		"mythic": color = Color(1.0, 0.098, 0.0)
+		_: color = Color(1, 1, 1)
+
+	if rarity_label.label_settings == null:
+		rarity_label.label_settings = LabelSettings.new()
+	rarity_label.label_settings.font_color = color
+
+# -------------------------------------------------------------
 # STATIC CARD PREVIEW (hand hover)
 # -------------------------------------------------------------
 func show_card(card: CardData) -> void:
@@ -57,8 +81,15 @@ func show_card(card: CardData) -> void:
 		art.texture = card.art if card.art else null
 
 	name_label.text = card.name
-	rarity_label.text = "Rarity: %s" % str(card.rarity)
+	rarity_label.text = str(card.rarity)
+	set_rarity_color(str(card.rarity))
 	cost_label.text = "Cost: %d" % int(card.cost)
+
+	# ✅ Show multiple types cleanly
+	if card.types and card.types.size() > 0:
+		type_label.text = " / ".join(card.types)
+	else:
+		type_label.text = "—"
 
 	atk.text = str(card.atk) if "atk" in card else "—"
 	def.text = str(card.def) if "def" in card else "—"
@@ -66,6 +97,7 @@ func show_card(card: CardData) -> void:
 	atk_label.visible = true
 	def_label.visible = true
 
+	# --- Abilities ---
 	if card.ability and "display_name" in card.ability:
 		abilities_name.text = str(card.ability.display_name)
 		abilities_desc.text = str(card.ability.description)
@@ -95,16 +127,23 @@ func show_unit(unit: UnitData) -> void:
 		art.texture = card.art if card.art else null
 
 	name_label.text = card.name
-	rarity_label.text = "Rarity: %s" % str(card.rarity)
+	rarity_label.text = str(card.rarity)
+	set_rarity_color(str(card.rarity))
 	cost_label.text = "Cost: %d" % int(card.cost)
 
-	# ✅ Always use live stats
+	# ✅ Show live stats
 	atk.text = str(unit.current_atk)
 	def.text = str(unit.current_def)
 	atk_label.visible = true
 	def_label.visible = true
 
-	# --- Ability info ---
+	# ✅ Multi-type support
+	if card.types and card.types.size() > 0:
+		type_label.text = " / ".join(card.types)
+	else:
+		type_label.text = "—"
+
+	# --- Abilities ---
 	if card.ability and "display_name" in card.ability:
 		abilities_name.text = str(card.ability.display_name)
 		abilities_desc.text = str(card.ability.description)
@@ -135,7 +174,6 @@ func hide_card() -> void:
 func refresh_if_showing(unit: UnitData) -> void:
 	if not visible or not card_data:
 		return
-	# ✅ Always pull latest unit state from ArenaCore if available
 	var arena_core := get_tree().get_root().find_child("ArenaCore", true, false)
 	if arena_core and arena_core.has_method("_get_unit_tile"):
 		for pos in arena_core.units.keys():

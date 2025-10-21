@@ -1,7 +1,7 @@
 extends Node3D
 
 @onready var player = $Player
-@onready var fade_rect: ColorRect = $CanvasLayer/FadeRect
+@onready var fade_rect: ColorRect = $Card_Description_Popup/FadeRect
 @onready var world_env: WorldEnvironment = $WorldEnvironment
 @onready var dir_light: DirectionalLight3D = $DirectionalLight3D
 

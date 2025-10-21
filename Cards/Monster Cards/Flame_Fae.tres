@@ -6,21 +6,16 @@
 
 [resource]
 script = ExtResource("2_cib0h")
-type = "Elemental"
-rarity = "Rare"
+types = Array[String](["Elemental"])
+rarity = "rare"
 element = "Fire"
 preferred_terrain = "LAVA"
-card_type = 0
 id = "00012"
 name = "Flame Fae"
-description = ""
+description = "A spirit of pure fire, eternally dancing at the edge of destruction. Her laughter burns brighter than her rage, and both can consume everything in her path. To see her dance is beauty incarnate — until you realize she’s burning the stage."
 art = ExtResource("1_cib0h")
-cost = 1
+cost = 2
 atk = 26
 def = 15
-hp = 0
 model_path = "res://Cards/Models/FLAME_FAE_MODEL.tscn"
-death_sound = ExtResource("1_2va8d")
-fusion_materials = Array[String]([])
-attack_moves = Array[String]([])
 metadata/_custom_type_script = "uid://57up1u0etcmc"

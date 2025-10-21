@@ -1,17 +1,19 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=5 format=3 uid="uid://bo5wypx5uvg2r"]
+[gd_resource type="Resource" script_class="CardData" load_steps=6 format=3 uid="uid://bo5wypx5uvg2r"]
 
 [ext_resource type="Texture2D" uid="uid://ra8hsar08b5c" path="res://Images/Naga.jpg" id="1_3qc4n"]
 [ext_resource type="AudioStream" uid="uid://cy4wmg11mdyp7" path="res://Audio/Sound FX/Naga/alligatorhiss.mp3" id="2_saokm"]
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="3_3qc4n"]
 [ext_resource type="AudioStream" uid="uid://debvvfktdp07g" path="res://Audio/Sound FX/Naga/snakehiss.mp3" id="4_1xccu"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="5_8p5k8"]
 
 [resource]
 script = ExtResource("5_8p5k8")
-type = "Elemental"
-rarity = "Epic"
+types = Array[String](["Elemental"])
+rarity = "epic"
 element = "Fire"
 id = "00005"
-name = "Naga"
+name = "Naga of the Pyre"
+description = "Wreathed in flame and vengeance, this serpent sorceress commands molten tides as if they were extensions of her own body. Her scales shimmer like burning embers, and her hiss can boil the blood of even the bravest foes."
 art = ExtResource("1_3qc4n")
 cost = 2
 atk = 17

@@ -8,13 +8,14 @@
 
 [resource]
 script = ExtResource("1_t13up")
-type = "Demon"
-rarity = "Rare"
+types = Array[String](["Demon"])
+rarity = "rare"
 element = "Fire"
 id = "00003"
 name = "Imp"
-description = "Scary"
+description = "A mischievous flame-born demon that delights in the suffering of others. It flits about battlefields leaving sparks and cackles in its wake. When cornered, its rage ignites — quite literally."
 art = ExtResource("1_gynxb")
+cost = 2
 atk = 18
 def = 25
 ability = ExtResource("1_ca7id")

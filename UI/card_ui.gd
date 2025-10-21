@@ -5,6 +5,7 @@ extends Control
 @onready var art = $PanelContainer/VBoxContainer/ArtPanel/Art
 @onready var name_label = $PanelContainer/VBoxContainer/NamePlate/NameLabel
 @onready var rarity_label: Label = $PanelContainer/VBoxContainer/RarityPlate/RarityLabel
+@onready var rarity_texture: TextureRect = $PanelContainer/VBoxContainer/ArtPanel/RarityTexture
 @onready var atk: Label = $PanelContainer/VBoxContainer/StatPlate/Panel/AtkContainer/Atk
 @onready var def: Label = $PanelContainer/VBoxContainer/StatPlate/Panel/DefContainer/Def
 @onready var cost_label: Label = $PanelContainer/VBoxContainer/CostPlate/CostLabel
@@ -15,13 +16,26 @@ signal request_hide_zoom()
 var is_hovering := false
 var hover_timer: Timer
 
+# 🔹 Preload rarity textures
+const RARITY_TEXTURES := {
+	"common": preload("res://UI/Rarity/common.png"),
+	"uncommon": preload("res://UI/Rarity/uncommon.png"),
+	"rare": preload("res://UI/Rarity/rare.jpg"),
+	"epic": preload("res://UI/Rarity/epic.png"),
+	"legendary": preload("res://UI/Rarity/legendary.png"),
+	"mythic": preload("res://UI/Rarity/mythic.png"),
+}
+
 func _ready():
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	set_focus_mode(Control.FOCUS_NONE)
 	connect_mouse_signals()
 	_disable_child_mouse_filters(self)
-	await get_tree().process_frame
 
+	# ✅ Make all labels have their own unique LabelSettings
+	_make_unique_label_settings(self)
+
+	await get_tree().process_frame
 	if card_data:
 		refresh()
 
@@ -31,6 +45,19 @@ func _ready():
 	add_child(hover_timer)
 
 	print("[CardUI] Ready:", card_data.name if card_data else "No data")
+
+
+# -------------------------------
+# Utility: Recursively clone LabelSettings for each Label
+# -------------------------------
+func _make_unique_label_settings(node: Node) -> void:
+	for child in node.get_children():
+		if child is Label:
+			if child.label_settings:
+				child.label_settings = child.label_settings.duplicate() # deep copy
+			else:
+				child.label_settings = LabelSettings.new()
+		_make_unique_label_settings(child) # recurse through children
 
 
 # -------------------------------
@@ -63,9 +90,6 @@ func _on_mouse_exit():
 	is_hovering = false
 	emit_signal("request_hide_zoom")
 
-# -------------------------------
-# Hover signals (backup, not used by default)
-# -------------------------------
 
 # -------------------------------
 # Mouse filter safety
@@ -88,6 +112,7 @@ func refresh():
 		if atk: atk.text = ""
 		if def: def.text = ""
 		if rarity_label: rarity_label.text = ""
+		if rarity_texture: rarity_texture.texture = null
 		if cost_label: cost_label.visible = false
 		return
 
@@ -97,17 +122,43 @@ func refresh():
 	if atk: atk.text = str(card_data.atk)
 	if def: def.text = str(card_data.def)
 
+	# --- Rarity Text + Color + Outline ---
 	if rarity_label:
-		var rarity_text = card_data.rarity if card_data.rarity != "" else "Common"
+		var rarity_text := card_data.rarity if card_data.rarity != "" else "common"
+		var rarity_lower := rarity_text.to_lower()
 		rarity_label.text = rarity_text.capitalize()
-		match rarity_text.to_lower():
-			"common": rarity_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
-			"uncommon": rarity_label.add_theme_color_override("font_color", Color(0.5, 1.0, 0.5))
-			"rare": rarity_label.add_theme_color_override("font_color", Color(0.4, 0.6, 1.0))
-			"epic": rarity_label.add_theme_color_override("font_color", Color(0.7, 0.4, 1.0))
-			"legendary": rarity_label.add_theme_color_override("font_color", Color(1.0, 0.7, 0.3))
-			_: rarity_label.add_theme_color_override("font_color", Color.WHITE)
 
+		var rarity_color := Color(1, 1, 1)
+		match rarity_lower:
+			"common":
+				rarity_color = Color(0.8, 0.8, 0.8)
+			"uncommon":
+				rarity_color = Color(0.5, 1.0, 0.5)
+			"rare":
+				rarity_color = Color(0.0, 0.259, 0.822)
+			"epic":
+				rarity_color = Color(0.376, 0.001, 0.611)
+			"legendary":
+				rarity_color = Color(0.909, 0.292, 0.0)
+			"mythic":
+				rarity_color = Color(1.0, 0.102, 0.0)
+
+		# LabelSettings are now unique per instance, safe to modify
+		rarity_label.label_settings.font_color = rarity_color
+		rarity_label.label_settings.outline_color = rarity_color
+		rarity_label.label_settings.outline_size = 2
+
+	# --- Rarity Texture ---
+	if rarity_texture:
+		var rarity_key := (card_data.rarity if card_data.rarity != "" else "common").to_lower()
+		if RARITY_TEXTURES.has(rarity_key):
+			rarity_texture.texture = RARITY_TEXTURES[rarity_key]
+			rarity_texture.visible = true
+		else:
+			rarity_texture.texture = null
+			rarity_texture.visible = false
+
+	# --- Cost Display ---
 	if cost_label:
 		if card_data.cost > 0:
 			cost_label.text = str(card_data.cost)

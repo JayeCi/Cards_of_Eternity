@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://bfwj21trvei3d"]
+
+[ext_resource type="Texture2D" uid="uid://8u0mlvrwv33w" path="res://Images/Finn.png" id="1_4xtq6"]
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_ep7vq"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_4xtq6"]
+
+[resource]
+script = ExtResource("2_4xtq6")
+rarity = "rare"
+element = "Water"
+preferred_terrain = "WATER"
+id = "00014"
+name = "Finn"
+description = "A cursed sailor whose body fused with the spirit of a shark after a deal gone wrong. With a hook for a hand and eyes like the deep sea, he stalks the shores in search of redemption—or vengeance. The tides whisper his name before a storm."
+art = ExtResource("1_4xtq6")
+cost = 2
+atk = 16
+def = 11
+model_path = "res://Cards/Models/FINN_MODEL.tscn"
+metadata/_custom_type_script = "uid://57up1u0etcmc"

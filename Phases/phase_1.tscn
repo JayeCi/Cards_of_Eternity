@@ -1,11 +1,10 @@
-[gd_scene load_steps=29 format=4 uid="uid://b0mrl7osoahqg"]
+[gd_scene load_steps=28 format=4 uid="uid://b0mrl7osoahqg"]
 
 [ext_resource type="PackedScene" uid="uid://8eemhx56fscd" path="res://player.tscn" id="1_1bd20"]
 [ext_resource type="Script" uid="uid://bs3prbmyy3oly" path="res://Phases/main.gd" id="1_4sm75"]
 [ext_resource type="PackedScene" uid="uid://dlnjhpppr6qcv" path="res://UI/dialogue_ui.tscn" id="3_acgs7"]
-[ext_resource type="PackedScene" uid="uid://cghuuo1jwh48x" path="res://Cards/Utilities/card_zoom.tscn" id="3_t46xj"]
-[ext_resource type="PackedScene" uid="uid://bnccqdqhcj703" path="res://Cards/Utilities/card_pickup_manager.tscn" id="4_fq317"]
 [ext_resource type="PackedScene" uid="uid://b2qv0ufs44ptf" path="res://UI/collection_ui.tscn" id="5_23s55"]
+[ext_resource type="PackedScene" uid="uid://de6gwgsbmpf3y" path="res://Phases/Card_Description_Popup.tscn" id="5_548ak"]
 [ext_resource type="PackedScene" uid="uid://248w4cb8r0x5" path="res://Downloaded/Decor/Ceiling Light.tscn" id="6_4sm75"]
 [ext_resource type="PackedScene" uid="uid://4ftlpnnxlo53" path="res://Cards/Utilities/cardpickup.tscn" id="6_it1pc"]
 [ext_resource type="PackedScene" uid="uid://uynryurxtnt5" path="res://Downloaded/Decor/Cable Long.glb" id="7_t46xj"]
@@ -81,23 +80,9 @@ mouse_filter = 2
 
 [node name="CollectionUI" parent="." instance=ExtResource("5_23s55")]
 visible = false
+z_index = 6
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
-
-[node name="FadeRect" type="ColorRect" parent="CanvasLayer"]
-visible = false
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="CardZoom" parent="CanvasLayer" instance=ExtResource("3_t46xj")]
-visible = false
-mouse_default_cursor_shape = 2
-
-[node name="CardPickupManager" parent="CanvasLayer" instance=ExtResource("4_fq317")]
+[node name="Card_Description_Popup" parent="." instance=ExtResource("5_548ak")]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_5k7ak")
@@ -438,21 +423,99 @@ transform = Transform3D(-0.230474, 0, 0.973078, 0, 1, 0, -0.973078, 0, -0.230474
 
 [node name="Card" parent="." instance=ExtResource("6_it1pc")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.7662, -0.465663, 6.70107)
+popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
 
 [node name="Card2" parent="." instance=ExtResource("6_it1pc")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.76711, -0.465662, 7.62307)
+popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
 
 [node name="Card3" parent="." instance=ExtResource("6_it1pc")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.764417, -0.465663, 6.70107)
+popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
 
 [node name="Card4" parent="." instance=ExtResource("6_it1pc")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.765328, -0.465662, 7.62307)
+popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
 
 [node name="Card5" parent="." instance=ExtResource("6_it1pc")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.108469, -0.465663, 6.70107)
+popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
 
 [node name="Card6" parent="." instance=ExtResource("6_it1pc")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.107558, -0.465662, 7.62307)
+popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
+
+[node name="Card7" parent="." instance=ExtResource("6_it1pc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.7662, -0.465663, 4.70107)
+popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
+
+[node name="Card8" parent="." instance=ExtResource("6_it1pc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.76711, -0.465662, 5.62307)
+popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
+
+[node name="Card9" parent="." instance=ExtResource("6_it1pc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.764417, -0.465663, 4.70107)
+popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
+
+[node name="Card10" parent="." instance=ExtResource("6_it1pc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.765328, -0.465662, 5.62307)
+popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
+
+[node name="Card11" parent="." instance=ExtResource("6_it1pc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.108469, -0.465663, 4.70107)
+popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
+
+[node name="Card12" parent="." instance=ExtResource("6_it1pc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.107558, -0.465662, 5.62307)
+popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
+
+[node name="Card13" parent="." instance=ExtResource("6_it1pc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.23380005, -0.465663, 9.70107)
+popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
+
+[node name="Card14" parent="." instance=ExtResource("6_it1pc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.23289001, -0.465662, 10.62307)
+popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
+
+[node name="Card15" parent="." instance=ExtResource("6_it1pc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2355831, -0.465663, 9.70107)
+popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
+
+[node name="Card16" parent="." instance=ExtResource("6_it1pc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2346721, -0.465662, 10.62307)
+popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
+
+[node name="Card17" parent="." instance=ExtResource("6_it1pc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.108469, -0.465663, 9.70107)
+popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
+
+[node name="Card18" parent="." instance=ExtResource("6_it1pc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.107558, -0.465662, 10.62307)
+popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
+
+[node name="Card19" parent="." instance=ExtResource("6_it1pc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.23380005, -0.465663, 12.70107)
+popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
+
+[node name="Card20" parent="." instance=ExtResource("6_it1pc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.23289001, -0.465662, 13.62307)
+popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
+
+[node name="Card21" parent="." instance=ExtResource("6_it1pc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2355831, -0.465663, 12.70107)
+popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
+
+[node name="Card22" parent="." instance=ExtResource("6_it1pc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2346721, -0.465662, 13.62307)
+popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
+
+[node name="Card23" parent="." instance=ExtResource("6_it1pc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.108469, -0.465663, 12.70107)
+popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
+
+[node name="Card24" parent="." instance=ExtResource("6_it1pc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.107558, -0.465662, 13.62307)
+popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
 
 [node name="Rat" parent="." instance=ExtResource("12_78xcr")]
 transform = Transform3D(0.0511428, 0, 0, 0, 0.0511428, 0, 0, 0, 0.0511428, 1.33017, 0.150583, 5.55467)
@@ -471,3 +534,4 @@ dialogue_data = ExtResource("18_548ak")
 post_battle_dialogue = ExtResource("19_uikla")
 
 [editable path="CollectionUI"]
+[editable path="Card_Description_Popup"]

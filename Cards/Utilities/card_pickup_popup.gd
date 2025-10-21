@@ -8,29 +8,42 @@ func show_card(card: CardData):
 	if not card:
 		return
 
-	# Basic visuals
+	# --- Basic visuals ---
 	art.texture = card.art
 	name_label.text = card.name
 
-	# Handle rarity (optional property)
+	# --- Handle rarity ---
 	var rarity_text := "Common"
-	var rarity_color := Color.WHITE
-	if "rarity" in card:
-		match card.rarity:
-			"Rare":
+	var rarity_color := Color(0.8, 0.8, 0.8) # default grayish white
+
+	if "rarity" in card and card.rarity != "":
+		match card.rarity.to_lower():
+			"common":
+				rarity_text = "Common"
+				rarity_color = Color(0.8, 0.8, 0.8)
+			"uncommon":
+				rarity_text = "Uncommon"
+				rarity_color = Color(0.5, 1.0, 0.5)
+			"rare":
 				rarity_text = "Rare"
-				rarity_color = Color(0.2, 0.6, 1.0)
-			"Epic":
+				rarity_color = Color(0.001, 0.31, 0.964, 1.0)
+			"epic":
 				rarity_text = "Epic"
-				rarity_color = Color(0.8, 0.2, 1.0)
-			"Legendary":
+				rarity_color = Color(0.305, 0.001, 0.501, 1.0)
+			"legendary":
 				rarity_text = "Legendary"
-				rarity_color = Color(1.0, 0.6, 0.1)
+				rarity_color = Color(0.894, 0.286, 0.0, 1.0)
+			"mythic":
+				rarity_text = "Mythic"
+				rarity_color = Color(1.0, 0.059, 0.0, 1.0)
+			_:
+				rarity_text = card.rarity.capitalize()
+				rarity_color = Color(1, 1, 1)
 
 	rarity_label.text = rarity_text
 	rarity_label.modulate = rarity_color
 
-	# Start animation
+	# --- Appear / fade animation ---
 	modulate.a = 0.0
 	scale = Vector2(0.9, 0.9)
 	show()

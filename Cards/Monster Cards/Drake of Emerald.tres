@@ -1,28 +1,19 @@
 [gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://qypewj4smi1"]
 
 [ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_eckl2"]
+[ext_resource type="Texture2D" uid="uid://6eham6aa75lt" path="res://Images/Drake of Emeralds.png" id="1_kr3mg"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_kr3mg"]
-
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_eckl2"]
-load_path = "res://.godot/imported/Dragon of Emeralds.png-0d4b4cb367eee65d94bee0586921a3c7.ctex"
 
 [resource]
 script = ExtResource("2_kr3mg")
-type = "Beast"
-rarity = "Common"
+types = Array[String](["Beast", "Elemental"])
 element = "Wind"
-preferred_terrain = "GRASS"
-card_type = 0
 id = "00010"
 name = "Drake of Emeralds"
-description = ""
-art = SubResource("CompressedTexture2D_eckl2")
-cost = 1
+description = "A young dragon infused with the life essence of forests and gemstones. Its scales radiate green light that heals the wounded earth beneath its wings. Though not yet ancient, it carries the wisdom of countless springs."
+art = ExtResource("1_kr3mg")
+cost = 2
 atk = 10
 def = 20
-hp = 0
 model_path = "res://Cards/Models/DRAKE_OF_EMERALD_MODEL.tscn"
-death_sound = ExtResource("1_eckl2")
-fusion_materials = Array[String]([])
-attack_moves = Array[String]([])
 metadata/_custom_type_script = "uid://57up1u0etcmc"

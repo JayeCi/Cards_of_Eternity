@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://cghuuo1jwh48x"]
+[gd_scene load_steps=13 format=3 uid="uid://cghuuo1jwh48x"]
 
 [ext_resource type="Script" uid="uid://dl7qvvjxjl01r" path="res://UI/card_zoom.gd" id="1_ekd02"]
 [ext_resource type="Texture2D" uid="uid://3j8dhf7kmeed" path="res://Images/Goblin.jpg" id="2_6vw8o"]
@@ -13,6 +13,17 @@ border_width_top = 8
 border_width_right = 8
 border_width_bottom = 8
 border_blend = true
+
+[sub_resource type="SystemFont" id="SystemFont_8mo6d"]
+font_names = PackedStringArray("Tahoma")
+
+[sub_resource type="LabelSettings" id="LabelSettings_qyawe"]
+font = SubResource("SystemFont_8mo6d")
+font_size = 18
+outline_size = 4
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 3
+shadow_color = Color(0, 0, 0, 0.898039)
 
 [sub_resource type="SystemFont" id="SystemFont_qyawe"]
 font_names = PackedStringArray("Tahoma")
@@ -86,6 +97,14 @@ layout_mode = 2
 size_flags_horizontal = 4
 text = "Description"
 label_settings = ExtResource("2_8mo6d")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Types" type="Label" parent="Panel/DescriptionContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Type"
+label_settings = SubResource("LabelSettings_qyawe")
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -199,6 +218,10 @@ scale = Vector2(0.543983, 0.543983)
 size_flags_vertical = 5
 mouse_filter = 0
 mouse_default_cursor_shape = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8156863)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_constants/shadow_outline_size = 3
 text = "COMMON"
 horizontal_alignment = 1
 
@@ -214,17 +237,16 @@ region_rect = Rect2(276, 482, 70, 13)
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -15.8683
+offset_left = -33.815697
 offset_top = -6.39467
-offset_right = -2.86826
-offset_bottom = 3.60533
+offset_right = 65.26965
+offset_bottom = 10.643175
 grow_horizontal = 2
 grow_vertical = 2
 scale = Vector2(0.395, 0.395)
 size_flags_horizontal = 3
 size_flags_vertical = 1
 mouse_default_cursor_shape = 2
-text = "Test Name"
 label_settings = SubResource("LabelSettings_8mo6d")
 horizontal_alignment = 1
 vertical_alignment = 1

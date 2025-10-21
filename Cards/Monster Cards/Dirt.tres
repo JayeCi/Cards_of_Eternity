@@ -1,15 +1,18 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=5 format=3 uid="uid://jne2skd0eidt"]
+[gd_resource type="Resource" script_class="CardData" load_steps=6 format=3 uid="uid://jne2skd0eidt"]
 
 [ext_resource type="Texture2D" uid="uid://ccsxe205y8lva" path="res://Images/Dirt.jpg" id="1_tltfv"]
 [ext_resource type="Resource" uid="uid://bjw8upbsyg51l" path="res://Cards/Abilities/BoostAttack.tres" id="1_wxqri"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_grnjx"]
 [ext_resource type="AudioStream" uid="uid://csk4glcvetd1o" path="res://Audio/Sound FX/Attack.mp3" id="3_wxqri"]
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="4_kqc7c"]
 
 [resource]
 script = ExtResource("2_grnjx")
+types = Array[String](["Elemental"])
 element = "Earth"
 id = "00002"
 name = "Dirt"
+description = "A being molded from the very earth itself, its body is a shifting mass of stone, mud, and grit. Dirt Elementals are said to awaken wherever the land is scarred or disturbed. Though slow to act, their resolve is as unyielding as bedrock."
 art = ExtResource("1_tltfv")
 atk = 2
 def = 25

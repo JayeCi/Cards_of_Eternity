@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=5 format=3 uid="uid://l8hkcr570yry"]
+
+[ext_resource type="Texture2D" uid="uid://cl0iui7leetm" path="res://Images/Fish.jpg" id="1_e7ins"]
+[ext_resource type="AudioStream" uid="uid://cwwx8gl27ka35" path="res://Audio/Sound FX/Splash.mp3" id="2_o2sn0"]
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="3_1gr2g"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="4_qkb2w"]
+
+[resource]
+script = ExtResource("4_qkb2w")
+element = "Water"
+id = "00004"
+name = "Fysh"
+description = "A swift, elegant spirit of the deep, Fysh darts through water like liquid silver. Legends claim they were once mortals who drowned chasing the horizon. Now, they guide—or mislead—those who wander too far into the mist."
+art = ExtResource("1_e7ins")
+atk = 12
+def = 5
+model_path = "res://Cards/Models/FYSH_MODEL.tscn"
+place_sound = ExtResource("2_o2sn0")
+attack_sound = ExtResource("2_o2sn0")
+metadata/_custom_type_script = "uid://57up1u0etcmc"

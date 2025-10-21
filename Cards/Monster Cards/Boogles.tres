@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://tifqojkddu4i"]
+
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_h2sym"]
+[ext_resource type="Texture2D" uid="uid://cw0wgayhd1ntm" path="res://Images/Boogles.jpeg" id="1_vmarj"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_vmarj"]
+
+[resource]
+script = ExtResource("2_vmarj")
+types = Array[String](["Demon"])
+rarity = "rare"
+element = "Wind"
+preferred_terrain = "STONE"
+id = "00019"
+name = "Boogles"
+description = "A shadow jester who delights in fear as much as laughter. His body bends and twists like smoke, and his jokes have teeth. Those who laugh at him too long may find themselves laughing forever."
+art = ExtResource("1_vmarj")
+atk = 5
+def = 5
+model_path = "res://Cards/Models/BOOGLES_MODEL.tscn"
+metadata/_custom_type_script = "uid://57up1u0etcmc"

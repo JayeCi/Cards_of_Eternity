@@ -3,7 +3,7 @@ extends Control
 @export var card_ui_scene: PackedScene = preload("res://ui/CardUI.tscn")
 
 @onready var grid = $ScrollContainer/MarginContainer/GridContainer
-@onready var zoom: Control = $"../CanvasLayer/CardZoom"
+@onready var zoom: Control = $"../Card_Description_Popup/CardZoom"
 
 
 
@@ -54,7 +54,7 @@ func _add_or_update_card_ui(card: CardData, count: int) -> void:
 		var card_ui: Control = displayed_cards[card.id]
 		var label := _find_count_label(card_ui)
 		if label:
-			label.text = "x" + str(count)
+			label.text = str(count) + "x" 
 		return
 
 	# ✅ Create new entry

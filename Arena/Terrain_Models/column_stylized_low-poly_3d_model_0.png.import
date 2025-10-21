@@ -2,14 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://82xjv0usvgd5"
+uid="uid://dbhr3r5fiutm3"
 path.s3tc="res://.godot/imported/column_stylized_low-poly_3d_model_0.png-2c688edb3736d0b8e58e05a70cf32b8a.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
-}
-generator_parameters={
-"md5": "e0e64b0b9c36cd62ef0039379d79ec19"
 }
 
 [deps]
@@ -31,6 +28,10 @@ mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
+process/channel_remap/red=0
+process/channel_remap/green=1
+process/channel_remap/blue=2
+process/channel_remap/alpha=3
 process/fix_alpha_border=true
 process/premult_alpha=false
 process/normal_map_invert_y=false
