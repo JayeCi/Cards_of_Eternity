@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://ct5jsl7tvo64g"]
+
+[ext_resource type="Texture2D" uid="uid://besg70vadk0mt" path="res://Images/Zei Panda.png" id="1_mc4x6"]
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_mxdul"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_mc4x6"]
+
+[resource]
+script = ExtResource("2_mc4x6")
+rarity = "uncommon"
+element = "Water"
+preferred_terrain = "WATER"
+id = "00024"
+name = "Zei Panda"
+art = ExtResource("1_mc4x6")
+cost = 2
+atk = 12
+def = 25
+model_path = "res://Cards/Models/ZEI_PANDA_MODEL.tscn"
+model_scale = Vector3(0.6, 0.6, 0.6)
+metadata/_custom_type_script = "uid://57up1u0etcmc"

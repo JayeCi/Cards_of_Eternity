@@ -45,8 +45,8 @@ const CARD_PATHS := {
 	"JESTER_OF_FLAMES":   "res://Cards/Monster Cards/Jester_of_Flames.tres",
 	"VOIDLING_ERO":       "res://Cards/Monster Cards/Voidling_Ero.tres",
 	"MUSHMONK":           "res://Cards/Monster Cards/Mushmonk.tres",
-	
-	
+	"ZEI_PANDA":          "res://Cards/Monster Cards/Zei_Panda.tres",
+	"YORG_ARCHER":          "res://Cards/Monster Cards/Yorg_Archer.tres",
 	
 	#"":                  "res://Cards/Monster Cards/.tres",
 }
@@ -174,10 +174,10 @@ func _ready() -> void:
 	call_deferred("_deferred_startup")
 	# minimal registry of cards (your collection)
 
-	CardCollection.add_card(get_card(CARD_PATHS.GOBLIN))
-	CardCollection.add_card(get_card(CARD_PATHS.DIRT))
-	CardCollection.add_card(get_card(CARD_PATHS.COLD_SLOTH))
-	CardCollection.add_card(get_card(CARD_PATHS.FYSH))
+	#CardCollection.add_card(get_card(CARD_PATHS.GOBLIN))
+	#CardCollection.add_card(get_card(CARD_PATHS.DIRT))
+	#CardCollection.add_card(get_card(CARD_PATHS.COLD_SLOTH))
+	#CardCollection.add_card(get_card(CARD_PATHS.FYSH))
 	#CardCollection.add_card(get_card(CARD_PATHS.FOREST_FAE))
 	#CardCollection.add_card(get_card(CARD_PATHS.IMP))
 	#CardCollection.add_card(get_card(CARD_PATHS.LAVA_HARE))
@@ -200,6 +200,13 @@ func _ready() -> void:
 	#CardCollection.add_card(get_card(CARD_PATHS.JESTER_OF_FLAMES))
 	#CardCollection.add_card(get_card(CARD_PATHS.VOIDLING_ERO))
 	#CardCollection.add_card(get_card(CARD_PATHS.MUSHMONK))
+	CardCollection.add_card(get_card(CARD_PATHS.ZEI_PANDA))
+	CardCollection.add_card(get_card(CARD_PATHS.YORG_ARCHER))
+	
+	
+	
+	
+	
 	
 	
 	if ui_sys.has_node("OrbGrid"):
