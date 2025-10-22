@@ -289,6 +289,11 @@ func on_board_click(screen_pos: Vector2) -> void:
 	if tile.occupant == null and not is_moving and not is_placing:
 		core._log("💡 Click ignored — empty tile.", Color(0.7, 0.7, 0.7))
 		return
+		
+	# 🚫 Prevent selecting already-exhausted/acted units
+	if tile.occupant and not core.can_unit_act(tile.occupant):
+		core._log("⏳ %s is exhausted and cannot act again this turn." % tile.occupant.card.name, Color(0.7, 0.7, 0.7))
+		return
 
 	# ✅ Handle pending ability trigger on clicked occupied tile
 	var pending_unit: UnitData = null
@@ -1027,24 +1032,51 @@ func apply_all_passives() -> void:
 
 		var facedown = unit.is_facedown or (unit.has_meta("is_facedown") and unit.get_meta("is_facedown"))
 
-		# 🧩 Keep facedown cards hidden
+		# 🧩 Always refresh terrain bonuses safely
+		core._apply_terrain_bonus(unit, tile.terrain_type)
+
+		# 🧩 Run passive abilities only if face-up
+		if not facedown and unit.card and unit.card.ability and unit.card.ability.trigger == "passive":
+			unit.card.ability.execute(core, unit)
+
+		# 🟢 Always force visual state sync AFTER abilities or refresh
 		if facedown:
 			tile.set_art(core.CARD_BACK)
+			if tile.has_node("CardModel"):
+				var model := tile.get_node("CardModel")
+				if is_instance_valid(model):
+					model.visible = false
 		else:
 			core.refresh_tile_art_safe(pos)
-
-
-			# Run passive ability only if face-up
-			if unit.card and unit.card.ability and unit.card.ability.trigger == "passive":
-				unit.card.ability.execute(core, unit)
+			if tile.has_node("CardModel"):
+				var model := tile.get_node("CardModel")
+				if is_instance_valid(model):
+					model.visible = true
 
 		# Update stat labels quietly
 		if tile.has_method("update_stat_labels"):
 			tile.update_stat_labels(unit.current_atk, unit.current_def)
 
-	# ✅ Refresh the details panel if visible
+	# ✅ Refresh details if visible
 	if core.card_details_ui and core.card_details_ui.visible:
 		core.card_details_ui.call("refresh_if_showing", core.card_details_ui.current_unit)
+func _enforce_visual_face_state():
+	for pos in core.units.keys():
+		var u: UnitData = core.units[pos]
+		var tile = core.board.get_tile(pos.x, pos.y)
+		if not tile or not u: continue
+
+		var is_down = u.is_facedown or (u.has_meta("is_facedown") and u.get_meta("is_facedown"))
+		if is_down:
+			tile.set_art(core.CARD_BACK)
+			if tile.has_node("CardModel"):
+				var m = tile.get_node("CardModel")
+				if is_instance_valid(m): m.visible = false
+		else:
+			tile.set_art(u.card.art)
+			if tile.has_node("CardModel"):
+				var m = tile.get_node("CardModel")
+				if is_instance_valid(m): m.visible = true
 
 func _colorize_name(unit: UnitData) -> String:
 	if not unit or not unit.card:

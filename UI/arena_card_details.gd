@@ -15,9 +15,13 @@ class_name ArenaCardDetails
 
 # --- Combat stats ---
 @onready var atk_label: Label = $VBoxContainer2/AtkLabel
-@onready var atk: Label = $VBoxContainer2/Atk
+@onready var atk: Label = $VBoxContainer2/HBoxContainer/Current_Atk
+@onready var original_atk: Label = $VBoxContainer2/HBoxContainer/Original_Atk
+
 @onready var def_label: Label = $VBoxContainer2/DefLabel
-@onready var def: Label = $VBoxContainer2/Def
+@onready var def: Label = $VBoxContainer2/HBoxContainer2/Current_Def
+@onready var original_def: Label = $VBoxContainer2/HBoxContainer2/Original_Def
+
 @onready var type_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/Type
 
 # --- Data tracking ---
@@ -91,8 +95,10 @@ func show_card(card: CardData) -> void:
 	else:
 		type_label.text = "—"
 
-	atk.text = str(card.atk) if "atk" in card else "—"
-	def.text = str(card.def) if "def" in card else "—"
+	atk.text = str(card.atk)
+	def.text = str(card.def)
+	original_atk.text = str(card.atk)
+	original_def.text = str(card.def)
 
 	atk_label.visible = true
 	def_label.visible = true
@@ -131,11 +137,17 @@ func show_unit(unit: UnitData) -> void:
 	set_rarity_color(str(card.rarity))
 	cost_label.text = "Cost: %d" % int(card.cost)
 
-	# ✅ Show live stats
+	# ✅ Current stats
 	atk.text = str(unit.current_atk)
 	def.text = str(unit.current_def)
+	original_atk.text = str(card.atk)
+	original_def.text = str(card.def)
+
 	atk_label.visible = true
 	def_label.visible = true
+
+	# ✅ Color stats dynamically
+	_update_stat_colors(unit, card)
 
 	# ✅ Multi-type support
 	if card.types and card.types.size() > 0:
@@ -166,10 +178,34 @@ func show_unit(unit: UnitData) -> void:
 # -------------------------------------------------------------
 # SUPPORT
 # -------------------------------------------------------------
+func _update_stat_colors(unit: UnitData, card: CardData) -> void:
+	# Ensure both labels have LabelSettings
+	if atk.label_settings == null:
+		atk.label_settings = LabelSettings.new()
+	if def.label_settings == null:
+		def.label_settings = LabelSettings.new()
+
+	# Compare current vs original ATK
+	if unit.current_atk > card.atk:
+		atk.label_settings.font_color = Color(0.4, 1.0, 0.4) # Green
+	elif unit.current_atk < card.atk:
+		atk.label_settings.font_color = Color(1.0, 0.4, 0.4) # Red
+	else:
+		atk.label_settings.font_color = Color(1, 1, 1) # Neutral white
+
+	# Compare current vs original DEF
+	if unit.current_def > card.def:
+		def.label_settings.font_color = Color(0.4, 1.0, 0.4) # Green
+	elif unit.current_def < card.def:
+		def.label_settings.font_color = Color(1.0, 0.4, 0.4) # Red
+	else:
+		def.label_settings.font_color = Color(1, 1, 1) # Neutral white
+
 func hide_card() -> void:
 	card_data = null
 	current_unit = null
 	visible = false
+
 
 func refresh_if_showing(unit: UnitData) -> void:
 	if not visible or not card_data:
@@ -181,6 +217,7 @@ func refresh_if_showing(unit: UnitData) -> void:
 				unit = arena_core.units[pos]
 				break
 	show_unit(unit)
+
 
 func show_terrain(terrain_type: String) -> void:
 	if not terrain:
@@ -197,6 +234,7 @@ func show_terrain(terrain_type: String) -> void:
 		terrain.visible = true
 	else:
 		terrain.visible = false
+
 
 func flash_stat_change(is_buff: bool) -> void:
 	var color := Color(0.5, 1.0, 0.5) if is_buff else Color(1.0, 0.4, 0.4)

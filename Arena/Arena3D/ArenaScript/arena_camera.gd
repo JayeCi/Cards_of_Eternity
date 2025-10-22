@@ -184,3 +184,23 @@ func ray_pick(screen_pos: Vector2) -> Dictionary:
 	var q = PhysicsRayQueryParameters3D.create(from, to)
 	q.collision_mask = 1
 	return core.get_world_3d().direct_space_state.intersect_ray(q)
+
+# ====================================================
+# 🌪 CAMERA SHAKE EFFECT
+# ====================================================
+func shake(intensity: float = 0.2, duration: float = 0.3) -> void:
+	if not camera:
+		return
+
+	# Prevent overlapping shakes
+	if camera.has_meta("is_shaking") and camera.get_meta("is_shaking"):
+		return
+
+	camera.set_meta("is_shaking", true)
+
+	var original_pos := camera.position
+	var tween := create_tween()
+	tween.set_loops()  # run continuously until killed
+	tween.set_parallel(true)
+
+	# Internal helper to randomize offset

@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="ElementalFan" load_steps=2 format=3 uid="uid://dpoosbvh3homp"]
+
+[ext_resource type="Script" uid="uid://dcp650f37awwr" path="res://Cards/Abilities/Elemental_Fan.gd" id="1_5tswv"]
+
+[resource]
+script = ExtResource("1_5tswv")
+metadata/_custom_type_script = "uid://dcp650f37awwr"

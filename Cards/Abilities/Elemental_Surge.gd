@@ -3,7 +3,7 @@ class_name ElementalSurge
 
 func _init():
 	display_name = "Elemental Surge"
-	description = "On summon: changes all adjacent tiles to match this card’s element."
+	description = "On Summon | Flip: Changes all adjacent tiles to match this card’s element."
 	trigger = "on_summon"
 	value = 0
 	range = 1  # adjacent tiles

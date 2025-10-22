@@ -34,6 +34,12 @@ signal hovered(tile)
 signal unhovered(tile)
 
 func _ready():
+	await get_tree().create_timer(1.0).timeout
+	print("TEST SHAKE START")
+	var tween := create_tween()
+	tween.tween_property(self, "position:y", position.y + 0.5, 0.2)
+	tween.tween_property(self, "position:y", position.y, 0.2)
+
 	set_meta("tile_marker", true)
 	_apply_terrain_visual()
 	
@@ -314,11 +320,6 @@ func _apply_terrain_visual(new_terrain_type: String = "") -> void:
 	# ✅ Refresh card art if this tile has an occupant
 	if occupant and occupant.card:
 		refresh_card_art()
-
-	# ✅ Small fade flash to visually show terrain update
-	var tw := create_tween()
-	tw.tween_property(self, "modulate", Color(1.2, 1.2, 1.2), 0.15)
-	tw.tween_property(self, "modulate", Color(1, 1, 1), 0.15)
 
 func pulse_move_highlight() -> void:
 	if not move_highlight or not move_highlight.visible:

@@ -188,19 +188,19 @@ func _ready() -> void:
 	#CardCollection.add_card(get_card(CARD_PATHS.DRAKE_OF_EMERALD))
 	#CardCollection.add_card(get_card(CARD_PATHS.FLAME_FAE))
 	#CardCollection.add_card(get_card(CARD_PATHS.AXO_THE_KNIGHT))
-	CardCollection.add_card(get_card(CARD_PATHS.FINN))
+	#CardCollection.add_card(get_card(CARD_PATHS.FINN))
 	#CardCollection.add_card(get_card(CARD_PATHS.FALCREEP))
 	#CardCollection.add_card(get_card(CARD_PATHS.SNAPTRAP))
 	#CardCollection.add_card(get_card(CARD_PATHS.MOLTEN_PIG))
-	#CardCollection.add_card(get_card(CARD_PATHS.NINJOAD))
-	#CardCollection.add_card(get_card(CARD_PATHS.BOOGLES))
-	#CardCollection.add_card(get_card(CARD_PATHS.FUNGOO))
+	CardCollection.add_card(get_card(CARD_PATHS.NINJOAD))
+	CardCollection.add_card(get_card(CARD_PATHS.BOOGLES))
+	CardCollection.add_card(get_card(CARD_PATHS.FUNGOO))
 	#CardCollection.add_card(get_card(CARD_PATHS.ORB_OF_DARKNESS))
 	#CardCollection.add_card(get_card(CARD_PATHS.SHADOW_CANDLES))
 	#CardCollection.add_card(get_card(CARD_PATHS.JESTER_OF_FLAMES))
 	#CardCollection.add_card(get_card(CARD_PATHS.VOIDLING_ERO))
 	#CardCollection.add_card(get_card(CARD_PATHS.MUSHMONK))
-	CardCollection.add_card(get_card(CARD_PATHS.ZEI_PANDA))
+	#CardCollection.add_card(get_card(CARD_PATHS.ZEI_PANDA))
 	#CardCollection.add_card(get_card(CARD_PATHS.YORG_ARCHER))
 	
 	
@@ -336,6 +336,19 @@ func _apply_terrain_bonus(unit: UnitData, terrain: String) -> void:
 func _float_text(world_pos: Vector3, text: String, color: Color = Color.WHITE) -> void:
 	if ui_sys and ui_sys.has_method("_float_text"):
 		ui_sys._float_text(world_pos, text, color)
+		
+# In ArenaCamera.gd
+func shake(intensity: float = 0.1, duration: float = 0.2) -> void:
+	var original_pos := position
+	var tween := create_tween()
+	for i in range(5):
+		var offset := Vector3(
+			randf_range(-intensity, intensity),
+			randf_range(-intensity * 0.5, intensity * 0.5),
+			randf_range(-intensity, intensity)
+		)
+		tween.tween_property(self, "position", original_pos + offset, duration / 10.0)
+		tween.tween_property(self, "position", original_pos, duration / 10.0)
 
 # Regenerate DEF for all units belonging to a specific owner,
 # capped by terrain-adjusted maximum DEF.
@@ -381,13 +394,30 @@ func _build_decks() -> void:
 			player_deck.append(card_data.duplicate())
 	player_deck.shuffle()
 
-	# ENEMY (fallback)
+	# 🟥 ENEMY DECK — Auto-load all .tres from Monster + Spell folders
 	enemy_deck.clear()
-	for id in ["IMP", "GOBLIN", "LAVA HARE", "FOREST FAE", "COLD SLOTH"]:
-		if ResourceLoader.exists("res://Cards/Monster Cards/%s.tres" % id):
-			var card = ResourceLoader.load("res://Cards/Monster Cards/%s.tres" % id)
-			for i in range(10):           # ✅ fix loop
-				enemy_deck.append(card.duplicate())
+
+	var enemy_folders = [
+		"res://Cards/Monster Cards",
+		"res://Cards/Spell Cards"
+	]
+
+	for folder_path in enemy_folders:
+		var dir := DirAccess.open(folder_path)
+		if not dir:
+			push_warning("⚠️ Missing folder: %s" % folder_path)
+			continue
+
+		for file_name in dir.get_files():
+			if file_name.ends_with(".tres"):
+				var path := "%s/%s" % [folder_path, file_name]
+				var card := ResourceLoader.load(path)
+				if card:
+					# You can tweak how many copies per card you want:
+					var copies := 5   # default — make 5 copies per card
+					for i in range(copies):
+						enemy_deck.append(card.duplicate())
+
 	enemy_deck.shuffle()
 
 	_log("✅ Decks built: Player=%d, Enemy=%d" % [player_deck.size(), enemy_deck.size()])
@@ -683,8 +713,9 @@ func _start_player_turn() -> void:
 		var u: UnitData = units[pos]
 		if u and u.is_facedown:
 			refresh_tile_art_safe(pos)
-
+	battle_sys._enforce_visual_face_state()
 	get_viewport().gui_release_focus()
+
 
 func _start_enemy_turn() -> void:
 	battle_sys.call("_reset_hover_state")
@@ -712,7 +743,7 @@ func _start_enemy_turn() -> void:
 			var tile = board.get_tile(pos.x, pos.y)
 			if tile:
 				tile.set_art(CARD_BACK)
-
+	battle_sys._enforce_visual_face_state()
 	_start_player_turn()
 
 func _draw_up_to_hand_limit() -> void:
