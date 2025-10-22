@@ -348,57 +348,56 @@ func _show_move_targets(from: Vector2i) -> void:
 
 	clear_highlights()
 	var src = board.get_tile(from.x, from.y)
-	if not src or not src.occupant: return
-	if not core.can_unit_act(src.occupant): return
+	if not src or not src.occupant: 
+		return
+	if not core.can_unit_act(src.occupant): 
+		return
 
 	var range := core.BASE_MOVE_RANGE
-	for dx in range(-range, range + 1):
-		for dy in range(-range, range + 1):
-			var dist = abs(dx) + abs(dy)
-			if dist == 0 or dist > range: continue
-			var p = from + Vector2i(dx, dy)
-			if p.x < 0 or p.y < 0 or p.x >= core.BOARD_W or p.y >= core.BOARD_H: continue
+
+	# 🟢 Preferred terrain doubles movement — only if face-up
+	var tile = board.get_tile(from.x, from.y)
+	var unit = src.occupant
+	var is_facedown = unit.is_facedown or (unit.has_meta("is_facedown") and unit.get_meta("is_facedown"))
+
+	if not is_facedown and tile and tile.terrain_type == unit.card.preferred_terrain:
+		range *= 2
+		core._log("🌿 %s moves freely on preferred terrain (+%d range)" % [unit.card.name, range - core.BASE_MOVE_RANGE], Color(0.6, 1.0, 0.6))
+		if tile.has_method("pulse_move_highlight"):
+			tile.pulse_move_highlight()
+
+	# 🔹 Highlight orthogonal (non-diagonal) tiles only
+	var dirs = [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]
+	for dir in dirs:
+		for step in range(1, range + 1):
+			var p = from + dir * step
+			if p.x < 0 or p.y < 0 or p.x >= core.BOARD_W or p.y >= core.BOARD_H:
+				break
 			var t = board.get_tile(p.x, p.y)
-			if t and (t.occupant == null or t.occupant.owner != core.PLAYER):
-				t.set_highlight(true, "•" if t.occupant == null else "⚔")
+			if not t:
+				break
+			if t.occupant and t.occupant.owner == core.PLAYER:
+				break  # stop at friendly blocker
 
-				# 🔹 Color enemy tiles red, empty tiles blue
-				var highlight_color := Color(0.3, 0.7, 1.0)  # blue for open
-				if t.occupant and t.occupant.owner != core.PLAYER:
-					highlight_color = Color(1.0, 0.3, 0.3)   # red for enemy
+			t.set_highlight(true, "•" if t.occupant == null else "⚔")
 
-				if t.has_method("set_move_highlight_tint"):
-					t.set_move_highlight_tint(highlight_color)
-				elif t.has_node("MoveHighlight"):
-					var mh = t.get_node("MoveHighlight")
-					mh.visible = true
+			# Color: blue for open, red for enemy
+			var highlight_color := Color(0.3, 0.7, 1.0)
+			if t.occupant and t.occupant.owner != core.PLAYER:
+				highlight_color = Color(1.0, 0.3, 0.3)
 
-				# Optional: keep pulsing effect
-				if t.has_method("pulse_move_highlight"):
-					t.pulse_move_highlight()
+			if t.has_method("set_move_highlight_tint"):
+				t.set_move_highlight_tint(highlight_color)
+			elif t.has_node("MoveHighlight"):
+				var mh = t.get_node("MoveHighlight")
+				mh.visible = true
 
-# -----------------------------------
-# 🟩 CARD SPAWNING (uses model_path)
-# -----------------------------------
-#func spawn_card_model(card_data: CardData) -> Node3D:
-	#if not card_data or card_data.model_path == "":
-		#print("No model path assigned for card:", card_data.name)
-		#return null
-#
-	#var model_scene: PackedScene = load(card_data.model_path)
-	#if not model_scene:
-		#push_warning("⚠️ Could not load model scene at: %s" % card_data.model_path)
-		#return null
-#
-	#var model_instance: Node3D = model_scene.instantiate()
-	#model_instance.name = "CardModel"
-	#model_instance.position = Vector3(0, 0.5, 0)
-#
-	## 🟢 Use model's own scale from its scene — do not override here
-	## (optional: if you want to apply a small global tweak, multiply)
-	## model_instance.scale *= Vector3(1, 1, 1)  # fine-tune globally if ever needed
-#
-	#return model_instance
+			if t.has_method("pulse_move_highlight"):
+				t.pulse_move_highlight()
+
+			# Stop further tiles in this direction if blocked by an occupied enemy tile
+			if t.occupant:
+				break
 
 # -----------------------------
 # PLACE / MOVE / BATTLE
@@ -430,6 +429,7 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, is_player:
 		tile.set_art(core.CARD_BACK)
 		unit.is_facedown = true
 		unit.set_meta("is_facedown", true)
+		#core._play_card_place_sound()
 	else:
 		tile.set_art(card.art)
 		unit.is_facedown = false
@@ -584,12 +584,20 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		_is_battle_in_progress = false
 		return
 
-	# 🚫 Check move distance
+	# 🚫 Check move distance (respect terrain bonuses)
 	var dist = abs(to.x - from.x) + abs(to.y - from.y)
-	if dist > core.BASE_MOVE_RANGE:
-		core._log("⚠️ You can only move 1 tile per turn!", Color(1, 0.6, 0.4))
+	var allowed_range = core.BASE_MOVE_RANGE
+
+	# 🟢 Double range if starting tile matches preferred terrain
+	var start_tile = board.get_tile(from.x, from.y)
+	if start_tile and start_tile.occupant and start_tile.terrain_type == start_tile.occupant.card.preferred_terrain:
+		allowed_range *= 2
+
+	if dist > allowed_range:
+		core._log("⚠️ You can only move up to %d tiles on this terrain!" % allowed_range, Color(1, 0.6, 0.4))
 		_is_battle_in_progress = false
 		return
+
 	# ------------------------------------------------------------
 	# 🟦 MOVE (no defender)
 	# ------------------------------------------------------------
@@ -832,11 +840,48 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 			pass
 
 		"both_survive":
-			#dst.flash()
 			core.mark_unit_acted(attacker)
 			var att_tile = _get_unit_tile(attacker)
 			if att_tile: att_tile.set_art(attacker.card.art, attacker.owner == core.ENEMY)
 			if def_tile: def_tile.set_art(dst.occupant.card.art, dst.occupant.owner == core.ENEMY)
+
+			# 🧩 NEW: If attacker moved 2 tiles to attack and both survived → retreat halfway
+			var moved_distance = abs(to.x - from.x) + abs(to.y - from.y)
+			if moved_distance >= 2:
+				var mid_x := int((from.x + to.x) / 2)
+				var mid_y := int((from.y + to.y) / 2)
+				var mid_pos := Vector2i(mid_x, mid_y)
+
+				if core.board.is_in_bounds(mid_pos):
+					var mid_tile = board.get_tile(mid_pos.x, mid_pos.y)
+					if mid_tile and mid_tile.occupant == null:
+						core._log("↩️ %s retreats to midpoint after stalemate." % attacker.card.name, Color(0.8, 0.9, 1.0))
+
+						# Move visually (quick tween)
+						if def_tile.has_node("CardModel"):
+							var model = def_tile.get_node("CardModel")
+							if is_instance_valid(model):
+								var offset = Vector3(0, 0.1, 0)
+								if attacker.card and attacker.card.model_position != Vector3.ZERO:
+									offset = attacker.card.model_position
+								var world_target = mid_tile.global_position + offset
+								var tw = create_tween()
+								tw.tween_property(model, "global_position", world_target, 0.25)
+								await tw.finished
+								if model.get_parent() == def_tile:
+									def_tile.remove_child(model)
+								if is_instance_valid(mid_tile):
+									mid_tile.add_child(model)
+									model.position = Vector3(0, 0.1, 0)
+
+						# Update logical occupancy
+						def_tile.clear()
+						core.units.erase(to)
+						core.units[mid_pos] = attacker
+						mid_tile.set_occupant(attacker)
+						mid_tile.set_art(attacker.card.art, attacker.owner == core.ENEMY)
+						mid_tile.set_badge_text("P" if attacker.owner == core.PLAYER else "E")
+						core._apply_terrain_bonus(attacker, mid_tile.terrain_type)
 
 		"leader_damaged":
 			#dst.flash()
@@ -1104,9 +1149,17 @@ func remove_passive_effect(unit: UnitData, ability: CardAbility) -> void:
 	if ability.has_method("remove"): ability.remove(core, unit)
 
 func _kill_unit(u: UnitData, silent := false) -> void:
-	if u == null: return
-	if u.current_def > 0 and not u.is_leader:
+	if u == null:
 		return
+	if not is_instance_valid(u):
+		return
+	if u.is_leader:
+		return
+	if u.current_def > 0:
+		return
+
+	# 🔒 Store card name early before removing
+	var card_name := (u.card.name if u.card and u.card.name else "Unknown Card")
 
 	# Remove passive effects if active
 	if u.card and u.card.ability and u.card.ability.trigger == "passive":
@@ -1118,50 +1171,46 @@ func _kill_unit(u: UnitData, silent := false) -> void:
 		if core.units[pos] == u:
 			found_pos = pos
 			break
-
 	if found_pos == Vector2i(-1, -1):
 		return
 
 	var tile = core.board.get_tile(found_pos.x, found_pos.y)
 	if not tile:
 		return
-	# 🎵 Death sound (3D positional)
+
+	# 🎵 Death sound
 	if u.card and "death_sound" in u.card and u.card.death_sound:
 		_play_card_sound(u.card.death_sound, tile.global_position)
 	else:
 		_play_card_sound(core.CARD_DEATH_SOUND, tile.global_position)
 
-	# --- Fade out & clear mesh ---
+	# --- Fade out visuals safely ---
 	if tile.has_node("CardMesh"):
 		var mesh = tile.get_node("CardMesh")
-		var tw = create_tween()
-		tw.tween_property(mesh, "modulate:a", 0.0, 0.3)
-		tw.tween_property(mesh, "scale", mesh.scale * 0.5, 0.3)
-		await tw.finished
-		
-	# --- Fade out & remove 3D model if exists ---
+		if is_instance_valid(mesh):
+			var tw = create_tween()
+			tw.tween_property(mesh, "modulate:a", 0.0, 0.3)
+			tw.tween_property(mesh, "scale", mesh.scale * 0.5, 0.3)
+			await tw.finished
+
 	if tile.has_node("CardModel"):
 		var model = tile.get_node("CardModel")
-
 		if is_instance_valid(model):
 			var tw2 = create_tween()
 			tw2.tween_property(model, "scale", model.scale * 0.3, 0.3)
 			tw2.parallel().tween_property(model, "modulate:a", 0.0, 0.3)
 			await tw2.finished
-
-			# ✅ Wait one frame so any tweens or visuals complete
 			await get_tree().process_frame
-
-			# ✅ Then safely free the model (only if still valid)
 			if is_instance_valid(model):
 				model.queue_free()
 
 	tile.clear()
 	core.units.erase(found_pos)
+
+	# ✅ Only reference safe cached name
 	core.card_details_ui.call("hide_card")
 	if not silent:
-		core._log("💀 %s was destroyed." % u.card.name, Color(1, 0.4, 0.4))
-
+		core._log("💀 %s was destroyed." % card_name, Color(1, 0.4, 0.4))
 
 func clear_exhausted_tiles() -> void:
 	for pos in core.units.keys():

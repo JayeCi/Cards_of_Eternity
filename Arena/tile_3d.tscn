@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3 uid="uid://dymngijkrptcc"]
+[gd_scene load_steps=33 format=3 uid="uid://dymngijkrptcc"]
 
 [ext_resource type="Script" uid="uid://dtfto6htrvfm5" path="res://Arena/tile_3d.gd" id="1_5v3qr"]
 [ext_resource type="PackedScene" uid="uid://cqxo8j6lh1au8" path="res://Downloaded/bricks_A.tscn" id="2_wh67p"]
@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" uid="uid://cmwi3xrb0nspr" path="res://UI/Terrains/Lava.png" id="6_sa6f8"]
 [ext_resource type="Texture2D" uid="uid://dkc013g0vjkfa" path="res://UI/Terrains/grass.png" id="7_haurc"]
 [ext_resource type="Texture2D" uid="uid://c07v4ijon03kv" path="res://UI/Terrains/Forest.png" id="8_2dc0q"]
+[ext_resource type="Texture2D" uid="uid://bq6fn5ar8y44d" path="res://Cards/Utilities/CardModel/Border_TP_Edge.png" id="11_3e2tw"]
 [ext_resource type="PackedScene" uid="uid://b226o8whi8uox" path="res://Arena/Terrain_Models/column_stylized_low-poly_3d_model.glb" id="12_3e2tw"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_5v3qr"]
@@ -124,8 +125,11 @@ mesh = SubResource("PlaneMesh_nvf5m")
 
 [node name="CardMesh" type="MeshInstance3D" parent="."]
 transform = Transform3D(1.13, 0, 0, 0, 1.13, 0, 0, 0, 1.13, 0, 0.201595, -0.553633)
-visible = false
 mesh = ExtResource("3_mf1uq")
+
+[node name="Sprite3D" type="Sprite3D" parent="CardMesh"]
+transform = Transform3D(0.135, 0, 0, 0, -5.9010374e-09, 0.135, 0, -0.135, -5.9010374e-09, -0.0063163782, 0, 0.49692547)
+texture = ExtResource("11_3e2tw")
 
 [node name="Badge" type="Label3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0)

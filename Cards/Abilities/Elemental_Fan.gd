@@ -3,6 +3,9 @@ class_name ElementalFan
 
 @export var fire_sound: AudioStream = preload("res://Audio/FIRE.mp3")
 @export var water_sound: AudioStream = preload("res://Audio/Water.mp3")
+@export var earth_sound: AudioStream = preload("res://Audio/Rocks.mp3")
+#@export var ice_sound: AudioStream = preload("res://Audio/Water.mp3")
+#@export var shadow_sound: AudioStream = preload("res://Audio/Water.mp3")
 
 func _init():
 	display_name = "Elemental Fan"
@@ -52,6 +55,8 @@ func execute_at(arena: Node, unit: UnitData, origin_pos: Vector2i) -> void:
 				_play_fire_sound(arena)
 			if new_terrain == "Water":
 				_play_water_sound(arena)
+			if new_terrain == "Stone":
+				_play_earth_sound(arena)
 				
 			# 🌊 Delay ripple outward
 			await arena.get_tree().create_timer(0.02 * step).timeout
@@ -133,8 +138,23 @@ func _play_water_sound(arena: Node) -> void:
 
 	var player := AudioStreamPlayer3D.new()
 	player.stream = water_sound
-	player.volume_db = -8
-	player.pitch_scale = randf_range(0.95, 1.05)
+	player.volume_db = -10
+	player.pitch_scale = randf_range(0.90, 1.9)
+	player.position = Vector3(0, 1, 0)
+	arena.add_child(player)
+	player.play()
+
+	# Auto-cleanup
+	player.finished.connect(func(): player.queue_free())
+
+func _play_earth_sound(arena: Node) -> void:
+	if not earth_sound or not arena:
+		return
+
+	var player := AudioStreamPlayer3D.new()
+	player.stream = earth_sound
+	player.volume_db = -6
+	player.pitch_scale = randf_range(0.90, 1.9)
 	player.position = Vector3(0, 1, 0)
 	arena.add_child(player)
 	player.play()

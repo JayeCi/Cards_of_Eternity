@@ -3,12 +3,13 @@ class_name ArenaCardDetails
 
 # --- UI ELEMENTS ---
 @onready var art: TextureRect = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/Art
-@onready var name_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/NameLabel
+@onready var name_label: Label = $MarginContainer/PanelContainer/NameLabel
 @onready var rarity_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/Rarity
 @onready var cost_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/Cost
 @onready var abilities_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/Abilities
 @onready var abilities_name: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/AbilitiesName
-@onready var abilities_desc: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/AbilitiesDesc
+@onready var abilities_desc: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/AbilitiesDesc
+@onready var description: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/Description
 
 @onready var terrain: TextureRect = $MarginContainer/PanelContainer/MarginContainer/Terrain
 @onready var terrain_label: Label = $MarginContainer/PanelContainer/MarginContainer/TerrainLabel
@@ -23,6 +24,7 @@ class_name ArenaCardDetails
 @onready var original_def: Label = $VBoxContainer2/HBoxContainer2/Original_Def
 
 @onready var type_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/Type
+@onready var panel_container: PanelContainer = $MarginContainer/PanelContainer
 
 # --- Data tracking ---
 var card_data: CardData = null
@@ -88,8 +90,8 @@ func show_card(card: CardData) -> void:
 	rarity_label.text = str(card.rarity)
 	set_rarity_color(str(card.rarity))
 	cost_label.text = "Cost: %d" % int(card.cost)
-
-	# ✅ Show multiple types cleanly
+	description.text = str(card.description)
+	
 	if card.types and card.types.size() > 0:
 		type_label.text = " / ".join(card.types)
 	else:
@@ -103,7 +105,6 @@ func show_card(card: CardData) -> void:
 	atk_label.visible = true
 	def_label.visible = true
 
-	# --- Abilities ---
 	if card.ability and "display_name" in card.ability:
 		abilities_name.text = str(card.ability.display_name)
 		abilities_desc.text = str(card.ability.description)
@@ -115,6 +116,9 @@ func show_card(card: CardData) -> void:
 		terrain.visible = false
 	if terrain_label:
 		terrain_label.text = ""
+
+	# Reset background to neutral
+	_apply_card_background(Color(0.2, 0.2, 0.2))
 
 # -------------------------------------------------------------
 # ACTIVE UNIT VIEW (board hover or updates)
@@ -137,7 +141,6 @@ func show_unit(unit: UnitData) -> void:
 	set_rarity_color(str(card.rarity))
 	cost_label.text = "Cost: %d" % int(card.cost)
 
-	# ✅ Current stats
 	atk.text = str(unit.current_atk)
 	def.text = str(unit.current_def)
 	original_atk.text = str(card.atk)
@@ -146,16 +149,13 @@ func show_unit(unit: UnitData) -> void:
 	atk_label.visible = true
 	def_label.visible = true
 
-	# ✅ Color stats dynamically
 	_update_stat_colors(unit, card)
 
-	# ✅ Multi-type support
 	if card.types and card.types.size() > 0:
 		type_label.text = " / ".join(card.types)
 	else:
 		type_label.text = "—"
 
-	# --- Abilities ---
 	if card.ability and "display_name" in card.ability:
 		abilities_name.text = str(card.ability.display_name)
 		abilities_desc.text = str(card.ability.description)
@@ -163,7 +163,6 @@ func show_unit(unit: UnitData) -> void:
 		abilities_name.text = "—"
 		abilities_desc.text = ""
 
-	# --- Terrain info ---
 	var core_node := get_tree().get_root().find_child("Arena3D", true, false)
 	if core_node and core_node.has_method("get_terrain_for_unit"):
 		var terrain_type = core_node.get_terrain_for_unit(unit)
@@ -175,37 +174,49 @@ func show_unit(unit: UnitData) -> void:
 	else:
 		set_stat_color_from_bonus(1.0)
 
-# -------------------------------------------------------------
+	if unit.owner == 0:
+		# Player card (blue ripple)
+		_apply_card_background(Color(0.2, 0.3, 0.9, 0.6))
+	else:
+		# Enemy card (red ripple)
+		_apply_card_background(Color(0.9, 0.1, 0.1, 0.6))
+
+	# -------------------------------------------------------------
 # SUPPORT
 # -------------------------------------------------------------
+func _apply_card_background(color: Color) -> void:
+	if not panel_container:
+		return
+	var mat := ShaderMaterial.new()
+	mat.shader = load("res://UI/panel_ripple.gdshader")
+	mat.set_shader_parameter("base_color", color)
+	panel_container.material = mat
+
+
 func _update_stat_colors(unit: UnitData, card: CardData) -> void:
-	# Ensure both labels have LabelSettings
 	if atk.label_settings == null:
 		atk.label_settings = LabelSettings.new()
 	if def.label_settings == null:
 		def.label_settings = LabelSettings.new()
 
-	# Compare current vs original ATK
 	if unit.current_atk > card.atk:
-		atk.label_settings.font_color = Color(0.4, 1.0, 0.4) # Green
+		atk.label_settings.font_color = Color(0.4, 1.0, 0.4)
 	elif unit.current_atk < card.atk:
-		atk.label_settings.font_color = Color(1.0, 0.4, 0.4) # Red
+		atk.label_settings.font_color = Color(1.0, 0.4, 0.4)
 	else:
-		atk.label_settings.font_color = Color(1, 1, 1) # Neutral white
+		atk.label_settings.font_color = Color(1, 1, 1)
 
-	# Compare current vs original DEF
 	if unit.current_def > card.def:
-		def.label_settings.font_color = Color(0.4, 1.0, 0.4) # Green
+		def.label_settings.font_color = Color(0.4, 1.0, 0.4)
 	elif unit.current_def < card.def:
-		def.label_settings.font_color = Color(1.0, 0.4, 0.4) # Red
+		def.label_settings.font_color = Color(1.0, 0.4, 0.4)
 	else:
-		def.label_settings.font_color = Color(1, 1, 1) # Neutral white
+		def.label_settings.font_color = Color(1, 1, 1)
 
 func hide_card() -> void:
 	card_data = null
 	current_unit = null
 	visible = false
-
 
 func refresh_if_showing(unit: UnitData) -> void:
 	if not visible or not card_data:
@@ -217,7 +228,6 @@ func refresh_if_showing(unit: UnitData) -> void:
 				unit = arena_core.units[pos]
 				break
 	show_unit(unit)
-
 
 func show_terrain(terrain_type: String) -> void:
 	if not terrain:
@@ -234,7 +244,6 @@ func show_terrain(terrain_type: String) -> void:
 		terrain.visible = true
 	else:
 		terrain.visible = false
-
 
 func flash_stat_change(is_buff: bool) -> void:
 	var color := Color(0.5, 1.0, 0.5) if is_buff else Color(1.0, 0.4, 0.4)

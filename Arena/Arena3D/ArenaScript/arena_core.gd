@@ -172,6 +172,7 @@ func _ready() -> void:
 	# let UI initialize its references
 	await get_tree().process_frame
 	call_deferred("_deferred_startup")
+	
 	# minimal registry of cards (your collection)
 
 	#CardCollection.add_card(get_card(CARD_PATHS.GOBLIN))
@@ -180,29 +181,29 @@ func _ready() -> void:
 	#CardCollection.add_card(get_card(CARD_PATHS.FYSH))
 	#CardCollection.add_card(get_card(CARD_PATHS.FOREST_FAE))
 	#CardCollection.add_card(get_card(CARD_PATHS.IMP))
-	#CardCollection.add_card(get_card(CARD_PATHS.LAVA_HARE))
-	#CardCollection.add_card(get_card(CARD_PATHS.NAGA))
-	#CardCollection.add_card(get_card(CARD_PATHS.FIREBALL))
-	#CardCollection.add_card(get_card(CARD_PATHS.LYZARD))
-	#CardCollection.add_card(get_card(CARD_PATHS.ERUPTION))
-	#CardCollection.add_card(get_card(CARD_PATHS.DRAKE_OF_EMERALD))
-	#CardCollection.add_card(get_card(CARD_PATHS.FLAME_FAE))
-	#CardCollection.add_card(get_card(CARD_PATHS.AXO_THE_KNIGHT))
-	#CardCollection.add_card(get_card(CARD_PATHS.FINN))
-	#CardCollection.add_card(get_card(CARD_PATHS.FALCREEP))
-	#CardCollection.add_card(get_card(CARD_PATHS.SNAPTRAP))
-	#CardCollection.add_card(get_card(CARD_PATHS.MOLTEN_PIG))
+	CardCollection.add_card(get_card(CARD_PATHS.LAVA_HARE))
+	CardCollection.add_card(get_card(CARD_PATHS.NAGA))
+	CardCollection.add_card(get_card(CARD_PATHS.FIREBALL))
+	CardCollection.add_card(get_card(CARD_PATHS.LYZARD))
+	CardCollection.add_card(get_card(CARD_PATHS.ERUPTION))
+	CardCollection.add_card(get_card(CARD_PATHS.DRAKE_OF_EMERALD))
+	CardCollection.add_card(get_card(CARD_PATHS.FLAME_FAE))
+	CardCollection.add_card(get_card(CARD_PATHS.AXO_THE_KNIGHT))
+	CardCollection.add_card(get_card(CARD_PATHS.FINN))
+	CardCollection.add_card(get_card(CARD_PATHS.FALCREEP))
+	CardCollection.add_card(get_card(CARD_PATHS.SNAPTRAP))
+	CardCollection.add_card(get_card(CARD_PATHS.MOLTEN_PIG))
 	CardCollection.add_card(get_card(CARD_PATHS.NINJOAD))
 	CardCollection.add_card(get_card(CARD_PATHS.BOOGLES))
 	CardCollection.add_card(get_card(CARD_PATHS.FUNGOO))
-	#CardCollection.add_card(get_card(CARD_PATHS.ORB_OF_DARKNESS))
-	#CardCollection.add_card(get_card(CARD_PATHS.SHADOW_CANDLES))
-	#CardCollection.add_card(get_card(CARD_PATHS.JESTER_OF_FLAMES))
-	#CardCollection.add_card(get_card(CARD_PATHS.VOIDLING_ERO))
-	#CardCollection.add_card(get_card(CARD_PATHS.MUSHMONK))
-	#CardCollection.add_card(get_card(CARD_PATHS.ZEI_PANDA))
-	#CardCollection.add_card(get_card(CARD_PATHS.YORG_ARCHER))
-	
+	CardCollection.add_card(get_card(CARD_PATHS.ORB_OF_DARKNESS))
+	CardCollection.add_card(get_card(CARD_PATHS.SHADOW_CANDLES))
+	CardCollection.add_card(get_card(CARD_PATHS.JESTER_OF_FLAMES))
+	CardCollection.add_card(get_card(CARD_PATHS.VOIDLING_ERO))
+	CardCollection.add_card(get_card(CARD_PATHS.MUSHMONK))
+	CardCollection.add_card(get_card(CARD_PATHS.ZEI_PANDA))
+	CardCollection.add_card(get_card(CARD_PATHS.YORG_ARCHER))
+	CardCollection.add_card(get_card(CARD_PATHS.STONE_FAE))
 	
 	
 	
@@ -568,11 +569,29 @@ func _draw_card() -> Control:
 
 func on_hand_card_clicked(card: CardData) -> void:
 	# called from UISystem
+	_play_card_flip_sound()  # 🔊 Play flip immediately when selected
+	ui_sys.call("fade_hand_out")  # 👈 Forcefully hide hand until summon is resolved
 	selected_card = card
 	dragging_card = card
 	_set_phase(Phase.SELECT_SUMMON_TILE)
 	battle_sys.call("show_valid_summon_tiles")
 	ui_sys.call("on_drag_start", card)
+
+
+func _play_card_flip_sound() -> void:
+	var sound := preload("res://Audio/Sound FX/Card Flip.mp3")
+	if not sound:
+		return
+
+	var p := AudioStreamPlayer.new()
+	add_child(p)
+	p.stream = sound
+	p.volume_db = -6.0
+	p.pitch_scale = randf_range(0.95, 1.05)
+	p.play()
+	p.connect("finished", Callable(p, "queue_free"))
+
+
 
 func try_place_dragged_card(hover_tile: Node3D) -> void:
 	if not dragging_card or not selected_card:
@@ -661,6 +680,9 @@ func confirm_summon_in_mode(mode: int) -> void:
 	_set_phase(Phase.SUMMON_OR_MOVE)
 	_update_phase_ui()
 
+	# 🔊 Play card placement sound effect
+	_play_card_place_sound()
+
 	_log("🎴 Card placed successfully", Color(0.7, 1.0, 0.7))
 
 
@@ -681,9 +703,10 @@ func _start_player_turn() -> void:
 	battle_sys.call("_reset_hover_state")
 
 	_reset_action_flags()
-	ui_sys.call("show_battle_message", "Your Turn!", 1.5)
+
 	_draw_up_to_hand_limit()
 	_set_phase(Phase.SUMMON_OR_MOVE)
+	ui_sys.call("show_battle_message", "Your Turn!", 1.5)
 	player_essence += essence_gain_per_turn
 	emit_signal("essence_changed", player_essence, enemy_essence)
 
@@ -721,8 +744,10 @@ func _start_enemy_turn() -> void:
 	battle_sys.call("_reset_hover_state")
 
 	_reset_action_flags()
-	ui_sys.call("show_battle_message", "Enemy Turn!", 1.5)
 	_set_phase(Phase.ENEMY_TURN)
+	ui_sys.call("show_battle_message", "Enemy Turn!", 1.5)
+
+
 	enemy_essence += essence_gain_per_turn
 	emit_signal("essence_changed", player_essence, enemy_essence)
 
@@ -757,19 +782,40 @@ func _reset_action_flags() -> void:
 	acted_this_turn.clear()
 	battle_sys.call("clear_exhausted_tiles")
 	
-func _play_card_place_sound() -> void:
-	var sound := preload("res://Audio/Sound FX/Cardfacedown.mp3")  # 🔊 pick your desired sound
-	if not sound:
-		return
-	var p := AudioStreamPlayer3D.new()
-	add_child(p)
-	p.stream = sound
-	p.volume_db = -10.0
-	p.pitch_scale = randf_range(0.95, 1.05)
-	p.unit_size = 5.0
-	p.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
-	p.play()
-	p.connect("finished", Callable(p, "queue_free"))
+func _play_card_place_sound(card_data: CardData = null, is_facedown: bool = false) -> void:
+	var sound: AudioStream = null
+
+	# 🔹 1️⃣ Choose correct sound
+	if is_facedown:
+		# Default facedown sound
+		sound = preload("res://Audio/Sound FX/Cardfacedown.mp3")
+	elif card_data:
+		# Try meta key or property directly
+		if card_data.has_meta("place_sound"):
+			var meta_val = card_data.get_meta("place_sound")
+			if meta_val is String:
+				sound = load(meta_val)
+			elif meta_val is AudioStream:
+				sound = meta_val
+		elif "place_sound" in card_data:
+			var prop_val = card_data.place_sound
+			if prop_val is String:
+				sound = load(prop_val)
+			elif prop_val is AudioStream:
+				sound = prop_val
+	else:
+		# Fallback generic sound
+		sound = preload("res://Audio/Sound FX/Cardfacedown.mp3")
+
+	# 🔹 2️⃣ Play globally (UI-style)
+	if sound:
+		var p := AudioStreamPlayer.new()
+		add_child(p)
+		p.stream = sound
+		p.volume_db = -5.0
+		p.pitch_scale = randf_range(0.95, 1.05)
+		p.play()
+		p.connect("finished", Callable(p, "queue_free"))
 
 func _play_heal_sound() -> void:
 	if not HEAL_SOUND:

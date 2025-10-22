@@ -1,6 +1,11 @@
 extends CardAbility
 class_name ElementalFissure
 
+@export var fire_sound: AudioStream = preload("res://Audio/FIRE.mp3")
+@export var water_sound: AudioStream = preload("res://Audio/Water.mp3")
+@export var stone_sound: AudioStream = preload("res://Audio/Rocks.mp3")
+@export var grass_sound: AudioStream = preload("res://Audio/Dirt_Grass.mp3")
+
 func _init():
 	display_name = "Elemental Fissure"
 	description = "On Summon | Flip: Changes up to 3 tiles in front of this card to match this card’s element."
@@ -42,7 +47,17 @@ func execute_at(arena: Node, unit: UnitData, origin_pos: Vector2i) -> void:
 		var tile = board.get_tile(p.x, p.y)
 		if not tile:
 			continue
-
+			
+	# 🔥 Play sound only if this is a Lava-based Elemental Fan
+		if new_terrain == "Lava":
+			_play_fire_sound(arena)
+		if new_terrain == "Water":
+			_play_water_sound(arena)
+		if new_terrain == "Stone":
+			_play_earth_sound(arena)
+		if new_terrain == "Grass":
+			_play_grass_sound(arena)
+			
 		# Skip if already that terrain
 		if tile.terrain_type == new_terrain:
 			continue
@@ -77,3 +92,67 @@ func execute_at(arena: Node, unit: UnitData, origin_pos: Vector2i) -> void:
 	else:
 		arena._log("💨 %s’s Elemental Fissure fizzled — no tiles changed." % unit.card.name,
 			Color(0.8, 0.8, 0.8))
+
+
+# -------------------------------------------------------------
+# 🔊 Play Fire Sound Effect
+# -------------------------------------------------------------
+func _play_fire_sound(arena: Node) -> void:
+	if not fire_sound or not arena:
+		return
+
+	var player := AudioStreamPlayer3D.new()
+	player.stream = fire_sound
+	player.volume_db = -8
+	player.pitch_scale = randf_range(0.95, 1.05)
+	player.position = Vector3(0, 1, 0)
+	arena.add_child(player)
+	player.play()
+
+	# Auto-cleanup
+	player.finished.connect(func(): player.queue_free())
+
+func _play_water_sound(arena: Node) -> void:
+	if not water_sound or not arena:
+		return
+
+	var player := AudioStreamPlayer3D.new()
+	player.stream = water_sound
+	player.volume_db = -10
+	player.pitch_scale = randf_range(0.90, 1.9)
+	player.position = Vector3(0, 1, 0)
+	arena.add_child(player)
+	player.play()
+
+	# Auto-cleanup
+	player.finished.connect(func(): player.queue_free())
+
+func _play_earth_sound(arena: Node) -> void:
+	if not stone_sound or not arena:
+		return
+
+	var player := AudioStreamPlayer3D.new()
+	player.stream = stone_sound
+	player.volume_db = -6
+	player.pitch_scale = randf_range(0.90, 1.9)
+	player.position = Vector3(0, 1, 0)
+	arena.add_child(player)
+	player.play()
+
+	# Auto-cleanup
+	player.finished.connect(func(): player.queue_free())
+
+func _play_grass_sound(arena: Node) -> void:
+	if not grass_sound or not arena:
+		return
+
+	var player := AudioStreamPlayer3D.new()
+	player.stream = grass_sound
+	player.volume_db = -6
+	player.pitch_scale = randf_range(0.90, 1.9)
+	player.position = Vector3(0, 1, 0)
+	arena.add_child(player)
+	player.play()
+
+	# Auto-cleanup
+	player.finished.connect(func(): player.queue_free())

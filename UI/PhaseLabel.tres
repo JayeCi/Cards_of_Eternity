@@ -1,0 +1,10 @@
+[gd_resource type="LabelSettings" load_steps=2 format=3 uid="uid://br0x7c0gu7782"]
+
+[sub_resource type="SystemFont" id="SystemFont_wxlbn"]
+
+[resource]
+font = SubResource("SystemFont_wxlbn")
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 2
+shadow_color = Color(0, 0, 0, 0.8745098)

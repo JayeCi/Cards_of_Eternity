@@ -1,11 +1,12 @@
-[gd_scene load_steps=21 format=3 uid="uid://be24omkufdto6"]
+[gd_scene load_steps=22 format=3 uid="uid://be24omkufdto6"]
 
 [ext_resource type="Script" uid="uid://cgy1ya7ras2uv" path="res://UI/arena_card_details.gd" id="1_6jj6o"]
-[ext_resource type="Texture2D" uid="uid://ccsxe205y8lva" path="res://Images/Dirt.jpg" id="1_d0of6"]
 [ext_resource type="Texture2D" uid="uid://dp1ew5edt28ly" path="res://UI/Terrains/stone.png" id="2_1oedn"]
 [ext_resource type="LabelSettings" uid="uid://bh5cergsoq62" path="res://UI/TERRAINLABEL.tres" id="2_lmswf"]
+[ext_resource type="Texture2D" uid="uid://cqw22yb1awb6i" path="res://Images/Dark Sprite.jpg" id="4_w80mf"]
 [ext_resource type="LabelSettings" uid="uid://c8mtid42im4y8" path="res://UI/RARITY.tres" id="5_es5ck"]
 [ext_resource type="LabelSettings" uid="uid://5we03aye12ta" path="res://UI/COST.tres" id="6_83k8x"]
+[ext_resource type="LabelSettings" uid="uid://ddakyd5l2gxhs" path="res://UI/DescText.tres" id="7_0fbti"]
 [ext_resource type="LabelSettings" uid="uid://caiy1kgqlyqtr" path="res://UI/ATK_DEFDETAILS.tres" id="7_w80mf"]
 [ext_resource type="LabelSettings" uid="uid://bfdfb6yaegdxp" path="res://Cards/Abilities/CURRENT_ATK.tres" id="8_w80mf"]
 [ext_resource type="LabelSettings" uid="uid://yunfwjd5punj" path="res://Cards/Abilities/CURRENT_DEF.tres" id="9_0fbti"]
@@ -28,7 +29,7 @@ subpixel_positioning = 0
 
 [sub_resource type="LabelSettings" id="LabelSettings_2w83o"]
 font = SubResource("SystemFont_owp70")
-font_size = 25
+font_size = 24
 outline_size = 2
 outline_color = Color(0, 0, 0, 1)
 shadow_size = 4
@@ -91,7 +92,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
+mouse_filter = 1
 script = ExtResource("1_6jj6o")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
@@ -113,6 +114,18 @@ size_flags_horizontal = 8
 size_flags_vertical = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_6jj6o")
 
+[node name="NameLabel" type="Label" parent="MarginContainer/PanelContainer"]
+z_index = 5
+custom_minimum_size = Vector2(172.66, 35)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+text = "Jester of Flames"
+label_settings = SubResource("LabelSettings_2w83o")
+horizontal_alignment = 1
+vertical_alignment = 1
+text_overrun_behavior = 3
+
 [node name="MarginContainer" type="MarginContainer" parent="MarginContainer/PanelContainer"]
 layout_mode = 2
 theme_override_constants/margin_left = 3
@@ -121,6 +134,7 @@ theme_override_constants/margin_right = 3
 theme_override_constants/margin_bottom = 3
 
 [node name="TerrainLabel" type="Label" parent="MarginContainer/PanelContainer/MarginContainer"]
+visible = false
 z_index = 1
 layout_mode = 2
 size_flags_horizontal = 8
@@ -129,30 +143,28 @@ text = "Stone"
 label_settings = ExtResource("2_lmswf")
 
 [node name="Terrain" type="TextureRect" parent="MarginContainer/PanelContainer/MarginContainer"]
+custom_minimum_size = Vector2(351.34, 245.415)
 layout_mode = 2
 size_flags_horizontal = 8
 texture = ExtResource("2_1oedn")
-expand_mode = 3
-stretch_mode = 4
+expand_mode = 1
+stretch_mode = 6
 
 [node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/PanelContainer/MarginContainer"]
+custom_minimum_size = Vector2(0, 250.005)
 layout_mode = 2
 
 [node name="Art" type="TextureRect" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer"]
-custom_minimum_size = Vector2(150, 238.95)
+custom_minimum_size = Vector2(166.48, 0)
 layout_mode = 2
-texture = ExtResource("1_d0of6")
+texture = ExtResource("4_w80mf")
 expand_mode = 1
+stretch_mode = 4
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(0, 250)
 layout_mode = 2
 size_flags_horizontal = 3
-
-[node name="NameLabel" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 35)
-layout_mode = 2
-label_settings = SubResource("LabelSettings_2w83o")
-text_overrun_behavior = 3
 
 [node name="Rarity" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
 layout_mode = 2
@@ -171,27 +183,58 @@ text = "Type"
 label_settings = SubResource("LabelSettings_83k8x")
 
 [node name="Abilities" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 26.145)
 layout_mode = 2
-text = "Abilities"
 label_settings = SubResource("LabelSettings_owp70")
+vertical_alignment = 1
 
 [node name="AbilitiesName" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
 layout_mode = 2
 text = "Abilities Name"
 label_settings = SubResource("LabelSettings_1oedn")
 
-[node name="AbilitiesDesc" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
 layout_mode = 2
-text = "Abilities Text"
+size_flags_vertical = 3
+horizontal_scroll_mode = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="AbilitiesDesc" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(173, 69)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Abiltiy text"
 label_settings = SubResource("LabelSettings_te81p")
+autowrap_mode = 3
+
+[node name="_" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(173, 3.365)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+label_settings = SubResource("LabelSettings_te81p")
+autowrap_mode = 3
+
+[node name="Description" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(173, 69)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Desc text"
+label_settings = ExtResource("7_0fbti")
 autowrap_mode = 3
 
 [node name="VBoxContainer2" type="VBoxContainer" parent="."]
 layout_mode = 0
 offset_left = 1095.0
-offset_top = 36.505
+offset_top = 11.0
 offset_right = 1138.0
-offset_bottom = 112.505005
+offset_bottom = 87.0
 size_flags_horizontal = 10
 size_flags_vertical = 0
 

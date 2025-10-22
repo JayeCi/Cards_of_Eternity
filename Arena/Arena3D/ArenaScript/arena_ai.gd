@@ -1,4 +1,3 @@
-# File: arena_ai.gd
 extends Node
 class_name ArenaAI
 
@@ -7,9 +6,9 @@ var battle: ArenaBattle
 var ui: ArenaUI
 
 # Personality tuning
-const AGGRESSION := 0.65       # higher = pushes toward player
-const CAUTION := 0.35          # higher = retreats when weak
-const FACE_DOWN_CHANCE := 0.75 # 75% summon secrecy
+const AGGRESSION := 0.65
+const CAUTION := 0.35
+const FACE_DOWN_CHANCE := 0.75
 const TERRAIN_SYNERGY_BONUS := 4.0
 const PROTECT_LEADER_RADIUS := 3
 const ATTACK_RADIUS := 2
@@ -27,56 +26,180 @@ func init_ai(core_ref: ArenaCore) -> void:
 # ---------------------------------------------------------
 func run_enemy_turn() -> void:
 	battle.apply_all_passives()
-	await get_tree().create_timer(0.6).timeout
+	await get_tree().create_timer(0.5).timeout
 	_draw_up_to_limit()
 
-	core._log("🤖 Enemy analyzing field...", Color(0.8, 0.8, 1.0))
-	await get_tree().create_timer(0.8).timeout
+	# 🔹 NEW: Smart flip before planning moves
+	await _smart_flip_faceup()
 
-	# 1️⃣ Evaluate danger first
+	core._log("🤖 Enemy analyzing field...", Color(0.8, 0.8, 1.0))
+	await get_tree().create_timer(0.5).timeout
+
+	# 1️⃣ Handle leader logic first (survival priority)
 	if _leader_in_danger():
 		await _leader_behavior()
 		await get_tree().create_timer(0.4).timeout
 
-	# 2️⃣ Evaluate summon vs movement
+	# 2️⃣ Try summoning or moving
 	var can_summon := _has_summon_space() and core.enemy_essence > 0
-	if can_summon and (randi() % 100 < int(AGGRESSION * 100)):
+	if can_summon and randf() < AGGRESSION:
 		await _smart_summon()
 	else:
 		await _smart_move_and_attack()
 
 	core._log("🤖 Enemy turn complete.", Color(0.7, 0.9, 1))
-	await get_tree().create_timer(0.5).timeout
+	await get_tree().create_timer(0.4).timeout
 
 
 # ---------------------------------------------------------
-# LEADER BEHAVIOR
+# LEADER BEHAVIOR (Improved: retreat + call ally for help)
 # ---------------------------------------------------------
 func _leader_behavior() -> void:
 	var lpos = battle.get_leader_pos(core.ENEMY)
 	if lpos == Vector2i(-1, -1):
 		return
+	core._log("⚠️ Enemy leader assessing threats...", Color(1, 0.8, 0.6))
 
-	core._log("⚠️ Enemy leader assessing risk...", Color(1, 0.8, 0.6))
+	var leader_tile = core.board.get_tile(lpos.x, lpos.y)
+	if not leader_tile or not leader_tile.occupant:
+		return
 
-	# If surrounded, retreat if possible
-	if _leader_in_danger():
-		var safe_tile = _find_safe_tile(lpos)
-		if safe_tile and safe_tile != lpos:
-			await battle._move_or_battle(lpos, safe_tile, true)
-			core._log("🏃 Enemy leader retreats to safety!", Color(1, 0.7, 0.5))
-	else:
-		# 20% chance to advance aggressively if terrain matches
-		var player_leader_pos = battle.get_leader_pos(core.PLAYER)
-		if randi() % 100 < 20 and lpos.distance_to(player_leader_pos) > 2:
-			var path = _find_path_toward(lpos, player_leader_pos)
-			if not path.is_empty():
-				await battle._move_or_battle(lpos, path.front(), true)
-				core._log("🔥 Enemy leader advances forward!", Color(1, 0.6, 0.4))
+	# Detect adjacent player threats
+	var adjacent_threats: Array[Vector2i] = []
+	for dir in [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]:
+		var adj = lpos + dir
+		if not core.board.is_in_bounds(adj):
+			continue
+		var t = core.board.get_tile(adj.x, adj.y)
+		if t and t.occupant and t.occupant.owner == core.PLAYER:
+			adjacent_threats.append(adj)
 
+	# ✅ If no immediate danger, no need to act
+	if adjacent_threats.is_empty():
+		return
+
+	core._log("🚨 Leader is under threat! Evaluating escape routes...", Color(1, 0.7, 0.6))
+
+	# ---------------------------------------------------------
+	# 1️⃣ Check for any empty escape tiles (away from player)
+	# ---------------------------------------------------------
+	var escape_tiles: Array[Vector2i] = []
+	for dir in [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]:
+		var pos = lpos + dir
+		if not core.board.is_in_bounds(pos):
+			continue
+		var t = core.board.get_tile(pos.x, pos.y)
+		if t and t.occupant == null:
+			escape_tiles.append(pos)
+
+	# Sort escape tiles by distance away from nearest threat
+	var best_escape: Vector2i = lpos
+	var best_score := -INF
+	for tile in escape_tiles:
+		var min_threat_dist = INF
+		for threat in adjacent_threats:
+			min_threat_dist = min(min_threat_dist, tile.distance_to(threat))
+		if min_threat_dist > best_score:
+			best_score = min_threat_dist
+			best_escape = tile
+
+	# If a safe open tile exists → MOVE THERE immediately
+	if best_escape != lpos:
+		await battle._move_or_battle(lpos, best_escape, true)
+		core._log("🏃 Leader retreats to %s to avoid damage!" % str(best_escape), Color(1, 0.7, 0.5))
+		lpos = best_escape
+		await get_tree().create_timer(0.3).timeout
+
+	# ---------------------------------------------------------
+	# 2️⃣ If still adjacent, try ordering allies to block path
+	# ---------------------------------------------------------
+	var still_threatened := false
+	for dir in [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]:
+		var adj = lpos + dir
+		if core.board.is_in_bounds(adj):
+			var t = core.board.get_tile(adj.x, adj.y)
+			if t and t.occupant and t.occupant.owner == core.PLAYER:
+				still_threatened = true
+				break
+
+	if still_threatened:
+		core._log("🛡 Calling allies to block enemies near leader!", Color(0.8, 0.9, 1.0))
+		await _assist_leader_defense(lpos, adjacent_threats)
+
+	# ---------------------------------------------------------
+	# 3️⃣ As last resort, swap with ally tile (body block)
+	# ---------------------------------------------------------
+	still_threatened = false
+	for dir in [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]:
+		var adj = lpos + dir
+		if core.board.is_in_bounds(adj):
+			var t = core.board.get_tile(adj.x, adj.y)
+			if t and t.occupant and t.occupant.owner == core.PLAYER:
+				still_threatened = true
+				break
+
+	if still_threatened:
+		for dir in [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]:
+			var alt = lpos + dir
+			if not core.board.is_in_bounds(alt):
+				continue
+			var t = core.board.get_tile(alt.x, alt.y)
+			if t and t.occupant and t.occupant.owner == core.ENEMY and not t.occupant.is_leader:
+				await battle._move_or_battle(lpos, alt, true)
+				core._log("↩️ Leader swaps with ally to protect itself!", Color(1, 0.8, 0.6))
+				return
+
+	# ---------------------------------------------------------
+	# 4️⃣ Try emergency summon (last chance)
+	# ---------------------------------------------------------
+	if _has_summon_space() and core.enemy_essence > 0 and not core.enemy_hand.is_empty():
+		var card: CardData = core.enemy_hand.front()
+		var threat = adjacent_threats.front()
+		var summon_tile = lpos + (lpos - threat)
+		if core.board.is_in_bounds(summon_tile):
+			var t = core.board.get_tile(summon_tile.x, summon_tile.y)
+			if t and t.occupant == null:
+				battle.place_unit(card, summon_tile, core.ENEMY, UnitData.Mode.ATTACK, true)
+				core.enemy_hand.pop_front()
+				core.enemy_essence -= int(card.cost)
+				core.emit_signal("essence_changed", core.player_essence, core.enemy_essence)
+				core._log("🧱 Leader summons %s to create a blocker!" % card.name, Color(0.6, 0.9, 1))
+				await get_tree().create_timer(0.3).timeout
 
 # ---------------------------------------------------------
-# SUMMONING
+# ALLY SUPPORT — Attack cards threatening the leader
+# ---------------------------------------------------------
+func _assist_leader_defense(leader_pos: Vector2i, threats: Array[Vector2i]) -> void:
+	var allies: Array[Vector2i] = []
+	for pos in core.units.keys():
+		var u = core.units[pos]
+		if u.owner == core.ENEMY and not u.is_leader and core.can_unit_act(u):
+			allies.append(pos)
+
+	if allies.is_empty():
+		return
+
+	for threat in threats:
+		var best_ally := Vector2i(-1, -1)
+		var best_dist := INF
+		for ally in allies:
+			var dist = ally.distance_to(threat)
+			if dist < best_dist:
+				best_dist = dist
+				best_ally = ally
+
+		if best_ally != Vector2i(-1, -1):
+			var ally_unit = core.units[best_ally]
+			if ally_unit and not ally_unit.is_facedown:
+				var path = _find_path_toward(best_ally, threat)
+				if not path.is_empty():
+					await battle._move_or_battle(best_ally, path.front(), true)
+				await _find_and_attack_target(best_ally)
+				core._log("💥 %s attacks to protect the leader!" % ally_unit.card.name, Color(1, 0.8, 0.8))
+				await get_tree().create_timer(0.3).timeout
+
+# ---------------------------------------------------------
+# SUMMONING (Respects terrain bonuses)
 # ---------------------------------------------------------
 func _smart_summon() -> void:
 	if core.enemy_hand.is_empty() and not core.enemy_deck.is_empty():
@@ -87,7 +210,6 @@ func _smart_summon() -> void:
 	var leader_pos = battle.get_leader_pos(core.ENEMY)
 	var player_leader_pos = battle.get_leader_pos(core.PLAYER)
 
-	# Find summon spaces
 	var spaces: Array[Vector2i] = []
 	for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
 		var p = leader_pos + d
@@ -98,159 +220,144 @@ func _smart_summon() -> void:
 	if spaces.is_empty():
 		return
 
-	# Evaluate cards by cost, terrain, and type synergy
 	core.enemy_hand.sort_custom(func(a, b):
 		return _evaluate_card(a, leader_pos) > _evaluate_card(b, leader_pos)
 	)
-	var chosen_card: CardData = core.enemy_hand.pop_front()
-
-	var best_tile = spaces.front()
+	var card: CardData = core.enemy_hand.pop_front()
+	var best = spaces.front()
 	var best_score := -INF
-	for p in spaces:
-		var tile = core.board.get_tile(p.x, p.y)
-		var score = -p.distance_to(player_leader_pos)
-		if tile and tile.terrain_type == chosen_card.preferred_terrain:
+	for s in spaces:
+		var t = core.board.get_tile(s.x, s.y)
+		var score = -s.distance_to(player_leader_pos)
+		if t and t.terrain_type == card.preferred_terrain:
 			score += TERRAIN_SYNERGY_BONUS
 		if score > best_score:
+			best = s
 			best_score = score
-			best_tile = p
 
-	_focus_camera_on(core.board.get_tile(best_tile.x, best_tile.y).global_position, 0.8, 0.6)
+	_focus_camera_on(core.board.get_tile(best.x, best.y).global_position, 0.8, 0.5)
 	await get_tree().create_timer(0.3).timeout
 
-	var facedown := (randi() % 100 < int(FACE_DOWN_CHANCE * 100))
-	var mode := UnitData.Mode.FACEDOWN if facedown else UnitData.Mode.ATTACK
-	battle.place_unit(chosen_card, best_tile, core.ENEMY, mode, true)
-	core.enemy_essence -= int(chosen_card.cost)
+	var facedown = randf() < FACE_DOWN_CHANCE
+	var mode = UnitData.Mode.FACEDOWN if facedown else UnitData.Mode.ATTACK
+	battle.place_unit(card, best, core.ENEMY, mode, true)
+	core.enemy_essence -= int(card.cost)
 	core.emit_signal("essence_changed", core.player_essence, core.enemy_essence)
 
-	core._log("🤖 Summoned %s (%s) at %s" %
-		[chosen_card.name, ("Facedown" if facedown else "Faceup"), str(best_tile)], Color(0.8, 0.8, 1.0))
+	core._log("🤖 Summoned %s (%s) at %s" % 
+		[card.name, ("Facedown" if facedown else "Faceup"), str(best)], Color(0.8, 0.8, 1))
 
 func _evaluate_card(card: CardData, pos: Vector2i) -> float:
-	var base := 10.0 - int(card.cost)
-
-	var tile := core.board.get_tile(pos.x, pos.y)
-	var terrain = tile.terrain_type if tile else ""
-
-	# Safely check preferred_terrain only if it exists
-	if card.has_meta("preferred_terrain"):
-		if card.get_meta("preferred_terrain") == terrain:
-			base += TERRAIN_SYNERGY_BONUS
-	elif "preferred_terrain" in card:
-		if card.preferred_terrain == terrain:
-			base += TERRAIN_SYNERGY_BONUS
-
-	# ATK/DEF weighting
-	if "atk" in card:
-		base += float(card.atk) * 0.1
-	if "def" in card:
-		base += float(card.def) * 0.05
-
+	var base = 10.0 - float(card.cost)
+	var tile = core.board.get_tile(pos.x, pos.y)
+	if tile and card.preferred_terrain == tile.terrain_type:
+		base += TERRAIN_SYNERGY_BONUS
+	base += float(card.atk) * 0.1 + float(card.def) * 0.05
 	return base
 
-
 # ---------------------------------------------------------
-# ADVANCE / ATTACK BEHAVIOR (Rewritten + "stuck fix")
+# MOVEMENT + ATTACK (Fully respects player rules)
 # ---------------------------------------------------------
 func _smart_move_and_attack() -> void:
-	var player_leader_pos = battle.get_leader_pos(core.PLAYER)
+	var player_leader = battle.get_leader_pos(core.PLAYER)
 	var movable: Array[Vector2i] = []
 
-	# Gather all ready enemy units (excluding leader)
 	for pos in core.units.keys():
 		var u = core.units[pos]
 		if u.owner == core.ENEMY and not u.is_leader and core.can_unit_act(u):
 			movable.append(pos)
+
 	if movable.is_empty():
 		return
 
-	# Sort strongest ATK first (aggression bias)
 	movable.sort_custom(func(a, b):
 		return core.units[b].current_atk > core.units[a].current_atk
 	)
 
-	# Loop through every movable enemy
 	for from in movable:
 		var unit: UnitData = core.units[from]
 		if not unit:
 			continue
 
-		# 1️⃣ Try to attack something in range
+		# 🚫 Skip facedown units
+		if unit.is_facedown or (unit.has_meta("is_facedown") and unit.get_meta("is_facedown")):
+			continue
+
+		# 1️⃣ Try to attack any target in range
 		if await _find_and_attack_target(from):
 			continue
 
-		# 2️⃣ Try to move toward a reachable attack position
-		var near_target := await _find_attack_position(from)
-		if near_target != from:
-			await battle._move_or_battle(from, near_target, true)
-			# Try again to attack after moving
-			await _find_and_attack_target(near_target)
+		# 2️⃣ Try to move toward nearest viable attack position (using movement rules)
+		var best_move = _find_best_move_toward(from, player_leader)
+		if best_move != from:
+			await battle._move_or_battle(from, best_move, true)
+			await _find_and_attack_target(best_move)
 			continue
 
-		# 3️⃣ If weak → retreat slightly
+		# 3️⃣ Weak units retreat (same as player could move back)
 		if unit.current_def < unit.max_def * CAUTION:
 			await _tactical_retreat(from)
 			continue
 
-		# 4️⃣ Otherwise, advance toward the player leader
-		var before := from
-		await _advance_toward_player(from, player_leader_pos)
-		
-		# 🧩 Check if still stuck in same place after advance attempt
-		var now := _find_unit_position(unit)
-		if now == before:
-			core._log("🧩 %s is trapped — evaluating sacrifice..." % unit.card.name, Color(1, 0.6, 0.6))
-			await _sacrifice_weakest_adjacent(from)
-
-	# ✅ After loop, small pause before ending turn
-	await get_tree().create_timer(0.4).timeout
-
-
-# 🧩 NEW HELPER: sacrifice weakest adjacent ally to clear space
-func _sacrifice_weakest_adjacent(from: Vector2i) -> void:
-	var weakest = null
-	var weakest_pos := Vector2i(-1, -1)
-	var lowest_score := INF
-
-	for dx in range(-1, 2):
-		for dy in range(-1, 2):
-			if abs(dx) + abs(dy) != 1:
-				continue
-			var pos := from + Vector2i(dx, dy)
-			if not core.board.is_in_bounds(pos):
-				continue
-			var tile = core.board.get_tile(pos.x, pos.y)
-			if tile and tile.occupant and tile.occupant.owner == core.ENEMY and not tile.occupant.is_leader:
-				var score = tile.occupant.current_def + tile.occupant.current_atk
-				if score < lowest_score:
-					lowest_score = score
-					weakest = tile.occupant
-					weakest_pos = pos
-
-	if weakest and weakest_pos != Vector2i(-1, -1):
-		core._log("💀 %s sacrifices %s to make room!" %
-			[core.units[from].card.name, weakest.card.name], Color(1, 0.5, 0.5))
-		await battle._kill_unit(weakest)
-	else:
-		core._log("⚠️ No valid ally to sacrifice near %s." %
-			core.units[from].card.name, Color(1, 0.7, 0.4))
-
-
-# 🧩 Tiny helper to find the latest position of a unit
-func _find_unit_position(u: UnitData) -> Vector2i:
+# ---------------------------------------------------------
+# SMART FLIPPING — AI decides when to reveal facedown cards
+# ---------------------------------------------------------
+func _smart_flip_faceup() -> void:
 	for pos in core.units.keys():
-		if core.units[pos] == u:
-			return pos
-	return Vector2i(-1, -1)
+		var unit: UnitData = core.units[pos]
+		if unit.owner != core.ENEMY:
+			continue
+		if not unit.is_facedown and not (unit.has_meta("is_facedown") and unit.get_meta("is_facedown")):
+			continue
 
+		var tile = core.board.get_tile(pos.x, pos.y)
+		if not tile:
+			continue
+
+		# 🔹 Skip if currently blocked in or isolated
+		var has_adjacent_enemy := false
+		for dir in [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]:
+			var adj = pos + dir
+			if not core.board.is_in_bounds(adj):
+				continue
+			var t = core.board.get_tile(adj.x, adj.y)
+			if t and t.occupant and t.occupant.owner == core.PLAYER:
+				has_adjacent_enemy = true
+				break
+
+		# 🧩 Auto-flip if enemy is near or has an on_flip/passive ability
+		var should_flip := false
+		if has_adjacent_enemy:
+			should_flip = true
+		elif unit.card and unit.card.ability and unit.card.ability.trigger in ["on_flip", "passive"]:
+			should_flip = true
+		elif randf() < AGGRESSION * 0.4:
+			should_flip = true
+
+		if should_flip:
+			core._log("🤖 AI flips %s face-up!" % unit.card.name, Color(0.9, 0.9, 1.0))
+			await battle.reveal_card(pos)
+
+			# ✅ NEW: mark it permanently face-up this turn
+			unit.is_facedown = false
+			unit.set_meta("is_facedown", false)
+			unit.set_meta("flipped_permanent", true)
+
+			# Optional: visually refresh so the sync routines agree
+			core.refresh_tile_art_safe(pos)
+
+			await get_tree().create_timer(0.2).timeout
+
+# ---------------------------------------------------------
+# ATTACK DECISION (same ATTACK_RADIUS logic)
+# ---------------------------------------------------------
 func _find_and_attack_target(from: Vector2i) -> bool:
 	var range := ATTACK_RADIUS
-	var attacker = core.units.get(from, null)
-	if attacker == null:
+	var attacker = core.units.get(from)
+	if not attacker:
 		return false
 
-	var best_target = null
+	var best_target: Vector2i = Vector2i(-1, -1)
 	var best_score := -INF
 
 	for dx in range(-range, range + 1):
@@ -258,144 +365,144 @@ func _find_and_attack_target(from: Vector2i) -> bool:
 			var dist = abs(dx) + abs(dy)
 			if dist == 0 or dist > range:
 				continue
-
-			var target := from + Vector2i(dx, dy)
+			var target = from + Vector2i(dx, dy)
 			if not core.board.is_in_bounds(target):
 				continue
-
-			var t := core.board.get_tile(target.x, target.y)
-			if not t or not t.occupant:
-				continue
-			if t.occupant.owner != core.PLAYER:
+			var t = core.board.get_tile(target.x, target.y)
+			if not t or not t.occupant or t.occupant.owner != core.PLAYER:
 				continue
 
-			# --- Score: prefers low DEF enemies and closer distance ---
 			var score = (10.0 - float(t.occupant.current_def)) - dist
 			if t.occupant.is_leader:
-				score += 8.0 # prioritize direct damage opportunity
+				score += 10.0
 			if score > best_score:
 				best_score = score
 				best_target = target
 
-	if best_target:
-		var name_att = attacker.card.name if attacker.card else "Unknown"
-		var name_def = core.units[best_target].card.name if core.units.has(best_target) else "Unknown"
-		core._log("⚔ %s attacks %s!" % [name_att, name_def], Color(1, 0.7, 0.7))
+	if best_target != Vector2i(-1, -1):
+		core._log("⚔ %s attacks %s!" %
+			[attacker.card.name, core.units[best_target].card.name], Color(1, 0.7, 0.7))
 		await battle._move_or_battle(from, best_target, true)
 		return true
-
 	return false
 
-func _find_attack_position(from: Vector2i) -> Vector2i:
-	var attacker = core.units.get(from, null)
-	if not attacker:
+# ---------------------------------------------------------
+# MOVEMENT RESPECTING TERRAIN + BLOCKERS
+# ---------------------------------------------------------
+func _find_best_move_toward(from: Vector2i, goal: Vector2i) -> Vector2i:
+	var src_tile = core.board.get_tile(from.x, from.y)
+	var unit = core.units[from]
+	if not src_tile or not unit:
 		return from
 
-	var closest_enemy = null
-	var closest_dist := INF
+	var range = core.BASE_MOVE_RANGE
+	if src_tile.terrain_type == unit.card.preferred_terrain and not unit.is_facedown:
+		range *= 2
 
-	for pos in core.units.keys():
-		var u = core.units[pos]
-		if u.owner == core.PLAYER:
-			var d = from.distance_to(pos)
-			if d < closest_dist:
-				closest_dist = d
-				closest_enemy = pos
-
-	if not closest_enemy:
-		return from
-
-	# Move closer one tile toward enemy
-	var best := from
-	var best_dist := from.distance_to(closest_enemy)
-	for dx in range(-1, 2):
-		for dy in range(-1, 2):
-			if abs(dx) + abs(dy) != 1:
-				continue
-			var step := from + Vector2i(dx, dy)
-			if not core.board.is_in_bounds(step):
-				continue
-			var tile = core.board.get_tile(step.x, step.y)
-			if tile and tile.occupant == null:
-				var new_dist := step.distance_to(closest_enemy)
-				if new_dist < best_dist:
-					best = step
-					best_dist = new_dist
-	return best
-
-func _advance_toward_player(from: Vector2i, goal: Vector2i) -> void:
-	var range := core.BASE_MOVE_RANGE
 	var best := from
 	var best_dist := from.distance_to(goal)
+	var dirs = [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]
 
-	var unit: UnitData = core.units.get(from, null)
-	if unit == null:
+	for dir in dirs:
+		for step in range(1, range + 1):
+			var p = from + dir * step
+			if not core.board.is_in_bounds(p):
+				break
+			var t = core.board.get_tile(p.x, p.y)
+			if not t:
+				break
+			if t.occupant and t.occupant.owner == core.ENEMY:
+				break # ally blocks path
+			if not t.occupant and p.distance_to(goal) < best_dist:
+				best = p
+				best_dist = p.distance_to(goal)
+	return best
+
+# ---------------------------------------------------------
+# RETREAT / ESCAPE
+# ---------------------------------------------------------
+func _tactical_retreat(from: Vector2i) -> void:
+	var leader_pos = battle.get_leader_pos(core.ENEMY)
+	var unit: UnitData = core.units[from]
+	if not unit:
 		return
 
-	for dx in range(-range, range + 1):
-		for dy in range(-range, range + 1):
-			var dist = abs(dx) + abs(dy)
-			if dist == 0 or dist > range:
-				continue
-
-			var target = from + Vector2i(dx, dy)
-			if not core.board.is_in_bounds(target):
-				continue
-
-			var t = core.board.get_tile(target.x, target.y)
-			if not t:
-				continue
-
-			# 🚫 Block if tile has *any* occupant (even ally)
-			if t.occupant != null:
-				continue
-
-			if target.distance_to(goal) < best_dist:
-				best = target
-				best_dist = target.distance_to(goal)
-
-	if best != from:
-		await battle._move_or_battle(from, best, true)
-		var name := unit.card.name if unit and unit.card else "Unknown"
-		core._log("➡️ %s advances to %s" % [name, str(best)], Color(0.8, 0.9, 1.0))
-
-func _tactical_retreat(from: Vector2i) -> void:
-	var enemy_leader_pos = battle.get_leader_pos(core.ENEMY)
-	var range := core.BASE_MOVE_RANGE
+	var range = core.BASE_MOVE_RANGE
 	var best := from
 	var best_score := -INF
-
-	var unit: UnitData = core.units.get(from, null)
-	if unit == null:
-		return
-
 	for dx in range(-range, range + 1):
 		for dy in range(-range, range + 1):
-			var target = from + Vector2i(dx, dy)
-			if not core.board.is_in_bounds(target):
+			var pos = from + Vector2i(dx, dy)
+			if not core.board.is_in_bounds(pos):
+				continue
+			var t = core.board.get_tile(pos.x, pos.y)
+			if not t or t.occupant != null:
 				continue
 
-			var t = core.board.get_tile(target.x, target.y)
-			if not t or t.occupant != null:
-				continue  # 🚫 skip occupied tiles
-
-			var dist_score = target.distance_to(enemy_leader_pos)
-			var terrain_bonus = 0.0
-			if unit.card and "preferred_terrain" in unit.card and t.terrain_type == unit.card.preferred_terrain:
+			var dist_score = pos.distance_to(leader_pos)
+			var terrain_bonus := 0.0
+			if not unit.is_facedown and t.terrain_type == unit.card.preferred_terrain:
 				terrain_bonus = 2.0
 
 			var score = dist_score + terrain_bonus
 			if score > best_score:
+				best = pos
 				best_score = score
-				best = target
 
 	if best != from:
 		await battle._move_or_battle(from, best, true)
-		var name := unit.card.name if unit and unit.card else "Unknown"
-		core._log("🛡 %s falls back to %s" % [name, str(best)], Color(0.6, 0.9, 1.0))
+		core._log("🛡 %s retreats to %s" % [unit.card.name, str(best)], Color(0.6, 0.9, 1.0))
 
 # ---------------------------------------------------------
-# SUPPORT / DANGER EVAL
+# LEADER ESCAPE (same rules)
+# ---------------------------------------------------------
+func _try_escape_corner(leader_pos: Vector2i) -> bool:
+	if not core or not battle or not core.board:
+		return false
+
+	var leader_tile = core.board.get_tile(leader_pos.x, leader_pos.y)
+	if not leader_tile or not leader_tile.occupant:
+		return false
+	var leader = leader_tile.occupant
+
+	var dirs = [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]
+	var blocked = false
+	for dir in dirs:
+		var adj = leader_pos + dir
+		var t = core.board.get_tile(adj.x, adj.y)
+		if t and t.occupant and t.occupant.owner == core.PLAYER:
+			blocked = true
+			break
+
+	if not blocked:
+		return false
+
+	for dir in dirs:
+		var adj = leader_pos + dir
+		var ally_tile = core.board.get_tile(adj.x, adj.y)
+		if ally_tile and ally_tile.occupant and ally_tile.occupant.owner == core.ENEMY and not ally_tile.occupant.is_leader:
+			for move_dir in dirs:
+				var target = adj + move_dir
+				if core.board.is_in_bounds(target):
+					var t2 = core.board.get_tile(target.x, target.y)
+					if t2 and t2.occupant == null:
+						await battle._move_or_battle(adj, target, true)
+						core._log("🤖 Ally clears path for leader.", Color(0.8, 0.9, 1))
+						await get_tree().create_timer(0.3).timeout
+						break
+
+	for dir in dirs:
+		var escape = leader_pos + dir
+		if core.board.is_in_bounds(escape):
+			var tile = core.board.get_tile(escape.x, escape.y)
+			if tile and tile.occupant == null:
+				await battle._move_or_battle(leader_pos, escape, true)
+				core._log("🏃 Leader escapes corner!", Color(1, 0.7, 0.5))
+				return true
+	return false
+
+# ---------------------------------------------------------
+# SUPPORT HELPERS
 # ---------------------------------------------------------
 func _leader_in_danger() -> bool:
 	var lpos = battle.get_leader_pos(core.ENEMY)
@@ -408,43 +515,25 @@ func _leader_in_danger() -> bool:
 				return true
 	return false
 
-
 func _find_safe_tile(from: Vector2i) -> Vector2i:
 	var best := from
 	var best_score := -INF
 	for dx in range(-core.BASE_MOVE_RANGE, core.BASE_MOVE_RANGE + 1):
 		for dy in range(-core.BASE_MOVE_RANGE, core.BASE_MOVE_RANGE + 1):
-			var target = from + Vector2i(dx, dy)
-			if not core.board.is_in_bounds(target):
+			var pos = from + Vector2i(dx, dy)
+			if not core.board.is_in_bounds(pos):
 				continue
-			var t = core.board.get_tile(target.x, target.y)
+			var t = core.board.get_tile(pos.x, pos.y)
 			if t and t.occupant == null:
-				var score = target.distance_to(battle.get_leader_pos(core.PLAYER))
-				if _has_friendly_block_between(target, battle.get_leader_pos(core.PLAYER)):
+				var score = pos.distance_to(battle.get_leader_pos(core.PLAYER))
+				if _has_friendly_block_between(pos, battle.get_leader_pos(core.PLAYER)):
 					score += 3.0
-				if t.terrain_type == "Shadow" or t.terrain_type == "Stone":
-					score += 2.0 # defensive
+				if t.terrain_type in ["Shadow", "Stone"]:
+					score += 2.0
 				if score > best_score:
+					best = pos
 					best_score = score
-					best = target
 	return best
-
-
-func _find_path_toward(from: Vector2i, to: Vector2i) -> Array:
-	var candidates := []
-	for dx in [-1, 0, 1]:
-		for dy in [-1, 0, 1]:
-			if dx == 0 and dy == 0:
-				continue
-			var step = from + Vector2i(dx, dy)
-			if core.board.is_in_bounds(step):
-				var tile = core.board.get_tile(step.x, step.y)
-				if tile and tile.occupant == null:
-					candidates.append(step)
-	candidates.sort_custom(func(a, b):
-		return a.distance_to(to) < b.distance_to(to))
-	return candidates
-
 
 func _has_clear_path(from: Vector2i, to: Vector2i) -> bool:
 	var dx = sign(to.x - from.x)
@@ -454,11 +543,10 @@ func _has_clear_path(from: Vector2i, to: Vector2i) -> bool:
 		var mid = Vector2i(from.x + dx * i, from.y + dy * i)
 		if not core.board.is_in_bounds(mid):
 			continue
-		var tile = core.board.get_tile(mid.x, mid.y)
-		if tile and tile.occupant != null:
+		var t = core.board.get_tile(mid.x, mid.y)
+		if t and t.occupant != null:
 			return false
 	return true
-
 
 func _has_friendly_block_between(from: Vector2i, to: Vector2i) -> bool:
 	var dx = sign(to.x - from.x)
@@ -468,19 +556,14 @@ func _has_friendly_block_between(from: Vector2i, to: Vector2i) -> bool:
 		var mid = Vector2i(from.x + dx * i, from.y + dy * i)
 		if not core.board.is_in_bounds(mid):
 			continue
-		var tile = core.board.get_tile(mid.x, mid.y)
-		if tile and tile.occupant and tile.occupant.owner == core.ENEMY:
+		var t = core.board.get_tile(mid.x, mid.y)
+		if t and t.occupant and t.occupant.owner == core.ENEMY:
 			return true
 	return false
 
-
-# ---------------------------------------------------------
-# UTILITIES
-# ---------------------------------------------------------
 func _draw_up_to_limit() -> void:
 	while core.enemy_hand.size() < core.MAX_ENEMY_HAND_SIZE and not core.enemy_deck.is_empty():
 		core.enemy_hand.append(core.enemy_deck.pop_back())
-
 
 func _has_summon_space() -> bool:
 	var l = battle.get_leader_pos(core.ENEMY)
@@ -492,6 +575,50 @@ func _has_summon_space() -> bool:
 				return true
 	return false
 
-
 func _focus_camera_on(pos: Vector3, zoom_mult: float, duration: float) -> void:
 	core.emit_signal("focus_camera", pos, zoom_mult, duration)
+
+func _find_path_toward(from: Vector2i, to: Vector2i) -> Array[Vector2i]:
+	if from == to:
+		return []
+
+	# 🧭 Simple BFS (Breadth-First Search) for shortest path
+	var open := [from]
+	var came_from := {}
+	came_from[from] = null
+
+	while not open.is_empty():
+		var current = open.pop_front()
+
+		if current == to:
+			break
+
+		for dir in [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]:
+			var next = current + dir
+			if not core.board.is_in_bounds(next):
+				continue
+
+			# 🚫 Skip occupied tiles (both ally and enemy)
+			var tile = core.board.get_tile(next.x, next.y)
+			if not tile or (tile.occupant != null and next != to):
+				continue
+
+			if not came_from.has(next):
+				came_from[next] = current
+				open.append(next)
+
+	# 🧩 Reconstruct path
+	if not came_from.has(to):
+		return []
+
+	var path: Array[Vector2i] = []
+	var cur = to
+	while cur != null:
+		path.push_front(cur)
+		cur = came_from[cur]
+
+	# Remove starting tile
+	if not path.is_empty() and path.front() == from:
+		path.pop_front()
+
+	return path

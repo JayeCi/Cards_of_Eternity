@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://b12jqhadg2pg0"]
+
+[node name="ArtContainer" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="."]
+layout_mode = 0
+offset_right = 512.0
+offset_bottom = 512.0
+
+[node name="SubViewport" type="SubViewport" parent="SubViewportContainer"]
+transparent_bg = true
+handle_input_locally = false
+mesh_lod_threshold = 0.0
+scaling_3d_scale = 2.0
+texture_mipmap_bias = -2.0
+fsr_sharpness = 1.8
+render_target_update_mode = 4
+
+[node name="Node3D" type="Node3D" parent="SubViewportContainer/SubViewport"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -6.518132, 0)
+
+[node name="Camera3D" type="Camera3D" parent="SubViewportContainer/SubViewport/Node3D"]
+transform = Transform3D(-0.94877136, -0.03076129, 0.31446263, 0, 0.9952495, 0.09735708, -0.3159636, 0.0923696, -0.94426423, -0.39202666, 0.13163328, -2.6259)
+fov = 84.37499
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="SubViewportContainer/SubViewport/Node3D"]

@@ -81,6 +81,29 @@ func init_ui(core_ref: ArenaCore) -> void:
 	core.add_child(ghost_card)
 
 	_update_hp_labels()
+	
+func _input(event: InputEvent) -> void:
+	# 🖱️ Right-click cancels summon popup if it's open
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+		if summon_mode_popup and summon_mode_popup.visible:
+			_cancel_summon_popup()
+			get_viewport().set_input_as_handled()
+
+
+
+func _cancel_summon_popup() -> void:
+	summon_mode_popup.hide()
+
+	if core:
+		core._log("❌ Summon canceled.", Color(1, 0.6, 0.6))
+		core.dragging_card = null
+		core.selected_card = null
+		core.selected_pos = Vector2i(-1, -1)
+		core._set_phase(core.Phase.SUMMON_OR_MOVE)
+		core._update_phase_ui()
+
+	cancel_drag()
+	show_battle_message("Summon canceled", 1.0)
 
 func refresh_hand(player_hand: Array, player_essence: int) -> void:
 	for c in hand_grid.get_children(): c.queue_free()
@@ -111,7 +134,23 @@ func refresh_hand(player_hand: Array, player_essence: int) -> void:
 		
 		ui.request_show_zoom.connect(Callable(self, "_on_card_hovered_in_hand"))
 		ui.request_hide_zoom.connect(Callable(self, "_on_card_hovered_in_hand_exit"))
+		# 🧩 Add hover zoom + lift animation (fixed position drift)
+		ui.mouse_entered.connect(func():
+			var t = create_tween()
+			t.tween_property(ui, "position:y", -25.0, 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		)
 
+
+		ui.mouse_exited.connect(func():
+			var t = create_tween()
+			t.tween_property(ui, "position:y", 0.0, 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+		)
+
+
+
+
+		ui.scale = Vector2.ONE
+		ui.position = Vector2.ZERO
 
 		hand_grid.add_child(ui)
 		last_card_ui = ui
@@ -317,6 +356,10 @@ func _on_card_hovered_in_hand_exit() -> void:
 
 
 func show_hover_for_tile(tile: Node3D) -> void:
+	# 🛑 Prevent terrain hover while hovering a hand card
+	if _is_hovering_hand_card:
+		return
+
 	if not tile or (core and core.is_cutscene_active):
 		return
 
@@ -324,20 +367,13 @@ func show_hover_for_tile(tile: Node3D) -> void:
 	if is_dragging_card:
 		return
 
-	# Hide hand hover effects but allow terrain hover
-	if _is_hovering_hand_card:
-		if has_node("ArenaCardDetails"):
-			$ArenaCardDetails.visible = false
-		# Continue to terrain hover
-		pass
-
 	# --- TILE WITH UNIT ---
 	if tile.occupant:
 		var unit = tile.occupant
 		var is_enemy = unit.owner != core.PLAYER
 		var is_facedown = unit.has_meta("is_facedown") and unit.get_meta("is_facedown")
 
-		# 🧩 NEW FIX — hide terrain when hovering a unit card
+		# 🧩 Hide terrain when hovering a unit card
 		if has_node("ArenaTerrainDetails"):
 			if $ArenaTerrainDetails.has_method("hide_terrain"):
 				$ArenaTerrainDetails.hide_terrain()
@@ -397,9 +433,16 @@ func hide_hover() -> void:
 
 # Labels / log
 func _on_essence_changed(p: int, e: int) -> void:
-	# Update orb grid for player essence
+	# Limit orb display to 8
+	var display_count = min(p, 8)
+
 	if orb_grid and orb_grid.has_method("set_essence"):
-		orb_grid.set_essence(p)
+		orb_grid.set_essence(display_count)
+
+	# Optional visual feedback if capped
+	if p > 8:
+		core._log("⚠️ Essence capped at 8 (current: %d)" % p, Color(0.8, 0.8, 1.0))
+
 
 
 func _on_hp_changed(owner: int, hp: int) -> void:
@@ -434,8 +477,11 @@ func _on_phase_changed(new_phase: int) -> void:
 			_show_hand_and_orbs(false)
 
 func _show_hand_and_orbs(visible: bool) -> void:
-	# Don’t touch hand while battle is running or we’re forcibly hiding it
-	if (core and core.battle_sys and core.battle_sys._is_battle_in_progress) or hand_forced_hidden:
+	# Don’t touch hand during drag, battle, or forced hide
+	if (core and core.battle_sys and core.battle_sys._is_battle_in_progress) \
+	or hand_forced_hidden \
+	or is_dragging_card \
+	or core.dragging_card != null:
 		return
 
 	# cancel previous tween so it can't finish later and flip visibility
@@ -498,13 +544,38 @@ func _on_unit_stats_changed(unit: UnitData) -> void:
 
 func show_battle_message(text: String, duration := 2.0) -> void:
 	var label: Label = $"../UISystem/BattlePopup"
+	if not label:
+		return
 	label.text = text
 	label.show()
+
+	# ✅ Correct node lookup
+	var outline_color := Color(0.2, 0.4, 1.0) # default blue
+
+	if core.phase == core.Phase.ENEMY_TURN:
+		outline_color = Color(1.0, 0.2, 0.2) # red for enemy
+	else:
+		outline_color = Color(0.2, 0.4, 1.0)
+	_set_label_outline(label, outline_color)
+
+	label.modulate.a = 0.0
 	var t = create_tween()
 	t.tween_property(label, "modulate:a", 1.0, 0.2)
 	await get_tree().create_timer(duration).timeout
 	var t2 = create_tween()
 	t2.tween_property(label, "modulate:a", 0.0, 0.5)
+
+func _set_label_outline(label: Label, color: Color) -> void:
+	if not label:
+		return
+	if not label.label_settings:
+		label.label_settings = LabelSettings.new()
+
+	# Force-update every time (even if reused)
+	var settings := label.label_settings
+	settings.outline_size = 5
+	settings.outline_color = color
+	label.label_settings = settings
 
 func _update_hp_bar() -> void:
 	var t = create_tween()

@@ -21,6 +21,7 @@ var core: ArenaCore
 @onready var leader_badge: MeshInstance3D = $LeaderBadge
 @onready var default_tile: Node3D = $TileMesh/DefaultTile
 @onready var move_highlight: MeshInstance3D = $MoveHighlight
+@onready var card_border: Sprite3D = $CardMesh/Sprite3D
 
 #TILEMESHES
 @onready var water_mesh: MeshInstance3D = $TileMesh/WaterMesh
@@ -154,12 +155,39 @@ func set_occupant(unit: UnitData) -> void:
 	# Update art if card exists
 	if unit and unit.card:
 		set_art(unit.card.art, unit.owner == 1)
+		_update_card_border_color(unit.card.element)
 	else:
 		card_mesh.visible = false
-
+		if card_border:
+			card_border.visible = false
 
 	# Show/hide the leader badge
 	_update_leader_badge()
+
+
+func _update_card_border_color(element: String = "") -> void:
+	if not card_border:
+		return
+
+	if not occupant:
+		card_border.visible = false
+		return
+
+	# 🔹 Determine color by ownership
+	var color: Color
+	if occupant.owner == core.PLAYER:
+		color = Color(0.2, 0.4, 1.0)   # Player Blue
+	else:
+		color = Color(1.0, 0.2, 0.2)   # Enemy Red
+
+	card_border.visible = true
+	card_border.modulate = color
+
+	## Optional: Gentle pulse for subtle animation
+	#var tw := create_tween()
+	#tw.tween_property(card_border, "modulate:a", 0.8, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	#tw.tween_property(card_border, "modulate:a", 1.0, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	#tw.set_loops()
 
 func _pulse_border(border: MeshInstance3D):
 	if not border: return

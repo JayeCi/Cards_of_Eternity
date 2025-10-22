@@ -1,0 +1,14 @@
+[gd_resource type="LabelSettings" load_steps=2 format=3 uid="uid://ddakyd5l2gxhs"]
+
+[sub_resource type="SystemFont" id="SystemFont_l1njj"]
+font_names = PackedStringArray("Arial")
+font_italic = true
+subpixel_positioning = 0
+
+[resource]
+font = SubResource("SystemFont_l1njj")
+font_size = 10
+font_color = Color(0.47007585, 0.47007585, 0.47007585, 1)
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 2
+shadow_color = Color(0, 0, 0, 1)
