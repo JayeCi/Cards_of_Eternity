@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://camg64m8fg43w"]
+[gd_scene load_steps=14 format=3 uid="uid://camg64m8fg43w"]
 
 [ext_resource type="Script" uid="uid://uk6se88h2jyj" path="res://Arena/Arena3D/ArenaScript/arena_core.gd" id="1_2nnof"]
 [ext_resource type="PackedScene" uid="uid://da27pnrvn5yna" path="res://Arena/Arena3D/Board3D.tscn" id="1_5ykft"]
@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://c01bdnjyd3qmh" path="res://Arena/Arena3D/ArenaScript/arena_battle.gd" id="8_08t7x"]
 [ext_resource type="Script" uid="uid://bjt3wnmra8jjr" path="res://Arena/Arena3D/ArenaScript/arena_ai.gd" id="9_pkj7r"]
 [ext_resource type="PackedScene" uid="uid://d3k7rvjpylid4" path="res://UI/battle_ui.tscn" id="10_2nnof"]
+[ext_resource type="Script" uid="uid://khurkxh2646n" path="res://Arena/Arena3D/ArenaScript/arena_cutscene.gd" id="10_i7u7f"]
 
 [sub_resource type="Environment" id="Environment_6q22w"]
 background_mode = 1
@@ -51,7 +52,7 @@ material_override = SubResource("StandardMaterial3D_i42j4")
 mesh = SubResource("BoxMesh_pfipv")
 
 [node name="CameraSystem" type="Camera3D" parent="."]
-transform = Transform3D(0.99639, 0.0414365, 0.0740987, -0.0798196, 0.159901, 0.983901, 0.0289209, -0.986263, 0.162632, 0.531002, 24.6682, 3.0595)
+transform = Transform3D(0.9963897, 0.04143649, 0.074098594, -0.07981956, 0.159901, 0.98390067, 0.028920949, -0.98626304, 0.16263114, 0.531002, 24.47908, 3.0595)
 current = true
 fov = 51.5
 size = 8.619
@@ -72,6 +73,7 @@ script = ExtResource("8_08t7x")
 script = ExtResource("9_pkj7r")
 
 [node name="CutsceneSystem" type="Node3D" parent="."]
+script = ExtResource("10_i7u7f")
 
 [connection signal="pressed" from="UISystem/EndTurnButton" to="." method="_on_end_turn_button_pressed"]
 [connection signal="pressed" from="UISystem/VBoxContainer/LogButton" to="." method="_on_log_button_pressed"]
@@ -81,4 +83,5 @@ script = ExtResource("9_pkj7r")
 
 [editable path="UISystem"]
 [editable path="UISystem/BottomContainer/OrbGrid"]
+[editable path="UISystem/BottomContainer/OrbGrid/OrbGrid/Control"]
 [editable path="UISystem/BattleUI"]

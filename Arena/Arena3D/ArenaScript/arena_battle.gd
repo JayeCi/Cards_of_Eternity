@@ -1067,12 +1067,16 @@ func resolve_battle(att: UnitData, defn: UnitData, silent = false) -> Dictionary
 # PASSIVES / KILL / HELPERS
 # -----------------------------
 func apply_all_passives() -> void:
+	
 	print("🧊 apply_all_passives: units=", core.units.size())
 
 	for pos in core.units.keys():
 		var tile = core.board.get_tile(pos.x, pos.y)
 		var unit: UnitData = core.units[pos]
 		if not tile or tile.occupant != unit:
+			continue
+		# Skip null or destroyed occupants
+		if not unit or unit.current_def <= 0 or not is_instance_valid(unit):
 			continue
 
 		var facedown = unit.is_facedown or (unit.has_meta("is_facedown") and unit.get_meta("is_facedown"))

@@ -35,11 +35,11 @@ signal hovered(tile)
 signal unhovered(tile)
 
 func _ready():
-	await get_tree().create_timer(1.0).timeout
-	print("TEST SHAKE START")
-	var tween := create_tween()
-	tween.tween_property(self, "position:y", position.y + 0.5, 0.2)
-	tween.tween_property(self, "position:y", position.y, 0.2)
+	#await get_tree().create_timer(1.0).timeout
+	#print("TEST SHAKE START")
+	#var tween := create_tween()
+	#tween.tween_property(self, "position:y", position.y + 0.5, 0.2)
+	#tween.tween_property(self, "position:y", position.y, 0.2)
 
 	set_meta("tile_marker", true)
 	_apply_terrain_visual()

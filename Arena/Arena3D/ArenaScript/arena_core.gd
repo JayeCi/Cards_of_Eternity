@@ -181,10 +181,10 @@ func _ready() -> void:
 	#CardCollection.add_card(get_card(CARD_PATHS.FYSH))
 	#CardCollection.add_card(get_card(CARD_PATHS.FOREST_FAE))
 	#CardCollection.add_card(get_card(CARD_PATHS.IMP))
-	CardCollection.add_card(get_card(CARD_PATHS.LAVA_HARE))
-	CardCollection.add_card(get_card(CARD_PATHS.NAGA))
-	CardCollection.add_card(get_card(CARD_PATHS.FIREBALL))
-	CardCollection.add_card(get_card(CARD_PATHS.LYZARD))
+	#CardCollection.add_card(get_card(CARD_PATHS.LAVA_HARE))
+	#CardCollection.add_card(get_card(CARD_PATHS.NAGA))
+	#CardCollection.add_card(get_card(CARD_PATHS.FIREBALL))
+	#CardCollection.add_card(get_card(CARD_PATHS.LYZARD))
 	CardCollection.add_card(get_card(CARD_PATHS.ERUPTION))
 	CardCollection.add_card(get_card(CARD_PATHS.DRAKE_OF_EMERALD))
 	CardCollection.add_card(get_card(CARD_PATHS.FLAME_FAE))
@@ -204,7 +204,7 @@ func _ready() -> void:
 	CardCollection.add_card(get_card(CARD_PATHS.ZEI_PANDA))
 	CardCollection.add_card(get_card(CARD_PATHS.YORG_ARCHER))
 	CardCollection.add_card(get_card(CARD_PATHS.STONE_FAE))
-	
+	#
 	
 	
 	
@@ -244,8 +244,8 @@ func _deferred_startup():
 	
 	
 	
-	#cutscene_sys.call("init_cutscene", self)
-	#await cutscene_sys._intro()     # cinematic leader reveal
+	cutscene_sys.call("init_cutscene", self)
+	await cutscene_sys._intro()     # cinematic leader reveal
 	
 	
 	
@@ -700,6 +700,9 @@ func _on_end_turn_button_pressed() -> void:
 	await _start_enemy_turn()
 
 func _start_player_turn() -> void:
+	if camera_sys and camera_sys.has_method("recenter_to_default"):
+		camera_sys.call_deferred("recenter_to_default")
+
 	battle_sys.call("_reset_hover_state")
 
 	_reset_action_flags()

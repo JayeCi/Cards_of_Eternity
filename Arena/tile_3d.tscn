@@ -125,6 +125,7 @@ mesh = SubResource("PlaneMesh_nvf5m")
 
 [node name="CardMesh" type="MeshInstance3D" parent="."]
 transform = Transform3D(1.13, 0, 0, 0, 1.13, 0, 0, 0, 1.13, 0, 0.201595, -0.553633)
+visible = false
 mesh = ExtResource("3_mf1uq")
 
 [node name="Sprite3D" type="Sprite3D" parent="CardMesh"]

@@ -29,48 +29,102 @@ func init_camera(core_ref: ArenaCore) -> void:
 	_default_pos = camera.position
 	_default_fov = camera.fov
 
-func _physics_process(delta: float) -> void:
-	if not camera or _camera_locked:  # 🚫 Ignore input while locked
-		return
-	_handle_wasd(delta)
-	_handle_wheel(delta)
-	_clamp_camera_to_board()
+
+func _input(event):
+	if event.is_action_pressed("ui_accept"): # press Enter
+		print("Camera position:", camera.position)
+		print("Camera rotation_degrees:", camera.rotation_degrees)
 
 # ====================================================
-# FREEMOVE + MOUSE LOOK
+# FREEMOVE + MOUSE LOOK (True Local FPS-style)
 # ====================================================
 func toggle_freelook(pressed: bool) -> void:
-	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED if pressed else Input.MOUSE_MODE_VISIBLE)
-	is_freelook = pressed
-	if not pressed:
-		_reset_to_topdown()
+	if not camera:
+		return
+
+	if pressed:
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+		is_freelook = true
+
+		# Sync internal rotation with current camera orientation
+		var rot = camera.rotation
+		_rotation_x = rot.x
+		_rotation_y = rot.y
+	else:
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+		is_freelook = false
+
+		# Smoothly restore to default camera state
+		recenter_to_default()
+
 
 func forward_mouse_motion(relative: Vector2) -> void:
-	if not is_freelook or _camera_locked:  # 🚫 Prevent rotation during cinematic
+	if not is_freelook or _camera_locked:
 		return
+
+	# Update rotation using mouse delta
 	_rotation_y -= relative.x * _mouse_sensitivity
-	_rotation_x += relative.y * _mouse_sensitivity
-	_rotation_x = clamp(_rotation_x, deg_to_rad(10), deg_to_rad(80))
+	_rotation_x -= relative.y * _mouse_sensitivity
+	_rotation_x = clamp(_rotation_x, deg_to_rad(-80), deg_to_rad(-10))
 
-	var offset = Vector3()
-	offset.x = sin(_rotation_y) * _zoom_distance
-	offset.z = cos(_rotation_y) * _zoom_distance
-	offset.y = tan(_rotation_x) * _zoom_distance * 0.75
+	# Apply rotation to camera (no roll)
+	camera.rotation.x = _rotation_x
+	camera.rotation.y = _rotation_y
+	camera.rotation.z = 0.0
 
-	camera.position = offset
-	camera.look_at(Vector3.ZERO, Vector3.UP)
+
+func _physics_process(delta: float) -> void:
+	if not camera or _camera_locked:
+		return
+
+	if is_freelook:
+		_handle_freelook_movement(delta)
+	else:
+		_handle_wasd(delta)
+		_handle_wheel(delta)
+		_clamp_camera_to_board()
+
+
+func _handle_freelook_movement(delta: float) -> void:
+	var move_dir := Vector3.ZERO
+	var forward := -camera.global_transform.basis.z.normalized()
+	var right := camera.global_transform.basis.x.normalized()
+	var up := Vector3.UP
+
+	# --- WASD/QE movement ---
+	if Input.is_action_pressed("move_forward"): move_dir += forward
+	if Input.is_action_pressed("move_downward"): move_dir -= forward
+	if Input.is_action_pressed("move_left"): move_dir -= right
+	if Input.is_action_pressed("move_right"): move_dir += right
+	if Input.is_action_pressed("move_up"): move_dir += up
+	if Input.is_action_pressed("move_down"): move_dir -= up
+
+	if move_dir != Vector3.ZERO:
+		camera.position += move_dir.normalized() * core.camera_move_speed * delta
+
+	# --- Zoom via mouse wheel ---
+	if Input.is_action_pressed("wheel_up"):
+		camera.position += forward * core.camera_zoom_speed * delta * 5
+	elif Input.is_action_pressed("wheel_down"):
+		camera.position -= forward * core.camera_zoom_speed * delta * 5
 
 # ====================================================
 # CAMERA POSITION LOGIC
 # ====================================================
 func _position_default() -> void:
-	var spacing = board.spacing
-	var board_depth = (core.BOARD_H - 1) * spacing
-	var board_width = (core.BOARD_W - 1) * spacing
-	_zoom_distance = max(board_width, board_depth) * 0.8
-	var angle = deg_to_rad(45)
-	camera.position = Vector3(0, sin(angle) * _zoom_distance * 1.5, cos(angle) * _zoom_distance * 1.5)
-	camera.look_at(Vector3(0, 0, 1), Vector3.UP)
+	camera.position = Vector3(0, 5.41941, 5.534)
+	camera.rotation_degrees = Vector3(-59.99313, 0, 0)
+	_zoom_distance = 8.934
+
+func recenter_to_default(duration := 0.6) -> void:
+	if not camera:
+		return
+	if _cinematic_tween:
+		_cinematic_tween.kill()
+	_cinematic_tween = create_tween()
+	_cinematic_tween.tween_property(camera, "position", Vector3(0, 5.41941, 5.534), duration)
+	_cinematic_tween.parallel().tween_property(camera, "rotation_degrees", Vector3(-59.99313, 0, 0), duration)
+
 
 func _reset_to_topdown() -> void:
 	var angle = deg_to_rad(45)
