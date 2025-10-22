@@ -41,10 +41,12 @@ func _try_toggle_face() -> void:
 	var unit = tile.occupant
 
 	# 🚫 Player-only, not enemy turn
-	if unit.owner != core.PLAYER: return
-	if core.phase == core.Phase.ENEMY_TURN: return
+	if unit.owner != core.PLAYER:
+		return
+	if core.phase == core.Phase.ENEMY_TURN:
+		return
 
-	# 🔒 Lock flag (but do not early-return; we handle directionally below)
+	# 🔒 Lock flags
 	var is_locked = unit.has_meta("flipped_permanent") and unit.get_meta("flipped_permanent")
 	var allow_session_toggle = unit.has_meta("allow_face_toggle_session") and unit.get_meta("allow_face_toggle_session")
 
@@ -52,7 +54,7 @@ func _try_toggle_face() -> void:
 	var is_down = unit.is_facedown or (unit.has_meta("is_facedown") and unit.get_meta("is_facedown"))
 
 	if is_down:
-		# ✅ Facedown → Face-up is ALWAYS allowed for the player (even if locked)
+		# ✅ Facedown → Face-up
 		unit.is_facedown = false
 		unit.set_meta("is_facedown", false)
 		unit.mode = UnitData.Mode.ATTACK
@@ -62,20 +64,26 @@ func _try_toggle_face() -> void:
 
 		if unit.has_meta("model_instance"):
 			var m = unit.get_meta("model_instance")
-			if is_instance_valid(m): m.visible = true
+			if is_instance_valid(m):
+				m.visible = true
 
 		core.refresh_tile_art_safe(core.board.get_unit_position(unit))
-	# 🔹 Mark ability as pending instead of triggering immediately
-	if unit.card and unit.card.ability:
-		var ab = unit.card.ability
-		var is_placing = (core.phase == core.Phase.SELECT_SUMMON_TILE)
-		if not is_placing and ab.trigger in ["on_summon", "on_flip"]:
-			unit.set_meta("pending_ability", ab)
-			core._log("💡 %s ability ready — click to activate." % ab.display_name, Color(0.8, 0.8, 1.0))
+		
+		# ✅ If card has an "on_summon" or "on_flip" ability → defer until confirmed
+		if unit.card and unit.card.ability:
+			var ab = unit.card.ability
+			if ab.trigger in ["on_summon", "on_flip"]:
+				# Defer activation until confirmation (store ability for later)
+				unit.set_meta("pending_on_flip_ability", ab)
+				core._log("💡 %s ability will activate once face-up is confirmed." % ab.display_name, Color(0.8, 0.9, 1.0))
 
+			else:
+				# Non-flip abilities can still be marked pending normally
+				unit.set_meta("pending_ability", ab)
+				core._log("💡 %s ability ready — click to activate." % ab.display_name, Color(0.8, 0.8, 1.0))
 
 	else:
-		# 🔁 Face-up → Facedown only if we're in a "session" (clicked this unit) AND not hard-locked
+		# 🔁 Face-up → Facedown (only if allowed)
 		if allow_session_toggle and not is_locked:
 			unit.is_facedown = true
 			unit.set_meta("is_facedown", true)
@@ -86,7 +94,8 @@ func _try_toggle_face() -> void:
 
 			if unit.has_meta("model_instance"):
 				var m2 = unit.get_meta("model_instance")
-				if is_instance_valid(m2): m2.visible = false
+				if is_instance_valid(m2):
+					m2.visible = false
 
 			core.refresh_tile_art_safe(core.board.get_unit_position(unit))
 		else:
@@ -262,71 +271,70 @@ func on_board_click(screen_pos: Vector2) -> void:
 		return
 
 	var result = cam.ray_pick(screen_pos)
-	if not result: return
+	if not result:
+		return
+
 	var node = result.collider
 	while node and (not node.has_meta("tile_marker")):
 		node = node.get_parent()
-	if not node: return
+	if not node:
+		return
 
-	var tile = node
+	var tile: Node3D = node
 
-			
-	# ✅ Handle pending ability trigger — both on the same tile OR when moving
+	# ✅ Allow clicking empty tile ONLY if moving a selected unit
+	var is_moving := (core.phase == core.Phase.SELECT_MOVE_TARGET and core.selected_pos != Vector2i(-1, -1))
+	var is_placing := (core.dragging_card != null)
+
+	if tile.occupant == null and not is_moving and not is_placing:
+		core._log("💡 Click ignored — empty tile.", Color(0.7, 0.7, 0.7))
+		return
+
+	# ✅ Handle pending ability trigger on clicked occupied tile
 	var pending_unit: UnitData = null
 	var pending_ability: CardAbility = null
-
-	# Check if the clicked tile itself has a pending ability
-	if tile and tile.occupant and tile.occupant.has_meta("pending_ability"):
+	if tile.occupant and tile.occupant.has_meta("pending_ability"):
 		pending_unit = tile.occupant
 		pending_ability = pending_unit.get_meta("pending_ability")
 
-	# Or if player has a selected unit (e.g., about to move) with a pending ability
-	elif core.selected_pos != Vector2i(-1, -1):
-		var src_tile = board.get_tile(core.selected_pos.x, core.selected_pos.y)
-		if src_tile and src_tile.occupant and src_tile.occupant.has_meta("pending_ability"):
-			pending_unit = src_tile.occupant
-			pending_ability = pending_unit.get_meta("pending_ability")
-#
-	## 🔹 Execute ability if found
-	#if pending_unit and pending_ability:
-		#core._execute_card_ability(pending_unit, pending_ability)
-		#pending_unit.set_meta("pending_ability", null)
-		#core._log("✨ %s ability activated!" % pending_ability.display_name, Color(1.0, 1.0, 0.6))
-#
-		## Exit placement/selection phase after triggering
-		#core.selected_pos = Vector2i(-1, -1)
-		#clear_highlights()
-		#if ui:
-			#ui.hide_hover()
-			#ui._show_hand_and_orbs(true)
-#
-		#core._set_phase(core.Phase.SUMMON_OR_MOVE)
-		#core._update_phase_ui()
-		#return
+	if pending_unit and pending_ability:
+		core._execute_card_ability(pending_unit, pending_ability)
+		pending_unit.set_meta("pending_ability", null)
+		core._log("✨ %s ability activated!" % pending_ability.display_name, Color(1.0, 1.0, 0.6))
+		return
 
+	# 🚫 If player is dragging a card, handle placement only
+	if is_placing:
+		core.try_place_dragged_card(tile)
+		return
+
+	# ✅ Moving existing unit to empty or enemy tile
+	if is_moving:
+		if tile.highlighted:
+			await _move_or_battle(core.selected_pos, Vector2i(tile.x, tile.y))
+			clear_highlights()
+			core.selected_pos = Vector2i(-1, -1)
+			core._set_phase(core.Phase.SUMMON_OR_MOVE)
+			core._update_phase_ui()
+		return
+
+	# ✅ Only allow phase change if clicking a tile that HAS a unit
+	if tile.occupant == null:
+		core._log("💡 No unit to select here.", Color(0.7, 0.7, 0.7))
+		return
 
 	match core.phase:
 		core.Phase.SUMMON_OR_MOVE:
+			# Select unit on board to move
 			core.selected_pos = Vector2i(tile.x, tile.y)
-
-			# NEW: enable session toggle if the unit started facedown
 			if tile.occupant and (tile.occupant.is_facedown or (tile.occupant.has_meta("is_facedown") and tile.occupant.get_meta("is_facedown"))):
 				tile.occupant.set_meta("allow_face_toggle_session", true)
 			else:
-				if tile.occupant:
-					tile.occupant.set_meta("allow_face_toggle_session", false)
+				tile.occupant.set_meta("allow_face_toggle_session", false)
 
 			_show_move_targets(core.selected_pos)
 			core._set_phase(core.Phase.SELECT_MOVE_TARGET)
 			core._update_phase_ui()
-
-		core.Phase.SELECT_MOVE_TARGET:
-			if tile.highlighted:
-				await _move_or_battle(core.selected_pos, Vector2i(tile.x, tile.y))
-				clear_highlights()
-				core.selected_pos = Vector2i(-1,-1)
-				core._set_phase(core.Phase.SUMMON_OR_MOVE)
-				core._update_phase_ui()
 
 func _show_move_targets(from: Vector2i) -> void:
 	# 🚫 Don't draw targets during battle/cinematic
@@ -505,11 +513,51 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		return
 
 
-	# 🚫 Prevent self-targeting
+	# 🟢 Self-click = stay in place but trigger ability & exhaust
 	if from == to:
-		core._log("⚠️ You can’t attack your own tile!", Color(1, 0.6, 0.4))
+		var tile = board.get_tile(from.x, from.y)
+		if not tile or not tile.occupant:
+			_is_battle_in_progress = false
+			return
+
+		var unit = tile.occupant
+		# ✅ Prevent double action
+		if not core.can_unit_act(unit):
+			core._log("⏳ %s has already acted this turn." % unit.card.name)
+			_is_battle_in_progress = false
+			return
+
+		# ✅ Trigger pending flip or summon ability at current tile
+		if unit.has_meta("pending_on_flip_ability"):
+			var ab = unit.get_meta("pending_on_flip_ability")
+			unit.set_meta("pending_on_flip_ability", null)
+			if ab:
+				core._log("✨ %s activates %s!" % [unit.card.name, ab.display_name], Color(1.0, 0.9, 0.6))
+				if ab.has_method("execute_at"):
+					ab.execute_at(core, unit, from)
+				else:
+					core._execute_card_ability(unit, ab)
+		else:
+			core._log("🌀 %s steadies their position." % unit.card.name, Color(0.8, 0.8, 1.0))
+
+		# ✅ Apply terrain buff again (in case terrain changed)
+		core._apply_terrain_bonus(unit, tile.terrain_type)
+
+		# ✅ Mark as acted/exhausted
+		core.mark_unit_acted(unit)
+		if tile.has_method("set_exhausted"):
+			tile.set_exhausted(true)
+
+		clear_highlights()
+		if ui and not ui._is_hovering_hand_card:
+			ui.hide_hover()
+
+		core.selected_pos = Vector2i(-1, -1)
+		core._set_phase(core.Phase.SUMMON_OR_MOVE)
+		core._update_phase_ui()
 		_is_battle_in_progress = false
 		return
+
 
 	# 🚫 Ensure attacker can act
 	if not core.can_unit_act(attacker):
@@ -565,20 +613,20 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 				if not model.is_queued_for_deletion():
 					dst.add_child(model)
 					model.position = Vector3(0, 0.1, 0)
-			
-		if attacker.has_meta("pending_ability"):
-			var ab = attacker.get_meta("pending_ability")
-			if ab:
-				core._log("✨ %s ability triggered on new tile!" % ab.display_name, Color(1.0, 1.0, 0.6))
+					
+		# ✅ Trigger pending flip/summon ability if it exists (on the new tile)
+		if attacker.has_meta("pending_on_flip_ability"):
+			var flip_ab = attacker.get_meta("pending_on_flip_ability")
+			if flip_ab:
+				core._log("🔥 %s activates %s on new tile!" % [attacker.card.name, flip_ab.display_name], Color(1.0, 0.9, 0.6))
 				
-				# 🔹 Ensure Eruption and similar effects use the destination tile
-				if ab.has_method("execute_at"):
-					ab.execute_at(core, attacker, to)
+				# Use new tile position for terrain-affecting effects
+				if flip_ab.has_method("execute_at"):
+					flip_ab.execute_at(core, attacker, to)
 				else:
-					core._execute_card_ability(attacker, ab)
+					core._execute_card_ability(attacker, flip_ab)
 				
-				attacker.set_meta("pending_ability", null)
-
+				attacker.set_meta("pending_on_flip_ability", null)
 
 		src.clear()
 		core.units.erase(from)
@@ -602,6 +650,7 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 	if attacker.mode == UnitData.Mode.FACEDOWN:
 		attacker.mode = UnitData.Mode.ATTACK
 		await _flip_faceup(src, attacker.card.art)
+		await confirm_faceup(attacker)
 
 		# 🔹 Restore proper stats from card data
 		attacker.current_atk = attacker.card.atk
@@ -610,34 +659,49 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 
 		core._log("🔄 %s was revealed in Attack Mode!" % attacker.card.name, Color(1, 1, 0.6))
 
-	# 🔓 Permanently mark attacker as face-up
-	attacker.is_facedown = false
-	attacker.set_meta("is_facedown", false)
-	var attacker_tile = board.get_tile(from.x, from.y)
-	if attacker_tile:
-		core.refresh_tile_art_safe(from)
-		if attacker_tile.has_node("CardModel"):
-			var m = attacker_tile.get_node("CardModel")
-			if is_instance_valid(m):
-				m.visible = true
+		# 🔓 Permanently mark attacker as face-up
+		attacker.is_facedown = false
+		attacker.set_meta("is_facedown", false)
+
+		# ✅ NEW: trigger “on_summon” or “passive” abilities if any
+		if attacker.card and attacker.card.ability:
+			var ab = attacker.card.ability
+			if ab.trigger in ["on_summon", "on_flip", "passive"]:
+				core._log("✨ %s’s %s ability activates on reveal!" % [attacker.card.name, ab.display_name], Color(1.0, 0.9, 0.6))
+				core._execute_card_ability(attacker, ab)
+
+		var attacker_tile = board.get_tile(from.x, from.y)
+		if attacker_tile:
+			core.refresh_tile_art_safe(from)
+			if attacker_tile.has_node("CardModel"):
+				var m = attacker_tile.get_node("CardModel")
+				if is_instance_valid(m):
+					m.visible = true
+
 				
 	if defender.mode == UnitData.Mode.FACEDOWN:
-		# Determine the reveal mode dynamically
 		var reveal_mode = UnitData.Mode.ATTACK
-
-
 		defender.mode = reveal_mode
 		await _flip_faceup(dst, defender.card.art)
+		await confirm_faceup(defender)
 
-		# Restore proper stats and apply bonuses
 		defender.current_atk = defender.card.atk
 		defender.current_def = defender.card.def
 		core._apply_terrain_bonus(defender, dst.terrain_type)
 
+		core._log("⚡ %s was revealed in Attack Mode!" % defender.card.name, Color(1, 1, 0.6))
 
-	# 🔓 Permanently mark defender as face-up
-	defender.is_facedown = false
-	defender.set_meta("is_facedown", false)
+		# 🔓 Mark defender as face-up
+		defender.is_facedown = false
+		defender.set_meta("is_facedown", false)
+
+		# ✅ NEW: trigger “on_summon” or “passive” abilities if any
+		if defender.card and defender.card.ability:
+			var ab = defender.card.ability
+			if ab.trigger in ["on_summon", "on_flip", "passive"]:
+				core._log("✨ %s’s %s ability activates on reveal!" % [defender.card.name, ab.display_name], Color(1.0, 0.9, 0.6))
+				core._execute_card_ability(defender, ab)
+
 	var def_tile = board.get_tile(to.x, to.y)
 	if def_tile:
 		core.refresh_tile_art_safe(to)
@@ -1347,6 +1411,23 @@ func _flip_faceup(tile: Node3D, new_texture: Texture2D):
 		var model = tile.get_node("CardModel")
 		if is_instance_valid(model):
 			model.visible = true
+			
+func confirm_faceup(unit: UnitData) -> void:
+	# This runs once the player confirms the face-up flip.
+	if not unit:
+		return
+
+	# 🧩 Safety — clear preview state if needed
+	if unit.has_meta("is_previewing_flip"):
+		unit.set_meta("is_previewing_flip", false)
+
+	# ✅ If ability was stored for post-flip, execute it now
+	if unit.has_meta("pending_on_flip_ability"):
+		var ab: CardAbility = unit.get_meta("pending_on_flip_ability")
+		unit.set_meta("pending_on_flip_ability", null)
+		if ab:
+			core._log("✨ %s activates %s!" % [unit.card.name, ab.display_name], Color(1.0, 1.0, 0.6))
+			core._execute_card_ability(unit, ab)
 
 func _fade(to_alpha: float, dur: float):
 	var rect: ColorRect = core.get_node("UISystem/FadeRect")

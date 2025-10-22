@@ -17,5 +17,5 @@ cost = 2
 atk = 16
 def = 14
 model_path = "res://Cards/Models/NINJOAD_MODEL.tscn"
-model_scale = Vector3(0.5, 0.5, 0.5)
+model_scale = Vector3(0.6, 0.6, 0.6)
 metadata/_custom_type_script = "uid://57up1u0etcmc"

@@ -1,7 +1,8 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://bfwj21trvei3d"]
+[gd_resource type="Resource" script_class="CardData" load_steps=5 format=3 uid="uid://bfwj21trvei3d"]
 
 [ext_resource type="Texture2D" uid="uid://8u0mlvrwv33w" path="res://Images/Finn.png" id="1_4xtq6"]
 [ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_ep7vq"]
+[ext_resource type="Resource" uid="uid://bl4m5e6tcl08" path="res://Cards/Abilities/Empower.tres" id="1_n7cbh"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_4xtq6"]
 
 [resource]
@@ -16,6 +17,7 @@ art = ExtResource("1_4xtq6")
 cost = 2
 atk = 16
 def = 11
+ability = ExtResource("1_n7cbh")
 model_path = "res://Cards/Models/FINN_MODEL.tscn"
 model_scale = Vector3(0.75, 0.75, 0.75)
 metadata/_custom_type_script = "uid://57up1u0etcmc"

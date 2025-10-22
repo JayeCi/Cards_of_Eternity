@@ -14,7 +14,7 @@ var rarity := "common"
 @export_enum("Fire", "Water", "Earth", "Wind", "Shadow", "Neutral")
 var element: String = "Neutral"
 
-@export_enum("WATER", "LAVA", "FOREST", "GRASS", "STONE", "ICE")
+@export_enum("Water", "LAVA", "FOREST", "GRASS", "STONE", "ICE")
 var preferred_terrain: String = "GRASS"
 
 # --- CARD CATEGORY ---

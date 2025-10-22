@@ -188,7 +188,7 @@ func _ready() -> void:
 	#CardCollection.add_card(get_card(CARD_PATHS.DRAKE_OF_EMERALD))
 	#CardCollection.add_card(get_card(CARD_PATHS.FLAME_FAE))
 	#CardCollection.add_card(get_card(CARD_PATHS.AXO_THE_KNIGHT))
-	#CardCollection.add_card(get_card(CARD_PATHS.FINN))
+	CardCollection.add_card(get_card(CARD_PATHS.FINN))
 	#CardCollection.add_card(get_card(CARD_PATHS.FALCREEP))
 	#CardCollection.add_card(get_card(CARD_PATHS.SNAPTRAP))
 	#CardCollection.add_card(get_card(CARD_PATHS.MOLTEN_PIG))
@@ -201,7 +201,7 @@ func _ready() -> void:
 	#CardCollection.add_card(get_card(CARD_PATHS.VOIDLING_ERO))
 	#CardCollection.add_card(get_card(CARD_PATHS.MUSHMONK))
 	CardCollection.add_card(get_card(CARD_PATHS.ZEI_PANDA))
-	CardCollection.add_card(get_card(CARD_PATHS.YORG_ARCHER))
+	#CardCollection.add_card(get_card(CARD_PATHS.YORG_ARCHER))
 	
 	
 	
@@ -216,6 +216,7 @@ func _ready() -> void:
 func _deferred_startup():
 	randomize()
 	board.biome = all_biomes[randi() % all_biomes.size()]
+	#board.biome = board.Biome.OCEAN
 	# Generate the map for that biome
 	board._generate_grid()
 
@@ -238,9 +239,18 @@ func _deferred_startup():
 	camera_sys.call("init_camera", self)      # places camera top-down
 	battle_sys.call("init_battle", self)      # links helpers/consts
 	ai_sys.call("init_ai", self)
-	cutscene_sys.call("init_cutscene", self)
-
-	await cutscene_sys._intro()     # cinematic leader reveal
+	
+	
+	
+	
+	#cutscene_sys.call("init_cutscene", self)
+	#await cutscene_sys._intro()     # cinematic leader reveal
+	
+	
+	
+	
+	
+	
 	
 	emit_signal("essence_changed", player_essence, enemy_essence)
 	ui_sys.call("refresh_hand", player_hand, player_essence)
@@ -639,8 +649,6 @@ func _on_end_turn_button_pressed() -> void:
 
 func _start_player_turn() -> void:
 	battle_sys.call("_reset_hover_state")
-
-	print("🕐 _start_player_turn() called at:", Time.get_ticks_msec())
 
 	_reset_action_flags()
 	ui_sys.call("show_battle_message", "Your Turn!", 1.5)

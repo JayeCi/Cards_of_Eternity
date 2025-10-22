@@ -3,7 +3,7 @@ class_name BoostAttack
 
 func _init():
 	display_name = "Boost Attack"
-	description = "Increases this unit's attack power for the rest of this battle."
+	description = "Before attacking, increase this unit's attack power by 2 for the rest of this battle."
 	value = 2
 	range = 0
 	trigger = "on_attack"

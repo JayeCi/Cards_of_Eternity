@@ -3,7 +3,7 @@ class_name FrozenAura
 
 func _init():
 	display_name = "Frozen Aura"
-	description = "At the start of each turn, decreases DEF of adjacent enemy units permenantly by 1."
+	description = "At the start of each turn, decreases DEF of adjacent enemy units permenantly by 2."
 	value = 2
 	range = 1
 	trigger = "passive"

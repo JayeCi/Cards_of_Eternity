@@ -1,8 +1,7 @@
-[gd_scene load_steps=9 format=4 uid="uid://ggndcwwyl77s"]
+[gd_scene load_steps=8 format=4 uid="uid://ggndcwwyl77s"]
 
 [ext_resource type="Texture2D" uid="uid://emm87od4c4q2" path="res://Cards/Models/Finn_texture_0_1.png" id="1_r03bl"]
 [ext_resource type="Texture2D" uid="uid://dptx7d5xxn83x" path="res://Cards/Models/Finn_texture_0.png" id="2_q72c8"]
-[ext_resource type="PackedScene" uid="uid://docg2vt3v17rl" path="res://Cards/Models/Zei_Panda.glb" id="3_q72c8"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_txwnq"]
 resource_name = "Material_1"
@@ -501,5 +500,3 @@ libraries = {
 &"": SubResource("AnimationLibrary_hme2x")
 }
 autoplay = "Armature|Combat_Stance|baselayer"
-
-[node name="Zei_Panda" parent="." instance=ExtResource("3_q72c8")]

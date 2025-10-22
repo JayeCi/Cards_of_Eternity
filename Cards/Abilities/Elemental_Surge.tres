@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="ElementalSurge" load_steps=2 format=3 uid="uid://7ojysecxt0fy"]
+
+[ext_resource type="Script" uid="uid://xcsi07prsjs2" path="res://Cards/Abilities/Elemental_Surge.gd" id="1_bxegp"]
+
+[resource]
+script = ExtResource("1_bxegp")
+metadata/_custom_type_script = "uid://xcsi07prsjs2"

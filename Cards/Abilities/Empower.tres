@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="Empower" load_steps=2 format=3 uid="uid://bl4m5e6tcl08"]
+
+[ext_resource type="Script" uid="uid://dai0sdnave75y" path="res://Cards/Abilities/Empower.gd" id="1_yb51n"]
+
+[resource]
+script = ExtResource("1_yb51n")
+metadata/_custom_type_script = "uid://dai0sdnave75y"

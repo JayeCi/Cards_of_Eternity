@@ -250,45 +250,75 @@ func update_terrain_visual(terrain_type: String) -> void:
 	tw.tween_property(self, "modulate", Color(0.8, 1.0, 0.8), 0.15)
 	tw.tween_property(self, "modulate", Color(1, 1, 1), 0.15)
 
-func _apply_terrain_visual() -> void:
+func _apply_terrain_visual(new_terrain_type: String = "") -> void:
+	# ✅ Allow external override
+	if new_terrain_type != "":
+		terrain_type = new_terrain_type
 
-	# Hide all terrain meshes first
-	for mesh_variant in [ water_mesh, stone_mesh, ice_mesh, lava_mesh, grass_mesh, forest_mesh]:
+	# ✅ Hide all terrain meshes first
+	for mesh_variant in [
+		water_mesh, stone_mesh, ice_mesh, lava_mesh, grass_mesh, forest_mesh
+	]:
 		if mesh_variant:
 			mesh_variant.visible = false
 
+	# ✅ Selectively show correct mesh and apply materials
 	match terrain_type:
 		"Stone":
-			if stone_mesh: stone_mesh.visible = true
+			if stone_mesh:
+				stone_mesh.visible = true
+
 		"Grass":
-			if grass_mesh: grass_mesh.visible = true
+			if grass_mesh:
+				grass_mesh.visible = true
+
 		"Forest":
-			if forest_mesh: forest_mesh.visible = true
+			if forest_mesh:
+				forest_mesh.visible = true
+
 		"Lava":
 			if lava_mesh:
 				lava_mesh.visible = true
-				if lava_mesh.material_override:
-					lava_mesh.material_override.emission_enabled = true
-					lava_mesh.material_override.emission = Color(1.0, 0.3, 0.1)
-					lava_mesh.material_override.emission_energy_multiplier = 2.0
+				#if lava_mesh.material_override:
+					#var mat = lava_mesh.material_override
+					#mat.emission_enabled = true
+					#mat.emission = Color(1.0, 0.3, 0.1)
+					#mat.emission_energy_multiplier = 2.0
+					#mat.albedo_color = Color(0.9, 0.4, 0.2)
+				#else:
+					#var mat = StandardMaterial3D.new()
+					#mat.albedo_color = Color(0.9, 0.4, 0.2)
+					#mat.emission_enabled = true
+					#mat.emission = Color(1.0, 0.3, 0.1)
+					#mat.emission_energy_multiplier = 2.0
+					#lava_mesh.material_override = mat
+
 		"Ice":
 			if ice_mesh:
 				ice_mesh.visible = true
 				if ice_mesh.material_override:
-					ice_mesh.material_override.albedo_color = Color(0.8, 0.9, 1.0)
-					ice_mesh.material_override.roughness = 0.1
-					ice_mesh.material_override.metallic = 0.3
+					var mat = ice_mesh.material_override
+					mat.albedo_color = Color(0.8, 0.9, 1.0)
+					mat.roughness = 0.1
+					mat.metallic = 0.3
+
 		"Water":
 			if water_mesh:
 				water_mesh.visible = true
 				if water_mesh.material_override:
-					water_mesh.material_override.albedo_color = Color(0.2, 0.4, 0.9)
-					water_mesh.material_override.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-					water_mesh.material_override.albedo_color.a = 0.85
-			
-	# ✅ Re-apply card art if this tile already has an occupant
+					var mat = water_mesh.material_override
+					mat.albedo_color = Color(0.2, 0.4, 0.9)
+					mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+					mat.albedo_color.a = 0.85
+
+	# ✅ Refresh card art if this tile has an occupant
 	if occupant and occupant.card:
 		refresh_card_art()
+
+	# ✅ Small fade flash to visually show terrain update
+	var tw := create_tween()
+	tw.tween_property(self, "modulate", Color(1.2, 1.2, 1.2), 0.15)
+	tw.tween_property(self, "modulate", Color(1, 1, 1), 0.15)
 
 func pulse_move_highlight() -> void:
 	if not move_highlight or not move_highlight.visible:

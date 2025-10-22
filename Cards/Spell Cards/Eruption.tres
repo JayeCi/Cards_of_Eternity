@@ -22,6 +22,5 @@ id = "00101"
 name = "Eruption"
 description = "Lava erupts and transforms the surrounding tiles to lava."
 art = ExtResource("2_vgk8i")
-cost = 3
 ability = SubResource("Resource_b23iv")
 metadata/_custom_type_script = "uid://57up1u0etcmc"

@@ -34,6 +34,7 @@ shadow_color = Color(0, 0, 0, 0.752941)
 
 [sub_resource type="SystemFont" id="SystemFont_es5ck"]
 font_names = PackedStringArray("Tahoma")
+subpixel_positioning = 0
 
 [sub_resource type="LabelSettings" id="LabelSettings_83k8x"]
 font = SubResource("SystemFont_es5ck")
