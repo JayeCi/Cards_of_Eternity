@@ -512,7 +512,6 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		_is_battle_in_progress = false
 		return
 
-
 	# 🟢 Self-click = stay in place but trigger ability & exhaust
 	if from == to:
 		var tile = board.get_tile(from.x, from.y)
@@ -521,13 +520,28 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 			return
 
 		var unit = tile.occupant
+
 		# ✅ Prevent double action
 		if not core.can_unit_act(unit):
 			core._log("⏳ %s has already acted this turn." % unit.card.name)
 			_is_battle_in_progress = false
 			return
 
-		# ✅ Trigger pending flip or summon ability at current tile
+		# 🚫 If currently facedown, skip ability trigger entirely
+		var is_down = unit.is_facedown or (unit.has_meta("is_facedown") and unit.get_meta("is_facedown"))
+		if is_down:
+			core._log("🃏 %s is facedown — no ability triggered." % unit.card.name, Color(0.7, 0.7, 0.7))
+			core.mark_unit_acted(unit)
+			if tile.has_method("set_exhausted"):
+				tile.set_exhausted(true)
+			clear_highlights()
+			core.selected_pos = Vector2i(-1, -1)
+			core._set_phase(core.Phase.SUMMON_OR_MOVE)
+			core._update_phase_ui()
+			_is_battle_in_progress = false
+			return
+
+		# ✅ Trigger pending flip or summon ability if face-up
 		if unit.has_meta("pending_on_flip_ability"):
 			var ab = unit.get_meta("pending_on_flip_ability")
 			unit.set_meta("pending_on_flip_ability", null)
@@ -1413,7 +1427,6 @@ func _flip_faceup(tile: Node3D, new_texture: Texture2D):
 			model.visible = true
 			
 func confirm_faceup(unit: UnitData) -> void:
-	# This runs once the player confirms the face-up flip.
 	if not unit:
 		return
 
@@ -1421,7 +1434,15 @@ func confirm_faceup(unit: UnitData) -> void:
 	if unit.has_meta("is_previewing_flip"):
 		unit.set_meta("is_previewing_flip", false)
 
-	# ✅ If ability was stored for post-flip, execute it now
+	# 🛑 If the unit was flipped back facedown or canceled before confirm → skip ability
+	if unit.is_facedown or (unit.has_meta("is_facedown") and unit.get_meta("is_facedown")):
+		core._log("❎ %s remained facedown — ability canceled." % unit.card.name, Color(0.7, 0.7, 0.7))
+		# Clean up any pending flip ability so it doesn’t auto-trigger later
+		if unit.has_meta("pending_on_flip_ability"):
+			unit.set_meta("pending_on_flip_ability", null)
+		return
+
+	# ✅ Only now, when confirmed and still face-up, trigger the stored flip/summon ability
 	if unit.has_meta("pending_on_flip_ability"):
 		var ab: CardAbility = unit.get_meta("pending_on_flip_ability")
 		unit.set_meta("pending_on_flip_ability", null)
