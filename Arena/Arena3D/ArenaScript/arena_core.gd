@@ -262,11 +262,11 @@ func _deferred_startup():
 	
 
 
-	#cutscene_sys.call("init_cutscene", self)
+	cutscene_sys.call("init_cutscene", self)
 #
 #
 #
-	#cutscene_sys._intro()
+	cutscene_sys._intro()
 
 		# 🎥 Start fade-in BEFORE intro begins
 	if ui_sys.has_node("FadeRect"):
@@ -277,7 +277,7 @@ func _deferred_startup():
 		fade_rect.visible = false
 	
 	
-	#await get_tree().create_timer(4.0).timeout
+	await get_tree().create_timer(4.0).timeout
 	
 	emit_signal("essence_changed", player_essence, enemy_essence)
 	ui_sys.call("refresh_hand", player_hand, player_essence)
