@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://camg64m8fg43w"]
+[gd_scene load_steps=13 format=3 uid="uid://camg64m8fg43w"]
 
 [ext_resource type="Script" uid="uid://uk6se88h2jyj" path="res://Arena/Arena3D/ArenaScript/arena_core.gd" id="1_2nnof"]
 [ext_resource type="PackedScene" uid="uid://da27pnrvn5yna" path="res://Arena/Arena3D/Board3D.tscn" id="1_5ykft"]
@@ -9,7 +9,6 @@
 [ext_resource type="Script" uid="uid://c01bdnjyd3qmh" path="res://Arena/Arena3D/ArenaScript/arena_battle.gd" id="8_08t7x"]
 [ext_resource type="Script" uid="uid://bjt3wnmra8jjr" path="res://Arena/Arena3D/ArenaScript/arena_ai.gd" id="9_pkj7r"]
 [ext_resource type="PackedScene" uid="uid://d3k7rvjpylid4" path="res://UI/battle_ui.tscn" id="10_2nnof"]
-[ext_resource type="Script" uid="uid://khurkxh2646n" path="res://Arena/Arena3D/ArenaScript/arena_cutscene.gd" id="10_i7u7f"]
 
 [sub_resource type="Environment" id="Environment_6q22w"]
 background_mode = 1
@@ -73,7 +72,6 @@ script = ExtResource("8_08t7x")
 script = ExtResource("9_pkj7r")
 
 [node name="CutsceneSystem" type="Node3D" parent="."]
-script = ExtResource("10_i7u7f")
 
 [connection signal="pressed" from="UISystem/EndTurnButton" to="." method="_on_end_turn_button_pressed"]
 [connection signal="pressed" from="UISystem/VBoxContainer/LogButton" to="." method="_on_log_button_pressed"]

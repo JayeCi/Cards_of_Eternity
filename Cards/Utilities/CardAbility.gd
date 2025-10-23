@@ -1,7 +1,7 @@
 extends Resource
 class_name CardAbility
 
-@export_enum("on_summon", "on_attack", "on_destroyed", "passive", "on_turn_start") var trigger: String = "on_summon"
+@export_enum("on_summon", "on_attack", "on_destroyed", "passive", "on_turn_start", "on_fusion", "on_fusion_with_element") var trigger: String = "on_summon"
 @export var display_name: String = ""
 @export var value: int = 0
 @export var range: int = 1

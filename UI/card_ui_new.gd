@@ -8,7 +8,7 @@ extends Control
 @onready var atk: Label = $MarginContainer/ATK
 @onready var def: Label = $MarginContainer/DEF
 
-@onready var cost: Label = $MarginContainer/Cost
+@onready var cost: Label = $MarginContainer/VBoxContainer/Cost
 
 signal request_show_zoom(card)
 signal request_hide_zoom()
@@ -111,15 +111,29 @@ func refresh():
 		if art: art.texture = null
 		if atk: atk.text = ""
 		if def: def.text = ""
-
+		if cost: cost.text = ""
 		return
-
+	if atk and def:
+		atk.visible = true
+		def.visible = true
 	print("[CardUI] Refreshing card:", card_data.name)
 	if name_label: name_label.text = card_data.name
 	if art: art.texture = card_data.art
-	if atk: atk.text = str(card_data.atk)
-	if def: def.text = str(card_data.def)
 	if cost: cost.text = str(card_data.cost)
+	
+	# 🧩 Only set ATK/DEF for Monster cards
+	if card_data.card_type == CardData.CardType.MONSTER:
+		if atk: atk.text = str(card_data.atk)
+		if def: def.text = str(card_data.def)
+	else:
+		if atk:
+			atk.visible = false
+		if def:
+			def.visible = false
+		# 🛑 Skip setting ATK/DEF for non-monsters
+		pass
+
+
 # -------------------------------
 # State display
 # -------------------------------

@@ -64,11 +64,6 @@ func execute_at(arena: Node, unit: UnitData, origin_pos: Vector2i) -> void:
 			# 🔹 Shake tile visibly
 			tile_start_shake(tile, step)
 
-			## 🔹 Camera rumble
-			#if arena.core and arena.core.has_node("CameraSystem"):
-				#var cam = arena.core.get_node("CameraSystem")
-				#if cam and cam.has_method("shake"):
-					#cam.shake(0.06 / step, 0.2)
 
 			# 🔹 Change terrain
 			await arena.get_tree().create_timer(0.02).timeout

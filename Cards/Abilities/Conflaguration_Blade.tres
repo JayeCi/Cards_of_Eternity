@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="Conflagration_Blade" load_steps=2 format=3 uid="uid://d1wo21t54cwm8"]
+
+[ext_resource type="Script" uid="uid://cl1461o0ibb5o" path="res://Cards/Abilities/Conflaguration_Blade.gd" id="1_ae7jx"]
+
+[resource]
+script = ExtResource("1_ae7jx")
+trigger = "on_fusion"
+metadata/_custom_type_script = "uid://cl1461o0ibb5o"

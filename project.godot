@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="Game_Unknown_1"
+config/name="Cards of Eternity"
 run/main_scene="uid://camg64m8fg43w"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
@@ -24,6 +24,7 @@ TerrainManager="*res://UI/Terrains/TerrainManager.gd"
 
 [display]
 
+window/size/mode=3
 window/stretch/mode="canvas_items"
 
 [editor_plugins]

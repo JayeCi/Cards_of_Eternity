@@ -18,5 +18,5 @@ atk = 22
 def = 20
 ability = ExtResource("1_loq78")
 model_path = "res://Cards/Models/JESTER_OF_FLAMES_MODEL.tscn"
-model_scale = Vector3(0.75, 0.75, 0.75)
+model_scale = Vector3(0.52, 0.52, 0.52)
 metadata/_custom_type_script = "uid://57up1u0etcmc"

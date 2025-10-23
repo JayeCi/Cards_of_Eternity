@@ -113,7 +113,17 @@ func refresh_hand(player_hand: Array, player_essence: int) -> void:
 		var ui = preload("res://UI/CardUI.tscn").instantiate()
 		ui.card_data = c
 		ui.refresh()
+		
+		if core.fusion_selection.has(c):
+			ui.modulate = Color(0.8, 1.0, 0.8, 1)  # green tint if selected
+		else:
+			ui.modulate = Color(1, 1, 1, 1)
+			
+		ui.position.y = 0
+		ui.modulate = Color(1, 1, 1, 1)
 
+
+			
 		var cost := 1
 		if c.has_meta("cost"): cost = int(c.get_meta("cost"))
 		elif c.has_method("get_cost"): cost = c.get_cost()
@@ -125,23 +135,40 @@ func refresh_hand(player_hand: Array, player_essence: int) -> void:
 			if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
 				if cost > player_essence:
 					var t = create_tween()
-					t.tween_property(ui, "modulate", Color(1, 0.5, 0.5, 1), 0.1)
+					t.tween_property(ui, "modulate:a", Color(1, 0.5, 0.5, 1), 0.1)
 					t.tween_property(ui, "modulate", Color(0.4, 0.4, 0.4, 0.5), 0.25)
 					_on_log("❌ Not enough Essence for %s (Cost %d, you have %d)" % [c.name, cost, player_essence], Color.WHITE)
 					return
+
 				core.on_hand_card_clicked(c)
+
+				# Wait for selection list to update
+				await get_tree().process_frame
+
+				# ✅ Only animate if this node is still alive
+				if is_instance_valid(ui):
+					_animate_card_selection(ui, core.fusion_selection.has(c))
 		)
-		
+
 		ui.request_show_zoom.connect(Callable(self, "_on_card_hovered_in_hand"))
 		ui.request_hide_zoom.connect(Callable(self, "_on_card_hovered_in_hand_exit"))
+		
 		# 🧩 Add hover zoom + lift animation (fixed position drift)
 		ui.mouse_entered.connect(func():
+			# Skip hover raise if already selected for fusion
+			if core and core.fusion_selection.has(c):
+				return
 			var t = create_tween()
 			t.tween_property(ui, "position:y", -25.0, 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 		)
 
+		ui.position.y = -25.0 if core.fusion_selection.has(c) else 0.0
+
 
 		ui.mouse_exited.connect(func():
+			# 🛑 Skip moving back down if this card is selected for fusion
+			if core and core.fusion_selection.has(c):
+				return
 			var t = create_tween()
 			t.tween_property(ui, "position:y", 0.0, 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 		)
@@ -161,6 +188,18 @@ func refresh_hand(player_hand: Array, player_essence: int) -> void:
 func get_last_hand_card_ui() -> Control:
 	return last_card_ui
 	
+# Smoothly animate card selection raise/lower
+func _animate_card_selection(ui: Control, is_selected: bool) -> void:
+	if not ui:
+		return
+	var t := create_tween()
+	if is_selected:
+		t.tween_property(ui, "position:y", -25.0, 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		t.tween_property(ui, "modulate", Color(1.0, 1.0, 0.8, 1.0), 0.2)
+	else:
+		t.tween_property(ui, "position:y", 0.0, 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+		t.tween_property(ui, "modulate", Color(1, 1, 1, 1), 0.2)
+
 func force_hide_hand(on: bool) -> void:
 	hand_forced_hidden = on
 
@@ -299,6 +338,14 @@ var _hide_task: SceneTreeTimer
 var _hover_state := "idle"  # "idle", "showing", "visible", "hiding"
 
 func _on_card_hovered_in_hand(card: CardData) -> void:
+		# 🧬 If this card is part of fusion selection, keep it persistently visible
+	if core and core.fusion_selection.has(card):
+		card_details_ui.show_card(card)
+		card_details_ui.visible = true
+		_hover_state = "visible"
+		print("[ArenaUI] 🧬 Persistent hover for selected card:", card.name)
+		return
+
 	# 1️⃣ Cancel any scheduled hide
 	if _hide_task:
 		_hide_task = null
@@ -338,6 +385,11 @@ func _on_card_hovered_in_hand(card: CardData) -> void:
 			print("[ArenaUI] 🔁 Updating details for:", card.name)
 	
 func _on_card_hovered_in_hand_exit() -> void:
+	# 🧩 If any card is selected for fusion, disable hover exit
+	if core and core.fusion_selection.size() > 0:
+		print("[ArenaUI] 🧬 Fusion selection active — hover exit ignored.")
+		return
+
 	if not _is_hovering_hand_card:
 		return
 
@@ -353,7 +405,6 @@ func _on_card_hovered_in_hand_exit() -> void:
 	_hover_state = "idle"
 
 	print("[ArenaUI] 🔻 Hover ended — state reset.")
-
 
 func show_hover_for_tile(tile: Node3D) -> void:
 	# 🛑 Prevent terrain hover while hovering a hand card

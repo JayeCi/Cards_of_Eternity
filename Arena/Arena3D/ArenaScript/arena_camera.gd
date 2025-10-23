@@ -115,6 +115,31 @@ func _position_default() -> void:
 	camera.position = Vector3(0, 5.41941, 5.534)
 	camera.rotation_degrees = Vector3(-59.99313, 0, 0)
 	_zoom_distance = 8.934
+	
+func focus_on_leader(owner: int, duration := 0.6) -> void:
+	if not core or not camera:
+		return
+
+	var leader := core.player_leader if owner == core.PLAYER else core.enemy_leader
+	if not leader:
+		return
+
+	var pos := core.board.get_tile_position_for_unit(leader)
+	if not pos:
+		return
+
+	var tile := core.board.get_tile(pos.x, pos.y)
+	if not tile:
+		return
+
+	var target_pos := tile.global_position + Vector3(0, 6, 3.5)
+	var target_rot := Vector3(-58, 0, 0)
+
+	if _cinematic_tween:
+		_cinematic_tween.kill()
+	_cinematic_tween = create_tween()
+	_cinematic_tween.tween_property(camera, "position", target_pos, duration)
+	_cinematic_tween.parallel().tween_property(camera, "rotation_degrees", target_rot, duration)
 
 func recenter_to_default(duration := 0.6) -> void:
 	if not camera:

@@ -2,6 +2,7 @@ extends CardAbility
 class_name ChangeTerrainAbility
 
 @export_enum("Grass", "Lava", "Forest", "Water", "Ice", "Stone", "Shadow") var new_terrain := "Grass"
+@export var fire_sound: AudioStream = preload("res://Audio/FIRE.mp3")
 
 func _init():
 	display_name = "Change Terrain"
@@ -40,6 +41,8 @@ func execute_at(arena: Node, unit: UnitData, tile_pos: Vector2i) -> void:
 		if t.occupant:
 			arena._apply_terrain_bonus(t.occupant, new_terrain)
 			arena._log("🌎 %s now stands on %s terrain!" % [t.occupant.card.name, new_terrain], Color(0.7, 1, 0.8))
+		if new_terrain == "Lava":
+			_play_fire_sound(arena)
 	# 🌋 Feedback
 	if arena.has_method("_float_text"):
 		arena._float_text(board.get_tile(tile_pos.x, tile_pos.y).global_position, "🌋 Eruption!", Color(1, 0.5, 0.3))
@@ -58,3 +61,18 @@ func execute_at(arena: Node, unit: UnitData, tile_pos: Vector2i) -> void:
 	var tile = board.get_tile(tile_pos.x, tile_pos.y)
 	if tile:
 		tile.clear()  # just cleans visuals now
+
+func _play_fire_sound(arena: Node) -> void:
+	if not fire_sound or not arena:
+		return
+
+	var player := AudioStreamPlayer3D.new()
+	player.stream = fire_sound
+	player.volume_db = -8
+	player.pitch_scale = randf_range(0.95, 1.05)
+	player.position = Vector3(0, 1, 0)
+	arena.add_child(player)
+	player.play()
+
+	# Auto-cleanup
+	player.finished.connect(func(): player.queue_free())

@@ -1,8 +1,9 @@
-[gd_scene load_steps=11 format=3 uid="uid://bpwfipvsy0wxt"]
+[gd_scene load_steps=17 format=3 uid="uid://bpwfipvsy0wxt"]
 
 [ext_resource type="Script" uid="uid://d131h1pen840s" path="res://UI/card_ui_new.gd" id="1_nfm18"]
 [ext_resource type="Texture2D" uid="uid://b03jwbojyba53" path="res://Images/Jester of Flames.jpeg" id="2_vs81k"]
 [ext_resource type="Texture2D" uid="uid://bq6fn5ar8y44d" path="res://Cards/Utilities/CardModel/Border_TP_Edge.png" id="3_3t43t"]
+[ext_resource type="Texture2D" uid="uid://ccsq4ujlcj6ps" path="res://UI/rotating_orbs.png" id="4_vs81k"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jhlvl"]
 
@@ -14,18 +15,9 @@ font = SubResource("SystemFont_jhlvl")
 font_size = 15
 outline_size = 7
 outline_color = Color(0, 0, 0, 1)
-shadow_size = 2
+shadow_size = 14
 shadow_color = Color(0, 0, 0, 1)
-
-[sub_resource type="SystemFont" id="SystemFont_jrlyf"]
-
-[sub_resource type="LabelSettings" id="LabelSettings_kskg0"]
-font = SubResource("SystemFont_jrlyf")
-font_size = 15
-outline_size = 8
-outline_color = Color(0, 0, 0, 0.5882353)
-shadow_size = 3
-shadow_color = Color(0, 0, 0, 0.57254905)
+shadow_offset = Vector2(0.015, 1)
 
 [sub_resource type="SystemFont" id="SystemFont_nfm18"]
 font_names = PackedStringArray("Monospace")
@@ -37,22 +29,78 @@ outline_size = 4
 outline_color = Color(0, 0, 0, 1)
 shadow_size = 2
 shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(0.225, 1.435)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vs81k"]
+atlas = ExtResource("4_vs81k")
+region = Rect2(0, 224, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3t43t"]
+atlas = ExtResource("4_vs81k")
+region = Rect2(32, 224, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kgeiq"]
+atlas = ExtResource("4_vs81k")
+region = Rect2(64, 224, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2l5o1"]
+atlas = ExtResource("4_vs81k")
+region = Rect2(96, 224, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_3mvpk"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vs81k")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3t43t")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kgeiq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2l5o1")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="SystemFont" id="SystemFont_jrlyf"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_kskg0"]
+font = SubResource("SystemFont_jrlyf")
+font_size = 15
+outline_size = 8
+outline_color = Color(0, 0, 0, 0.5882353)
+shadow_size = 3
+shadow_color = Color(0, 0, 0, 0.57254905)
 
 [node name="CardContainer" type="PanelContainer"]
 custom_minimum_size = Vector2(137, 193)
-offset_left = -4.0
-offset_right = 133.60152
-offset_bottom = 193.247
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -68.80075
+offset_top = -96.623505
+offset_right = 68.80075
+offset_bottom = 96.623505
+grow_horizontal = 2
+grow_vertical = 2
 scale = Vector2(0.9956286, 1)
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme_override_styles/panel = SubResource("StyleBoxEmpty_jhlvl")
 script = ExtResource("1_nfm18")
+metadata/_edit_use_anchors_ = true
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 2
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 3
+theme_override_constants/margin_left = 9
+theme_override_constants/margin_top = 2
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 2
 
@@ -73,10 +121,29 @@ texture = ExtResource("2_vs81k")
 expand_mode = 1
 stretch_mode = 5
 
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 8
+
+[node name="Cost" type="Label" parent="MarginContainer/VBoxContainer"]
+z_index = 1
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 8
+text = "1"
+label_settings = SubResource("LabelSettings_vs81k")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="MarginContainer/VBoxContainer"]
+position = Vector2(5.2985606, -2)
+scale = Vector2(0.2575463, 0.2575463)
+sprite_frames = SubResource("SpriteFrames_3mvpk")
+autoplay = "default"
+frame_progress = 0.023342492
+
 [node name="ATK" type="Label" parent="MarginContainer"]
 z_index = 1
 layout_mode = 2
-size_flags_horizontal = 0
 size_flags_vertical = 8
 text = "25"
 label_settings = SubResource("LabelSettings_kskg0")
@@ -88,14 +155,6 @@ size_flags_horizontal = 8
 size_flags_vertical = 8
 text = "25"
 label_settings = SubResource("LabelSettings_kskg0")
-
-[node name="Cost" type="Label" parent="MarginContainer"]
-z_index = 1
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 8
-text = "1"
-label_settings = SubResource("LabelSettings_vs81k")
 
 [node name="Border" type="TextureRect" parent="."]
 layout_mode = 2

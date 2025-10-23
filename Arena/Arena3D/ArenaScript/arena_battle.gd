@@ -31,81 +31,117 @@ func _try_toggle_face() -> void:
 	var tile: Node3D = null
 	if core.selected_pos != Vector2i(-1, -1):
 		tile = board.get_tile(core.selected_pos.x, core.selected_pos.y)
-	elif core.hovered_tile:
-		tile = core.hovered_tile
 	else:
+		core._log("⚠️ You must select a card before flipping.", Color(1, 0.6, 0.6))
 		return
 	if not tile or not tile.occupant:
 		return
 
 	var unit = tile.occupant
 
-	# 🚫 Player-only, not enemy turn
-	if unit.owner != core.PLAYER:
+	# 🚫 Player-only, not enemy turn or cutscene
+	if unit.owner != core.PLAYER: return
+	if core.phase == core.Phase.ENEMY_TURN or core.is_cutscene_active: return
+
+	# ✅ Require visible move highlights (must be selected)
+	if not board.has_method("are_move_highlights_visible") \
+	or not board.are_move_highlights_visible(core.selected_pos):
+		core._log("⚠️ You can only flip while a card is selected for action.", Color(1, 0.7, 0.4))
 		return
-	if core.phase == core.Phase.ENEMY_TURN:
-		return
-
-	# 🔒 Lock flags
-	var is_locked = unit.has_meta("flipped_permanent") and unit.get_meta("flipped_permanent")
-	var allow_session_toggle = unit.has_meta("allow_face_toggle_session") and unit.get_meta("allow_face_toggle_session")
-
-	# Current face state
-	var is_down = unit.is_facedown or (unit.has_meta("is_facedown") and unit.get_meta("is_facedown"))
-
-	if is_down:
-		# ✅ Facedown → Face-up
-		unit.is_facedown = false
-		unit.set_meta("is_facedown", false)
-		unit.mode = UnitData.Mode.ATTACK
-		tile.set_art(unit.card.art, unit.owner == core.ENEMY)
-		tile.set_badge_text("A")
-		core._log("⚡ %s flipped face-up!" % unit.card.name, Color(1.0, 1.0, 0.6))
-
-		if unit.has_meta("model_instance"):
-			var m = unit.get_meta("model_instance")
-			if is_instance_valid(m):
-				m.visible = true
-
-		core.refresh_tile_art_safe(core.board.get_unit_position(unit))
 		
-		# ✅ If card has an "on_summon" or "on_flip" ability → defer until confirmed
+	# 🔒 Permanent lock respected
+	var is_locked = unit.has_meta("flipped_permanent") and unit.get_meta("flipped_permanent")
+	if is_locked and not (unit.has_meta("is_previewing_flip") and unit.get_meta("is_previewing_flip")):
+		core._log("⛔ This card’s state is locked.", Color(1, 0.6, 0.6))
+		return
+
+
+	# --- Sync face state
+	if unit.has_meta("is_facedown"):
+		unit.is_facedown = unit.get_meta("is_facedown")
+	else:
+		unit.set_meta("is_facedown", unit.is_facedown)
+
+	var is_down = unit.is_facedown
+	var is_preview = unit.has_meta("is_previewing_flip") and unit.get_meta("is_previewing_flip")
+
+	core._log("🧩 Flip check for %s — facedown=%s, preview=%s"
+		% [unit.card.name, str(is_down), str(is_preview)], Color(0.8, 0.8, 1.0))
+
+	# =====================================================
+	# ✅ Flip Logic
+	# =====================================================
+
+	# 🚫 If face-up and NOT previewing → fully revealed, block flip down
+	if not is_down and not is_preview:
+		core._log("⛔ %s is revealed — cannot flip facedown again." % unit.card.name, Color(1, 0.6, 0.6))
+		return
+
+	# 🔁 Otherwise toggle preview state
+	unit.is_facedown = not unit.is_facedown
+	unit.set_meta("is_facedown", unit.is_facedown)
+	unit.set_meta("is_previewing_flip", true)
+
+	if unit.is_facedown:
+		# 🔻 Flip to facedown (preview)
+		tile.set_art(core.CARD_BACK)
+		if tile.has_node("CardModel"):
+			var m = tile.get_node("CardModel")
+			if is_instance_valid(m): m.visible = false
+		tile.set_badge_text("?")
+		core._log("🔄 %s flipped face-down (preview)." % unit.card.name, Color(0.7, 0.7, 1.0))
+
+	else:
+		# 🔺 Flip to face-up (preview)
+		tile.set_art(unit.card.art, unit.owner == core.ENEMY)
+		if tile.has_node("CardModel"):
+			var m = tile.get_node("CardModel")
+			if is_instance_valid(m): m.visible = true
+		tile.set_badge_text("A")
+		core._log("⚡ %s flipped face-up (preview)." % unit.card.name, Color(1.0, 1.0, 0.6))
+
+		# 🌿 Preferred terrain preview
+		var terrain = tile.terrain_type
+		if terrain == unit.card.preferred_terrain and board.has_method("_show_move_targets"):
+			core._log("🌿 %s senses power on preferred terrain — showing extended movement!"
+				% unit.card.name, Color(0.6, 1.0, 0.6))
+			board._show_move_targets(core.board.get_unit_position(unit))
+
+		# 💡 Ability previews
 		if unit.card and unit.card.ability:
 			var ab = unit.card.ability
 			if ab.trigger in ["on_summon", "on_flip"]:
-				# Defer activation until confirmation (store ability for later)
 				unit.set_meta("pending_on_flip_ability", ab)
-				core._log("💡 %s ability will activate once face-up is confirmed." % ab.display_name, Color(0.8, 0.9, 1.0))
+				core._log("💡 %s ability will activate once confirmed."
+					% ab.display_name, Color(0.8, 0.9, 1.0))
 
-			else:
-				# Non-flip abilities can still be marked pending normally
-				unit.set_meta("pending_ability", ab)
-				core._log("💡 %s ability ready — click to activate." % ab.display_name, Color(0.8, 0.8, 1.0))
-
-	else:
-		# 🔁 Face-up → Facedown (only if allowed)
-		if allow_session_toggle and not is_locked:
-			unit.is_facedown = true
-			unit.set_meta("is_facedown", true)
-			unit.mode = UnitData.Mode.FACEDOWN
-			tile.set_art(core.CARD_BACK)
-			tile.set_badge_text("?")
-			core._log("🃏 %s was set facedown." % unit.card.name, Color(0.8, 0.8, 1.0))
-
-			if unit.has_meta("model_instance"):
-				var m2 = unit.get_meta("model_instance")
-				if is_instance_valid(m2):
-					m2.visible = false
-
-			core.refresh_tile_art_safe(core.board.get_unit_position(unit))
-		else:
-			core._log("⛔ Face-up cards cannot be set facedown now.", Color(1, 0.6, 0.6))
+	core.refresh_tile_art_safe(core.board.get_unit_position(unit))
 
 func _clear_toggle_session_flag():
 	if core and core.selected_pos != Vector2i(-1, -1):
 		var t = board.get_tile(core.selected_pos.x, core.selected_pos.y)
 		if t and t.occupant:
 			t.occupant.set_meta("allow_face_toggle_session", false)
+			
+func _is_within_move_range(from_pos: Vector2i, to_pos: Vector2i, unit: UnitData) -> bool:
+	# Block diagonal moves entirely
+	var dx := to_pos.x - from_pos.x
+	var dy := to_pos.y - from_pos.y
+	if abs(dx) > 0 and abs(dy) > 0:
+		return false
+
+	# Base movement range
+	var allowed_range := core.BASE_MOVE_RANGE
+	var from_tile = board.get_tile(from_pos.x, from_pos.y)
+
+	# Preferred terrain doubles range if face-up
+	if from_tile and from_tile.occupant == unit and not unit.is_facedown:
+		if from_tile.terrain_type == unit.card.preferred_terrain:
+			allowed_range *= 2
+
+	# Manhattan distance check
+	var dist = abs(dx) + abs(dy)
+	return dist <= allowed_range
 
 func _unhandled_input(event):
 	if event.is_action_pressed("cancel_action"):
@@ -113,7 +149,7 @@ func _unhandled_input(event):
 
 	# 🔹 Allow R toggle for both placement and facedown cards on board
 	if event.is_action_pressed("toggle_face"):
-		if core.phase in [core.Phase.SUMMON_OR_MOVE, core.Phase.SELECT_SUMMON_TILE, core.Phase.SELECT_MOVE_TARGET]:
+		if core.phase in [core.Phase.SELECT_MOVE_TARGET]:
 			_try_toggle_face()
 
 
@@ -312,34 +348,39 @@ func on_board_click(screen_pos: Vector2) -> void:
 	if is_placing:
 		core.try_place_dragged_card(tile)
 		return
-
+		
 	# ✅ Moving existing unit to empty or enemy tile
 	if is_moving:
-		if tile.highlighted:
-			await _move_or_battle(core.selected_pos, Vector2i(tile.x, tile.y))
-			clear_highlights()
-			core.selected_pos = Vector2i(-1, -1)
-			core._set_phase(core.Phase.SUMMON_OR_MOVE)
-			core._update_phase_ui()
+		var from_pos := core.selected_pos
+		var to_pos := Vector2i(tile.x, tile.y)
+		var mover = board.get_tile(from_pos.x, from_pos.y).occupant
+
+		if not _is_within_move_range(from_pos, to_pos, mover):
+			core._log("🚫 That target is out of range.", Color(1, 0.5, 0.5))
+			return
+
+		# 🚫 Prevent attacking own cards
+		if tile.occupant and tile.occupant.owner == core.PLAYER:
+			core._log("⚠️ You can’t attack your own unit.", Color(1, 0.6, 0.4))
+			return
+
+		# ✅ Otherwise: move or attack
+		await _move_or_battle(core.selected_pos, Vector2i(tile.x, tile.y))
+
+		clear_highlights()
+		core.selected_pos = Vector2i(-1, -1)
+		core._set_phase(core.Phase.SUMMON_OR_MOVE)
+		core._update_phase_ui()
 		return
-
-	# ✅ Only allow phase change if clicking a tile that HAS a unit
-	if tile.occupant == null:
-		core._log("💡 No unit to select here.", Color(0.7, 0.7, 0.7))
+		
+	# ✅ If player clicks their own face-up unit while in SUMMON_OR_MOVE phase, start move selection
+	if core.phase == core.Phase.SUMMON_OR_MOVE and tile.occupant and tile.occupant.owner == core.PLAYER:
+		core.selected_pos = Vector2i(tile.x, tile.y)
+		core._log("🎯 Selected %s. Choose a tile to move or attack." % tile.occupant.card.name, Color(0.8, 1.0, 0.8))
+		_show_move_targets(Vector2i(tile.x, tile.y))
+		core._set_phase(core.Phase.SELECT_MOVE_TARGET)
+		core._update_phase_ui()
 		return
-
-	match core.phase:
-		core.Phase.SUMMON_OR_MOVE:
-			# Select unit on board to move
-			core.selected_pos = Vector2i(tile.x, tile.y)
-			if tile.occupant and (tile.occupant.is_facedown or (tile.occupant.has_meta("is_facedown") and tile.occupant.get_meta("is_facedown"))):
-				tile.occupant.set_meta("allow_face_toggle_session", true)
-			else:
-				tile.occupant.set_meta("allow_face_toggle_session", false)
-
-			_show_move_targets(core.selected_pos)
-			core._set_phase(core.Phase.SELECT_MOVE_TARGET)
-			core._update_phase_ui()
 
 func _show_move_targets(from: Vector2i) -> void:
 	# 🚫 Don't draw targets during battle/cinematic
@@ -358,11 +399,13 @@ func _show_move_targets(from: Vector2i) -> void:
 	# 🟢 Preferred terrain doubles movement — only if face-up
 	var tile = board.get_tile(from.x, from.y)
 	var unit = src.occupant
-	var is_facedown = unit.is_facedown or (unit.has_meta("is_facedown") and unit.get_meta("is_facedown"))
+	var is_down = unit.is_facedown or (unit.has_meta("is_facedown") and unit.get_meta("is_facedown"))
+	var previewed_up = unit.has_meta("is_previewing_flip") and unit.get_meta("is_previewing_flip")
 
-	if not is_facedown and tile and tile.terrain_type == unit.card.preferred_terrain:
+	if (not is_down or previewed_up) and tile and tile.terrain_type == unit.card.preferred_terrain:
 		range *= 2
-		core._log("🌿 %s moves freely on preferred terrain (+%d range)" % [unit.card.name, range - core.BASE_MOVE_RANGE], Color(0.6, 1.0, 0.6))
+		core._log("🌿 %s moves freely on preferred terrain (+%d range preview)" % [unit.card.name, range - core.BASE_MOVE_RANGE], Color(0.6, 1.0, 0.6))
+
 		if tile.has_method("pulse_move_highlight"):
 			tile.pulse_move_highlight()
 
@@ -425,15 +468,19 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, is_player:
 	# --- Determine if facedown ---
 	var is_facedown := (mode == UnitData.Mode.FACEDOWN)
 
+
 	if is_facedown:
 		tile.set_art(core.CARD_BACK)
-		unit.is_facedown = true
 		unit.set_meta("is_facedown", true)
-		#core._play_card_place_sound()
+		unit.is_facedown = true
+		unit.set_meta("is_previewing_flip", false)
+		unit.set_meta("flipped_permanent", false)
 	else:
 		tile.set_art(card.art)
-		unit.is_facedown = false
 		unit.set_meta("is_facedown", false)
+		unit.is_facedown = false
+		unit.set_meta("is_previewing_flip", false)
+		unit.set_meta("flipped_permanent", true)  # ✅ Face-up placements are permanent
 
 	# --- Spawn 3D model if available ---
 	if card.model_path != "":
@@ -516,6 +563,15 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		core._log("🚫 You can’t control enemy cards!", Color(1, 0.5, 0.5))
 		_is_battle_in_progress = false
 		return
+	
+	# 🚫 Ensure in-range before proceeding (player-controlled only)
+	if not bypass_control_check and attacker.owner == core.PLAYER:
+		var attacker_pos = from
+		var target_pos := to
+		if not _is_within_move_range(attacker_pos, target_pos, attacker):
+			core._log("🚫 That attack target is out of range!", Color(1, 0.5, 0.5))
+			_is_battle_in_progress = false
+			return
 
 	# 🟢 Self-click = stay in place but trigger ability & exhaust
 	if from == to:
@@ -678,6 +734,7 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		attacker.mode = UnitData.Mode.ATTACK
 		await _flip_faceup(src, attacker.card.art)
 		await confirm_faceup(attacker)
+		core._log("📢 confirm_faceup() manually invoked for %s" % attacker.card.name, Color(0.9, 1.0, 0.7))
 
 		# 🔹 Restore proper stats from card data
 		attacker.current_atk = attacker.card.atk
@@ -1193,7 +1250,7 @@ func _kill_unit(u: UnitData, silent := false) -> void:
 		var mesh = tile.get_node("CardMesh")
 		if is_instance_valid(mesh):
 			var tw = create_tween()
-			tw.tween_property(mesh, "modulate:a", 0.0, 0.3)
+			#tw.tween_property(mesh, "modulate:a", 0.0, 0.3)
 			tw.tween_property(mesh, "scale", mesh.scale * 0.5, 0.3)
 			await tw.finished
 
@@ -1202,7 +1259,7 @@ func _kill_unit(u: UnitData, silent := false) -> void:
 		if is_instance_valid(model):
 			var tw2 = create_tween()
 			tw2.tween_property(model, "scale", model.scale * 0.3, 0.3)
-			tw2.parallel().tween_property(model, "modulate:a", 0.0, 0.3)
+			#tw2.parallel().tween_property(model, "modulate:a", 0.0, 0.3)
 			await tw2.finished
 			await get_tree().process_frame
 			if is_instance_valid(model):
@@ -1515,19 +1572,24 @@ func confirm_faceup(unit: UnitData) -> void:
 	if not unit:
 		return
 
-	# 🧩 Safety — clear preview state if needed
+	core._log("📜 confirm_faceup() called for %s" % unit.card.name, Color(0.9, 0.9, 1.0))
+
+	# 🧩 Clear preview flag
 	if unit.has_meta("is_previewing_flip"):
 		unit.set_meta("is_previewing_flip", false)
+		core._log("🧩 Cleared preview flag for %s" % unit.card.name, Color(0.7, 0.9, 1.0))
 
-	# 🛑 If the unit was flipped back facedown or canceled before confirm → skip ability
+	# 🛑 If remained facedown, cancel
 	if unit.is_facedown or (unit.has_meta("is_facedown") and unit.get_meta("is_facedown")):
 		core._log("❎ %s remained facedown — ability canceled." % unit.card.name, Color(0.7, 0.7, 0.7))
-		# Clean up any pending flip ability so it doesn’t auto-trigger later
 		if unit.has_meta("pending_on_flip_ability"):
 			unit.set_meta("pending_on_flip_ability", null)
 		return
 
-	# ✅ Only now, when confirmed and still face-up, trigger the stored flip/summon ability
+	# ✅ Confirmed face-up → mark as permanently revealed
+	unit.set_meta("flipped_permanent", true)
+	core._log("🔒 %s marked permanently revealed (flipped_permanent=true)" % unit.card.name, Color(0.6, 1.0, 0.6))
+
 	if unit.has_meta("pending_on_flip_ability"):
 		var ab: CardAbility = unit.get_meta("pending_on_flip_ability")
 		unit.set_meta("pending_on_flip_ability", null)

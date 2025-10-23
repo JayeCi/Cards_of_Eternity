@@ -205,28 +205,6 @@ func _update_leader_badge() -> void:
 	else:
 		leader_badge.visible = false
 
-#func flash() -> void:
-	#if not highlight_mesh:
-		#return
-	#var mat := highlight_mesh.get_surface_override_material(0)
-	#if not mat:
-		#var base := highlight_mesh.mesh.surface_get_material(0)
-		#mat = base.duplicate() if base else StandardMaterial3D.new()
-		#highlight_mesh.set_surface_override_material(0, mat)
-#
-	#mat.emission_enabled = true
-	#mat.emission = Color(1, 0.5, 0.5)
-	#mat.emission_energy_multiplier = 4.0
-	#highlight_mesh.visible = true
-#
-	#var tw = create_tween()
-	#tw.tween_property(mat, "emission_energy_multiplier", 0.0, 0.3)
-	#await tw.finished
-#
-	#mat.emission_enabled = false
-	#mat.emission = Color(0, 0, 0)
-	#highlight_mesh.visible = false
-
 
 func set_exhausted(state: bool) -> void:
 	if not card_mesh:

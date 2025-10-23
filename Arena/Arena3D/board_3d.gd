@@ -192,3 +192,18 @@ func _seed_cluster(map: Array, terrain: String, base_terrain: String) -> void:
 
 func get_tile(x: int, y: int) -> Node3D:
 	return tiles.get(Vector2i(x, y))
+
+func are_move_highlights_visible(selected_pos: Vector2i) -> bool:
+	# ✅ If the player has a valid selected tile, that counts as "active selection"
+	if selected_pos != Vector2i(-1, -1):
+		var sel_tile = get_tile(selected_pos.x, selected_pos.y)
+		if sel_tile and sel_tile.occupant and sel_tile.occupant.owner == core.PLAYER:
+			return true
+
+	# ✅ Otherwise, check if any MoveHighlight visuals are showing
+	for child in get_children():
+		if child.has_node("MoveHighlight"):
+			var mh = child.get_node("MoveHighlight")
+			if mh.visible:
+				return true
+	return false
