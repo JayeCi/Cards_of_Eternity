@@ -1,11 +1,10 @@
-[gd_scene load_steps=17 format=3 uid="uid://dcus3e1lnkiqj"]
+[gd_scene load_steps=16 format=3 uid="uid://dcus3e1lnkiqj"]
 
 [ext_resource type="Texture2D" uid="uid://bof3211rwmtev" path="res://Images/Egyptian.png" id="1_6dd3c"]
 [ext_resource type="Script" uid="uid://b5ngergka1wik" path="res://Arena/Arena3D/ArenaScript/arena_ui.gd" id="1_e707p"]
 [ext_resource type="PackedScene" uid="uid://be24omkufdto6" path="res://UI/arena_card_details.tscn" id="1_q0uhn"]
 [ext_resource type="AudioStream" uid="uid://ba11gf23vyw2l" path="res://Audio/Sound FX/CardDraw.mp3" id="2_dhe1o"]
 [ext_resource type="PackedScene" uid="uid://hs2m5kkdydux" path="res://UI/arena_terrain_details.tscn" id="3_f1fl4"]
-[ext_resource type="PackedScene" uid="uid://d1csyo8c677k5" path="res://UI/fusion_pending.tscn" id="4_qgmx8"]
 [ext_resource type="PackedScene" uid="uid://dpo8aa3x7hm2t" path="res://UI/orb_grid.tscn" id="5_byuxr"]
 [ext_resource type="LabelSettings" uid="uid://br0x7c0gu7782" path="res://UI/PhaseLabel.tres" id="6_d050y"]
 [ext_resource type="Texture2D" uid="uid://br4jgqp33lyt2" path="res://UI/HealthBar.png" id="7_byuxr"]
@@ -74,13 +73,6 @@ offset_left = -3.0
 offset_top = 5.0
 offset_right = -3.0
 offset_bottom = 5.0
-
-[node name="FusionPending" parent="." instance=ExtResource("4_qgmx8")]
-layout_mode = 1
-offset_left = -426.195
-offset_top = -500.0
-offset_right = -119.81006
-offset_bottom = -500.0
 
 [node name="EnemyPortrait" type="TextureRect" parent="."]
 visible = false
@@ -188,8 +180,7 @@ mouse_filter = 1
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/normal_font_size = 12
-scroll_following = true
-vertical_alignment = 3
+autowrap_mode = 1
 
 [node name="BattlePopup" type="Label" parent="."]
 layout_mode = 1
@@ -199,9 +190,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -20.0
-offset_top = -131.0
+offset_top = -11.5
 offset_right = 20.0
-offset_bottom = -108.0
+offset_bottom = 11.5
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 4
@@ -210,14 +201,13 @@ label_settings = SubResource("LabelSettings_qgmx8")
 [node name="SummonMode" type="PopupPanel" parent="."]
 auto_translate_mode = 1
 oversampling_override = 1.0
-size = Vector2i(128, 144)
-visible = true
+size = Vector2i(128, 109)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="SummonMode"]
 offset_left = 4.0
 offset_top = 4.0
 offset_right = 124.0
-offset_bottom = 140.0
+offset_bottom = 105.0
 
 [node name="AttackMode" type="Button" parent="SummonMode/VBoxContainer"]
 layout_mode = 2
@@ -230,10 +220,6 @@ text = "Defense Mode"
 [node name="FaceDown" type="Button" parent="SummonMode/VBoxContainer"]
 layout_mode = 2
 text = "Face Down"
-
-[node name="Cancel" type="Button" parent="SummonMode/VBoxContainer"]
-layout_mode = 2
-text = "Cancel"
 
 [node name="FadeRect" type="ColorRect" parent="."]
 visible = false
@@ -369,7 +355,6 @@ label_settings = SubResource("LabelSettings_byuxr")
 [connection signal="pressed" from="SummonMode/VBoxContainer/AttackMode" to="." method="on_attack_mode_pressed"]
 [connection signal="pressed" from="SummonMode/VBoxContainer/DefenseMode" to="." method="on_defense_mode_pressed"]
 [connection signal="pressed" from="SummonMode/VBoxContainer/FaceDown" to="." method="on_face_down_pressed"]
-[connection signal="pressed" from="SummonMode/VBoxContainer/Cancel" to="." method="_on_cancel_pressed"]
 
 [editable path="BottomContainer/OrbGrid"]
 [editable path="BottomContainer/OrbGrid/OrbGrid/Control"]

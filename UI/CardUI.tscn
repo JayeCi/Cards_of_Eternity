@@ -1,14 +1,16 @@
-[gd_scene load_steps=17 format=3 uid="uid://bpwfipvsy0wxt"]
+[gd_scene load_steps=19 format=3 uid="uid://bpwfipvsy0wxt"]
 
 [ext_resource type="Script" uid="uid://d131h1pen840s" path="res://UI/card_ui_new.gd" id="1_nfm18"]
 [ext_resource type="Texture2D" uid="uid://b03jwbojyba53" path="res://Images/Jester of Flames.jpeg" id="2_vs81k"]
 [ext_resource type="Texture2D" uid="uid://bq6fn5ar8y44d" path="res://Cards/Utilities/CardModel/Border_TP_Edge.png" id="3_3t43t"]
 [ext_resource type="Texture2D" uid="uid://ccsq4ujlcj6ps" path="res://UI/rotating_orbs.png" id="4_vs81k"]
+[ext_resource type="Shader" uid="uid://bt5dty0vh8j7i" path="res://UI/FUSIONGLOW.gdshader" id="5_3t43t"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jhlvl"]
 
 [sub_resource type="SystemFont" id="SystemFont_jhlvl"]
 font_names = PackedStringArray("Tahoma")
+subpixel_positioning = 0
 
 [sub_resource type="LabelSettings" id="LabelSettings_dw547"]
 font = SubResource("SystemFont_jhlvl")
@@ -21,6 +23,7 @@ shadow_offset = Vector2(0.015, 1)
 
 [sub_resource type="SystemFont" id="SystemFont_nfm18"]
 font_names = PackedStringArray("Monospace")
+subpixel_positioning = 0
 
 [sub_resource type="LabelSettings" id="LabelSettings_vs81k"]
 font = SubResource("SystemFont_nfm18")
@@ -68,6 +71,7 @@ animations = [{
 }]
 
 [sub_resource type="SystemFont" id="SystemFont_jrlyf"]
+subpixel_positioning = 0
 
 [sub_resource type="LabelSettings" id="LabelSettings_kskg0"]
 font = SubResource("SystemFont_jrlyf")
@@ -76,6 +80,15 @@ outline_size = 8
 outline_color = Color(0, 0, 0, 0.5882353)
 shadow_size = 3
 shadow_color = Color(0, 0, 0, 0.57254905)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_kgeiq"]
+shader = ExtResource("5_3t43t")
+shader_parameter/glow_color = Color(1, 0.8, 0.4, 1)
+shader_parameter/glow_strength = 0.10000000149012
+shader_parameter/glow_size = 1.0000000149012
+shader_parameter/shimmer_speed = 4.5000000670553995
+shader_parameter/shimmer_intensity = 0.71999998390656
+shader_parameter/shimmer_direction = Vector2(1, 0)
 
 [node name="CardContainer" type="PanelContainer"]
 custom_minimum_size = Vector2(137, 193)
@@ -114,6 +127,7 @@ label_settings = SubResource("LabelSettings_dw547")
 horizontal_alignment = 1
 vertical_alignment = 3
 visible_characters = 13
+visible_ratio = 3.25
 
 [node name="Art" type="TextureRect" parent="MarginContainer"]
 layout_mode = 2
@@ -157,6 +171,14 @@ text = "25"
 label_settings = SubResource("LabelSettings_kskg0")
 
 [node name="Border" type="TextureRect" parent="."]
+layout_mode = 2
+texture = ExtResource("3_3t43t")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="FusionGlow" type="TextureRect" parent="."]
+visible = false
+material = SubResource("ShaderMaterial_kgeiq")
 layout_mode = 2
 texture = ExtResource("3_3t43t")
 expand_mode = 1

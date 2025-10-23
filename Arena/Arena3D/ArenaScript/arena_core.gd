@@ -133,6 +133,7 @@ enum Phase { SUMMON_OR_MOVE, SELECT_SUMMON_TILE, SELECT_MOVE_TARGET, ENEMY_TURN 
 var phase: int = Phase.SUMMON_OR_MOVE
 var summon_mode := UnitData.Mode.ATTACK
 
+
 # Decks & hands
 var player_deck: Array = []
 var player_hand: Array = []
@@ -143,6 +144,8 @@ var enemy_hand: Array = []
 var player_essence: int = 1
 var enemy_essence: int = 1
 var essence_gain_per_turn: int = 1
+var _is_fusion_pending_active: bool = false
+var _fusion_was_valid: bool = false
 
 # Leaders / Units
 var player_leader: UnitData
@@ -202,17 +205,17 @@ func _ready() -> void:
 	#CardCollection.add_card(get_card(CARD_PATHS.LYZARD))
 	CardCollection.add_card(get_card(CARD_PATHS.ERUPTION))
 	CardCollection.add_card(get_card(CARD_PATHS.DRAKE_OF_EMERALD))
-	#CardCollection.add_card(get_card(CARD_PATHS.FLAME_FAE))
-	#CardCollection.add_card(get_card(CARD_PATHS.AXO_THE_KNIGHT))
-	#CardCollection.add_card(get_card(CARD_PATHS.FINN))
-	#CardCollection.add_card(get_card(CARD_PATHS.FALCREEP))
-	#CardCollection.add_card(get_card(CARD_PATHS.SNAPTRAP))
-	#CardCollection.add_card(get_card(CARD_PATHS.MOLTEN_PIG))
-	#CardCollection.add_card(get_card(CARD_PATHS.NINJOAD))
-	#CardCollection.add_card(get_card(CARD_PATHS.BOOGLES))
-	#CardCollection.add_card(get_card(CARD_PATHS.FUNGOO))
-	#CardCollection.add_card(get_card(CARD_PATHS.ORB_OF_DARKNESS))
-	#CardCollection.add_card(get_card(CARD_PATHS.SHADOW_CANDLES))
+	CardCollection.add_card(get_card(CARD_PATHS.FLAME_FAE))
+	CardCollection.add_card(get_card(CARD_PATHS.AXO_THE_KNIGHT))
+	CardCollection.add_card(get_card(CARD_PATHS.FINN))
+	CardCollection.add_card(get_card(CARD_PATHS.FALCREEP))
+	CardCollection.add_card(get_card(CARD_PATHS.SNAPTRAP))
+	CardCollection.add_card(get_card(CARD_PATHS.MOLTEN_PIG))
+	CardCollection.add_card(get_card(CARD_PATHS.NINJOAD))
+	CardCollection.add_card(get_card(CARD_PATHS.BOOGLES))
+	CardCollection.add_card(get_card(CARD_PATHS.FUNGOO))
+	CardCollection.add_card(get_card(CARD_PATHS.ORB_OF_DARKNESS))
+	CardCollection.add_card(get_card(CARD_PATHS.SHADOW_CANDLES))
 	CardCollection.add_card(get_card(CARD_PATHS.JESTER_OF_FLAMES))
 	#CardCollection.add_card(get_card(CARD_PATHS.VOIDLING_ERO))
 	CardCollection.add_card(get_card(CARD_PATHS.MUSHMONK))
@@ -222,16 +225,13 @@ func _ready() -> void:
 	CardCollection.add_card(get_card(CARD_PATHS.CONFLAGURATION_BLADE))
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	if ui_sys.has_node("OrbGrid"):
-		var essence_display = ui_sys.get_node("OrbGrid")
-		connect("essence_changed", Callable(essence_display, "set_essence"))
+
+	# ✅ Connect essence UI
+	var orb_grid := ui_sys.get_node_or_null("OrbGrid")
+	if orb_grid and orb_grid.has_method("set_essence"):
+		connect("essence_changed", Callable(orb_grid, "set_essence"))
+	else:
+		push_warning("⚠️ OrbGrid not found or missing set_essence() in UISystem")
 		
 func _deferred_startup():
 	randomize()
@@ -308,8 +308,11 @@ func refresh_tile_art_safe(pos: Vector2i):
 func _apply_terrain_bonus(unit: UnitData, terrain: String) -> void:
 	if not unit or not unit.card:
 		return
+	if unit.is_leader:
+		return  # 🚫 Leaders ignore terrain bonuses and skip logs entirely
 	if not TERRAIN_BONUS.has(terrain):
 		return
+
 	var element := unit.card.element
 	if not TERRAIN_BONUS[terrain].has(element):
 		return
@@ -348,15 +351,28 @@ func _apply_terrain_bonus(unit: UnitData, terrain: String) -> void:
 	var is_buff = diff_percent > 0.0
 	var color := Color(0.6, 1.0, 0.6) if is_buff else Color(1.0, 0.5, 0.5)
 	var sign := "+" if is_buff else ""
+	# --- Prevent revealing facedown enemy units (but allow player facedowns)
+	var is_facedown = unit.is_facedown or (unit.has_meta("is_facedown") and unit.get_meta("is_facedown"))
+	var is_enemy := unit.owner == ENEMY
 
+	if is_enemy and is_facedown and not unit.is_leader:
+		return
+	# --- 🧩 Skip terrain logs for Spell or Event cards ---
+	if unit.card.card_type == CardData.CardType.SPELL or unit.card.card_type == CardData.CardType.EVENT:
+		return
+		
 	# --- Log improvement with percentage ---
-	_log("🌿 %s adapts to %s terrain: ATK %.1f→%d | DEF %.1f→%d (%.0f%% preserved, %s%.1f%% %s)" %
-		[unit.card.name, terrain,
-		base_atk * old_mult, unit.current_atk,
-		base_def * old_mult, unit.current_def,
-		ratio * 100.0,
-		sign, abs(diff_percent), ("buff" if is_buff else "debuff")],
-		color)
+	_log("🌿 %s adapts to %s terrain\nATK %d → %d | DEF %d → %d (%s%.1f%% %s)" % [
+		unit.card.name,
+		terrain,
+		int(base_atk * old_mult),
+		unit.current_atk,
+		int(base_def * old_mult),
+		unit.current_def,
+		sign,
+		abs(diff_percent),
+		"buff" if is_buff else "debuff"
+	], color)
 
 	# --- Safe refresh of visuals ---
 	var pos = board.get_unit_position(unit)
@@ -589,7 +605,7 @@ func damage_leader(target: int, amount: int) -> void:
 	emit_signal("hp_changed", leader.owner, leader.hp)
 
 	var who = "Your" if target == PLAYER else "Enemy"
-	_log("%s Leader takes %d damage!" % [who, amount], Color(1, 0.5, 0.5))
+	#_log("%s Leader takes %d damage!" % [who, amount], Color(1, 0.5, 0.5))
 
 	if ui_sys and ui_sys.has_method("update_leader_hp"):
 		ui_sys.update_leader_hp(player_leader.hp, enemy_leader.hp)
@@ -637,56 +653,47 @@ func on_hand_card_clicked(card: CardData) -> void:
 	if dragging_card:
 		return
 
-	# Add to fusion selection
+	# Toggle selection
 	if fusion_selection.has(card):
 		fusion_selection.erase(card)
 		_log("❎ Deselected %s" % card.name)
+		# 🔹 Clear highlights when deselecting all
+		if fusion_selection.is_empty() and battle_sys and battle_sys.has_method("clear_summon_highlights"):
+			battle_sys.call("clear_summon_highlights")
 	else:
-		if fusion_selection.size() < 2:
-			fusion_selection.append(card)
-			_log("✅ Selected %s for fusion attempt (%d/2)" % [card.name, fusion_selection.size()])
+		fusion_selection.append(card)
+		_log("✅ Selected %s (%d/2)" % [card.name, fusion_selection.size()])
 
-			# 🟢 Animate the card lifting up slightly
-			var ui_sys_ref = ui_sys
-			if ui_sys_ref and ui_sys_ref.has_node("BottomContainer/Hand"):
-				var hand_grid = ui_sys_ref.get_node("BottomContainer/Hand")
-				for ui_card in hand_grid.get_children():
-					if ui_card.card_data == card:
-						var t = ui_card.create_tween()
-						t.tween_property(ui_card, "position:y", -25.0, 0.15)\
-							.set_trans(Tween.TRANS_SINE)\
-							.set_ease(Tween.EASE_OUT)
-						break
-		else:
-			_log("⚠️ You can only select 2 cards for fusion.")
-			return
-			
-	# 🧬 Automatically start placement phase once 2 cards selected
-	if fusion_selection.size() == 2:
-		_log("🧩 Fusion pair ready — select a tile to place the fusion.", Color(1.0, 0.9, 0.4))
+	# --- Handle selection states ---
+	if fusion_selection.size() == 1:
+		selected_card = card
+		_set_phase(Phase.SUMMON_OR_MOVE)
+		_update_phase_ui()
+		_log("💡 Select another card to attempt fusion, or click a tile to summon %s." % card.name, Color(0.9, 0.9, 0.6))
 
-		# --- Prep the UI ---
+		# ✅ Highlight all valid summon tiles
+		if battle_sys and battle_sys.has_method("show_valid_summon_tiles"):
+			battle_sys.call("show_valid_summon_tiles")
+
+	elif fusion_selection.size() == 2:
+		selected_card = fusion_selection[1]
+		dragging_card = selected_card
 		if ui_sys and ui_sys.has_method("fade_hand_out"):
 			ui_sys.fade_hand_out()
-		if ui_sys and ui_sys.has_method("show_battle_message"):
-			ui_sys.show_battle_message("Choose a tile for Fusion", 2.0)
-
-		# --- Switch to placement phase ---
+		if ui_sys and ui_sys.has_method("on_drag_start"):
+			ui_sys.on_drag_start(selected_card)
 		_set_phase(Phase.SELECT_SUMMON_TILE)
 		_update_phase_ui()
+		_log("🧬 Fusion pair ready — select a tile to place the fusion.", Color(1.0, 0.9, 0.4))
+		# 🧩 Show visual pending fusion overlay
+		var result := _check_fusion_pair(fusion_selection[0], fusion_selection[1])
+		if ui_sys and ui_sys.has_method("show_fusion_pending"):
+			ui_sys.show_fusion_pending(fusion_selection, result)
 
-		# --- Force UI into drag/placement mode so highlights appear ---
-		# use the second selected card as the "visual" placeholder
-		dragging_card = fusion_selection[1]
-		selected_card = fusion_selection[1]
+		# ✅ Highlight again for fusion placement
+		if battle_sys and battle_sys.has_method("show_valid_summon_tiles"):
+			battle_sys.call("show_valid_summon_tiles")
 
-		# tell ArenaUI to start ghost preview
-		if ui_sys and ui_sys.has_method("on_drag_start"):
-			ui_sys.on_drag_start(dragging_card)
-
-		# force update hover so valid tiles highlight
-		if battle_sys and battle_sys.has_method("_reset_hover_state"):
-			battle_sys._reset_hover_state()
 
 func _play_card_flip_sound() -> void:
 	var sound := preload("res://Audio/Sound FX/Card Flip.mp3")
@@ -704,89 +711,137 @@ func _play_card_flip_sound() -> void:
 
 
 func try_place_dragged_card(hover_tile: Node3D) -> void:
-	if not dragging_card:
+	if hover_tile == null:
+		return
+			
+	# 🟥 Prevent summoning on non-highlight tiles
+	if not hover_tile or not hover_tile.summon_highlight:
+		_log("🚫 You can only summon on a highlighted tile!", Color(1, 0.5, 0.5))
+
+		# Hide summon highlights immediately
+		if battle_sys and battle_sys.has_method("clear_summon_highlights"):
+			battle_sys.call("clear_summon_highlights")
+
+		# Fully reset card placement state
+		ui_sys.call("cancel_drag")
+		fusion_selection.clear()
+		selected_card = null
+		dragging_card = null
+		_set_phase(Phase.SUMMON_OR_MOVE)
+		_update_phase_ui()
+
+		# Fade hand back in to visually confirm cancel
+		if ui_sys and ui_sys.has_method("fade_hand_in"):
+			ui_sys.call("fade_hand_in")
+
 		return
 
-	var fusion_result: CardData = null
+	print("🧩 DEBUG fusion_selection size:", fusion_selection.size())
+
 	if fusion_selection.size() == 2:
 		var a = fusion_selection[0]
 		var b = fusion_selection[1]
-		fusion_result = _check_fusion_pair(a, b)
+		var result := _check_fusion_pair(a, b)
 
-	if fusion_result:
-		# 🧬 Perform fusion result placement
-		_log("🧬 Fusion success! %s + %s → %s" %
-			[fusion_selection[0].name, fusion_selection[1].name, fusion_result.name],
-			Color(1.0, 0.8, 0.4))
+		if not result:
+			# 🧩 INVALID FUSION
+			_fusion_was_valid = false
+			_log("⚠️ No valid fusion found — %s will be consumed and %s will be summoned instead." %
+				[a.name, b.name], Color(0.843, 0.0, 0.0, 1.0))
 
-		# --- Store before clearing ---
-		var a = fusion_selection[0]
-		var b = fusion_selection[1]
+			player_hand = player_hand.filter(func(c): return c != a)
+			ui_sys.refresh_hand(player_hand, player_essence)
 
-		player_hand.erase(a)
-		player_hand.erase(b)
+			selected_card = b
+			selected_pos = Vector2i(hover_tile.x, hover_tile.y)
+			_set_phase(Phase.SELECT_SUMMON_TILE)
+			_update_phase_ui()
+			ui_sys.show_popup(b)
+			return
+		else:
+			# ✅ VALID FUSION
+			_fusion_was_valid = true
+			var cost := int(result.cost) if "cost" in result else 1
+			if player_essence < cost:
+				_log("❌ Not enough Essence to fuse %s (Cost %d, you have %d)." %
+					[result.name, cost, player_essence])
+				ui_sys.cancel_drag()
+				fusion_selection.clear()
+				return
 
-		player_essence = max(0, player_essence - int(fusion_result.cost))
-		emit_signal("essence_changed", player_essence, enemy_essence)
+			selected_pos = Vector2i(hover_tile.x, hover_tile.y)
+			selected_card = result
+			_set_phase(Phase.SELECT_SUMMON_TILE)
+			_update_phase_ui()
+			_log("🧬 Fusion pair ready — select summon mode.")
+			ui_sys.show_popup(result)
+			return
 
-		battle_sys.call("place_unit", fusion_result, Vector2i(hover_tile.x, hover_tile.y), PLAYER, UnitData.Mode.ATTACK, true)
-		ui_sys.call("refresh_hand", player_hand, player_essence)
 
-		# --- Play VFX and ability logic ---
-		_play_fusion_effect(fusion_result)
-		_trigger_fusion_abilities(fusion_result, [a, b])
-
-		# --- Cleanup ---
-		fusion_selection.clear()
-		dragging_card = null
-		selected_card = null
-		selected_pos = Vector2i(-1, -1)
-
-		_set_phase(Phase.SUMMON_OR_MOVE)
+		## Store intent for when the popup button is pressed
+		#selected_pos = Vector2i(hover_tile.x, hover_tile.y)
+		selected_card = result
+		_set_phase(Phase.SELECT_SUMMON_TILE)
 		_update_phase_ui()
-		ui_sys.call("fade_hand_in")
+
+		_log("🧬 Fusion pair ready — select summon mode.")
+		ui_sys.show_popup(result)  # user will press Attack/Defense/FaceDown
 		return
 
 
-	# ❌ No fusion → destroy first card, place second normally
-	elif fusion_selection.size() == 2:
-		_log("❌ Fusion failed — first card destroyed, placing second.", Color(1,0.6,0.6))
-		player_hand.erase(fusion_selection[0])
-		player_hand.erase(fusion_selection[1])
-		battle_sys.call("place_unit", fusion_selection[1], Vector2i(hover_tile.x, hover_tile.y), PLAYER, UnitData.Mode.ATTACK, true)
-		ui_sys.call("refresh_hand", player_hand, player_essence)
-		fusion_selection.clear()
-		_set_phase(Phase.SUMMON_OR_MOVE)
-		_update_phase_ui()
-		await get_tree().process_frame
-		dragging_card = null
+	# --- 🟢 Handle normal summon (single card)
+	if fusion_selection.size() == 1:
+		selected_card = fusion_selection[0]
+		selected_pos = Vector2i(hover_tile.x, hover_tile.y)
 
+		var card_cost := int(selected_card.cost) if "cost" in selected_card else 1
+		if player_essence < card_cost:
+			_log("❌ Not enough Essence to summon %s (Cost %d, you have %d)." %
+				[selected_card.name, card_cost, player_essence], Color(1, 0.5, 0.3))
+			return
+
+		_log("🎴 Summon ready — select summon mode.")
+		_set_phase(Phase.SELECT_SUMMON_TILE)
+		_update_phase_ui()
+		ui_sys.show_popup(selected_card)
 		return
 
-	# otherwise run your normal single-card logic:
-	_try_place_regular_card(hover_tile)
-	
+
+	# --- 🟡 Nothing selected
+	_log("⚠️ Clicked tile but no card selected.", Color(1, 0.8, 0.3))
+
 func _try_place_regular_card(hover_tile: Node3D) -> void:
-	# 🧩 Fallback for single card placement (normal summon)
+	if selected_card == null:
+		return
+
 	var cost := int(selected_card.cost) if "cost" in selected_card else 1
-	if player_essence < cost:
+	var live_essence := player_essence  # 🔹 always use live value
+
+	if live_essence < cost:
 		_log("❌ Not enough Essence to summon %s (Cost %d, you have %d)" %
-			[selected_card.name, cost, player_essence], Color(1, 0.5, 0.3))
+			[selected_card.name, cost, live_essence], Color(1, 0.5, 0.3))
 		ui_sys.call("cancel_drag")
 		_set_phase(Phase.SUMMON_OR_MOVE)
 		_update_phase_ui()
 		return
 
-	player_essence -= cost
-	emit_signal("essence_changed", player_essence, enemy_essence)
+	ui_sys.show_popup(selected_card, func(mode):
+		var fresh_essence := player_essence  # read again when button clicked
+		var live_cost := int(selected_card.cost) if "cost" in selected_card else 1
+		if fresh_essence < live_cost:
+			_log("❌ Not enough Essence at confirm (Cost %d, you have %d)" %
+				[live_cost, fresh_essence], Color(1, 0.5, 0.3))
+			return
 
-	player_hand.erase(selected_card)
-	battle_sys.call("place_unit", selected_card, Vector2i(hover_tile.x, hover_tile.y), PLAYER, UnitData.Mode.ATTACK, true)
-	ui_sys.call("refresh_hand", player_hand, player_essence)
-
-	_set_phase(Phase.SUMMON_OR_MOVE)
-	_update_phase_ui()
-
+		player_essence = clamp(player_essence - live_cost, 0, 8)
+		emit_signal("essence_changed", player_essence, enemy_essence)
+		ui_sys.call("refresh_hand", player_hand, player_essence)
+		player_hand.erase(selected_card)
+		battle_sys.call("place_unit", selected_card, selected_pos, PLAYER, mode, true)
+		_log("🎴 %s summoned in %s Mode!" % [selected_card.name, str(mode)], Color(0.7, 1.0, 0.7))
+		_set_phase(Phase.SUMMON_OR_MOVE)
+		_update_phase_ui()
+	)
 
 func _check_fusion_pair(a: CardData, b: CardData) -> CardData:
 	# --- 1️⃣ Explicit static fusion pairs ---
@@ -842,62 +897,91 @@ func _play_fusion_effect(result_card: CardData) -> void:
 
 	ui_sys.call("show_battle_message", "🧬 Fusion Created: %s!" % result_card.name, 2.0)
 
+	# ⏳ Wait for the animation duration (matches FusionEffect2D duration)
+	await get_tree().create_timer(1.5).timeout
+
+	# Remove the effect layer when done
+	effect.queue_free()
+
 func confirm_summon_in_mode(mode: int) -> void:
-	# Defensive guard — make sure a card and position exist
-	if selected_card == null or selected_pos == Vector2i(-1, -1):
-		_log("⚠️ No card or tile selected to summon.", Color(1, 0.8, 0.3))
-		ui_sys.call("cancel_drag")
-		_set_phase(Phase.SUMMON_OR_MOVE)
-		_update_phase_ui()
+	if selected_card == null:
+		_log("⚠️ No card selected for summon.")
+		return
+	if selected_pos == Vector2i(-1, -1):
+		_log("⚠️ No target tile selected for summon.")
 		return
 
-	summon_mode = mode
+	var mode_name := ""
+	match mode:
+		UnitData.Mode.ATTACK:
+			mode_name = "Attack Mode"
+		UnitData.Mode.DEFENSE:
+			mode_name = "Defense Mode"
+		UnitData.Mode.FACEDOWN:
+			mode_name = "Face-Down"
 
-	var cost := int(selected_card.cost) if "cost" in selected_card else 1
-	if player_essence < cost:
-		_log("❌ Not enough Essence to summon %s (Cost %d, you have %d)" %
-			[selected_card.name, cost, player_essence], Color(1, 0.5, 0.3))
-		ui_sys.call("cancel_drag")
-		_set_phase(Phase.SUMMON_OR_MOVE)
-		_update_phase_ui()
-		return
+	# --- 🧬 Handle Fusion Result (pre-set by try_place_dragged_card)
+	if fusion_selection.size() == 2:
+		var a = fusion_selection[0]
+		var b = fusion_selection[1]
+		var fused := selected_card
+		var cost := int(fused.cost) if "cost" in fused else 1
 
-	# Deduct cost and place card
-	player_essence -= cost
-	emit_signal("essence_changed", player_essence, enemy_essence)
-	
-	player_hand.erase(selected_card)
-	battle_sys.call("place_unit", selected_card, selected_pos, PLAYER, summon_mode, true)
+		player_essence -= cost
+		emit_signal("essence_changed", player_essence, enemy_essence)
 
+		player_hand = player_hand.filter(func(c): return c != a and c != b)
+		ui_sys.refresh_hand(player_hand, player_essence)
 
-	# ✅ Clean up placement session
-	player_hand.erase(selected_card)
-	ui_sys.call("refresh_hand", player_hand, player_essence)
-	battle_sys.call("clear_highlights")
+		# 🌀 Play fusion animation and wait for it to finish before placing
+		await _play_fusion_effect(fused)
+		if ui_sys and ui_sys.has_method("hide_fusion_pending"):
+			await ui_sys.hide_fusion_pending()
 
-	# ✅ Lock only if NOT placed facedown (facedown stays toggleable on click)
-	var placed_tile := board.get_tile(selected_pos.x, selected_pos.y)
-	if placed_tile and placed_tile.occupant and placed_tile.occupant.owner == PLAYER:
-		var unit = placed_tile.occupant
-		var placed_face_down := (summon_mode == UnitData.Mode.FACEDOWN)
-		unit.set_meta("flipped_permanent", not placed_face_down)
+		# ✅ Now safely place the fused card
+		battle_sys.place_unit(fused, selected_pos, PLAYER, mode, true)
 
 
-	# ✅ Fully exit placement mode
+		if _fusion_was_valid:
+			_log("🧬 %s + %s fused into %s (%s)!" %
+				[a.name, b.name, fused.name, mode_name], Color(1.0, 0.8, 0.4))
+		else:
+			_log("🎴 %s summoned in %s!" % [fused.name, mode_name], Color(0.7, 1.0, 0.7))
+
+
+	else:
+		# --- 🟢 Handle Normal Summon
+		var cost := int(selected_card.cost) if "cost" in selected_card else 1
+		player_essence -= cost
+		emit_signal("essence_changed", player_essence, enemy_essence)
+
+		player_hand.erase(selected_card)
+		ui_sys.refresh_hand(player_hand, player_essence)
+
+		battle_sys.place_unit(selected_card, selected_pos, PLAYER, mode, true)
+		_log("🎴 %s summoned in %s!" % [selected_card.name, mode_name], Color(0.7, 1.0, 0.7))
+
+	# --- ✅ Cleanup (common for both)
+	if battle_sys and battle_sys.has_method("clear_summon_highlights"):
+		battle_sys.call("clear_summon_highlights")
+
+	if ui_sys:
+		ui_sys.call_deferred("fade_hand_in")
+		ui_sys.call_deferred("cancel_drag")  # 🧩 FIX: properly reset hover/drag state
+		
+	_fusion_was_valid = false
+	fusion_selection.clear()
+	if ui_sys and ui_sys.has_method("hide_fusion_pending"):
+		ui_sys.hide_fusion_pending()
+
 	selected_card = null
-	selected_pos = Vector2i(-1, -1)
 	dragging_card = null
-	ui_sys.call("cancel_drag")
-	ui_sys.call("fade_hand_in")
-	battle_sys.call("_reset_hover_state")
 	_set_phase(Phase.SUMMON_OR_MOVE)
 	_update_phase_ui()
 
-	# 🔊 Play card placement sound effect
-	_play_card_place_sound()
-
-	_log("🎴 Card placed successfully", Color(0.7, 1.0, 0.7))
-
+	# 🧩 Force hover system reset to fix broken tile hover
+	if battle_sys and battle_sys.has_method("_reset_hover_state"):
+		battle_sys.call("_reset_hover_state")
 
 # -----------------------------
 # TURN FLOW
@@ -913,19 +997,20 @@ func _on_end_turn_button_pressed() -> void:
 	await _start_enemy_turn()
 
 func _start_player_turn() -> void:
+	await get_tree().process_frame  # ensures last turn cleanup fully done
+
+	_gain_essence(PLAYER, essence_gain_per_turn)
+	print("✅ AFTER GAIN essence:", player_essence)
+
 	if camera_sys and camera_sys.has_method("focus_on_leader"):
 		camera_sys.call_deferred("focus_on_leader", PLAYER)
 
-
 	battle_sys.call("_reset_hover_state")
-
 	_reset_action_flags()
-
 	_draw_up_to_hand_limit()
+
 	_set_phase(Phase.SUMMON_OR_MOVE)
 	ui_sys.call("show_battle_message", "Your Turn!", 1.5)
-	player_essence += essence_gain_per_turn
-	emit_signal("essence_changed", player_essence, enemy_essence)
 
 	# 💚 Sound + regen for player side
 	_play_heal_sound()
@@ -942,6 +1027,7 @@ func _start_player_turn() -> void:
 	print("Player essence now:", player_essence)
 	battle_sys.core = self
 	ui_sys.call("refresh_hand", player_hand, player_essence)
+
 	for pos in units.keys():
 		var u: UnitData = units[pos]
 		if u and u.is_facedown:
@@ -953,9 +1039,9 @@ func _start_player_turn() -> void:
 		var u: UnitData = units[pos]
 		if u and u.is_facedown:
 			refresh_tile_art_safe(pos)
+
 	battle_sys._enforce_visual_face_state()
 	get_viewport().gui_release_focus()
-
 
 func _start_enemy_turn() -> void:
 	battle_sys.call("_reset_hover_state")
@@ -968,7 +1054,7 @@ func _start_enemy_turn() -> void:
 	ui_sys.call("show_battle_message", "Enemy Turn!", 1.5)
 
 
-	enemy_essence += essence_gain_per_turn
+	_gain_essence(ENEMY, essence_gain_per_turn)
 	emit_signal("essence_changed", player_essence, enemy_essence)
 
 	# ❤️ Sound + regen for enemy side
@@ -981,7 +1067,6 @@ func _start_enemy_turn() -> void:
 	await get_tree().create_timer(0.5).timeout
 	await ai_sys.call("run_enemy_turn")
 
-	_log("🔁 Enemy turn finished.")
 	for pos in units.keys():
 		var u: UnitData = units[pos]
 		if u and u.is_facedown:
@@ -989,7 +1074,14 @@ func _start_enemy_turn() -> void:
 			if tile:
 				tile.set_art(CARD_BACK)
 	battle_sys._enforce_visual_face_state()
+
+	# ✅ Wait a frame to ensure UI and data are synced
+	await get_tree().process_frame
+
+	# ✅ Explicitly re-sync player essence before next turn starts
+	emit_signal("essence_changed", player_essence, enemy_essence)
 	_start_player_turn()
+
 
 func _draw_up_to_hand_limit() -> void:
 	while player_hand.size() < MAX_HAND_SIZE and not player_deck.is_empty():
@@ -1002,6 +1094,23 @@ func _reset_action_flags() -> void:
 	acted_this_turn.clear()
 	battle_sys.call("clear_exhausted_tiles")
 	
+func cancel_summon_popup() -> void:
+	if ui_sys and ui_sys.has_method("hide_popup"):
+		ui_sys.hide_popup()
+	if battle_sys and battle_sys.has_method("clear_summon_highlights"):
+		battle_sys.call("clear_summon_highlights")
+	if ui_sys and ui_sys.has_method("fade_hand_in"):
+		ui_sys.fade_hand_in()
+
+	fusion_selection.clear()
+	selected_card = null
+	dragging_card = null
+	selected_pos = Vector2i(-1, -1)
+
+	_log("❎ Summon canceled.", Color(0.8, 0.8, 0.8))
+	_set_phase(Phase.SUMMON_OR_MOVE)
+	_update_phase_ui()
+
 func _play_card_place_sound(card_data: CardData = null, is_facedown: bool = false) -> void:
 	var sound: AudioStream = null
 
@@ -1059,6 +1168,20 @@ func _set_phase(p: int) -> void:
 
 func _update_phase_ui() -> void:
 	ui_sys.call("update_phase_label", phase)
+	
+func _gain_essence(owner: int, amount: int = 1) -> void:
+	if owner == PLAYER:
+		player_essence = clamp(player_essence + amount, 0, 8)
+	else:
+		enemy_essence = clamp(enemy_essence + amount, 0, 8)
+
+	print("💧 Essence updated: Player =", player_essence, "Enemy =", enemy_essence)
+	emit_signal("essence_changed", player_essence, enemy_essence)
+
+		# 🩵 Force UI + hand sync every time essence changes
+	if owner == PLAYER and ui_sys and ui_sys.has_method("refresh_hand"):
+		ui_sys.call("refresh_hand", player_hand, player_essence, true)
+
 
 #func _log(text: String, color: Color = Color.WHITE) -> void:
 	#emit_signal("log_line", text, color)
@@ -1080,35 +1203,133 @@ func on_leader_defeated(owner: int) -> void:
 # INPUT HUB (delegates to systems)
 # -----------------------------
 func _unhandled_input(event: InputEvent) -> void:
-	
+	# ==========================================================
+	# 🧬 FUSION PENDING INPUT HANDLING
+	# ==========================================================
+	if _is_fusion_pending_active:
+		if event is InputEventMouseButton and event.pressed:
+
+			# ✅ RIGHT-CLICK → cancel fusion
+			if event.button_index == MOUSE_BUTTON_RIGHT:
+				if ui_sys and ui_sys.has_method("hide_fusion_pending"):
+					ui_sys.hide_fusion_pending()
+				_is_fusion_pending_active = false
+				fusion_selection.clear()
+				selected_card = null
+				dragging_card = null
+				selected_pos = Vector2i(-1, -1)
+				_log("❎ Fusion canceled.", Color(0.8, 0.8, 0.8))
+				if ui_sys and ui_sys.has_method("fade_hand_in"):
+					ui_sys.fade_hand_in()
+				_set_phase(Phase.SUMMON_OR_MOVE)
+				_update_phase_ui()
+				return
+
+			# ✅ LEFT-CLICK → only allow valid summon tile placement
+			elif event.button_index == MOUSE_BUTTON_LEFT:
+				if hovered_tile and hovered_tile.summon_highlight:
+					# 🟩 Place the pending fusion card
+					try_place_dragged_card(hovered_tile)
+					_is_fusion_pending_active = false  # clear lock after placement
+					return
+				else:
+					_log("🚫 Invalid tile — choose a highlighted spot to place the fusion.", Color(1, 0.6, 0.6))
+					get_viewport().set_input_as_handled()
+					return
+
+			# 🚫 Block all other buttons
+			get_viewport().set_input_as_handled()
+			return
+
+
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_LEFT:
-			if dragging_card:
-				try_place_dragged_card(hovered_tile)
-			else:
+			if hovered_tile:
+				# 🧬 If two cards are selected, always do fusion
+				if fusion_selection.size() == 2:
+					try_place_dragged_card(hovered_tile)
+					return
+
+				# 🎴 If one card is selected (normal summon)
+				elif fusion_selection.size() == 1:
+					selected_card = fusion_selection[0]
+					dragging_card = selected_card
+
+					if ui_sys and ui_sys.has_method("fade_hand_out"):
+						ui_sys.fade_hand_out()
+					if ui_sys and ui_sys.has_method("on_drag_start"):
+						ui_sys.on_drag_start(selected_card)
+
+					try_place_dragged_card(hovered_tile)
+					return
+
+			# Otherwise, forward click to board
+			if battle_sys and battle_sys.has_method("on_board_click"):
 				battle_sys.call("on_board_click", event.position)
-				
+				return
+
+
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
-			if selected_pos != Vector2i(-1, -1):
-				var t = battle_sys.board.get_tile(selected_pos.x, selected_pos.y)
-				if t and t.occupant:
-					t.occupant.set_meta("allow_face_toggle_session", false)
+			# 🧹 Cancel current selection or drag
+			if selected_card or not fusion_selection.is_empty():
+				var deselected_names := []
+				for c in fusion_selection:
+					deselected_names.append(c.name)
+				if selected_card and not deselected_names.has(selected_card.name):
+					deselected_names.append(selected_card.name)
+				_log("❎ Deselected %s" % ", ".join(deselected_names), Color(0.8, 0.8, 0.8))
+				# 🧩 If a summon popup is active — close it instead of just deselecting
+				if ui_sys and ui_sys.has_method("is_popup_open") and ui_sys.is_popup_open():
+					cancel_summon_popup()
+					get_viewport().set_input_as_handled()
+					return
+
+			if ui_sys and ui_sys.has_node("BottomContainer/Hand"):
+				var hand: GridContainer = ui_sys.get_node("BottomContainer/Hand")
+				for card_ui in hand.get_children():
+					if card_ui is Control:
+						# Reset hover/selection tweens ONLY
+						card_ui.position.y = 0
+						# ✅ Restore essence-based tint instead of forcing white
+						if card_ui.has_method("get_card_data") and card_ui.has_method("set_playable"):
+							var c = card_ui.get_card_data()
+							if c:
+								var cost := 1
+								if c.has_meta("cost"): cost = int(c.get_meta("cost"))
+								elif c.has_method("get_cost"): cost = c.get_cost()
+								elif "cost" in c: cost = int(c.cost)
+								card_ui.set_playable(cost <= player_essence)
+
+			# Reset hover / highlights / selections
+			if ui_sys and ui_sys.has_method("hide_fusion_pending"):
+				ui_sys.hide_fusion_pending()
+			if battle_sys and battle_sys.has_method("clear_highlights"):
+				battle_sys.call("clear_highlights")
 
 			selected_card = null
-			ui_sys.hide_hover()
-			selected_pos = Vector2i(-1,-1)
+			fusion_selection.clear()
 			dragging_card = null
-			battle_sys.call("clear_highlights")
+			selected_pos = Vector2i(-1, -1)
+
+			if ui_sys:
+				if ui_sys.has_method("hide_hover"):
+					ui_sys.call("hide_hover")
+				if ui_sys.has_method("fade_hand_in"):
+					ui_sys.call("fade_hand_in")
+				if ui_sys.has_method("cancel_drag"):
+					ui_sys.call("cancel_drag")
+
 			_set_phase(Phase.SUMMON_OR_MOVE)
 			_update_phase_ui()
-			ui_sys.call("cancel_drag")  # 🧹 FIX — reset ArenaUI drag state & hide details
 
-	if event is InputEventKey and event.keycode == KEY_SHIFT:
+
+	# ✅ Handle keyboard / mouse motion separately
+	elif event is InputEventKey and event.keycode == KEY_SHIFT:
 		camera_sys.call_deferred("toggle_freelook", event.pressed)
-
-	if camera_sys and camera_sys.has_method("forward_mouse_motion"):
-		if camera_sys.get("is_freelook") and event is InputEventMouseMotion:
-			camera_sys.call("forward_mouse_motion", event.relative)
+	elif event is InputEventMouseMotion:
+		if camera_sys and camera_sys.has_method("forward_mouse_motion"):
+			if camera_sys.get("is_freelook"):
+				camera_sys.call("forward_mouse_motion", event.relative)
 
 # -----------------------------
 # HELPERS exposed for systems

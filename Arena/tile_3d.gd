@@ -291,19 +291,6 @@ func _apply_terrain_visual(new_terrain_type: String = "") -> void:
 		"Lava":
 			if lava_mesh:
 				lava_mesh.visible = true
-				#if lava_mesh.material_override:
-					#var mat = lava_mesh.material_override
-					#mat.emission_enabled = true
-					#mat.emission = Color(1.0, 0.3, 0.1)
-					#mat.emission_energy_multiplier = 2.0
-					#mat.albedo_color = Color(0.9, 0.4, 0.2)
-				#else:
-					#var mat = StandardMaterial3D.new()
-					#mat.albedo_color = Color(0.9, 0.4, 0.2)
-					#mat.emission_enabled = true
-					#mat.emission = Color(1.0, 0.3, 0.1)
-					#mat.emission_energy_multiplier = 2.0
-					#lava_mesh.material_override = mat
 
 		"Ice":
 			if ice_mesh:
@@ -337,7 +324,7 @@ func pulse_move_highlight() -> void:
 		mat = base.duplicate() if base else StandardMaterial3D.new()
 		move_highlight.set_surface_override_material(0, mat)
 
-	# Ensure transparency is enabled
+	# Ensure transparency is enabledw
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.albedo_color.a = 0.8
 	if occupant and occupant.owner != core.PLAYER:

@@ -404,7 +404,7 @@ func _show_move_targets(from: Vector2i) -> void:
 
 	if (not is_down or previewed_up) and tile and tile.terrain_type == unit.card.preferred_terrain:
 		range *= 2
-		core._log("🌿 %s moves freely on preferred terrain (+%d range preview)" % [unit.card.name, range - core.BASE_MOVE_RANGE], Color(0.6, 1.0, 0.6))
+		#core._log("🌿 %s moves freely on preferred terrain (+%d range preview)" % [unit.card.name, range - core.BASE_MOVE_RANGE], Color(0.6, 1.0, 0.6))
 
 		if tile.has_method("pulse_move_highlight"):
 			tile.pulse_move_highlight()
@@ -531,7 +531,7 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, is_player:
 
 	# --- Log ---
 	var name_str = card.name if not is_facedown else "a facedown card"
-	core._log("🎴 %s placed on (%d,%d)" % [name_str, pos.x, pos.y])
+	#core._log("🎴 %s placed on (%d,%d)" % [name_str, pos.x, pos.y])
 
 func normalize_model(model: Node3D, target_height := 1.0):
 	var aabb = model.get_aabb()
@@ -701,7 +701,7 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		if attacker.has_meta("pending_on_flip_ability"):
 			var flip_ab = attacker.get_meta("pending_on_flip_ability")
 			if flip_ab:
-				core._log("🔥 %s activates %s on new tile!" % [attacker.card.name, flip_ab.display_name], Color(1.0, 0.9, 0.6))
+				core._log("🔥 %s activates %s!" % [attacker.card.name, flip_ab.display_name], Color(1.0, 0.9, 0.6))
 				
 				# Use new tile position for terrain-affecting effects
 				if flip_ab.has_method("execute_at"):
@@ -1383,7 +1383,7 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 	# Counter overflow → attacker’s leader (attacker died or mutual)
 	if of_att > 0 and not att.is_leader:
 		if att.current_def <= 0:
-			core._log("💥 Counter overflow to attacker leader: %d" % of_att, Color(1, 0.6, 0.3))
+			core._log("💥 Counter overflow to Attacker's Leader: %d" % of_att, Color(1, 0.6, 0.3))
 			core.damage_leader(att.owner, of_att)
 
 	# Re-lock for the remaining wrap-up animation

@@ -9,6 +9,10 @@ var camera: Camera3D
 var is_dragging_card := false
 var _hover_tween: Tween = null
 var _current_hover_card: CardData = null
+var _last_hand_snapshot: Array = []
+
+@onready var fusion_pending := $FusionPending
+@onready var fusion_label := $FusionPending/FusionLabel
 
 # UI nodes
 @onready var hand_grid: GridContainer = $BottomContainer/Hand
@@ -33,6 +37,7 @@ var _is_hovering_hand_card := false
 var _hover_check_timer := 0.0
 var hand_forced_hidden := false
 var _hand_orb_tween: Tween = null
+var _is_fusion_pending_active: bool = false
 
 func _ready():
 	$ArenaCardDetails.visible = false
@@ -105,86 +110,77 @@ func _cancel_summon_popup() -> void:
 	cancel_drag()
 	show_battle_message("Summon canceled", 1.0)
 
-func refresh_hand(player_hand: Array, player_essence: int) -> void:
-	for c in hand_grid.get_children(): c.queue_free()
+func refresh_hand(player_hand: Array, player_essence: int, force_update := false) -> void:
+	# --- 🧩 Avoid redundant rebuilds unless forced
+	var skip_rebuild := false
+	if not force_update:
+		if _last_hand_snapshot.size() == player_hand.size():
+			var identical := true
+			for i in range(player_hand.size()):
+				if _last_hand_snapshot[i].id != player_hand[i].id:
+					identical = false
+					break
+			if identical:
+				skip_rebuild = true
+
+	_last_hand_snapshot = player_hand.duplicate()  # Save new snapshot
+
+	# --- ✅ Always update playability, even if skipping rebuild
+	if skip_rebuild:
+		for card_ui in hand_grid.get_children():
+			if card_ui.has_method("get_card_data") and card_ui.has_method("set_playable"):
+				var c = card_ui.card_data
+				if c:
+					var cost := 1
+					if c.has_meta("cost"): cost = int(c.get_meta("cost"))
+					elif c.has_method("get_cost"): cost = c.get_cost()
+					elif "cost" in c: cost = int(c.cost)
+					card_ui.set_playable(cost <= player_essence)
+		return  # 🧠 No need to rebuild cards
+
+	# --- Otherwise, rebuild as usual
+	for child in hand_grid.get_children():
+		child.queue_free()
 	last_card_ui = null
 
 	for c: CardData in player_hand:
 		var ui = preload("res://UI/CardUI.tscn").instantiate()
 		ui.card_data = c
 		ui.refresh()
-		
-		if core.fusion_selection.has(c):
-			ui.modulate = Color(0.8, 1.0, 0.8, 1)  # green tint if selected
-		else:
-			ui.modulate = Color(1, 1, 1, 1)
-			
-		ui.position.y = 0
-		ui.modulate = Color(1, 1, 1, 1)
 
+		ui.modulate = Color(0.8, 1.0, 0.8, 1) if core.fusion_selection.has(c) else Color(1, 1, 1, 1)
+		ui.position.y = -25.0 if core.fusion_selection.has(c) else 0.0
 
-			
 		var cost := 1
 		if c.has_meta("cost"): cost = int(c.get_meta("cost"))
 		elif c.has_method("get_cost"): cost = c.get_cost()
 		elif "cost" in c: cost = int(c.cost)
-
 		ui.set_playable(cost <= player_essence)
 
+		# Hover + click
+		if not ui.is_connected("request_show_zoom", Callable(self, "_on_card_hovered_in_hand")):
+			ui.request_show_zoom.connect(Callable(self, "_on_card_hovered_in_hand"))
+		if not ui.is_connected("request_hide_zoom", Callable(self, "_on_card_hovered_in_hand_exit")):
+			ui.request_hide_zoom.connect(Callable(self, "_on_card_hovered_in_hand_exit"))
 		ui.gui_input.connect(func(ev):
 			if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
 				if cost > player_essence:
-					var t = create_tween()
-					t.tween_property(ui, "modulate:a", Color(1, 0.5, 0.5, 1), 0.1)
-					t.tween_property(ui, "modulate", Color(0.4, 0.4, 0.4, 0.5), 0.25)
 					_on_log("❌ Not enough Essence for %s (Cost %d, you have %d)" % [c.name, cost, player_essence], Color.WHITE)
 					return
-
 				core.on_hand_card_clicked(c)
-
-				# Wait for selection list to update
 				await get_tree().process_frame
-
-				# ✅ Only animate if this node is still alive
 				if is_instance_valid(ui):
 					_animate_card_selection(ui, core.fusion_selection.has(c))
 		)
-
-		ui.request_show_zoom.connect(Callable(self, "_on_card_hovered_in_hand"))
-		ui.request_hide_zoom.connect(Callable(self, "_on_card_hovered_in_hand_exit"))
-		
-		# 🧩 Add hover zoom + lift animation (fixed position drift)
-		ui.mouse_entered.connect(func():
-			# Skip hover raise if already selected for fusion
-			if core and core.fusion_selection.has(c):
-				return
-			var t = create_tween()
-			t.tween_property(ui, "position:y", -25.0, 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		)
-
-		ui.position.y = -25.0 if core.fusion_selection.has(c) else 0.0
-
-
-		ui.mouse_exited.connect(func():
-			# 🛑 Skip moving back down if this card is selected for fusion
-			if core and core.fusion_selection.has(c):
-				return
-			var t = create_tween()
-			t.tween_property(ui, "position:y", 0.0, 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-		)
-
-
-
-
-		ui.scale = Vector2.ONE
-		ui.position = Vector2.ZERO
-
+		ui.modulate.a = 0.0
+		var t := create_tween()
+		t.tween_property(ui, "modulate:a", 1.0, 0.25)
 		hand_grid.add_child(ui)
 		last_card_ui = ui
-		
+
 	if orb_grid:
 		orb_grid.visible = player_hand.size() > 0
-		
+
 func get_last_hand_card_ui() -> Control:
 	return last_card_ui
 	
@@ -199,6 +195,34 @@ func _animate_card_selection(ui: Control, is_selected: bool) -> void:
 	else:
 		t.tween_property(ui, "position:y", 0.0, 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 		t.tween_property(ui, "modulate", Color(1, 1, 1, 1), 0.2)
+
+func show_popup(card: CardData, callback = null) -> void:
+
+	if not summon_mode_popup:
+		push_warning("❌ No SummonMode node found!")
+		return
+
+	summon_mode_popup.visible = true
+	summon_mode_popup.popup_centered()
+	show_battle_message("Summon %s — choose mode." % card.name, 1.2)
+	print("✅ SummonMode popup displayed — waiting for player input.")
+	
+func is_popup_open() -> bool:
+	return summon_mode_popup != null and summon_mode_popup.visible
+
+func hide_popup() -> void:
+	if summon_mode_popup:
+		summon_mode_popup.visible = false
+		
+func _on_popup_button_pressed(callback: Callable, mode: int, popup: PopupPanel) -> void:
+	print("🟢 Popup button pressed — mode =", mode)
+	if popup:
+		popup.hide()
+	if callback and callback.is_valid():
+		callback.call(mode)
+	else:
+		push_warning("⚠️ Invalid or missing summon callback!")
+
 
 func force_hide_hand(on: bool) -> void:
 	hand_forced_hidden = on
@@ -247,19 +271,6 @@ func update_phase_label(phase: int) -> void:
 
 func open_summon_popup() -> void:
 	summon_mode_popup.popup_centered()
-
-# Buttons in popup must be connected in the scene to these methods:
-func _on_attack_mode_pressed() -> void:
-	summon_mode_popup.hide()
-	core.confirm_summon_in_mode(UnitData.Mode.ATTACK)
-
-func _on_defense_mode_pressed() -> void:
-	summon_mode_popup.hide()
-	core.confirm_summon_in_mode(UnitData.Mode.DEFENSE)
-
-func _on_facedown_mode_pressed() -> void:
-	summon_mode_popup.hide()
-	core.confirm_summon_in_mode(UnitData.Mode.FACEDOWN)
 
 # Ghost/drag UI
 func on_drag_start(card: CardData) -> void:
@@ -384,6 +395,7 @@ func _on_card_hovered_in_hand(card: CardData) -> void:
 			card_details_ui.show_card(card)
 			print("[ArenaUI] 🔁 Updating details for:", card.name)
 	
+
 func _on_card_hovered_in_hand_exit() -> void:
 	# 🧩 If any card is selected for fusion, disable hover exit
 	if core and core.fusion_selection.size() > 0:
@@ -636,3 +648,177 @@ func _update_hp_bar() -> void:
 func _update_hp_labels() -> void:
 	player_hp_label.text = str(core.player_leader.hp)
 	enemy_hp_label.text = str(core.enemy_leader.hp)
+
+
+# ============================================
+# 🧩 SummonMode Button Callbacks
+# ============================================
+
+func on_attack_mode_pressed() -> void:
+	_handle_summon_choice(UnitData.Mode.ATTACK)
+
+func on_defense_mode_pressed() -> void:
+	_handle_summon_choice(UnitData.Mode.DEFENSE)
+
+func on_face_down_pressed() -> void:
+	_handle_summon_choice(UnitData.Mode.FACEDOWN)
+
+func _handle_summon_choice(mode: int) -> void:
+	if summon_mode_popup:
+		summon_mode_popup.hide()
+
+	if not core:
+		push_warning("❌ Core missing — cannot complete summon.")
+		return
+
+	# 🔍 Detect current summon context
+	if core.fusion_selection.size() == 2:
+		#core._log("🧬 Fusion confirmed via popup button.")
+		core.confirm_summon_in_mode(mode)  # ✅ directly place the fused card
+	elif core.fusion_selection.size() == 1:
+		#core._log("🎴 Normal summon confirmed via popup button.")
+		core.confirm_summon_in_mode(mode)
+
+
+# ==========================================================
+# 🧬 FUSION PENDING DISPLAY — FULLY TWEAKABLE
+# ==========================================================
+@export var fusion_fade_in_duration: float = 0.1
+@export var fusion_rotate_amplitude: float = 6.0
+@export var fusion_rotate_speed: float = 3.2
+@export var fusion_glow_pulse: bool = true
+@export var fusion_glow_min: float = 0.4
+@export var fusion_glow_max: float = 0.85
+@export var fusion_glow_speed: float = 1.8
+@export var fusion_glow_color: Color = Color(1.0, 0.7, 0.3, 0.7)  # warm orange glow
+@export var fusion_label_color_ready: Color = Color(0.6, 1.0, 0.8)
+@export var fusion_label_color_result: Color = Color(1.0, 0.9, 0.6)
+@export var fusion_enable_rotation: bool = true
+var fusion_tweens: Array[Tween] = []
+
+
+func show_fusion_pending(cards: Array, result_card: CardData = null) -> void:
+	if cards.size() < 2:
+		return
+	if not fusion_pending:
+		return
+	core._is_fusion_pending_active = true
+
+	var a: CardData = cards[0]
+	var b: CardData = cards[1]
+
+	# 🧩 Clear old card UIs
+	for child in fusion_pending.get_children():
+		if child.name.begins_with("FusionCardUI_") or child.name.begins_with("FusionGlow_"):
+			child.queue_free()
+
+	var card_ui_scene := preload("res://UI/CardUI.tscn")
+
+	# Helper to make glowing frame
+	
+
+	# 🟩 Create glow + card UI for both cards
+	var card_ui_a: Control = card_ui_scene.instantiate()
+	card_ui_a.name = "FusionCardUI_A"
+	card_ui_a.card_data = a
+	card_ui_a.refresh()
+	card_ui_a.z_index = 100
+	card_ui_a.scale = Vector2(0.8, 0.8)
+	card_ui_a.modulate.a = 0.0
+	card_ui_a.position = Vector2(200, 200)
+
+	var card_ui_b: Control = card_ui_scene.instantiate()
+	card_ui_b.name = "FusionCardUI_B"
+	card_ui_b.card_data = b
+	card_ui_b.refresh()
+	card_ui_b.z_index = 101
+	card_ui_b.scale = Vector2(0.8, 0.8)
+	card_ui_b.modulate.a = 0.0
+	card_ui_b.position = Vector2(240, 200)
+
+	fusion_pending.add_child(card_ui_a)
+	fusion_pending.add_child(card_ui_b)
+
+	# 🌟 Enable fusion glow visuals
+	if card_ui_a.has_method("show_fusion_glow"):
+		card_ui_a.show_fusion_glow(true)
+	if card_ui_b.has_method("show_fusion_glow"):
+		card_ui_b.show_fusion_glow(true)
+
+	# 🧬 Label text
+	fusion_label.text = "Fusion: %s" % result_card.name if result_card != null else "Fusion Ready!"
+
+
+	# 🟢 Fade in overlay
+	fusion_pending.visible = true
+	fusion_pending.modulate.a = 0.0
+	var fade_overlay := create_tween()
+	fade_overlay.tween_property(fusion_pending, "modulate:a", 1.0, 0.25)
+
+	# 🎴 Staggered card fade
+	var fade_cards := create_tween()
+	fade_cards.tween_property(card_ui_b, "modulate:a", 1.0, 0.35).set_delay(0.05)
+	fade_cards.tween_property(card_ui_a, "modulate:a", 1.0, 0.35).set_delay(0.25)
+
+	# 🔄 Rotation swing
+	if fusion_enable_rotation:
+		var tw_a := create_tween()
+		tw_a.set_loops()
+		tw_a.tween_property(card_ui_a, "rotation_degrees", fusion_rotate_amplitude, fusion_rotate_speed).as_relative()
+		tw_a.tween_property(card_ui_a, "rotation_degrees", -fusion_rotate_amplitude, fusion_rotate_speed).as_relative()
+
+		var tw_b := create_tween()
+		tw_b.set_loops()
+		tw_b.tween_property(card_ui_b, "rotation_degrees", -fusion_rotate_amplitude, fusion_rotate_speed).as_relative()
+		tw_b.tween_property(card_ui_b, "rotation_degrees", fusion_rotate_amplitude, fusion_rotate_speed).as_relative()
+
+func hide_fusion_pending() -> void:
+	if not fusion_pending:
+		return
+	core._is_fusion_pending_active = false
+
+	var t := create_tween()
+	t.tween_property(fusion_pending, "modulate:a", 0.0, fusion_fade_in_duration)
+	await t.finished
+
+	for child in fusion_pending.get_children():
+		if child.name.begins_with("FusionCardUI_") or child.name.begins_with("FusionGlow_"):
+			child.queue_free()
+
+	fusion_pending.visible = false
+
+
+func _on_cancel_pressed() -> void:
+	# 🛑 Close the popup immediately
+	if summon_mode_popup:
+		summon_mode_popup.hide()
+
+	# 🧬 Hide fusion pending overlay if active
+	if fusion_pending and fusion_pending.visible:
+		await hide_fusion_pending()
+
+	# 🧩 Restore fusion cards to hand if fusion was pending
+	if core and core.fusion_selection.size() > 0:
+		for c in core.fusion_selection:
+			if c not in core.player_hand:
+				core.player_hand.append(c)
+		core.fusion_selection.clear()
+		core.ui_sys.refresh_hand(core.player_hand, core.player_essence, true)
+
+	# 🧹 Reset core summon state
+	if core:
+		core._log("❌ Summon canceled.", Color(1, 0.6, 0.6))
+		core.dragging_card = null
+		core.selected_card = null
+		core.selected_pos = Vector2i(-1, -1)
+		core._set_phase(core.Phase.SUMMON_OR_MOVE)
+		core._update_phase_ui()
+
+	# ✋ Clear visuals and restore UI
+	cancel_drag()             # hides ghost, details, hover
+	fade_hand_in()            # bring back hand
+	show_battle_message("Summon canceled", 1.0)
+
+	# 🧩 Clear any lingering summon highlights
+	if core.battle_sys and core.battle_sys.has_method("clear_summon_highlights"):
+		core.battle_sys.call("clear_summon_highlights")

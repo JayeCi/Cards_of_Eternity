@@ -76,8 +76,6 @@ func execute_at(arena: Node, unit: UnitData, origin_pos: Vector2i) -> void:
 			# Log and float text
 			if tile.occupant:
 				arena._apply_terrain_bonus(tile.occupant, new_terrain)
-				arena._log("🌿 %s now resonates with %s terrain!" %
-					[tile.occupant.card.name, new_terrain], Color(0.6, 1.0, 0.8))
 
 			if arena.has_method("_float_text"):
 				arena._float_text(tile.global_position + Vector3(0, 1, 0),

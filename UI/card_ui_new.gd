@@ -9,6 +9,7 @@ extends Control
 @onready var def: Label = $MarginContainer/DEF
 
 @onready var cost: Label = $MarginContainer/VBoxContainer/Cost
+@onready var fusion_glow: TextureRect = $FusionGlow
 
 signal request_show_zoom(card)
 signal request_hide_zoom()
@@ -100,6 +101,11 @@ func _disable_child_mouse_filters(node: Node):
 			child.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			_disable_child_mouse_filters(child)
 
+func hide_labels() -> void:
+	if name_label: name_label.visible = false
+	if atk: atk.visible = false
+	if def: def.visible = false
+	if cost: cost.visible = false
 
 # -------------------------------
 # Refresh visuals
@@ -140,3 +146,14 @@ func refresh():
 func set_playable(is_playable: bool):
 	print("[CardUI] Playable state for", card_data.name, "=", is_playable)
 	modulate = Color(1, 1, 1, 1) if is_playable else Color(0.4, 0.4, 0.4, 0.5)
+
+func show_fusion_glow(on: bool = true) -> void:
+	if not fusion_glow:
+		return
+	fusion_glow.visible = on
+	if on:
+		# Optionally reset shader params if animated glow is time-based
+		if fusion_glow.material and fusion_glow.material.has_method("glow_strength"):
+			fusion_glow.material.set("shader_param/glow_strength", 1.5)
+	else:
+		fusion_glow.visible = false

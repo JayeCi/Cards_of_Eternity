@@ -33,7 +33,7 @@ func run_enemy_turn() -> void:
 	await _smart_flip_faceup()
 
 	core._log("🤖 Enemy analyzing field...", Color(0.8, 0.8, 1.0))
-	await get_tree().create_timer(0.5).timeout
+	await get_tree().create_timer(1).timeout
 
 	# 1️⃣ Handle leader logic first (survival priority)
 	if _leader_in_danger():
@@ -244,8 +244,8 @@ func _smart_summon() -> void:
 	core.enemy_essence -= int(card.cost)
 	core.emit_signal("essence_changed", core.player_essence, core.enemy_essence)
 
-	core._log("🤖 Summoned %s (%s) at %s" % 
-		[card.name, ("Facedown" if facedown else "Faceup"), str(best)], Color(0.8, 0.8, 1))
+	#core._log("🤖 Summoned %s (%s) at %s" % 
+		#[card.name, ("Facedown" if facedown else "Faceup"), str(best)], Color(0.8, 0.8, 1))
 
 func _evaluate_card(card: CardData, pos: Vector2i) -> float:
 	var base = 10.0 - float(card.cost)

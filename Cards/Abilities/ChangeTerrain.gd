@@ -40,7 +40,7 @@ func execute_at(arena: Node, unit: UnitData, tile_pos: Vector2i) -> void:
 			t._apply_terrain_visual()
 		if t.occupant:
 			arena._apply_terrain_bonus(t.occupant, new_terrain)
-			arena._log("🌎 %s now stands on %s terrain!" % [t.occupant.card.name, new_terrain], Color(0.7, 1, 0.8))
+			#arena._log("🌎 %s now stands on %s terrain!" % [t.occupant.card.name, new_terrain], Color(0.7, 1, 0.8))
 		if new_terrain == "Lava":
 			_play_fire_sound(arena)
 	# 🌋 Feedback

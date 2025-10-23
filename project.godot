@@ -24,7 +24,6 @@ TerrainManager="*res://UI/Terrains/TerrainManager.gd"
 
 [display]
 
-window/size/mode=3
 window/stretch/mode="canvas_items"
 
 [editor_plugins]
