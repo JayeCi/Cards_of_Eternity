@@ -10,6 +10,8 @@ class_name ArenaCardDetails
 @onready var abilities_name: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/AbilitiesName
 @onready var abilities_desc: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/AbilitiesDesc
 @onready var description: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/Description
+@onready var atk_spacer: Label = $VBoxContainer2/HBoxContainer/AtkSpacer
+@onready var def_spacer: Label = $VBoxContainer2/HBoxContainer2/DefSpacer
 
 @onready var terrain: TextureRect = $MarginContainer/PanelContainer/MarginContainer/Terrain
 @onready var terrain_label: Label = $MarginContainer/PanelContainer/MarginContainer/TerrainLabel
@@ -71,9 +73,6 @@ func set_rarity_color(rarity: String) -> void:
 		rarity_label.label_settings = LabelSettings.new()
 	rarity_label.label_settings.font_color = color
 
-# -------------------------------------------------------------
-# STATIC CARD PREVIEW (hand hover)
-# -------------------------------------------------------------
 func show_card(card: CardData) -> void:
 	if not card:
 		hide_card()
@@ -91,19 +90,35 @@ func show_card(card: CardData) -> void:
 	set_rarity_color(str(card.rarity))
 	cost_label.text = "Cost: %d" % int(card.cost)
 	description.text = str(card.description)
-	
+
 	if card.types and card.types.size() > 0:
 		type_label.text = " / ".join(card.types)
 	else:
 		type_label.text = "—"
 
-	atk.text = str(card.atk)
-	def.text = str(card.def)
-	original_atk.text = str(card.atk)
-	original_def.text = str(card.def)
-
-	atk_label.visible = true
-	def_label.visible = true
+	# 🟩 Hide stats for Spell / Magic / Event cards
+	if card.card_type in [CardData.CardType.SPELL, CardData.CardType.EVENT]:
+		atk_spacer.visible = false
+		def_spacer.visible = false
+		atk.visible = false
+		def.visible = false
+		atk_label.visible = false
+		def_label.visible = false
+		original_atk.visible = false
+		original_def.visible = false
+	else:
+		atk_spacer.visible = true
+		def_spacer.visible = true
+		atk.visible = true
+		def.visible = true
+		atk_label.visible = true
+		def_label.visible = true
+		original_atk.visible = true
+		original_def.visible = true
+		atk.text = str(card.atk)
+		def.text = str(card.def)
+		original_atk.text = str(card.atk)
+		original_def.text = str(card.def)
 
 	if card.ability and "display_name" in card.ability:
 		abilities_name.text = str(card.ability.display_name)
@@ -117,12 +132,9 @@ func show_card(card: CardData) -> void:
 	if terrain_label:
 		terrain_label.text = ""
 
-	# Reset background to neutral
 	_apply_card_background(Color(0.2, 0.2, 0.2))
 
-# -------------------------------------------------------------
-# ACTIVE UNIT VIEW (board hover or updates)
-# -------------------------------------------------------------
+
 func show_unit(unit: UnitData) -> void:
 	if not unit or not unit.card:
 		hide_card()
@@ -141,15 +153,30 @@ func show_unit(unit: UnitData) -> void:
 	set_rarity_color(str(card.rarity))
 	cost_label.text = "Cost: %d" % int(card.cost)
 
-	atk.text = str(unit.current_atk)
-	def.text = str(unit.current_def)
-	original_atk.text = str(card.atk)
-	original_def.text = str(card.def)
-
-	atk_label.visible = true
-	def_label.visible = true
-
-	_update_stat_colors(unit, card)
+	# 🟩 Hide stats for Leaders or Spell/Event cards
+	if unit.is_leader or card.card_type in [CardData.CardType.SPELL, CardData.CardType.EVENT]:
+		atk_spacer.visible = false
+		def_spacer.visible = false
+		atk.visible = false
+		def.visible = false
+		atk_label.visible = false
+		def_label.visible = false
+		original_atk.visible = false
+		original_def.visible = false
+	else:
+		atk_spacer.visible = true
+		def_spacer.visible = true
+		atk.visible = true
+		def.visible = true
+		atk_label.visible = true
+		def_label.visible = true
+		original_atk.visible = true
+		original_def.visible = true
+		atk.text = str(unit.current_atk)
+		def.text = str(unit.current_def)
+		original_atk.text = str(card.atk)
+		original_def.text = str(card.def)
+		_update_stat_colors(unit, card)
 
 	if card.types and card.types.size() > 0:
 		type_label.text = " / ".join(card.types)
@@ -175,14 +202,10 @@ func show_unit(unit: UnitData) -> void:
 		set_stat_color_from_bonus(1.0)
 
 	if unit.owner == 0:
-		# Player card (blue ripple)
 		_apply_card_background(Color(0.2, 0.3, 0.9, 0.6))
 	else:
-		# Enemy card (red ripple)
 		_apply_card_background(Color(0.9, 0.1, 0.1, 0.6))
 
-	# -------------------------------------------------------------
-# SUPPORT
 # -------------------------------------------------------------
 func _apply_card_background(color: Color) -> void:
 	if not panel_container:

@@ -10,6 +10,7 @@ var is_dragging_card := false
 var _hover_tween: Tween = null
 var _current_hover_card: CardData = null
 var _last_hand_snapshot: Array = []
+var _selected_card_ui_map: Dictionary = {}
 
 @onready var fusion_pending := $FusionPending
 @onready var fusion_label := $FusionPending/FusionLabel
@@ -147,6 +148,7 @@ func refresh_hand(player_hand: Array, player_essence: int, force_update := false
 		var ui = preload("res://UI/CardUI.tscn").instantiate()
 		ui.card_data = c
 		ui.refresh()
+		ui.set_meta("base_y", ui.position.y)  # remember its original Y
 
 		ui.modulate = Color(0.8, 1.0, 0.8, 1) if core.fusion_selection.has(c) else Color(1, 1, 1, 1)
 		ui.position.y = -25.0 if core.fusion_selection.has(c) else 0.0
@@ -160,8 +162,11 @@ func refresh_hand(player_hand: Array, player_essence: int, force_update := false
 		# Hover + click
 		if not ui.is_connected("request_show_zoom", Callable(self, "_on_card_hovered_in_hand")):
 			ui.request_show_zoom.connect(Callable(self, "_on_card_hovered_in_hand"))
+			ui.mouse_entered.connect(func(): _animate_card_hover_enter(ui))
 		if not ui.is_connected("request_hide_zoom", Callable(self, "_on_card_hovered_in_hand_exit")):
 			ui.request_hide_zoom.connect(Callable(self, "_on_card_hovered_in_hand_exit"))
+			ui.mouse_exited.connect(func(): _animate_card_hover_exit(ui))
+
 		ui.gui_input.connect(func(ev):
 			if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
 				if cost > player_essence:
@@ -185,16 +190,82 @@ func get_last_hand_card_ui() -> Control:
 	return last_card_ui
 	
 # Smoothly animate card selection raise/lower
+# Smoothly animate card selection raise/lower + keep hover-like pose
 func _animate_card_selection(ui: Control, is_selected: bool) -> void:
 	if not ui:
 		return
+
+	# 🧩 Prevent pulse conflict if selected
+	if is_selected:
+		_selected_card_ui_map[ui] = true
+		# Kill any running hover pulse
+		if _hover_card_tween_map.has(ui):
+			var old_tween = _hover_card_tween_map[ui]
+			if old_tween and old_tween.is_running():
+				old_tween.kill()
+			_hover_card_tween_map.erase(ui)
+	else:
+		_selected_card_ui_map.erase(ui)
+
 	var t := create_tween()
 	if is_selected:
 		t.tween_property(ui, "position:y", -25.0, 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		t.tween_property(ui, "scale", Vector2(1.08, 1.08), 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 		t.tween_property(ui, "modulate", Color(1.0, 1.0, 0.8, 1.0), 0.2)
 	else:
 		t.tween_property(ui, "position:y", 0.0, 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+		t.tween_property(ui, "scale", Vector2(1.0, 1.0), 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 		t.tween_property(ui, "modulate", Color(1, 1, 1, 1), 0.2)
+# ==========================================================
+# 🎴 HAND CARD HOVER ANIMATION — Safe (No Drift, No Conflict)
+# ==========================================================
+var _hover_card_tween_map: Dictionary = {}
+
+func _animate_card_hover_enter(card_ui: Control) -> void:
+	if not is_instance_valid(card_ui):
+		return
+	# 🛑 Skip hover animation if this card is selected
+	if _selected_card_ui_map.has(card_ui):
+		return
+
+	# Kill any old tween
+	if _hover_card_tween_map.has(card_ui):
+		var old_tween = _hover_card_tween_map[card_ui]
+		if old_tween and old_tween.is_running():
+			old_tween.kill()
+
+	# Create new tween
+	var t := create_tween()
+	t.tween_property(card_ui, "position:y", -20.0, 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	t.tween_property(card_ui, "scale", Vector2(1.08, 1.08), 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+	# Continuous pulse effect while hovered
+	var pulse_tween := create_tween()
+	pulse_tween.set_loops()
+	pulse_tween.tween_property(card_ui, "scale", Vector2(1.1, 1.1), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	pulse_tween.tween_property(card_ui, "scale", Vector2(1.08, 1.08), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+	_hover_card_tween_map[card_ui] = pulse_tween
+
+
+func _animate_card_hover_exit(card_ui: Control) -> void:
+	if not is_instance_valid(card_ui):
+		return
+	# 🛑 Do nothing if card is selected — keep it raised
+	if _selected_card_ui_map.has(card_ui):
+		return
+
+	# Kill running pulse
+	if _hover_card_tween_map.has(card_ui):
+		var old_tween = _hover_card_tween_map[card_ui]
+		if old_tween and old_tween.is_running():
+			old_tween.kill()
+		_hover_card_tween_map.erase(card_ui)
+
+	# Smoothly return to original position & scale
+	var t := create_tween()
+	t.tween_property(card_ui, "position:y", 0, 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	t.tween_property(card_ui, "scale", Vector2(1, 1), 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 func show_popup(card: CardData, callback = null) -> void:
 
@@ -771,6 +842,16 @@ func show_fusion_pending(cards: Array, result_card: CardData = null) -> void:
 		tw_b.set_loops()
 		tw_b.tween_property(card_ui_b, "rotation_degrees", -fusion_rotate_amplitude, fusion_rotate_speed).as_relative()
 		tw_b.tween_property(card_ui_b, "rotation_degrees", fusion_rotate_amplitude, fusion_rotate_speed).as_relative()
+		
+	#if core and core.FUSION_PENDING_SOUND:
+		#var p := AudioStreamPlayer.new()
+		#p.name = "FusionPendingSound"
+		#add_child(p)
+		#p.stream = core.FUSION_PENDING_SOUND
+		#p.volume_db = -6.0
+		#p.play()
+		#p.connect("finished", Callable(p, "queue_free"))
+
 
 func hide_fusion_pending() -> void:
 	if not fusion_pending:
@@ -792,6 +873,12 @@ func _on_cancel_pressed() -> void:
 	# 🛑 Close the popup immediately
 	if summon_mode_popup:
 		summon_mode_popup.hide()
+	## 🔇 Stop Fusion Pending audio if it's still playing
+	#if has_node("FusionPendingSound"):
+		#var snd := get_node("FusionPendingSound")
+		#if snd and snd.playing:
+			#snd.stop()
+		#snd.queue_free()
 
 	# 🧬 Hide fusion pending overlay if active
 	if fusion_pending and fusion_pending.visible:

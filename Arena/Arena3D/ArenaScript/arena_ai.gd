@@ -247,12 +247,30 @@ func _smart_summon() -> void:
 	#core._log("🤖 Summoned %s (%s) at %s" % 
 		#[card.name, ("Facedown" if facedown else "Faceup"), str(best)], Color(0.8, 0.8, 1))
 
-func _evaluate_card(card: CardData, pos: Vector2i) -> float:
-	var base = 10.0 - float(card.cost)
+func _evaluate_card(card, pos: Vector2i) -> float:
+	var base := 10.0
+	var cost := 0.0
+	var atk := 0.0
+	var def := 0.0
+	var terrain_pref := ""
+
+	# Get the exported fields safely
+	if card:
+		var props = card.get_property_list()
+		var names = []
+		for p in props:
+			names.append(p.name)
+
+		if "cost" in names: cost = float(card.get("cost"))
+		if "atk" in names: atk = float(card.get("atk"))
+		if "def" in names: def = float(card.get("def"))
+		if "preferred_terrain" in names: terrain_pref = str(card.get("preferred_terrain"))
+
+	base -= cost
 	var tile = core.board.get_tile(pos.x, pos.y)
-	if tile and card.preferred_terrain == tile.terrain_type:
+	if tile and terrain_pref == tile.terrain_type:
 		base += TERRAIN_SYNERGY_BONUS
-	base += float(card.atk) * 0.1 + float(card.def) * 0.05
+	base += atk * 0.1 + def * 0.05
 	return base
 
 # ---------------------------------------------------------

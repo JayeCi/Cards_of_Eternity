@@ -1,5 +1,6 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://bwe8387eexy63"]
+[gd_resource type="Resource" script_class="CardData" load_steps=5 format=3 uid="uid://bwe8387eexy63"]
 
+[ext_resource type="Resource" uid="uid://bj721a0x7dut1" path="res://Cards/Abilities/Dark Shroud.tres" id="1_g260l"]
 [ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_kxr0p"]
 [ext_resource type="Texture2D" uid="uid://bpkvgv5vbwbb3" path="res://Images/MAGIC_Orb_of_Darkness.jpeg" id="1_xk4v5"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_xk4v5"]
@@ -8,8 +9,11 @@
 script = ExtResource("2_xk4v5")
 types = Array[String](["Magic"])
 rarity = "rare"
+element = "Shadow"
 card_type = 1
 id = "00103"
 name = "Orb of Darkness"
+description = "Within its void, whispers of forgotten souls hunger for light. Those who draw upon its power trade clarity for dominion over fear."
 art = ExtResource("1_xk4v5")
+ability = ExtResource("1_g260l")
 metadata/_custom_type_script = "uid://57up1u0etcmc"

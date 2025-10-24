@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bm502tbhfxl13"
+path="res://.godot/imported/Fuse.mp3-6243a3904baf476631ac7bbf99b4247c.mp3str"
+
+[deps]
+
+source_file="res://Audio/Sound FX/Fuse.mp3"
+dest_files=["res://.godot/imported/Fuse.mp3-6243a3904baf476631ac7bbf99b4247c.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

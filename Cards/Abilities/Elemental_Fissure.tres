@@ -1,7 +1,13 @@
-[gd_resource type="Resource" script_class="ElementalFissure" load_steps=2 format=3 uid="uid://btt1e5h2facg1"]
+[gd_resource type="Resource" script_class="ElementalFissure" load_steps=6 format=3 uid="uid://btt1e5h2facg1"]
 
 [ext_resource type="Script" uid="uid://d2pxnrgnjf8qg" path="res://Cards/Abilities/Elemental Fissure.gd" id="1_6kqv6"]
+[ext_resource type="AudioStream" uid="uid://cj7dv1bxn2us8" path="res://Audio/FIRE.mp3" id="1_jpaph"]
+[ext_resource type="AudioStream" uid="uid://c6venr73hly0t" path="res://Audio/Dirt_Grass.mp3" id="2_uklko"]
+[ext_resource type="AudioStream" uid="uid://dl0at0b012bxp" path="res://Audio/Rocks.mp3" id="4_n2si1"]
+[ext_resource type="AudioStream" uid="uid://cvc044ku2ltcs" path="res://Audio/Water.mp3" id="5_mjndg"]
 
 [resource]
 script = ExtResource("1_6kqv6")
+display_name = "Splash"
+description = "When summoned, transform the two tiles in front of Fysh to water terrain"
 metadata/_custom_type_script = "uid://d2pxnrgnjf8qg"

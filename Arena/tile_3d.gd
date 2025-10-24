@@ -35,6 +35,8 @@ signal hovered(tile)
 signal unhovered(tile)
 
 func _ready():
+	if card_mesh:
+		card_mesh.visible = false  # invisible until art is set
 	#await get_tree().create_timer(1.0).timeout
 	#print("TEST SHAKE START")
 	#var tween := create_tween()
@@ -58,8 +60,7 @@ func _ready():
 	# initialize color
 	_apply_terrain_visual()
 
-	if card_mesh:
-		card_mesh.visible = false  # invisible until art is set
+
 
 # --- CORE FUNCTION ---
 func set_art(tex: Texture2D, flipped: bool = false) -> void:
@@ -84,8 +85,15 @@ func set_art(tex: Texture2D, flipped: bool = false) -> void:
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
 	mat.uv1_scale.y = -1 if flipped else 1
 
-	card_mesh.visible = true
-	card_mesh.position.y = 0.05
+	# --- prevent early reveal for leaders ---
+	if occupant and occupant.is_leader:
+		card_mesh.visible = false
+		if card_border:
+			card_border.visible = false
+	else:
+		card_mesh.visible = true
+		card_mesh.position.y = 0.05
+
 
 
 # --- OTHER VISUAL HELPERS ---

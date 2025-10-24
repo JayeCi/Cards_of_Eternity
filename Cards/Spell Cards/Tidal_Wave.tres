@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=5 format=3 uid="uid://cly3vcdjweta5"]
+
+[ext_resource type="Resource" uid="uid://6u4moj2tokrs" path="res://Cards/Abilities/Terrain_5x3_Spell.tres" id="1_sbk3p"]
+[ext_resource type="Texture2D" uid="uid://bvrrpfka16vbq" path="res://Images/Tidal_Wave.jpg" id="1_uxi12"]
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_vkg5t"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_uxi12"]
+
+[resource]
+script = ExtResource("2_uxi12")
+types = Array[String](["Magic", "Terrain"])
+rarity = "uncommon"
+element = "Water"
+preferred_terrain = "Water"
+card_type = 1
+id = "00109"
+name = "Tidal Wave"
+description = "A colossal wave surges forward, swallowing the battlefield in its wake. All lands and creatures tremble before the ocean’s wrath."
+art = ExtResource("1_uxi12")
+cost = 4
+ability = ExtResource("1_sbk3p")
+metadata/_custom_type_script = "uid://57up1u0etcmc"

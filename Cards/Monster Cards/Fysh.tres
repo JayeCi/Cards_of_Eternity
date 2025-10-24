@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=5 format=3 uid="uid://l8hkcr570yry"]
+[gd_resource type="Resource" script_class="CardData" load_steps=6 format=3 uid="uid://l8hkcr570yry"]
 
 [ext_resource type="Texture2D" uid="uid://dvuxno1vldsby" path="res://Images/Fysh.png" id="1_e7ins"]
+[ext_resource type="Resource" uid="uid://btt1e5h2facg1" path="res://Cards/Abilities/Elemental_Fissure.tres" id="1_o2sn0"]
 [ext_resource type="AudioStream" uid="uid://cwwx8gl27ka35" path="res://Audio/Sound FX/Splash.mp3" id="2_o2sn0"]
 [ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="3_1gr2g"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="4_qkb2w"]
@@ -8,12 +9,14 @@
 [resource]
 script = ExtResource("4_qkb2w")
 element = "Water"
+preferred_terrain = "Water"
 id = "00004"
 name = "Fysh"
 description = "A swift, elegant spirit of the deep, Fysh darts through water like liquid silver. Legends claim they were once mortals who drowned chasing the horizon. Now, they guide—or mislead—those who wander too far into the mist."
 art = ExtResource("1_e7ins")
 atk = 12
 def = 5
+ability = ExtResource("1_o2sn0")
 model_path = "res://Cards/Models/FYSH_MODEL.tscn"
 model_scale = Vector3(0.35, 0.35, 0.35)
 place_sound = ExtResource("2_o2sn0")

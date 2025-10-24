@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="OrbOfDarkness" load_steps=2 format=3 uid="uid://bj721a0x7dut1"]
+
+[ext_resource type="Script" uid="uid://dr871dpga7yjf" path="res://Cards/Abilities/Dark_Shroud.gd" id="1_5dw4k"]
+
+[resource]
+script = ExtResource("1_5dw4k")
+metadata/_custom_type_script = "uid://dr871dpga7yjf"

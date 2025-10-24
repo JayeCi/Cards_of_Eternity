@@ -33,21 +33,23 @@ const CARD_PATHS := {
 	"FLAME_FAE":          "res://Cards/Monster Cards/Flame_Fae.tres",
 	"AXO_THE_KNIGHT":     "res://Cards/Monster Cards/Axo The Knight.tres",
 	"STONE_FAE":          "res://Cards/Monster Cards/Stone_Fae.tres",
-	"FINN":               "res://Cards/Monster Cards/Finn.tres",
-	"FALCREEP":           "res://Cards/Monster Cards/Falcreep.tres",
-	"SNAPTRAP":           "res://Cards/Monster Cards/Snaptrap.tres",
-	"MOLTEN_PIG":         "res://Cards/Monster Cards/Molten_Pig.tres",
-	"NINJOAD":            "res://Cards/Monster Cards/Ninjoad.tres",
-	"BOOGLES":            "res://Cards/Monster Cards/Boogles.tres",
-	"FUNGOO":             "res://Cards/Monster Cards/Fungoo.tres",
-	"ORB_OF_DARKNESS":    "res://Cards/Spell Cards/Orb_Of_Darkness.tres",
-	"SHADOW_CANDLES":     "res://Cards/Spell Cards/Shadow_Candles.tres",
-	"JESTER_OF_FLAMES":   "res://Cards/Monster Cards/Jester_of_Flames.tres",
-	"VOIDLING_ERO":       "res://Cards/Monster Cards/Voidling_Ero.tres",
-	"MUSHMONK":           "res://Cards/Monster Cards/Mushmonk.tres",
-	"ZEI_PANDA":          "res://Cards/Monster Cards/Zei_Panda.tres",
-	"YORG_ARCHER":        "res://Cards/Monster Cards/Yorg_Archer.tres",
-	"CONFLAGURATION_BLADE":"res://Cards/Spell Cards/Conflaguration_Blade.tres",
+	"FINN":                 "res://Cards/Monster Cards/Finn.tres",
+	"FALCREEP":             "res://Cards/Monster Cards/Falcreep.tres",
+	"SNAPTRAP":             "res://Cards/Monster Cards/Snaptrap.tres",
+	"MOLTEN_PIG":           "res://Cards/Monster Cards/Molten_Pig.tres",
+	"NINJOAD":              "res://Cards/Monster Cards/Ninjoad.tres",
+	"BOOGLES":              "res://Cards/Monster Cards/Boogles.tres",
+	"FUNGOO":               "res://Cards/Monster Cards/Fungoo.tres",
+	"ORB_OF_DARKNESS":      "res://Cards/Spell Cards/Orb_Of_Darkness.tres",
+	"SHADOW_CANDLES":       "res://Cards/Spell Cards/Shadow_Candles.tres",
+	"JESTER_OF_FLAMES":     "res://Cards/Monster Cards/Jester_of_Flames.tres",
+	"VOIDLING_ERO":         "res://Cards/Monster Cards/Voidling_Ero.tres",
+	"MUSHMONK":             "res://Cards/Monster Cards/Mushmonk.tres",
+	"ZEI_PANDA":            "res://Cards/Monster Cards/Zei_Panda.tres",
+	"YORG_ARCHER":          "res://Cards/Monster Cards/Yorg_Archer.tres",
+	"CONFLAGURATION_BLADE": "res://Cards/Spell Cards/Conflaguration_Blade.tres",
+	"TIDAL_WAVE":           "res://Cards/Spell Cards/Tidal_Wave.tres",
+	"AQUA_WHIP":            "res://Cards/Spell Cards/Aqua_whip.tres",
 	#"":                  "res://Cards/Monster Cards/.tres",
 }
 
@@ -76,6 +78,9 @@ signal unit_stats_changed(unit: UnitData)
 # -----------------------------
 const HEAL_SOUND := preload("res://Audio/Sound FX/heal.mp3")
 const LEADER_IN_SOUND := preload("res://Audio/Sound FX/leaderslide.mp3")
+#const FUSION_PENDING_SOUND := preload("res://Audio/Sound FX/Fusion Pending.mp3")
+#const FUSE_SOUND := preload("res://Audio/Sound FX/Fuse.mp3")
+
 const CARD_MODEL_SCALE := Vector3(0.75, 0.75, 0.75)
 const BOARD_W := 7
 const BOARD_H := 7
@@ -193,16 +198,16 @@ func _ready() -> void:
 
 	# minimal registry of cards (your collection)
 
-	#CardCollection.add_card(get_card(CARD_PATHS.GOBLIN))
-	#CardCollection.add_card(get_card(CARD_PATHS.DIRT))
-	#CardCollection.add_card(get_card(CARD_PATHS.COLD_SLOTH))
-	#CardCollection.add_card(get_card(CARD_PATHS.FYSH))
-	#CardCollection.add_card(get_card(CARD_PATHS.FOREST_FAE))
-	#CardCollection.add_card(get_card(CARD_PATHS.IMP))
-	#CardCollection.add_card(get_card(CARD_PATHS.LAVA_HARE))
-	#CardCollection.add_card(get_card(CARD_PATHS.NAGA))
-	#CardCollection.add_card(get_card(CARD_PATHS.FIREBALL))
-	#CardCollection.add_card(get_card(CARD_PATHS.LYZARD))
+	CardCollection.add_card(get_card(CARD_PATHS.GOBLIN))
+	CardCollection.add_card(get_card(CARD_PATHS.DIRT))
+	CardCollection.add_card(get_card(CARD_PATHS.COLD_SLOTH))
+	CardCollection.add_card(get_card(CARD_PATHS.FYSH))
+	CardCollection.add_card(get_card(CARD_PATHS.FOREST_FAE))
+	CardCollection.add_card(get_card(CARD_PATHS.IMP))
+	CardCollection.add_card(get_card(CARD_PATHS.LAVA_HARE))
+	CardCollection.add_card(get_card(CARD_PATHS.NAGA))
+	CardCollection.add_card(get_card(CARD_PATHS.FIREBALL))
+	CardCollection.add_card(get_card(CARD_PATHS.LYZARD))
 	CardCollection.add_card(get_card(CARD_PATHS.ERUPTION))
 	CardCollection.add_card(get_card(CARD_PATHS.DRAKE_OF_EMERALD))
 	CardCollection.add_card(get_card(CARD_PATHS.FLAME_FAE))
@@ -217,14 +222,14 @@ func _ready() -> void:
 	CardCollection.add_card(get_card(CARD_PATHS.ORB_OF_DARKNESS))
 	CardCollection.add_card(get_card(CARD_PATHS.SHADOW_CANDLES))
 	CardCollection.add_card(get_card(CARD_PATHS.JESTER_OF_FLAMES))
-	#CardCollection.add_card(get_card(CARD_PATHS.VOIDLING_ERO))
+	CardCollection.add_card(get_card(CARD_PATHS.VOIDLING_ERO))
 	CardCollection.add_card(get_card(CARD_PATHS.MUSHMONK))
-	#CardCollection.add_card(get_card(CARD_PATHS.ZEI_PANDA))
-	#CardCollection.add_card(get_card(CARD_PATHS.YORG_ARCHER))
-	#CardCollection.add_card(get_card(CARD_PATHS.STONE_FAE))
+	CardCollection.add_card(get_card(CARD_PATHS.ZEI_PANDA))
+	CardCollection.add_card(get_card(CARD_PATHS.YORG_ARCHER))
+	CardCollection.add_card(get_card(CARD_PATHS.STONE_FAE))
 	CardCollection.add_card(get_card(CARD_PATHS.CONFLAGURATION_BLADE))
-	
-	
+	CardCollection.add_card(get_card(CARD_PATHS.TIDAL_WAVE))
+	CardCollection.add_card(get_card(CARD_PATHS.AQUA_WHIP))
 
 	# ✅ Connect essence UI
 	var orb_grid := ui_sys.get_node_or_null("OrbGrid")
@@ -888,8 +893,21 @@ func _play_fusion_effect(result_card: CardData) -> void:
 	var art_a: Texture2D = fusion_selection[0].art
 	var art_b: Texture2D = fusion_selection[1].art
 	var fusion_name := result_card.name
+	
+# 🎧 Play fuse sound when fusion begins
+	#if FUSE_SOUND:
+		#var p := AudioStreamPlayer.new()
+		#add_child(p)
+		#p.stream = FUSE_SOUND
+		#p.volume_db = -6.0
+		#p.pitch_scale = randf_range(0.97, 1.03)
+		#p.play()
+		#p.connect("finished", Callable(p, "queue_free"))
 
 	effect.start(art_a, art_b, fusion_name)
+	# 🔇 Stop the Fusion Pending hum once fusion animation starts
+	stop_fusion_pending_hum()
+
 
 	# Optional: camera shake + UI log
 	if camera_sys and camera_sys.has_method("shake"):
@@ -1213,33 +1231,46 @@ func _unhandled_input(event: InputEvent) -> void:
 			if event.button_index == MOUSE_BUTTON_RIGHT:
 				if ui_sys and ui_sys.has_method("hide_fusion_pending"):
 					ui_sys.hide_fusion_pending()
+				if has_method("stop_fusion_pending_hum"):
+					stop_fusion_pending_hum()
+
 				_is_fusion_pending_active = false
 				fusion_selection.clear()
 				selected_card = null
 				dragging_card = null
 				selected_pos = Vector2i(-1, -1)
+
+				# 🧹 Full visual + UI reset
+				if ui_sys:
+					# Reset hover/selection tweens
+					if "_selected_card_ui_map" in ui_sys:
+						ui_sys._selected_card_ui_map.clear()
+					if "_hover_card_tween_map" in ui_sys:
+						for tw in ui_sys._hover_card_tween_map.values():
+							if tw and tw.is_running():
+								tw.kill()
+						ui_sys._hover_card_tween_map.clear()
+
+					# Reset card visuals
+					if ui_sys.has_node("BottomContainer/Hand"):
+						var hand: GridContainer = ui_sys.get_node("BottomContainer/Hand")
+						for card_ui in hand.get_children():
+							if card_ui is Control:
+								card_ui.position.y = 0
+								card_ui.scale = Vector2.ONE
+
+					# ✅ Instantly refresh the hand (fixes visual drift)
+					if ui_sys.has_method("refresh_hand"):
+						ui_sys.refresh_hand(player_hand, player_essence, true)
+
 				_log("❎ Fusion canceled.", Color(0.8, 0.8, 0.8))
+
 				if ui_sys and ui_sys.has_method("fade_hand_in"):
 					ui_sys.fade_hand_in()
+
 				_set_phase(Phase.SUMMON_OR_MOVE)
 				_update_phase_ui()
 				return
-
-			# ✅ LEFT-CLICK → only allow valid summon tile placement
-			elif event.button_index == MOUSE_BUTTON_LEFT:
-				if hovered_tile and hovered_tile.summon_highlight:
-					# 🟩 Place the pending fusion card
-					try_place_dragged_card(hovered_tile)
-					_is_fusion_pending_active = false  # clear lock after placement
-					return
-				else:
-					_log("🚫 Invalid tile — choose a highlighted spot to place the fusion.", Color(1, 0.6, 0.6))
-					get_viewport().set_input_as_handled()
-					return
-
-			# 🚫 Block all other buttons
-			get_viewport().set_input_as_handled()
-			return
 
 
 	if event is InputEventMouseButton and event.pressed:
@@ -1252,6 +1283,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 				# 🎴 If one card is selected (normal summon)
 				elif fusion_selection.size() == 1:
+					
 					selected_card = fusion_selection[0]
 					dragging_card = selected_card
 
@@ -1277,6 +1309,9 @@ func _unhandled_input(event: InputEvent) -> void:
 					deselected_names.append(c.name)
 				if selected_card and not deselected_names.has(selected_card.name):
 					deselected_names.append(selected_card.name)
+				if ui_sys and "_selected_card_ui_map" in ui_sys:
+					ui_sys._selected_card_ui_map.clear()
+
 				_log("❎ Deselected %s" % ", ".join(deselected_names), Color(0.8, 0.8, 0.8))
 				# 🧩 If a summon popup is active — close it instead of just deselecting
 				if ui_sys and ui_sys.has_method("is_popup_open") and ui_sys.is_popup_open():
@@ -1308,6 +1343,24 @@ func _unhandled_input(event: InputEvent) -> void:
 
 			selected_card = null
 			fusion_selection.clear()
+						# 🧩 Also reset all UI-side card selections and tweens
+			if ui_sys:
+				if "_selected_card_ui_map" in ui_sys:
+					ui_sys._selected_card_ui_map.clear()
+				if "_hover_card_tween_map" in ui_sys:
+					for tw in ui_sys._hover_card_tween_map.values():
+						if tw and tw.is_running():
+							tw.kill()
+					ui_sys._hover_card_tween_map.clear()
+
+				# Reset card positions visually
+				if ui_sys.has_node("BottomContainer/Hand"):
+					var hand: GridContainer = ui_sys.get_node("BottomContainer/Hand")
+					for card_ui in hand.get_children():
+						if card_ui is Control:
+							card_ui.position.y = 0
+							card_ui.scale = Vector2.ONE
+
 			dragging_card = null
 			selected_pos = Vector2i(-1, -1)
 
@@ -1389,3 +1442,10 @@ func get_terrain_for_unit(unit: UnitData) -> String:
 		if tile and tile.occupant == unit:
 			return tile.terrain_type
 	return ""
+
+func stop_fusion_pending_hum():
+	if has_node("FusionPendingHum"):
+		var hum := get_node("FusionPendingHum")
+		if hum and hum.playing:
+			hum.stop()
+		hum.queue_free()

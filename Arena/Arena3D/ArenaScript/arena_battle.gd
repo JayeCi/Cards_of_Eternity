@@ -461,6 +461,19 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, is_player:
 
 	# --- Create the UnitData ---
 	var unit := UnitData.new().init_from_card(card, owner)
+		# 🧙‍♂️ If this is a spell card — cast instantly, then remove
+	if card.is_spell:
+		core._log("✨ Casting spell: %s" % card.name, Color(0.9, 0.8, 1.0))
+		
+		if card.ability and card.ability.trigger == "on_summon":
+			core._execute_card_ability(unit, card.ability)
+		
+		await get_tree().create_timer(0.4).timeout
+		core._play_card_place_sound()
+		core._log("💨 %s vanishes after casting." % card.name, Color(0.7, 0.7, 1.0))
+		
+		return  # ❗ Don’t create a tile unit
+
 	unit.mode = mode
 	core.units[pos] = unit
 	tile.set_occupant(unit)
@@ -1202,7 +1215,7 @@ func _trigger_ability(unit: UnitData, trigger: String) -> void:
 	if ab.trigger == trigger:
 		ab.execute(core, unit)
 
-		# ✅ Always refresh UI after ability triggers
+		# ✅ Always refresh UI after ability 
 		if core and core.card_details_ui and core.card_details_ui.visible:
 			core.card_details_ui.call("refresh_if_showing", unit)
 

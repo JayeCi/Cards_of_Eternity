@@ -13,6 +13,7 @@ element = "Fire"
 preferred_terrain = "Lava"
 id = "00021"
 name = "Jester of Flames"
+description = "Born from the ashes of forgotten laughter, the Jester of Flames delights in chaos. His fiery jokes ignite the souls of mortals, and his dance leaves trails of smoldering shadows in the air. Each flick of his ember-tipped fingers can turn mirth into madness, making him both entertainer and executioner in equal measure."
 art = ExtResource("1_ssdyc")
 atk = 22
 def = 20

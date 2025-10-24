@@ -30,9 +30,9 @@ func _intro() -> void:
 	_hide_battle_ui(true)
 
 
-	# 🕶 Keep screen black while board initializes
-	camera.position = Vector3(0, 1000, 0)
-	camera.look_at(Vector3.ZERO, Vector3.UP)
+	## 🕶 Keep screen black while board initializes
+	#camera.position = Vector3(0, 1000, 0)
+	#camera.look_at(Vector3.ZERO, Vector3.UP)
 
 	# ======================================================
 	# 🎬 ENEMY LEADER REVEAL (Smooth camera + rise + sound)
@@ -58,7 +58,7 @@ func _intro() -> void:
 		await _fade_in_leader(enemy_pos, "👑 The Enemy Leader has appeared!")
 
 	# Hold briefly before switching
-	await get_tree().create_timer(0.8).timeout
+	#await get_tree().create_timer(0.8).timeout
 
 	# ======================================================
 	# 🎬 PLAYER LEADER REVEAL (Smooth camera + rise + sound)
@@ -120,7 +120,12 @@ func _reveal_leader_with_rise(unit: UnitData, delay := 0.0, rise_height := 0.6, 
 		return
 
 	await get_tree().create_timer(delay).timeout
+	# ✅ Show the full model hierarchy now that the reveal is happening
 	model.visible = true
+	for child in model.get_children():
+		if child.name == "CardMesh" or child is MeshInstance3D:
+			child.visible = true
+
 
 	var start_pos = model.position
 	model.position = start_pos - Vector3(0, rise_height, 0)

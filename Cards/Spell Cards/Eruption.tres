@@ -10,7 +10,7 @@
 script = ExtResource("1_vgk8i")
 new_terrain = "Lava"
 display_name = "Eruption"
-description = "Lava erupts and transforms the surrounding tiles to lava."
+description = "Converts a 3×3 zone around into Lava terrain. All Fire-aligned creatures are empowered by the eruption’s heat."
 metadata/_custom_type_script = "uid://d7dl4wk8jcyr"
 
 [resource]
@@ -23,6 +23,7 @@ id = "00101"
 name = "Eruption"
 description = "Lava erupts and transforms the surrounding tiles to lava."
 art = ExtResource("2_vgk8i")
+cost = 3
 ability = SubResource("Resource_b23iv")
 place_sound = ExtResource("4_b23iv")
 metadata/_custom_type_script = "uid://57up1u0etcmc"

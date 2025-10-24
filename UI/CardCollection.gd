@@ -7,8 +7,12 @@ var collection: Dictionary = {}
 signal card_added(card: CardData, count: int)
 
 
-func add_card(card: CardData) -> void:
+func add_card(card):
 	if card == null:
+		push_warning("Tried to add null card.")
+		return
+	if not (card is CardData):
+		push_warning("⚠️ Skipping invalid card type: %s" % [card])
 		return
 
 	if collection.has(card.resource_path):

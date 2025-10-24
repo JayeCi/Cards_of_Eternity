@@ -164,7 +164,6 @@ anchor_bottom = 1.0
 offset_top = -23.0
 offset_right = 40.0
 grow_vertical = 0
-text = "Phase Label"
 label_settings = ExtResource("6_d050y")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
@@ -189,7 +188,6 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/normal_font_size = 12
 scroll_following = true
-vertical_alignment = 3
 
 [node name="BattlePopup" type="Label" parent="."]
 layout_mode = 1

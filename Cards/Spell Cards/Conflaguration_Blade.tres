@@ -1,20 +1,7 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=5 format=3 uid="uid://xx51ta2f0ma8"]
+[gd_resource type="Resource" script_class="Conflagration_Blade" load_steps=2 format=3 uid="uid://xx51ta2f0ma8"]
 
-[ext_resource type="Resource" uid="uid://d1wo21t54cwm8" path="res://Cards/Abilities/Conflaguration_Blade.tres" id="1_1qtki"]
-[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_d7517"]
-[ext_resource type="Texture2D" uid="uid://dckphlgpon30b" path="res://Images/Conflaguration_Blade.jpg" id="2_kdhuw"]
-[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_vfnmo"]
+[ext_resource type="Script" uid="uid://cl1461o0ibb5o" path="res://Cards/Spell Cards/Conflaguration_Blade.gd" id="1_soerf"]
 
 [resource]
-script = ExtResource("2_vfnmo")
-types = Array[String]([])
-rarity = "rare"
-element = "Fire"
-preferred_terrain = "Lava"
-card_type = 1
-id = "00107"
-name = "Conflaguration Blade"
-description = "When fused with a FIRE monster, permanently increases its ATK by 8"
-art = ExtResource("2_kdhuw")
-ability = ExtResource("1_1qtki")
-metadata/_custom_type_script = "uid://57up1u0etcmc"
+script = ExtResource("1_soerf")
+metadata/_custom_type_script = "uid://cl1461o0ibb5o"

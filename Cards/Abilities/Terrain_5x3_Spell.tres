@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Terrain_5x3_Spell" load_steps=6 format=3 uid="uid://6u4moj2tokrs"]
+
+[ext_resource type="AudioStream" uid="uid://cj7dv1bxn2us8" path="res://Audio/FIRE.mp3" id="1_3mmsu"]
+[ext_resource type="AudioStream" uid="uid://c6venr73hly0t" path="res://Audio/Dirt_Grass.mp3" id="2_78wyc"]
+[ext_resource type="Script" uid="uid://5puuvoqpdhal" path="res://Cards/Abilities/Terrain_5x3_Spell.gd" id="3_5nhy5"]
+[ext_resource type="AudioStream" uid="uid://dl0at0b012bxp" path="res://Audio/Rocks.mp3" id="4_sgl05"]
+[ext_resource type="AudioStream" uid="uid://cvc044ku2ltcs" path="res://Audio/Water.mp3" id="5_ufyrb"]
+
+[resource]
+script = ExtResource("3_5nhy5")
+display_name = "Tidal Wave"
+description = "Floods a 5×3 area ahead with Water terrain, washing away terrain bonuses and weakening Fire-aligned units."
+metadata/_custom_type_script = "uid://5puuvoqpdhal"

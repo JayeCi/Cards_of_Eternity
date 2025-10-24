@@ -1,6 +1,7 @@
-[gd_scene load_steps=7 format=4 uid="uid://81ti0ywj4cjo"]
+[gd_scene load_steps=8 format=4 uid="uid://81ti0ywj4cjo"]
 
 [ext_resource type="Texture2D" uid="uid://b2soqh3nf6vlm" path="res://Cards/Models/Voidling Ero_texture_0.png" id="1_2nije"]
+[ext_resource type="Script" uid="uid://cqqsn40iarhkd" path="res://Cards/Models/voidling_ero_model.gd" id="1_pewbe"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_emki4"]
 resource_name = "Material_1"
@@ -315,6 +316,7 @@ _data = {
 
 [node name="Voidling Ero" type="Node3D"]
 transform = Transform3D(-1, 0, 8.742278e-08, 0, 1, 0, -8.742278e-08, 0, -1, 0, 0, 0)
+script = ExtResource("1_pewbe")
 
 [node name="Armature" type="Node3D" parent="."]
 transform = Transform3D(0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01, 0, 0, 0)
