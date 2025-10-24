@@ -15,5 +15,5 @@ art = ExtResource("1_j6gld")
 atk = 11
 def = 14
 model_path = "res://Cards/Models/FALCREEP_MODEL.tscn"
-model_scale = Vector3(0.9, 0.9, 0.9)
+model_scale = Vector3(0.6, 0.6, 0.6)
 metadata/_custom_type_script = "uid://57up1u0etcmc"

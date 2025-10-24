@@ -35,6 +35,8 @@ enum CardType { MONSTER, SPELL, EVENT }
 @export var model_scale: Vector3 = Vector3(.5, .5, .5)
 @export var model_position: Vector3 = Vector3(0, 0, 0)
 @export var is_spell: bool = false
+@export var ability_name: String = ""
+@export var ability_description: String = ""
 
 # --- AUDIO ---
 @export var place_sound: AudioStream
@@ -57,3 +59,21 @@ func has_type(t: String) -> bool:
 func add_type(t: String) -> void:
 	if not has_type(t):
 		types.append(t)
+
+func get_ability_name() -> String:
+	if ability_name != "":
+		return ability_name
+	elif ability and "display_name" in ability:
+		return ability.display_name
+	elif ability and "name" in ability:
+		return ability.name
+	return ""
+
+func get_ability_description() -> String:
+	if ability_description != "":
+		return ability_description
+	elif ability and "description" in ability:
+		return ability.description
+	elif ability and "desc" in ability:
+		return ability.desc
+	return ""

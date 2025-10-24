@@ -1,6 +1,9 @@
-[gd_resource type="Resource" script_class="ElementalFan" load_steps=2 format=3 uid="uid://dpoosbvh3homp"]
+[gd_resource type="Resource" script_class="ElementalFan" load_steps=5 format=3 uid="uid://dpoosbvh3homp"]
 
+[ext_resource type="AudioStream" uid="uid://dl0at0b012bxp" path="res://Audio/Rocks.mp3" id="1_5b00g"]
 [ext_resource type="Script" uid="uid://dcp650f37awwr" path="res://Cards/Abilities/Elemental_Fan.gd" id="1_5tswv"]
+[ext_resource type="AudioStream" uid="uid://cj7dv1bxn2us8" path="res://Audio/FIRE.mp3" id="2_l0cet"]
+[ext_resource type="AudioStream" uid="uid://cvc044ku2ltcs" path="res://Audio/Water.mp3" id="4_2nwuk"]
 
 [resource]
 script = ExtResource("1_5tswv")

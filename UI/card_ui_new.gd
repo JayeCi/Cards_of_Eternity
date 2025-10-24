@@ -10,9 +10,11 @@ extends Control
 
 @onready var cost: Label = $MarginContainer/VBoxContainer/Cost
 @onready var fusion_glow: TextureRect = $FusionGlow
+@onready var quantity_label: Label = $QuantityLabel
 
 signal request_show_zoom(card)
 signal request_hide_zoom()
+signal request_return_to_collection(card)
 
 var is_hovering := false
 var hover_timer: Timer
@@ -30,10 +32,11 @@ const RARITY_TEXTURES := {
 func _ready():
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	set_focus_mode(Control.FOCUS_NONE)
+	set_drag_forwarding(Callable(self, "_get_drag_data"), Callable(self, "_can_drop_data"), Callable(self, "_drop_data"))
+
+
 	connect_mouse_signals()
 	_disable_child_mouse_filters(self)
-
-	# ✅ Make all labels have their own unique LabelSettings
 	_make_unique_label_settings(self)
 
 	await get_tree().process_frame
@@ -47,7 +50,6 @@ func _ready():
 
 	print("[CardUI] Ready:", card_data.name if card_data else "No data")
 
-
 # -------------------------------
 # Utility: Recursively clone LabelSettings for each Label
 # -------------------------------
@@ -60,11 +62,22 @@ func _make_unique_label_settings(node: Node) -> void:
 				child.label_settings = LabelSettings.new()
 		_make_unique_label_settings(child) # recurse through children
 
-
+func set_quantity(count: int):
+	if not quantity_label:
+		return
+	if count > 1:
+		quantity_label.visible = true
+		quantity_label.text = "x" + str(count)
+	else:
+		quantity_label.visible = false
 # -------------------------------
 # Debugging hover and clicks
 # -------------------------------
 func _gui_input(event: InputEvent) -> void:
+	
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+		emit_signal("request_return_to_collection", card_data)
+
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		print("[CardUI] 🖱️ Clicked on:", card_data.name)
 		emit_signal("request_show_zoom", card_data)
@@ -157,3 +170,20 @@ func show_fusion_glow(on: bool = true) -> void:
 			fusion_glow.material.set("shader_param/glow_strength", 1.5)
 	else:
 		fusion_glow.visible = false
+		
+
+func _add_card_to_deck(card_data: CardData):
+	var card_ui_scene := preload("res://UI/CardUI.tscn")
+	var card_ui: Control = card_ui_scene.instantiate()
+	card_ui.card_data = card_data
+	card_ui.refresh()
+	card_ui.modulate = Color(0.8, 1.0, 0.8) # visual cue
+
+	# Right-click to remove from deck
+	card_ui.gui_input.connect(func(event):
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+			card_ui.queue_free()
+			print("[DeckBuilder] ❌ Removed card from deck:", card_data.name)
+	)
+
+	print("[DeckBuilder] ➕ Added card to deck:", card_data.name)

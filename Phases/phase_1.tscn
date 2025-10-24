@@ -3,7 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://8eemhx56fscd" path="res://player.tscn" id="1_1bd20"]
 [ext_resource type="Script" uid="uid://bs3prbmyy3oly" path="res://Phases/main.gd" id="1_4sm75"]
 [ext_resource type="PackedScene" uid="uid://dlnjhpppr6qcv" path="res://UI/dialogue_ui.tscn" id="3_acgs7"]
-[ext_resource type="PackedScene" uid="uid://b2qv0ufs44ptf" path="res://UI/collection_ui.tscn" id="5_23s55"]
+[ext_resource type="PackedScene" uid="uid://cv0hqr5q4w02b" path="res://UI/card_collection_gui.tscn" id="4_548ak"]
 [ext_resource type="PackedScene" uid="uid://de6gwgsbmpf3y" path="res://Phases/Card_Description_Popup.tscn" id="5_548ak"]
 [ext_resource type="PackedScene" uid="uid://248w4cb8r0x5" path="res://Downloaded/Decor/Ceiling Light.tscn" id="6_4sm75"]
 [ext_resource type="PackedScene" uid="uid://4ftlpnnxlo53" path="res://Cards/Utilities/cardpickup.tscn" id="6_it1pc"]
@@ -78,9 +78,9 @@ transform = Transform3D(-0.678622, 0, -5.9327e-08, 0, 0.678622, 0, 5.9327e-08, 0
 visible = false
 mouse_filter = 2
 
-[node name="CollectionUI" parent="." instance=ExtResource("5_23s55")]
+[node name="Card_Collection_GUI" parent="." instance=ExtResource("4_548ak")]
 visible = false
-z_index = 6
+mouse_filter = 2
 
 [node name="Card_Description_Popup" parent="." instance=ExtResource("5_548ak")]
 
@@ -533,5 +533,4 @@ transform = Transform3D(0.447887, 0, -0.689079, 0, 0.821847, 0, 0.689079, 0, 0.4
 dialogue_data = ExtResource("18_548ak")
 post_battle_dialogue = ExtResource("19_uikla")
 
-[editable path="CollectionUI"]
 [editable path="Card_Description_Popup"]

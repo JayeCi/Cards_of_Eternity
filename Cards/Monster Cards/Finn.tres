@@ -9,7 +9,7 @@
 script = ExtResource("2_4xtq6")
 rarity = "rare"
 element = "Water"
-preferred_terrain = "WATER"
+preferred_terrain = "Water"
 id = "00014"
 name = "Finn"
 description = "A cursed sailor whose body fused with the spirit of a shark after a deal gone wrong. With a hook for a hand and eyes like the deep sea, he stalks the shores in search of redemption—or vengeance. The tides whisper his name before a storm."

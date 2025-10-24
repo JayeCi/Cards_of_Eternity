@@ -1,0 +1,553 @@
+[gd_scene load_steps=32 format=3 uid="uid://cv0hqr5q4w02b"]
+
+[ext_resource type="Texture2D" uid="uid://i5686epsut3j" path="res://UI/Banner.png" id="1_4jpk6"]
+[ext_resource type="Script" uid="uid://srlpa0q17rnv" path="res://UI/card_collection_gui.gd" id="1_jm07a"]
+[ext_resource type="Texture2D" uid="uid://cp6ef7ogds3cj" path="res://UI/FIRE_EMBLEM.png" id="2_m5y4w"]
+[ext_resource type="Texture2D" uid="uid://bq6fn5ar8y44d" path="res://Cards/Utilities/CardModel/Border_TP_Edge.png" id="4_ypw0p"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_0dsxg"]
+texture = ExtResource("1_4jpk6")
+axis_stretch_horizontal = 1
+axis_stretch_vertical = 1
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_2imwr"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_uxg7g"]
+texture = SubResource("GradientTexture2D_2imwr")
+modulate_color = Color(0.019607844, 0.11764706, 0.22745098, 1)
+
+[sub_resource type="SystemFont" id="SystemFont_rs70i"]
+font_names = PackedStringArray("Tahoma")
+subpixel_positioning = 0
+
+[sub_resource type="LabelSettings" id="LabelSettings_efr3b"]
+font = SubResource("SystemFont_rs70i")
+font_size = 19
+outline_size = 7
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 14
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(0.015, 1)
+
+[sub_resource type="SystemFont" id="SystemFont_plkv2"]
+font_names = PackedStringArray("Tahoma")
+
+[sub_resource type="LabelSettings" id="LabelSettings_8uuty"]
+font = SubResource("SystemFont_plkv2")
+font_size = 18
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 4
+shadow_color = Color(0, 0, 0, 0.752941)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jm07a"]
+bg_color = Color(0.007843138, 0, 0.10980392, 1)
+
+[sub_resource type="SystemFont" id="SystemFont_ypw0p"]
+subpixel_positioning = 0
+
+[sub_resource type="LabelSettings" id="LabelSettings_0dsxg"]
+font = SubResource("SystemFont_ypw0p")
+font_size = 32
+outline_size = 8
+outline_color = Color(0, 0, 0, 0.5882353)
+shadow_size = 3
+shadow_color = Color(0, 0, 0, 0.57254905)
+
+[sub_resource type="SystemFont" id="SystemFont_uxg7g"]
+font_names = PackedStringArray("Centaur")
+
+[sub_resource type="LabelSettings" id="LabelSettings_rs70i"]
+font = SubResource("SystemFont_uxg7g")
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="SystemFont" id="SystemFont_jm07a"]
+font_names = PackedStringArray("Tahoma")
+
+[sub_resource type="LabelSettings" id="LabelSettings_ypw0p"]
+font = SubResource("SystemFont_jm07a")
+outline_size = 4
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 4
+shadow_color = Color(0.73531705, 0.72749823, 0.14775354, 1)
+
+[sub_resource type="SystemFont" id="SystemFont_2imwr"]
+font_names = PackedStringArray("Tahoma")
+
+[sub_resource type="LabelSettings" id="LabelSettings_jm07a"]
+font = SubResource("SystemFont_2imwr")
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 2
+shadow_color = Color(0, 0, 0, 1)
+
+[sub_resource type="SystemFont" id="SystemFont_0dsxg"]
+font_names = PackedStringArray("Sans-Serif")
+font_italic = true
+
+[sub_resource type="LabelSettings" id="LabelSettings_2imwr"]
+font = SubResource("SystemFont_0dsxg")
+font_color = Color(0.5132329, 0.5132329, 0.5132329, 1)
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="Gradient" id="Gradient_rs70i"]
+offsets = PackedFloat32Array(0.20338982, 0.720339, 1)
+colors = PackedColorArray(0.47457626, 0.47457626, 0.47457626, 1, 0.720339, 0.720339, 0.720339, 1, 1, 1, 1, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_efr3b"]
+gradient = SubResource("Gradient_rs70i")
+fill_from = Vector2(1, 0)
+fill_to = Vector2(0, 0)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_plkv2"]
+texture = SubResource("GradientTexture2D_efr3b")
+modulate_color = Color(0.019607844, 0.11764706, 0.22745098, 1)
+
+[sub_resource type="Gradient" id="Gradient_m5y4w"]
+offsets = PackedFloat32Array(0.20338982, 0.720339, 1)
+colors = PackedColorArray(0.47457626, 0.47457626, 0.47457626, 1, 0.720339, 0.720339, 0.720339, 1, 1, 1, 1, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_jm07a"]
+gradient = SubResource("Gradient_m5y4w")
+fill_from = Vector2(1, 0)
+fill_to = Vector2(0, 0)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ypw0p"]
+texture = SubResource("GradientTexture2D_jm07a")
+modulate_color = Color(0.21731776, 0.05471778, 0.025695913, 1)
+
+[sub_resource type="Gradient" id="Gradient_0dsxg"]
+offsets = PackedFloat32Array(0.20338982, 0.720339, 1)
+colors = PackedColorArray(0.47457626, 0.47457626, 0.47457626, 1, 0.720339, 0.720339, 0.720339, 1, 1, 1, 1, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_uxg7g"]
+gradient = SubResource("Gradient_0dsxg")
+fill_from = Vector2(1, 0)
+fill_to = Vector2(0, 0)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_rs70i"]
+texture = SubResource("GradientTexture2D_uxg7g")
+modulate_color = Color(0.09049534, 0.13351178, 0.015899114, 1)
+
+[node name="Card_Collection_GUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_jm07a")
+
+[node name="BackgroundContainer" type="PanelContainer" parent="."]
+z_index = -4
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_0dsxg")
+
+[node name="LeftPanel" type="Panel" parent="."]
+z_index = -4
+custom_minimum_size = Vector2(300, 600)
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 305.87
+offset_bottom = -3.255005
+grow_vertical = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxTexture_uxg7g")
+
+[node name="CardName" type="PanelContainer" parent="LeftPanel"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 50.0
+grow_horizontal = 2
+
+[node name="Element" type="TextureRect" parent="LeftPanel/CardName"]
+modulate = Color(3.4615762, 0, 0, 1)
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+size_flags_horizontal = 0
+texture = ExtResource("2_m5y4w")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="Cost" type="TextureRect" parent="LeftPanel/CardName"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+size_flags_horizontal = 8
+
+[node name="CostLabel" type="Label" parent="LeftPanel/CardName/Cost"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "2"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Name" type="Label" parent="LeftPanel/CardName"]
+custom_minimum_size = Vector2(100, 28)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+text = "Jester of Flames"
+label_settings = SubResource("LabelSettings_efr3b")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Rarity" type="Label" parent="LeftPanel/CardName"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 8
+text = "Rarity"
+label_settings = SubResource("LabelSettings_8uuty")
+horizontal_alignment = 1
+
+[node name="Panel" type="Panel" parent="LeftPanel"]
+z_index = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -3.0
+offset_top = 50.0
+offset_bottom = -180.745
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_jm07a")
+
+[node name="Art" type="TextureRect" parent="LeftPanel/Panel"]
+z_index = 1
+custom_minimum_size = Vector2(256, 384)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -128.0
+offset_top = -192.0
+offset_right = 128.0
+offset_bottom = 192.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 4
+
+[node name="Border" type="TextureRect" parent="LeftPanel/Panel"]
+z_index = 1
+custom_minimum_size = Vector2(256, 384)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160.065
+offset_top = -204.0
+offset_right = 160.065
+offset_bottom = 204.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_ypw0p")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HBoxContainer" type="HBoxContainer" parent="LeftPanel/Panel/Border"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -22.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="ATK" type="Label" parent="LeftPanel/Panel/Border/HBoxContainer"]
+z_index = 1
+layout_mode = 2
+size_flags_horizontal = 6
+text = "25"
+label_settings = SubResource("LabelSettings_0dsxg")
+
+[node name="DEF" type="Label" parent="LeftPanel/Panel/Border/HBoxContainer"]
+z_index = 1
+layout_mode = 2
+size_flags_horizontal = 6
+text = "25"
+label_settings = SubResource("LabelSettings_0dsxg")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="LeftPanel"]
+clip_contents = false
+layout_mode = 0
+offset_left = 0.99999994
+offset_top = 454.0
+offset_right = 310.0
+offset_bottom = 639.0
+scale = Vector2(0.9668494, 0.9668494)
+follow_focus = true
+draw_focus_border = true
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="LeftPanel/ScrollContainer"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 3
+
+[node name="Subtype" type="Label" parent="LeftPanel/ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+text = "Sub / Types"
+label_settings = SubResource("LabelSettings_rs70i")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Abilities" type="Label" parent="LeftPanel/ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+text = "Abilities"
+label_settings = SubResource("LabelSettings_ypw0p")
+autowrap_mode = 3
+autowrap_trim_flags = 128
+visible_characters = 25
+visible_ratio = 2.7777777
+
+[node name="Ability Description" type="Label" parent="LeftPanel/ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(301, 0)
+layout_mode = 2
+size_flags_vertical = 3
+text = "Connected hover and click signals for"
+label_settings = SubResource("LabelSettings_jm07a")
+autowrap_mode = 3
+
+[node name="_______" type="Label" parent="LeftPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="Description" type="Label" parent="LeftPanel/ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+text = "Description"
+label_settings = SubResource("LabelSettings_2imwr")
+autowrap_mode = 3
+
+[node name="Toolbar" type="Panel" parent="."]
+z_index = 10
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 312.0
+offset_top = 4.0
+offset_right = -1.0
+offset_bottom = 54.0
+grow_horizontal = 2
+
+[node name="MainPanelLabel" type="Label" parent="Toolbar"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -11.5
+offset_right = 20.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "Collection"
+
+[node name="ButtonRow1" type="HBoxContainer" parent="Toolbar"]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 128.0
+grow_vertical = 2
+
+[node name="Leader_button" type="Button" parent="Toolbar/ButtonRow1"]
+custom_minimum_size = Vector2(40, 15)
+layout_mode = 2
+text = "L"
+
+[node name="Deck_button" type="Button" parent="Toolbar/ButtonRow1"]
+custom_minimum_size = Vector2(40, 15)
+layout_mode = 2
+text = "D"
+
+[node name="Collection_button" type="Button" parent="Toolbar/ButtonRow1"]
+custom_minimum_size = Vector2(40, 15)
+layout_mode = 2
+text = "C"
+
+[node name="ButtonRow2" type="HBoxContainer" parent="Toolbar"]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -128.0
+offset_top = -20.0
+offset_bottom = 20.0
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="Button" type="Button" parent="Toolbar/ButtonRow2"]
+custom_minimum_size = Vector2(40, 15)
+layout_mode = 2
+text = "?"
+
+[node name="Button3" type="Button" parent="Toolbar/ButtonRow2"]
+custom_minimum_size = Vector2(40, 15)
+layout_mode = 2
+text = "?"
+
+[node name="X" type="Button" parent="Toolbar/ButtonRow2"]
+custom_minimum_size = Vector2(40, 15)
+layout_mode = 2
+text = "X"
+
+[node name="CollectionPanel" type="Panel" parent="."]
+custom_minimum_size = Vector2(300, 640.745)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 312.0
+offset_top = 4.0
+offset_bottom = -3.255005
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_plkv2")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="CollectionPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 55.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="GridContainer" type="GridContainer" parent="CollectionPanel/ScrollContainer"]
+layout_mode = 2
+columns = 6
+
+[node name="LeaderPanel" type="Panel" parent="."]
+visible = false
+custom_minimum_size = Vector2(300, 640.745)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 312.0
+offset_top = 4.0
+offset_bottom = -3.255005
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_ypw0p")
+
+[node name="DeckPanel" type="Panel" parent="."]
+visible = false
+custom_minimum_size = Vector2(300, 640.745)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 312.0
+offset_top = 4.0
+offset_bottom = -3.255005
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_rs70i")
+
+[node name="Collection" type="VBoxContainer" parent="DeckPanel"]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_left = -4.0
+offset_top = 54.0
+offset_right = 423.0
+grow_vertical = 2
+
+[node name="CollectionLabel" type="Label" parent="DeckPanel/Collection"]
+layout_mode = 2
+text = "Collection"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="DeckPanel/Collection"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
+
+[node name="CollectionGrid" type="GridContainer" parent="DeckPanel/Collection/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 0
+columns = 3
+
+[node name="Deck" type="VBoxContainer" parent="DeckPanel"]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_left = 419.0
+offset_top = 54.0
+offset_right = 837.0
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="DeckLabel" type="Label" parent="DeckPanel/Deck"]
+layout_mode = 2
+text = "Deck"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="DeckPanel/Deck"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="DeckGrid" type="GridContainer" parent="DeckPanel/Deck/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 0
+columns = 3
+
+[connection signal="pressed" from="Toolbar/ButtonRow1/Leader_button" to="." method="_on_leader_button_pressed"]
+[connection signal="pressed" from="Toolbar/ButtonRow1/Deck_button" to="." method="_on_deck_button_pressed"]
+[connection signal="pressed" from="Toolbar/ButtonRow1/Collection_button" to="." method="_on_collection_button_pressed"]
+[connection signal="pressed" from="Toolbar/ButtonRow2/X" to="." method="_on_x_pressed"]

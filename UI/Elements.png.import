@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://2dl63iq346ip"
-path="res://.godot/imported/Fist.png-a4fc5ead2967b26b18d91ce043e85263.ctex"
+uid="uid://bg4cqegljur0y"
+path="res://.godot/imported/Elements.png-66b3ce7c5958a59f5bbb74bf9569e0d3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Images/Fist.png"
-dest_files=["res://.godot/imported/Fist.png-a4fc5ead2967b26b18d91ce043e85263.ctex"]
+source_file="res://UI/Elements.png"
+dest_files=["res://.godot/imported/Elements.png-66b3ce7c5958a59f5bbb74bf9569e0d3.ctex"]
 
 [params]
 
