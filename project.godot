@@ -21,10 +21,10 @@ CardCollection="*res://UI/CardCollection.gd"
 BattleManager="*res://Arena/Arena3D/BattleManager.gd"
 DialogueManager="*res://Dialogue/DialogueManager.gd"
 TerrainManager="*res://UI/Terrains/TerrainManager.gd"
+DeckManager="*res://UI/DeckManager.gd"
 
 [display]
 
-window/size/mode=3
 window/stretch/mode="canvas_items"
 
 [editor_plugins]

@@ -12,6 +12,14 @@ extends Control
 @onready var fusion_glow: TextureRect = $FusionGlow
 @onready var quantity_label: Label = $QuantityLabel
 
+@onready var fire_ball: AnimatedSprite2D = $FireBall
+@onready var water_ball: AnimatedSprite2D = $WaterBall
+@onready var earth_ball: AnimatedSprite2D = $EarthBall
+@onready var shadow_ball: AnimatedSprite2D = $ShadowBall
+@onready var wind_ball: AnimatedSprite2D = $WindBall
+
+var _element_to_node := {}
+var _all_balls: Array[AnimatedSprite2D] = []
 signal request_show_zoom(card)
 signal request_hide_zoom()
 signal request_return_to_collection(card)
@@ -47,7 +55,17 @@ func _ready():
 	hover_timer.one_shot = true
 	hover_timer.wait_time = 0.05
 	add_child(hover_timer)
-
+	
+	_element_to_node = {
+		"fire":   fire_ball,
+		"water":  water_ball,
+		"earth":  earth_ball,
+		"wind":   wind_ball,
+		"shadow": shadow_ball,
+	}
+	_all_balls = [fire_ball, water_ball, earth_ball, wind_ball, shadow_ball]  # ✅ typed
+	_hide_all_element_balls()
+	_update_element_ball()
 	print("[CardUI] Ready:", card_data.name if card_data else "No data")
 
 # -------------------------------
@@ -159,7 +177,7 @@ func refresh():
 	if name_label: name_label.text = card_data.name
 	if art: art.texture = card_data.art
 	if cost: cost.text = str(card_data.cost)
-	
+	_update_element_ball()
 	# 🧩 Only set ATK/DEF for Monster cards
 	if card_data.card_type == CardData.CardType.MONSTER:
 		if atk: atk.text = str(card_data.atk)
@@ -172,8 +190,60 @@ func refresh():
 		# 🛑 Skip setting ATK/DEF for non-monsters
 		pass
 
+# --- Helpers ---
+func _hide_all_element_balls() -> void:
+	for b in _all_balls:
+		if b:
+			b.visible = false
+			if b.sprite_frames:
+				b.stop()
 
-# -------------------------------
+func _update_element_ball() -> void:
+	_hide_all_element_balls()
+	if card_data == null:
+		return
+
+	var elem := _resolve_element(card_data)
+	if elem == "":
+		return
+
+	var node: AnimatedSprite2D = _element_to_node.get(elem, null)
+	if node:
+		node.visible = true
+		if node.sprite_frames and node.sprite_frames.has_animation("default"):
+			node.play("default")  # or whichever animation name you use
+
+func _resolve_element(cd: CardData) -> String:
+	var e
+
+	# 1) direct property
+	if cd.has_method("get"):
+		e = cd.get("element")
+
+	# 2) custom getter
+	if e == null and cd.has_method("get_element"):
+		e = cd.get_element()
+
+	# 3) fallback: types array
+	if e == null and cd.has_method("get"):
+		var types = cd.get("types")
+		if types is Array:
+			for t in types:
+				var tl := str(t).to_lower()
+				if _element_to_node.has(tl):
+					e = tl
+					break
+
+	if e == null:
+		return ""
+
+	# Normalize
+	if typeof(e) == TYPE_INT:
+		var enum_map := { 0:"fire", 1:"water", 2:"earth", 3:"wind", 4:"shadow" }
+		return enum_map.get(e, "")
+	else:
+		return str(e).to_lower()
+
 # State display
 # -------------------------------
 func set_playable(is_playable: bool):

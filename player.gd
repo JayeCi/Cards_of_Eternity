@@ -6,7 +6,7 @@ const MOUSE_SENSITIVITY = 0.003
 
 @onready var cam: Camera3D = $Head/Camera3D
 @onready var head = $Head
-@onready var collection_ui: Control = $"../Card_Collection_GUI"
+@onready var collection_ui: Control = $"../../Card_Collection_GUI"
 @onready var dialogue_ui: Node = $"../DialogueUI"
 
 var rotation_x = 0.0

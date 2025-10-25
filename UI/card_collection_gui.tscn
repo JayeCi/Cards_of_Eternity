@@ -1,11 +1,13 @@
-[gd_scene load_steps=35 format=3 uid="uid://cv0hqr5q4w02b"]
+[gd_scene load_steps=66 format=3 uid="uid://cv0hqr5q4w02b"]
 
 [ext_resource type="Texture2D" uid="uid://i5686epsut3j" path="res://UI/Banner.png" id="1_4jpk6"]
 [ext_resource type="Script" uid="uid://srlpa0q17rnv" path="res://UI/card_collection_gui.gd" id="1_jm07a"]
 [ext_resource type="Texture2D" uid="uid://cp6ef7ogds3cj" path="res://UI/FIRE_EMBLEM.png" id="2_m5y4w"]
+[ext_resource type="Texture2D" uid="uid://ccsq4ujlcj6ps" path="res://UI/rotating_orbs.png" id="3_0dsxg"]
 [ext_resource type="Texture2D" uid="uid://bq6fn5ar8y44d" path="res://Cards/Utilities/CardModel/Border_TP_Edge.png" id="4_ypw0p"]
 [ext_resource type="LabelSettings" uid="uid://b2i0kf1b6wirm" path="res://UI/card_collection_gui.tres" id="5_jm07a"]
 [ext_resource type="AudioStream" uid="uid://cc0j6hlesvql6" path="res://Audio/Sound FX/Action Beep.mp3" id="5_m5y4w"]
+[ext_resource type="StyleBox" uid="uid://d1n0p73doly1m" path="res://UI/DeckBuilderPanel.tres" id="5_ypw0p"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_0dsxg"]
 texture = ExtResource("1_4jpk6")
@@ -17,6 +19,186 @@ axis_stretch_vertical = 1
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_uxg7g"]
 texture = SubResource("GradientTexture2D_2imwr")
 modulate_color = Color(0.019607844, 0.11764706, 0.22745098, 1)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2imwr"]
+atlas = ExtResource("3_0dsxg")
+region = Rect2(0, 128, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uxg7g"]
+atlas = ExtResource("3_0dsxg")
+region = Rect2(32, 128, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rs70i"]
+atlas = ExtResource("3_0dsxg")
+region = Rect2(64, 128, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_efr3b"]
+atlas = ExtResource("3_0dsxg")
+region = Rect2(96, 128, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_plkv2"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2imwr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uxg7g")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rs70i")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_efr3b")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8uuty"]
+atlas = ExtResource("3_0dsxg")
+region = Rect2(0, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mqaap"]
+atlas = ExtResource("3_0dsxg")
+region = Rect2(32, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_eyhh7"]
+atlas = ExtResource("3_0dsxg")
+region = Rect2(64, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_einng"]
+atlas = ExtResource("3_0dsxg")
+region = Rect2(96, 64, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_cwlg1"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8uuty")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mqaap")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_eyhh7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_einng")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4kqpn"]
+atlas = ExtResource("3_0dsxg")
+region = Rect2(32, 160, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dliht"]
+atlas = ExtResource("3_0dsxg")
+region = Rect2(64, 160, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_orjsm"]
+atlas = ExtResource("3_0dsxg")
+region = Rect2(96, 160, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ojd0a"]
+atlas = ExtResource("3_0dsxg")
+region = Rect2(0, 160, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_8v1qg"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4kqpn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dliht")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_orjsm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ojd0a")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dsl4r"]
+atlas = ExtResource("3_0dsxg")
+region = Rect2(0, 224, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lew7s"]
+atlas = ExtResource("3_0dsxg")
+region = Rect2(32, 224, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_c2p24"]
+atlas = ExtResource("3_0dsxg")
+region = Rect2(64, 224, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4l3ub"]
+atlas = ExtResource("3_0dsxg")
+region = Rect2(96, 224, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_ncur6"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dsl4r")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lew7s")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_c2p24")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4l3ub")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_k52l7"]
+atlas = ExtResource("3_0dsxg")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b8lqo"]
+atlas = ExtResource("3_0dsxg")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6p6yd"]
+atlas = ExtResource("3_0dsxg")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qupqu"]
+atlas = ExtResource("3_0dsxg")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_nteha"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_k52l7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_b8lqo")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6p6yd")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qupqu")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
 
 [sub_resource type="SystemFont" id="SystemFont_rs70i"]
 font_names = PackedStringArray("Tahoma")
@@ -45,6 +227,8 @@ shadow_color = Color(0, 0, 0, 0.752941)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jm07a"]
 bg_color = Color(0.007843138, 0, 0.10980392, 1)
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
 
 [sub_resource type="SystemFont" id="SystemFont_ypw0p"]
 subpixel_positioning = 0
@@ -138,13 +322,27 @@ fill_to = Vector2(0, 0)
 texture = SubResource("GradientTexture2D_uxg7g")
 modulate_color = Color(0.09049534, 0.13351178, 0.015899114, 1)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ypw0p"]
-bg_color = Color(0.10212857, 0.14283466, 0.020162946, 1)
-border_blend = true
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
+[sub_resource type="Gradient" id="Gradient_2imwr"]
+offsets = PackedFloat32Array(0.19491525, 0.6779661, 1)
+colors = PackedColorArray(0, 0, 0, 1, 0.5052632, 0.5052632, 0.5052632, 1, 1, 1, 1, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_uxg7g"]
+gradient = SubResource("Gradient_2imwr")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_efr3b"]
+texture = SubResource("GradientTexture1D_uxg7g")
+modulate_color = Color(0.15294118, 0.15294118, 0.15294118, 0.48235294)
+
+[sub_resource type="SystemFont" id="SystemFont_8uuty"]
+font_names = PackedStringArray("Tahoma")
+subpixel_positioning = 0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mqaap"]
+bg_color = Color(0.6, 0.6, 0.6, 0.16862746)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
 
 [node name="Card_Collection_GUI" type="Control"]
 layout_mode = 3
@@ -188,7 +386,48 @@ anchor_right = 1.0
 offset_bottom = 50.0
 grow_horizontal = 2
 
+[node name="ShadowBall" type="AnimatedSprite2D" parent="LeftPanel/CardName"]
+visible = false
+modulate = Color(0.7490196, 0.7490196, 0.7490196, 1)
+position = Vector2(24, 25)
+sprite_frames = SubResource("SpriteFrames_plkv2")
+autoplay = "default"
+frame_progress = 0.358672
+
+[node name="WaterBall" type="AnimatedSprite2D" parent="LeftPanel/CardName"]
+visible = false
+modulate = Color(0.40392157, 0.40392157, 0.40392157, 1)
+position = Vector2(24, 25)
+sprite_frames = SubResource("SpriteFrames_cwlg1")
+autoplay = "default"
+frame_progress = 0.41517124
+
+[node name="FireBall" type="AnimatedSprite2D" parent="LeftPanel/CardName"]
+visible = false
+modulate = Color(0.52156866, 0.13725491, 0, 1)
+position = Vector2(24, 25)
+sprite_frames = SubResource("SpriteFrames_8v1qg")
+autoplay = "default"
+frame_progress = 0.14228007
+
+[node name="WindBall" type="AnimatedSprite2D" parent="LeftPanel/CardName"]
+visible = false
+modulate = Color(0.6117647, 0.6117647, 0.6117647, 1)
+position = Vector2(24, 25)
+sprite_frames = SubResource("SpriteFrames_ncur6")
+autoplay = "default"
+frame_progress = 0.5321693
+
+[node name="EarthBall" type="AnimatedSprite2D" parent="LeftPanel/CardName"]
+visible = false
+modulate = Color(0.49411765, 0.30588236, 0.21568628, 1)
+position = Vector2(24, 25)
+sprite_frames = SubResource("SpriteFrames_nteha")
+autoplay = "default"
+frame_progress = 0.7274642
+
 [node name="Element" type="TextureRect" parent="LeftPanel/CardName"]
+visible = false
 modulate = Color(3.4615762, 0, 0, 1)
 custom_minimum_size = Vector2(50, 50)
 layout_mode = 2
@@ -237,7 +476,6 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -3.0
 offset_top = 50.0
 offset_bottom = -180.745
 grow_horizontal = 2
@@ -443,7 +681,6 @@ layout_mode = 2
 text = "X"
 
 [node name="CollectionPanel" type="Panel" parent="."]
-visible = false
 custom_minimum_size = Vector2(300, 640.745)
 layout_mode = 1
 anchors_preset = 15
@@ -471,6 +708,8 @@ horizontal_scroll_mode = 0
 
 [node name="GridContainer" type="GridContainer" parent="CollectionPanel/ScrollContainer"]
 layout_mode = 2
+size_flags_horizontal = 6
+size_flags_vertical = 6
 columns = 6
 
 [node name="LeaderPanel" type="Panel" parent="."]
@@ -505,6 +744,7 @@ layout_mode = 2
 columns = 6
 
 [node name="DeckPanel" type="Panel" parent="."]
+visible = false
 custom_minimum_size = Vector2(300, 640.745)
 layout_mode = 1
 anchors_preset = 15
@@ -520,72 +760,140 @@ size_flags_vertical = 4
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxTexture_rs70i")
 
-[node name="Collection" type="VBoxContainer" parent="DeckPanel"]
+[node name="Panel" type="Panel" parent="DeckPanel"]
+custom_minimum_size = Vector2(350, 0)
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
-offset_left = -4.0
-offset_top = 54.0
-offset_right = 423.0
+offset_left = 5.0
+offset_top = 55.0
+offset_right = 355.0
+offset_bottom = -3.0
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_efr3b")
+
+[node name="Collection" type="VBoxContainer" parent="DeckPanel/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Panel" type="Panel" parent="DeckPanel/Collection"]
-custom_minimum_size = Vector2(400, 25)
+[node name="Panel" type="Panel" parent="DeckPanel/Panel/Collection"]
+custom_minimum_size = Vector2(351.07, 25)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_ypw0p")
+size_flags_vertical = 0
+theme_override_styles/panel = ExtResource("5_ypw0p")
 
-[node name="CollectionLabel" type="Label" parent="DeckPanel/Collection/Panel"]
-layout_mode = 0
-offset_right = 427.0
-offset_bottom = 21.0
+[node name="CollectionLabel" type="Label" parent="DeckPanel/Panel/Collection/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1.5
+offset_right = 0.5
+grow_horizontal = 2
+grow_vertical = 2
 text = "Collection"
 label_settings = ExtResource("5_jm07a")
 horizontal_alignment = 1
 
-[node name="ScrollContainer" type="ScrollContainer" parent="DeckPanel/Collection"]
+[node name="SortDeck" type="Button" parent="DeckPanel/Panel/Collection/Panel/CollectionLabel"]
+custom_minimum_size = Vector2(100, 22)
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -11.0
+offset_right = 100.0
+offset_bottom = 11.0
+grow_vertical = 2
+size_flags_horizontal = 0
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = SubResource("SystemFont_8uuty")
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_mqaap")
+text = "Sort"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="DeckPanel/Panel/Collection"]
 layout_mode = 2
-size_flags_horizontal = 3
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 2
 
-[node name="CollectionGrid" type="GridContainer" parent="DeckPanel/Collection/ScrollContainer"]
+[node name="CollectionGrid" type="GridContainer" parent="DeckPanel/Panel/Collection/ScrollContainer"]
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 6
 size_flags_vertical = 3
 mouse_filter = 0
-columns = 3
+columns = 2
 
 [node name="Deck" type="VBoxContainer" parent="DeckPanel"]
-layout_mode = 1
-anchors_preset = 9
-anchor_bottom = 1.0
-offset_left = 419.0
-offset_top = 54.0
-offset_right = 837.0
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="DeckLabel" type="Label" parent="DeckPanel/Deck"]
-layout_mode = 2
-text = "Deck"
-label_settings = ExtResource("5_jm07a")
-horizontal_alignment = 1
-
-[node name="Label" type="Label" parent="DeckPanel/Deck/DeckLabel"]
 layout_mode = 1
 anchors_preset = 11
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -43.0
+offset_left = -478.0
+offset_top = 57.0
+offset_right = -5.0
+offset_bottom = -3.744995
 grow_horizontal = 0
 grow_vertical = 2
+mouse_filter = 2
+
+[node name="Panel" type="Panel" parent="DeckPanel/Deck"]
+custom_minimum_size = Vector2(447.385, 25)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = ExtResource("5_ypw0p")
+
+[node name="DeckLabel" type="Label" parent="DeckPanel/Deck/Panel"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -10.5
+offset_bottom = 10.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "Deck"
+label_settings = ExtResource("5_jm07a")
+horizontal_alignment = 1
+vertical_alignment = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="DeckPanel/Deck/Panel/DeckLabel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 2
+
+[node name="Label" type="Label" parent="DeckPanel/Deck/Panel/DeckLabel/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
 text = "10 / 10"
 label_settings = ExtResource("5_jm07a")
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="SortDeck" type="Button" parent="DeckPanel/Deck/Panel/DeckLabel/MarginContainer"]
+custom_minimum_size = Vector2(100, 22)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = SubResource("SystemFont_8uuty")
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_mqaap")
+text = "Sort"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="DeckPanel/Deck"]
 layout_mode = 2
@@ -595,8 +903,8 @@ horizontal_scroll_mode = 0
 
 [node name="DeckGrid" type="GridContainer" parent="DeckPanel/Deck/ScrollContainer"]
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
+size_flags_horizontal = 6
+size_flags_vertical = 2
 mouse_filter = 0
 columns = 3
 

@@ -39,8 +39,12 @@ func start_battle_at(_position: Vector3, npc: Node = null):
 
 	# ✅ Instantiate arena before connecting
 	active_battle = arena_scene.instantiate()
+	
 	add_child(active_battle)
-
+	if DeckManager and active_battle.has_method("set_player_deck"):
+		active_battle.set_player_deck(DeckManager.get_deck_carddatas())
+		
+		
 	# ✅ Now it exists, so we can safely connect
 	if not active_battle.battle_finished.is_connected(_on_battle_finished):
 		active_battle.battle_finished.connect(_on_battle_finished)

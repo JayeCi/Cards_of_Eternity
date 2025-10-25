@@ -1,10 +1,18 @@
 extends Control
 
 @onready var main_panel := $CollectionPanel/ScrollContainer/GridContainer
-@onready var deck_collection_grid: GridContainer = $DeckPanel/Collection/ScrollContainer/CollectionGrid
+@onready var deck_collection_grid: GridContainer = $DeckPanel/Panel/Collection/ScrollContainer/CollectionGrid
 @onready var deck_grid: GridContainer = $DeckPanel/Deck/ScrollContainer/DeckGrid
 @onready var sfx_action_beep: AudioStreamPlayer = $ActionBeep
 @onready var sort_button: Button = $Toolbar/ButtonRow2/SortButton
+@onready var shadow_ball: AnimatedSprite2D = $LeftPanel/CardName/ShadowBall
+@onready var water_ball: AnimatedSprite2D = $LeftPanel/CardName/WaterBall
+@onready var fire_ball: AnimatedSprite2D = $LeftPanel/CardName/FireBall
+@onready var wind_ball: AnimatedSprite2D = $LeftPanel/CardName/WindBall
+@onready var earth_ball: AnimatedSprite2D = $LeftPanel/CardName/EarthBall
+
+
+
 var _sort_mode := "name"
 var _sort_ascending := true
 
@@ -23,6 +31,7 @@ var art_texture_rect: TextureRect
 var art_border: TextureRect
 var displayed_cards := {}
 var player = null
+var _elem_to_ball := {}
 
 @onready var collection_panel: Panel = $CollectionPanel
 @onready var leader_panel: Panel = $LeaderPanel
@@ -43,7 +52,8 @@ func _ready():
 
 	# 🧩 Populate existing collection cards
 	_populate_existing_cards()
-
+	_refresh_deck_grid()
+	
 	player = get_tree().get_first_node_in_group("player")
 	if not player:
 		push_warning("[CollectionGUI] ⚠️ Player group not found.")
@@ -55,7 +65,15 @@ func _ready():
 		CardCollection.connect("card_added", Callable(self, "_on_card_added_signal"))
 	if not CardCollection.is_connected("card_count_changed", Callable(self, "_on_card_count_changed")):
 		CardCollection.connect("card_count_changed", Callable(self, "_on_card_count_changed"))
-
+		
+		_elem_to_ball = {
+		"fire":   fire_ball,
+		"water":  water_ball,
+		"earth":  earth_ball,
+		"wind":   wind_ball,
+		"shadow": shadow_ball,
+	}
+	_hide_all_element_balls()
 	# 🧾 Cache label nodes
 	card_name_label = left_panel.get_node_or_null("CardName/Name")
 	rarity_label = left_panel.get_node_or_null("CardName/Rarity")
@@ -69,7 +87,7 @@ func _ready():
 	art_texture_rect = left_panel.get_node_or_null("Panel/Art")
 	art_border = left_panel.get_node_or_null("Panel/Border")
 	_clear_left_panel()
-	
+
 	print("[CollectionGUI] ✅ Ready – drag/drop initialized.")
 
 # ==========================================================
@@ -113,25 +131,52 @@ func _move_card_to_deck(card_data: CardData):
 	if deck_grid.get_child_count() >= 10:
 		print("[DeckBuilder] ⚠️ Deck full!")
 		return
+
+	# prevent dupes in DeckManager
 	for child in deck_grid.get_children():
 		if child.card_data and child.card_data.id == card_data.id:
 			print("[DeckBuilder] ⚠️ Already in deck:", card_data.name)
 			return
 
-	var card_ui_scene := preload("res://UI/CardUI.tscn")
-	var new_card_ui: Control = card_ui_scene.instantiate()
-	new_card_ui.card_data = card_data
-	new_card_ui.refresh()
-	deck_grid.add_child(new_card_ui)
-	new_card_ui.connect("gui_input", Callable(self, "_on_card_clicked").bind(new_card_ui))
+	# ✅ only update data layer, then refresh UIs
+	if not DeckManager.add(card_data.id):
+		print("[DeckBuilder] ⚠️ Can't add:", card_data.name, "(deck full / not owned / copies capped)")
+		return
+
+	_refresh_deck_grid()           # rebuild deck list from DeckManager
+	_refresh_collection_counts()   # update xN left in collection
 
 func _move_card_to_collection(card_data: CardData):
+	# ✅ only update data layer, then refresh UIs
+	if not DeckManager.remove_one(card_data.id):
+		print("[DeckBuilder] ⚠️ Not in deck:", card_data.name)
+		return
+
+	_refresh_deck_grid()           # rebuild deck list from DeckManager
+	_refresh_collection_counts()   # show the copy returned to pool
+
+func _refresh_collection_counts():
+	for child in main_panel.get_children():
+		if "card_data" in child and child.card_data:
+			var left := DeckManager.remaining_available(child.card_data.id)
+			if child.has_method("set_quantity"):
+				child.set_quantity(left)  # show true remaining
+
+func _refresh_deck_grid():
+	for c in deck_grid.get_children():
+		c.queue_free()
+
 	var card_ui_scene := preload("res://UI/CardUI.tscn")
-	var new_card_ui: Control = card_ui_scene.instantiate()
-	new_card_ui.card_data = card_data
-	new_card_ui.refresh()
-	deck_collection_grid.add_child(new_card_ui)
-	new_card_ui.connect("gui_input", Callable(self, "_on_card_clicked").bind(new_card_ui))
+	for id in DeckManager.get_ids():
+		var data := CardCollection.get_card_data(id)
+		if not data: 
+			continue
+		var ui: Control = card_ui_scene.instantiate()
+		ui.card_data = data
+		ui.refresh()
+		deck_grid.add_child(ui)
+		ui.connect("gui_input", Callable(self, "_on_card_clicked").bind(ui))
+
 
 # ==========================================================
 # 🧩 ADD/REMOVE CARDS
@@ -152,6 +197,11 @@ func _add_card_to_gui(card_data: CardData):
 	var card_ui: Control = card_ui_scene.instantiate()
 	card_ui.card_data = card_data
 	card_ui.refresh()
+	
+		# show remaining copies available to add into deck
+	if card_ui.has_method("set_quantity"):
+		card_ui.set_quantity(DeckManager.remaining_available(card_data.id))
+		
 	main_panel.add_child(card_ui)
 
 	# Connect hover/click
@@ -215,7 +265,8 @@ func _update_left_panel(card_data: CardData, temporary := false):
 	if art_texture_rect and card_data.art:
 		art_texture_rect.texture = card_data.art
 	if art_border: art_border.visible = true
-
+	_update_left_panel_element(card_data)   # <- add this
+	
 func _clear_left_panel():
 	for label in [card_name_label, rarity_label, cost_label, atk_label, def_label, subtype_label, abilities_label, ability_desc_label, description_label]:
 		if label:
@@ -223,6 +274,64 @@ func _clear_left_panel():
 	if art_texture_rect:
 		art_texture_rect.texture = null
 	art_border.visible = false
+	_hide_all_element_balls()   
+	
+func _hide_all_element_balls() -> void:
+	for node in [_elem_to_ball.get("fire"), _elem_to_ball.get("water"), _elem_to_ball.get("earth"), _elem_to_ball.get("wind"), _elem_to_ball.get("shadow")]:
+		if node:
+			node.visible = false
+			if node.sprite_frames:
+				node.stop()
+
+func _update_left_panel_element(cd: CardData) -> void:
+	_hide_all_element_balls()
+	if cd == null:
+		return
+	var key := _resolve_element_key(cd)
+	if key == "":
+		return
+	var ball: AnimatedSprite2D = _elem_to_ball.get(key, null)
+	if ball:
+		ball.visible = true
+		if ball.sprite_frames:
+			if ball.sprite_frames.has_animation("default"):
+				ball.play("default")
+			else:
+				var names := ball.sprite_frames.get_animation_names()
+				if names.size() > 0:
+					ball.play(names[0])
+
+func _resolve_element_key(cd: CardData) -> String:
+	var e = null
+
+	# 1) direct property
+	if cd.has_method("get"):
+		e = cd.get("element")
+
+	# 2) custom getter
+	if e == null and cd.has_method("get_element"):
+		e = cd.get_element()
+
+	# 3) fallback: search in types
+	if e == null and cd.has_method("get"):
+		var types = cd.get("types")
+		if types is Array:
+			for t in types:
+				var tl := str(t).to_lower()
+				if _elem_to_ball.has(tl):
+					e = tl
+					break
+
+	if e == null:
+		return ""
+
+	# Normalize enum or string
+	if typeof(e) == TYPE_INT:
+		var enum_map := { 0:"fire", 1:"water", 2:"earth", 3:"wind", 4:"shadow" }
+		return enum_map.get(e, "")
+	else:
+		return str(e).to_lower()
+
 # ==========================================================
 # 🔢 SORTING
 # ==========================================================
@@ -320,6 +429,7 @@ func _on_leader_button_pressed() -> void:
 
 func _on_deck_button_pressed() -> void:
 	collection_panel.visible = false
+	sort_button.visible = false
 	deck_panel.visible = true
 	leader_panel.visible = false
 	main_panel_label.text = "Deck Builder"

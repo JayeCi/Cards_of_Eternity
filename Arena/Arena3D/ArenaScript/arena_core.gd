@@ -299,6 +299,9 @@ func _deferred_startup():
 	_set_phase(Phase.SUMMON_OR_MOVE)
 	_update_phase_ui()
 	
+func set_player_deck(arr: Array) -> void:
+	player_deck = arr.duplicate()
+	
 func refresh_tile_art_safe(pos: Vector2i):
 	if not units.has(pos): return
 	var u: UnitData = units[pos]
@@ -472,40 +475,47 @@ func regen_units_for_owner(owner: int, amount: int = 2) -> void:
 		card_details_ui.call("refresh_if_showing", card_details_ui.current_unit)
 
 func _build_decks() -> void:
-	# PLAYER
-	player_deck.clear()
-	var all_ids = CardCollection.get_all_cards()
-	for id in all_ids:
-		var count = CardCollection.get_card_count(id)
-		var card_data = CardCollection.get_card_data(id)
-		for i in range(count):            # ✅ fix loop
-			player_deck.append(card_data.duplicate())
-	player_deck.shuffle()
+	# 🔹 PLAYER: Respect injected deck. If empty, fall back once.
+	if player_deck.is_empty():
+		if DeckManager and DeckManager.size() > 0:
+			player_deck.clear()
+			for cd in DeckManager.get_deck_carddatas():
+				# duplicate to avoid shared instance mutations during battle
+				if cd:
+					player_deck.append(cd.duplicate())
+		else:
+			# (Optional) last-resort fallback to collection, if you still want it:
+			player_deck.clear()
+			var all_ids = CardCollection.get_all_cards()
+			for id in all_ids:
+				var count = 1
+				if CardCollection.has_method("get_card_count"):
+					count = int(CardCollection.get_card_count(id))
+				var card_data = CardCollection.get_card_data(id)
+				for i in range(count):
+					player_deck.append(card_data.duplicate())
 
-	# 🟥 ENEMY DECK — Auto-load all .tres from Monster + Spell folders
+	# 🔹 ENEMY: Auto-build from folders (as you already do)
 	enemy_deck.clear()
-
 	var enemy_folders = [
 		"res://Cards/Monster Cards",
 		"res://Cards/Spell Cards"
 	]
-
 	for folder_path in enemy_folders:
 		var dir := DirAccess.open(folder_path)
 		if not dir:
 			push_warning("⚠️ Missing folder: %s" % folder_path)
 			continue
-
 		for file_name in dir.get_files():
 			if file_name.ends_with(".tres"):
 				var path := "%s/%s" % [folder_path, file_name]
 				var card := ResourceLoader.load(path)
 				if card:
-					# You can tweak how many copies per card you want:
-					var copies := 5   # default — make 5 copies per card
+					var copies := 5
 					for i in range(copies):
 						enemy_deck.append(card.duplicate())
 
+	player_deck.shuffle()
 	enemy_deck.shuffle()
 
 	_log("✅ Decks built: Player=%d, Enemy=%d" % [player_deck.size(), enemy_deck.size()])
