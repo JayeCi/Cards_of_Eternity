@@ -88,21 +88,41 @@ func connect_mouse_signals():
 	connect("mouse_exited", Callable(self, "_on_mouse_exit"))
 	print("[CardUI] Signals connected for:", card_data.name if card_data else "Unknown Card")
 
+# ==========================================================
+# ✨ Hover Animation
+# ==========================================================
+@export var hover_scale := Vector2(1.1, 1.1)
+@export var hover_duration := 0.12
+@export var hover_glow_modulate := Color(1.2, 1.2, 1.2, 1.0)
 
-# -------------------------------
-# Hover behavior
-# -------------------------------
+var _hover_tween: Tween
+var _base_modulate := Color(1, 1, 1, 1)
+
 func _on_mouse_enter():
 	if is_hovering:
 		return
 	is_hovering = true
+	
+	_start_hover_animation(true)
 	emit_signal("request_show_zoom", card_data)
 
 func _on_mouse_exit():
 	if not is_hovering:
 		return
 	is_hovering = false
+	_start_hover_animation(false)
 	emit_signal("request_hide_zoom")
+
+func _start_hover_animation(entering: bool):
+	if _hover_tween:
+		_hover_tween.kill()
+	_hover_tween = create_tween()
+	if entering:
+		_hover_tween.tween_property(self, "scale", hover_scale, hover_duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		_hover_tween.parallel().tween_property(self, "modulate", hover_glow_modulate, hover_duration)
+	else:
+		_hover_tween.tween_property(self, "scale", Vector2.ONE, hover_duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+		_hover_tween.parallel().tween_property(self, "modulate", _base_modulate, hover_duration)
 
 
 # -------------------------------

@@ -1,0 +1,11 @@
+[gd_resource type="LabelSettings" load_steps=2 format=3 uid="uid://b2i0kf1b6wirm"]
+
+[sub_resource type="SystemFont" id="SystemFont_4fwpa"]
+font_names = PackedStringArray("Tahoma")
+
+[resource]
+font = SubResource("SystemFont_4fwpa")
+outline_size = 4
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 2
+shadow_color = Color(0, 0, 0, 0.88235295)

@@ -1,9 +1,11 @@
-[gd_scene load_steps=32 format=3 uid="uid://cv0hqr5q4w02b"]
+[gd_scene load_steps=35 format=3 uid="uid://cv0hqr5q4w02b"]
 
 [ext_resource type="Texture2D" uid="uid://i5686epsut3j" path="res://UI/Banner.png" id="1_4jpk6"]
 [ext_resource type="Script" uid="uid://srlpa0q17rnv" path="res://UI/card_collection_gui.gd" id="1_jm07a"]
 [ext_resource type="Texture2D" uid="uid://cp6ef7ogds3cj" path="res://UI/FIRE_EMBLEM.png" id="2_m5y4w"]
 [ext_resource type="Texture2D" uid="uid://bq6fn5ar8y44d" path="res://Cards/Utilities/CardModel/Border_TP_Edge.png" id="4_ypw0p"]
+[ext_resource type="LabelSettings" uid="uid://b2i0kf1b6wirm" path="res://UI/card_collection_gui.tres" id="5_jm07a"]
+[ext_resource type="AudioStream" uid="uid://cc0j6hlesvql6" path="res://Audio/Sound FX/Action Beep.mp3" id="5_m5y4w"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_0dsxg"]
 texture = ExtResource("1_4jpk6")
@@ -31,6 +33,7 @@ shadow_offset = Vector2(0.015, 1)
 
 [sub_resource type="SystemFont" id="SystemFont_plkv2"]
 font_names = PackedStringArray("Tahoma")
+subpixel_positioning = 0
 
 [sub_resource type="LabelSettings" id="LabelSettings_8uuty"]
 font = SubResource("SystemFont_plkv2")
@@ -56,6 +59,7 @@ shadow_color = Color(0, 0, 0, 0.57254905)
 
 [sub_resource type="SystemFont" id="SystemFont_uxg7g"]
 font_names = PackedStringArray("Centaur")
+subpixel_positioning = 0
 
 [sub_resource type="LabelSettings" id="LabelSettings_rs70i"]
 font = SubResource("SystemFont_uxg7g")
@@ -64,6 +68,7 @@ outline_color = Color(0, 0, 0, 1)
 
 [sub_resource type="SystemFont" id="SystemFont_jm07a"]
 font_names = PackedStringArray("Tahoma")
+subpixel_positioning = 0
 
 [sub_resource type="LabelSettings" id="LabelSettings_ypw0p"]
 font = SubResource("SystemFont_jm07a")
@@ -74,6 +79,7 @@ shadow_color = Color(0.73531705, 0.72749823, 0.14775354, 1)
 
 [sub_resource type="SystemFont" id="SystemFont_2imwr"]
 font_names = PackedStringArray("Tahoma")
+subpixel_positioning = 0
 
 [sub_resource type="LabelSettings" id="LabelSettings_jm07a"]
 font = SubResource("SystemFont_2imwr")
@@ -85,6 +91,7 @@ shadow_color = Color(0, 0, 0, 1)
 [sub_resource type="SystemFont" id="SystemFont_0dsxg"]
 font_names = PackedStringArray("Sans-Serif")
 font_italic = true
+subpixel_positioning = 0
 
 [sub_resource type="LabelSettings" id="LabelSettings_2imwr"]
 font = SubResource("SystemFont_0dsxg")
@@ -130,6 +137,14 @@ fill_to = Vector2(0, 0)
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_rs70i"]
 texture = SubResource("GradientTexture2D_uxg7g")
 modulate_color = Color(0.09049534, 0.13351178, 0.015899114, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ypw0p"]
+bg_color = Color(0.10212857, 0.14283466, 0.020162946, 1)
+border_blend = true
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
 
 [node name="Card_Collection_GUI" type="Control"]
 layout_mode = 3
@@ -412,10 +427,10 @@ offset_bottom = 20.0
 grow_horizontal = 0
 grow_vertical = 2
 
-[node name="Button" type="Button" parent="Toolbar/ButtonRow2"]
+[node name="SortButton" type="Button" parent="Toolbar/ButtonRow2"]
 custom_minimum_size = Vector2(40, 15)
 layout_mode = 2
-text = "?"
+text = "Sort"
 
 [node name="Button3" type="Button" parent="Toolbar/ButtonRow2"]
 custom_minimum_size = Vector2(40, 15)
@@ -428,6 +443,7 @@ layout_mode = 2
 text = "X"
 
 [node name="CollectionPanel" type="Panel" parent="."]
+visible = false
 custom_minimum_size = Vector2(300, 640.745)
 layout_mode = 1
 anchors_preset = 15
@@ -474,8 +490,21 @@ size_flags_vertical = 4
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxTexture_ypw0p")
 
+[node name="ScrollContainer" type="ScrollContainer" parent="LeaderPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 55.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="GridContainer" type="GridContainer" parent="LeaderPanel/ScrollContainer"]
+layout_mode = 2
+columns = 6
+
 [node name="DeckPanel" type="Panel" parent="."]
-visible = false
 custom_minimum_size = Vector2(300, 640.745)
 layout_mode = 1
 anchors_preset = 15
@@ -500,9 +529,18 @@ offset_top = 54.0
 offset_right = 423.0
 grow_vertical = 2
 
-[node name="CollectionLabel" type="Label" parent="DeckPanel/Collection"]
+[node name="Panel" type="Panel" parent="DeckPanel/Collection"]
+custom_minimum_size = Vector2(400, 25)
 layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_ypw0p")
+
+[node name="CollectionLabel" type="Label" parent="DeckPanel/Collection/Panel"]
+layout_mode = 0
+offset_right = 427.0
+offset_bottom = 21.0
 text = "Collection"
+label_settings = ExtResource("5_jm07a")
 horizontal_alignment = 1
 
 [node name="ScrollContainer" type="ScrollContainer" parent="DeckPanel/Collection"]
@@ -532,7 +570,22 @@ mouse_filter = 2
 [node name="DeckLabel" type="Label" parent="DeckPanel/Deck"]
 layout_mode = 2
 text = "Deck"
+label_settings = ExtResource("5_jm07a")
 horizontal_alignment = 1
+
+[node name="Label" type="Label" parent="DeckPanel/Deck/DeckLabel"]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -43.0
+grow_horizontal = 0
+grow_vertical = 2
+text = "10 / 10"
+label_settings = ExtResource("5_jm07a")
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="ScrollContainer" type="ScrollContainer" parent="DeckPanel/Deck"]
 layout_mode = 2
@@ -546,6 +599,12 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 mouse_filter = 0
 columns = 3
+
+[node name="ActionBeep" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5_m5y4w")
+volume_db = -16.22
+pitch_scale = 1.26
+bus = &"SFX"
 
 [connection signal="pressed" from="Toolbar/ButtonRow1/Leader_button" to="." method="_on_leader_button_pressed"]
 [connection signal="pressed" from="Toolbar/ButtonRow1/Deck_button" to="." method="_on_deck_button_pressed"]

@@ -11,6 +11,7 @@ element = "Earth"
 preferred_terrain = "STONE"
 id = "00025"
 name = "Yorg Archer"
+description = "A swift and sinewy beast born of endless dunes, the Yorg Archer rides the desert winds with predatory grace. Its hooves strike like thunder across the sands, loosing arrows that shimmer with heat and mirage. Where others see emptiness, the Yorg sees the hunt — its vision unblurred by dust or distance. Once a guardian of forgotten oases, it now roams the wastes as a silent executioner, loosing death before its enemies even glimpse the gleam of its bow."
 art = ExtResource("1_yqklh")
 atk = 15
 def = 10

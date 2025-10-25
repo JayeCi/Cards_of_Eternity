@@ -3,6 +3,10 @@ extends Control
 @onready var main_panel := $CollectionPanel/ScrollContainer/GridContainer
 @onready var deck_collection_grid: GridContainer = $DeckPanel/Collection/ScrollContainer/CollectionGrid
 @onready var deck_grid: GridContainer = $DeckPanel/Deck/ScrollContainer/DeckGrid
+@onready var sfx_action_beep: AudioStreamPlayer = $ActionBeep
+@onready var sort_button: Button = $Toolbar/ButtonRow2/SortButton
+var _sort_mode := "name"
+var _sort_ascending := true
 
 
 var left_panel: Control
@@ -28,6 +32,8 @@ var player = null
 var selected_card: CardData = null
 
 func _ready():
+	if sort_button:
+		sort_button.pressed.connect(_on_sort_button_pressed)
 
 	# 🧩 Setup layout references
 	left_panel = get_node_or_null("LeftPanel")
@@ -81,6 +87,10 @@ func _on_card_unhovered(card_data: CardData = null):
 		_clear_left_panel()
 
 func _on_card_clicked(event: InputEvent, card_ui):
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if sfx_action_beep:
+			sfx_action_beep.play()
+
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var parent_grid = card_ui.get_parent()
 
@@ -198,7 +208,7 @@ func _update_left_panel(card_data: CardData, temporary := false):
 	if atk_label: atk_label.text = str(card_data.atk)
 	if def_label: def_label.text = str(card_data.def)
 	if subtype_label:
-		subtype_label.text = ", ".join(card_data.types) if card_data.types.size() > 0 else "-"
+		subtype_label.text = " / ".join(card_data.types) if card_data.types.size() > 0 else "-"
 	if abilities_label: abilities_label.text = card_data.get_ability_name()
 	if ability_desc_label: ability_desc_label.text = card_data.get_ability_description()
 	if description_label: description_label.text = card_data.description
@@ -213,6 +223,91 @@ func _clear_left_panel():
 	if art_texture_rect:
 		art_texture_rect.texture = null
 	art_border.visible = false
+# ==========================================================
+# 🔢 SORTING
+# ==========================================================
+func _on_sort_button_pressed() -> void:
+	# Cycle sort mode each click
+	match _sort_mode:
+		"name":
+			_sort_mode = "rarity"
+		"rarity":
+			_sort_mode = "cost"
+		"cost":
+			_sort_mode = "name"
+			_sort_ascending = not _sort_ascending  # flip direction at end
+
+	sort_button.text = "Sort: %s %s" % [
+		_sort_mode.capitalize(),
+		"↑" if _sort_ascending else "↓"
+	]
+
+	_refresh_sorted_collection()
+
+
+func _refresh_sorted_collection() -> void:
+	var all_cards: Array = []
+	for child in main_panel.get_children():
+		if "card_data" in child:
+			all_cards.append(child.card_data)
+
+	# Sort based on selected mode
+	all_cards.sort_custom(Callable(self, "_compare_cards"))
+
+	# Clear all existing card nodes
+	for child in main_panel.get_children():
+		child.queue_free()
+
+	# Rebuild sorted grid
+	for card_data in all_cards:
+		var card_ui_scene := preload("res://UI/CardUI.tscn")
+		var card_ui: Control = card_ui_scene.instantiate()
+		card_ui.card_data = card_data
+		card_ui.refresh()
+		main_panel.add_child(card_ui)
+
+		card_ui.connect("gui_input", Callable(self, "_on_card_clicked").bind(card_ui))
+		card_ui.connect("request_show_zoom", Callable(self, "_on_card_hovered"))
+		card_ui.connect("request_hide_zoom", Callable(self, "_on_card_unhovered"))
+
+func _compare_cards(a: CardData, b: CardData) -> bool:
+	var result := 0
+
+	match _sort_mode:
+		"name":
+			result = a.name.naturalnocasecmp_to(b.name)
+
+		"rarity":
+			# Map rarity names or enum values to an order index
+			var rarity_order := {
+				"common": 0,
+				"uncommon": 1,
+				"rare": 2,
+				"epic": 3,
+				"legendary": 4,
+				"mythic": 5
+			}
+
+			var a_val := 0
+			var b_val := 0
+
+			# Handle both string and enum cases safely
+			if typeof(a.rarity) == TYPE_STRING:
+				a_val = rarity_order.get(a.rarity.to_lower(), 0)
+			else:
+				a_val = int(a.rarity)
+
+			if typeof(b.rarity) == TYPE_STRING:
+				b_val = rarity_order.get(b.rarity.to_lower(), 0)
+			else:
+				b_val = int(b.rarity)
+
+			result = a_val - b_val
+
+		"cost":
+			result = int(a.cost) - int(b.cost)
+
+	return result < 0 if _sort_ascending else result > 0
 
 # ==========================================================
 # 🧭 PANEL SWITCHING
