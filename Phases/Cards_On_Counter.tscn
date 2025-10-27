@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3 uid="uid://b833xm88hcbax"]
+
+[ext_resource type="PackedScene" uid="uid://c0qulfm2v00bp" path="res://Downloaded/Decor/trading_card.tscn" id="1_jql26"]
+
+[node name="Cards" type="Node3D"]
+
+[node name="Trading Card" parent="." instance=ExtResource("1_jql26")]
+transform = Transform3D(2.312146e-08, -1.0299182e-07, -0.52895755, 0.52895755, -2.3121464e-08, 2.3121464e-08, -2.3121473e-08, -0.52895755, 1.0299182e-07, -5.1668587, 1.231169, -5.0363235)
+
+[node name="Trading Card2" parent="." instance=ExtResource("1_jql26")]
+transform = Transform3D(8.3255364e-10, -0.36438486, -0.38343146, 0.52895755, -2.3121464e-08, 2.3121464e-08, -3.268809e-08, -0.38343146, 0.36438486, -5.4612923, 1.231169, -5.0363235)
+
+[node name="Trading Card3" parent="." instance=ExtResource("1_jql26")]
+transform = Transform3D(2.8725e-08, 0.14986898, -0.50728226, 0.52895755, -2.3121464e-08, 2.3121464e-08, -1.5623028e-08, -0.50728226, -0.14986898, -5.2808723, 1.231169, -4.748356)

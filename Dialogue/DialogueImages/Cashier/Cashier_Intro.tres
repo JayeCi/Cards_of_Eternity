@@ -1,0 +1,45 @@
+[gd_resource type="Resource" script_class="DialogueScript" load_steps=9 format=3 uid="uid://d110hlrna2w24"]
+
+[ext_resource type="Script" uid="uid://dbiae2rlq18dl" path="res://Dialogue/dialogue_page.gd" id="1_7ufqn"]
+[ext_resource type="Script" uid="uid://bibvvn18gdbao" path="res://Dialogue/dialoguescript.gd" id="2_oe1sa"]
+[ext_resource type="Script" uid="uid://dk3qs7y52r5yr" path="res://Dialogue/DialogueLine.gd" id="2_qxli4"]
+
+[sub_resource type="Resource" id="Resource_dh2up"]
+script = ExtResource("2_qxli4")
+text = "Hey there! Welcome in."
+sfx = null
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"
+
+[sub_resource type="Resource" id="Resource_lwdbh"]
+script = ExtResource("2_qxli4")
+text = "You don't look from around here."
+sfx = null
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"
+
+[sub_resource type="Resource" id="Resource_clhil"]
+script = ExtResource("2_qxli4")
+text = "You're not with the inspector association are you...?"
+sfx = null
+portrait_key = "concerned"
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"
+
+[sub_resource type="Resource" id="Resource_oe1sa"]
+script = ExtResource("2_qxli4")
+end_after_line = true
+text = "Good, my name is Tim. This is my shop!"
+sfx = null
+portrait_key = "happy"
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"
+
+[sub_resource type="Resource" id="Resource_lyo2t"]
+script = ExtResource("1_7ufqn")
+speaker = "Cashier Tim"
+portrait_key = "neutral"
+lines = Array[ExtResource("2_qxli4")]([SubResource("Resource_dh2up"), SubResource("Resource_lwdbh"), SubResource("Resource_clhil"), SubResource("Resource_oe1sa"), null])
+metadata/_custom_type_script = "uid://dbiae2rlq18dl"
+
+[resource]
+script = ExtResource("2_oe1sa")
+npc_name = "Cashier Tim"
+pages = Array[ExtResource("1_7ufqn")]([SubResource("Resource_lyo2t")])
+metadata/_custom_type_script = "uid://bibvvn18gdbao"

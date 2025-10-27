@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="DialoguePortraits" load_steps=6 format=3 uid="uid://doovcay5cs7u7"]
+
+[ext_resource type="Texture2D" uid="uid://c3pg04bwt1dr6" path="res://Dialogue/DialogueImages/Cashier/Cashier.png" id="1_sf5lx"]
+[ext_resource type="Texture2D" uid="uid://db10q5nkwca6a" path="res://Dialogue/DialogueImages/Cashier/Cashier_Happy.png" id="2_aybhn"]
+[ext_resource type="Script" uid="uid://bb4ffrqwhdwfc" path="res://Dialogue/DialoguePortaits.gd" id="2_w38gn"]
+[ext_resource type="Texture2D" uid="uid://i1vwkmlnfx4x" path="res://Dialogue/DialogueImages/Cashier/Cashier_Concerned.png" id="3_dny8q"]
+[ext_resource type="Texture2D" uid="uid://c0df6t0cemowg" path="res://Dialogue/DialogueImages/Cashier/Cashier_Proud.png" id="4_hydg3"]
+
+[resource]
+script = ExtResource("2_w38gn")
+faces = Dictionary[StringName, Texture2D]({
+&"concerned": ExtResource("3_dny8q"),
+&"happy": ExtResource("2_aybhn"),
+&"neutral": ExtResource("1_sf5lx"),
+&"proud": ExtResource("4_hydg3")
+})
+metadata/_custom_type_script = "uid://bb4ffrqwhdwfc"

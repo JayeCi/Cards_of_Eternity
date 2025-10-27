@@ -4,11 +4,14 @@
 [ext_resource type="Texture2D" uid="uid://cl0iui7leetm" path="res://Images/Fish.jpg" id="2_n6n1o"]
 
 [sub_resource type="SystemFont" id="SystemFont_ox5q6"]
-font_names = PackedStringArray("Arial Rounded MT")
+font_names = PackedStringArray("Tahoma")
 subpixel_positioning = 0
 
 [sub_resource type="LabelSettings" id="LabelSettings_31xxr"]
 font = SubResource("SystemFont_ox5q6")
+font_size = 14
+outline_size = 4
+outline_color = Color(0, 0, 0, 1)
 
 [node name="CardPickupPopup" type="Control"]
 layout_mode = 3
@@ -26,10 +29,12 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer"]
+custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
+theme_override_constants/separation = 2
 
 [node name="TextureRect" type="TextureRect" parent="PanelContainer/HBoxContainer"]
-custom_minimum_size = Vector2(64, 64)
+custom_minimum_size = Vector2(43.9, 64)
 layout_mode = 2
 texture = ExtResource("2_n6n1o")
 expand_mode = 1
@@ -42,9 +47,13 @@ alignment = 1
 
 [node name="Card Name" type="Label" parent="PanelContainer/HBoxContainer/VBoxContainer"]
 layout_mode = 2
+size_flags_vertical = 3
 text = "Name"
 label_settings = SubResource("LabelSettings_31xxr")
+horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="Rarity" type="Label" parent="PanelContainer/HBoxContainer/VBoxContainer"]
 layout_mode = 2
-text = "1"
+text = "Common"
+horizontal_alignment = 1

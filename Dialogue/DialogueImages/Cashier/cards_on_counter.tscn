@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3 uid="uid://blvk7q0w7opov"]
+
+[ext_resource type="PackedScene" uid="uid://b833xm88hcbax" path="res://Phases/Cards_On_Counter.tscn" id="1_hvb1y"]
+
+[node name="CardsOnCounter" type="Node3D"]
+
+[node name="Cards" parent="." instance=ExtResource("1_hvb1y")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.293165, -1.2578614, 4.8827457)
+
+[node name="Area3D" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
+
+[node name="Label3D" type="Label3D" parent="."]

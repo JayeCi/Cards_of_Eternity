@@ -164,6 +164,7 @@ var selected_pos := Vector2i(-1,-1)
 var dragging_card: CardData = null
 var hovered_tile: Node3D = null
 var _cache := {}
+
 # Turn bookkeeping
 var acted_this_turn := {} # {UnitData: true}
 

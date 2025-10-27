@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="DialoguePage" load_steps=7 format=3 uid="uid://bj6afdbsh71mf"]
+
+[ext_resource type="Script" uid="uid://dk3qs7y52r5yr" path="res://Dialogue/DialogueLine.gd" id="1_nbgto"]
+[ext_resource type="Resource" uid="uid://jdsm1rlyir6j" path="res://Dialogue/DialogueImages/Cashier/Dialogue/Cashier_Welcome.tres" id="2_qoilu"]
+[ext_resource type="Resource" uid="uid://cy6bphg1hmabp" path="res://Dialogue/DialogueImages/Cashier/Dialogue/Cashier_From around here.tres" id="3_kb7k0"]
+[ext_resource type="Resource" uid="uid://4ch7t5h6d0p3" path="res://Dialogue/DialogueImages/Cashier/Dialogue/Cashier_Introduction.tres" id="4_n4yde"]
+[ext_resource type="Resource" uid="uid://dkpwr0ai2tapf" path="res://Dialogue/DialogueImages/Cashier/Dialogue/Cashier_Introduction_2.tres" id="5_w5n3y"]
+[ext_resource type="Script" uid="uid://1ttes5jxi1rl" path="res://Dialogue/DialoguePage.gd" id="6_twnw4"]
+
+[resource]
+script = ExtResource("6_twnw4")
+title = "Introduction"
+lines = Array[ExtResource("1_nbgto")]([ExtResource("2_qoilu"), ExtResource("3_kb7k0"), ExtResource("4_n4yde"), ExtResource("5_w5n3y")])
+metadata/_custom_type_script = "uid://1ttes5jxi1rl"

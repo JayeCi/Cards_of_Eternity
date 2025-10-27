@@ -1,0 +1,43 @@
+[gd_scene load_steps=9 format=3 uid="uid://clq78g8rpnya5"]
+
+[ext_resource type="Script" uid="uid://dguloiu2qx6c1" path="res://World/cardsoncounter.gd" id="1_03sdw"]
+[ext_resource type="PackedScene" uid="uid://b833xm88hcbax" path="res://Phases/Cards_On_Counter.tscn" id="1_qokos"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="3_xkjh8"]
+[ext_resource type="Resource" uid="uid://jne2skd0eidt" path="res://Cards/Monster Cards/Dirt.tres" id="4_h7enr"]
+[ext_resource type="Resource" uid="uid://bw1sf4rk66258" path="res://Cards/Monster Cards/Goblin.tres" id="5_efse7"]
+[ext_resource type="Resource" uid="uid://b8phdygianthw" path="res://Cards/Spell Cards/Fireball.tres" id="6_c3w3n"]
+[ext_resource type="AudioStream" uid="uid://d115kwrryugwj" path="res://Audio/Sound FX/Pickup.mp3" id="7_h7enr"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_03sdw"]
+size = Vector3(2.7158203, 1.1777344, 2.5058594)
+
+[node name="CardsOnCounter" type="Node3D"]
+
+[node name="Cards" parent="." instance=ExtResource("1_qokos")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.293165, -1.2578614, 4.8827457)
+
+[node name="Area3D" type="Area3D" parent="."]
+monitoring = false
+monitorable = false
+script = ExtResource("1_03sdw")
+interact_action = null
+prompt_path = NodePath("../Prompt")
+card_mesh = NodePath("../Cards")
+cards_to_give = Array[ExtResource("3_xkjh8")]([ExtResource("4_h7enr"), ExtResource("5_efse7"), ExtResource("6_c3w3n")])
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
+shape = SubResource("BoxShape3D_03sdw")
+
+[node name="Prompt" type="Label3D" parent="."]
+
+[node name="PickupSound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("7_h7enr")
+volume_db = -32.215
+bus = &"SFX"
+
+[node name="NewPickupSound" type="AudioStreamPlayer3D" parent="."]
+volume_db = -32.215
+bus = &"SFX"
+
+[editable path="Cards"]
+[editable path="Cards/Trading Card"]

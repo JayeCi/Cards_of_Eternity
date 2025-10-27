@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="DialogueLine" load_steps=2 format=3 uid="uid://jdsm1rlyir6j"]
+
+[ext_resource type="Script" uid="uid://dk3qs7y52r5yr" path="res://Dialogue/DialogueLine.gd" id="1_a47q8"]
+
+[resource]
+script = ExtResource("1_a47q8")
+speaker = "Cashier Tim"
+text = "Welcome in!"
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"

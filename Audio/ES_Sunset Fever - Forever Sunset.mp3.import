@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://drm75qutqh8pe"
+path="res://.godot/imported/ES_Sunset Fever - Forever Sunset.mp3-34e69b9f63f7511223fedc4c7811d88b.mp3str"
+
+[deps]
+
+source_file="res://Audio/ES_Sunset Fever - Forever Sunset.mp3"
+dest_files=["res://.godot/imported/ES_Sunset Fever - Forever Sunset.mp3-34e69b9f63f7511223fedc4c7811d88b.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

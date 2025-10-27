@@ -10,6 +10,7 @@ extends Control
 @onready var fire_ball: AnimatedSprite2D = $LeftPanel/CardName/FireBall
 @onready var wind_ball: AnimatedSprite2D = $LeftPanel/CardName/WindBall
 @onready var earth_ball: AnimatedSprite2D = $LeftPanel/CardName/EarthBall
+@onready var deck_count: Label = $DeckPanel/Deck/Panel/DeckLabel/MarginContainer/DeckCount
 
 
 
@@ -128,32 +129,60 @@ func _on_card_clicked(event: InputEvent, card_ui):
 		_update_left_panel(selected_card)
 
 func _move_card_to_deck(card_data: CardData):
-	if deck_grid.get_child_count() >= 10:
+	var current_count := deck_grid.get_child_count()
+	if current_count >= 10:
 		print("[DeckBuilder] ⚠️ Deck full!")
+		if sfx_action_beep:
+			sfx_action_beep.play()
 		return
 
-	# prevent dupes in DeckManager
 	for child in deck_grid.get_children():
 		if child.card_data and child.card_data.id == card_data.id:
 			print("[DeckBuilder] ⚠️ Already in deck:", card_data.name)
 			return
 
-	# ✅ only update data layer, then refresh UIs
 	if not DeckManager.add(card_data.id):
 		print("[DeckBuilder] ⚠️ Can't add:", card_data.name, "(deck full / not owned / copies capped)")
 		return
 
-	_refresh_deck_grid()           # rebuild deck list from DeckManager
-	_refresh_collection_counts()   # update xN left in collection
+	_refresh_deck_grid()
+	_refresh_collection_counts()
+	_update_deck_count()
+func _on_card_count_changed(card_id: String, new_count: int) -> void:
+	# Loop over both main collection and deck collection grids
+	for grid in [main_panel, deck_collection_grid]:
+		for child in grid.get_children():
+			if "card_data" in child and child.card_data and child.card_data.id == card_id:
+				if child.has_method("set_quantity"):
+					child.set_quantity(new_count)
+					print("[CollectionGUI] 🔄 Updated quantity for ", card_id, " → ", new_count, " Total")
 
 func _move_card_to_collection(card_data: CardData):
-	# ✅ only update data layer, then refresh UIs
 	if not DeckManager.remove_one(card_data.id):
 		print("[DeckBuilder] ⚠️ Not in deck:", card_data.name)
 		return
 
-	_refresh_deck_grid()           # rebuild deck list from DeckManager
-	_refresh_collection_counts()   # show the copy returned to pool
+	if not displayed_cards.has(card_data.id):
+		_add_card_to_gui(card_data)
+	else:
+		_refresh_collection_counts()
+
+	_refresh_deck_grid()
+
+	var card_ui_scene := preload("res://UI/CardUI.tscn")
+	var deck_card_ui: Control = card_ui_scene.instantiate()
+	deck_card_ui.card_data = card_data
+	deck_card_ui.refresh()
+	deck_collection_grid.add_child(deck_card_ui)
+
+	deck_card_ui.connect("gui_input", Callable(self, "_on_card_clicked").bind(deck_card_ui))
+	deck_card_ui.connect("request_show_zoom", Callable(self, "_on_card_hovered"))
+	deck_card_ui.connect("request_hide_zoom", Callable(self, "_on_card_unhovered"))
+
+	print("[DeckBuilder] 🔁 Returned", card_data.name, "to deck collection grid")
+
+	# ✅ FIX: update deck count after removing
+	_update_deck_count()
 
 func _refresh_collection_counts():
 	for child in main_panel.get_children():
@@ -162,6 +191,21 @@ func _refresh_collection_counts():
 			if child.has_method("set_quantity"):
 				child.set_quantity(left)  # show true remaining
 
+func _update_deck_count() -> void:
+	await get_tree().process_frame  # wait 1 frame so UI and DeckManager sync
+
+	var ids := DeckManager.get_ids()
+	var count := ids.size()
+	deck_count.text = "%d / 10" % count
+
+	# Optional color feedback (green → yellow → red)
+	if count >= 10:
+		deck_count.add_theme_color_override("font_color", Color(1, 0.3, 0.3))  # red
+	elif count >= 7:
+		deck_count.add_theme_color_override("font_color", Color(1, 0.8, 0.3))  # yellow
+	else:
+		deck_count.add_theme_color_override("font_color", Color(0.8, 1, 0.8))  # green
+
 func _refresh_deck_grid():
 	for c in deck_grid.get_children():
 		c.queue_free()
@@ -169,7 +213,7 @@ func _refresh_deck_grid():
 	var card_ui_scene := preload("res://UI/CardUI.tscn")
 	for id in DeckManager.get_ids():
 		var data := CardCollection.get_card_data(id)
-		if not data: 
+		if not data:
 			continue
 		var ui: Control = card_ui_scene.instantiate()
 		ui.card_data = data
@@ -177,6 +221,8 @@ func _refresh_deck_grid():
 		deck_grid.add_child(ui)
 		ui.connect("gui_input", Callable(self, "_on_card_clicked").bind(ui))
 
+	# ✅ update label after rebuilding
+	_update_deck_count()
 
 # ==========================================================
 # 🧩 ADD/REMOVE CARDS
@@ -225,7 +271,7 @@ func _add_card_to_gui(card_data: CardData):
 func _on_card_added_signal(card: CardData, count: int):
 	if displayed_cards.has(card.id):
 		return
-	print("[CollectionGUI] ➕ Card added:", card.name, "x", count)
+	print("[CollectionGUI] ➕ Card added:", card.name, " x ", count)
 	_add_card_to_gui(card)
 
 func _on_card_return_requested(card_data: CardData):

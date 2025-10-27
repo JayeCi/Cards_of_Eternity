@@ -66,7 +66,7 @@ func _ready():
 	_all_balls = [fire_ball, water_ball, earth_ball, wind_ball, shadow_ball]  # ✅ typed
 	_hide_all_element_balls()
 	_update_element_ball()
-	print("[CardUI] Ready:", card_data.name if card_data else "No data")
+	#print("[CardUI] Ready:", card_data.name if card_data else "No data")
 
 # -------------------------------
 # Utility: Recursively clone LabelSettings for each Label
@@ -104,7 +104,7 @@ func _gui_input(event: InputEvent) -> void:
 func connect_mouse_signals():
 	connect("mouse_entered", Callable(self, "_on_mouse_enter"))
 	connect("mouse_exited", Callable(self, "_on_mouse_exit"))
-	print("[CardUI] Signals connected for:", card_data.name if card_data else "Unknown Card")
+	#print("[CardUI] Signals connected for:", card_data.name if card_data else "Unknown Card")
 
 # ==========================================================
 # ✨ Hover Animation
@@ -173,7 +173,7 @@ func refresh():
 	if atk and def:
 		atk.visible = true
 		def.visible = true
-	print("[CardUI] Refreshing card:", card_data.name)
+	#print("[CardUI] Refreshing card:", card_data.name)
 	if name_label: name_label.text = card_data.name
 	if art: art.texture = card_data.art
 	if cost: cost.text = str(card_data.cost)

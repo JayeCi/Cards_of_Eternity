@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="DialogueLines" load_steps=2 format=3 uid="uid://qeigx4hagrsq"]
+
+[ext_resource type="Script" uid="uid://dk3qs7y52r5yr" path="res://Dialogue/DialogueLine.gd" id="1_krytp"]
+
+[resource]
+script = ExtResource("1_krytp")
+lines = Array[String](["Welcome in!", "You don't look from around here.", "My name is Tim! This is my Quick shop", "Whats your name?", "...", "Don't talk much do you..."])
+speaker = "Cashier Tim"
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"

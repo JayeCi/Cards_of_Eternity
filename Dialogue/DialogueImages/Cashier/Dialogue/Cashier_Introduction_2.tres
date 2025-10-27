@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="DialogueLine" load_steps=2 format=3 uid="uid://dkpwr0ai2tapf"]
+
+[ext_resource type="Script" uid="uid://dk3qs7y52r5yr" path="res://Dialogue/DialogueLine.gd" id="1_310m1"]
+
+[resource]
+script = ExtResource("1_310m1")
+speaker = "Cashier Tim"
+text = "But a card shop first!"
+expression = "happy"
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"

@@ -2,7 +2,7 @@ extends Area3D
 
 @export var pickup_distance: float = 2.0
 @export var pickup_key: String = "interact"
-@export var popup_manager_path: NodePath = NodePath("../CanvasLayer/CardPickupManager")
+@onready var card_pickup_manager: Control = $"../../Card_Description_Popup/CardPickupManager"
 @onready var pickup_sound: AudioStreamPlayer3D = $PickupSound
 @onready var new_pickup_sound: AudioStreamPlayer3D = $NewPickupSound
 @onready var mesh: MeshInstance3D = $MeshInstance3D
@@ -75,9 +75,9 @@ func _pickup() -> void:
 	emit_signal("card_picked", card_data)
 
 	# 🔸 Show popup
-	var manager: Node = get_node_or_null(popup_manager_path)
+	var manager = card_pickup_manager
 	if manager and manager.has_method("show_card"):
-		manager.show_card(card_data)
+		manager._show_single_card(card_data)
 
 	# 🔸 Play correct sound
 	if is_new:
@@ -127,4 +127,4 @@ func _randomize_card() -> void:
 
 	var random_file = card_files[randi() % card_files.size()]
 	card_data = ResourceLoader.load("res://Cards/Monster Cards/" + random_file)
-	print("Spawned CardPickup with random card:", card_data.name)
+	print("Spawned Card Pickup with random card: ", card_data.name)

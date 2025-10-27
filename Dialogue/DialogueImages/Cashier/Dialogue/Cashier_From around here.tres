@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="DialogueLine" load_steps=2 format=3 uid="uid://cy6bphg1hmabp"]
+
+[ext_resource type="Script" uid="uid://dk3qs7y52r5yr" path="res://Dialogue/DialogueLine.gd" id="1_cwjcu"]
+
+[resource]
+script = ExtResource("1_cwjcu")
+speaker = "Cashier Tim"
+text = "You don't look from around here."
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"
