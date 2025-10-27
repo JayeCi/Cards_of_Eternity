@@ -16,6 +16,7 @@ signal card_picked_up(cards: Array[CardData])
 var _picked_up := false
 
 func _ready() -> void:
+	
 	if _prompt:
 		_prompt.visible = false
 	add_child(_audio)

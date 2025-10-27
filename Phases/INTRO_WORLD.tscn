@@ -1,4 +1,4 @@
-[gd_scene load_steps=83 format=4 uid="uid://cop0pbl47e5hg"]
+[gd_scene load_steps=85 format=4 uid="uid://cop0pbl47e5hg"]
 
 [ext_resource type="PackedScene" uid="uid://dj3eff86fnta5" path="res://Downloaded/Trees/Tree_1.tscn" id="1_3k304"]
 [ext_resource type="PackedScene" uid="uid://cv0hqr5q4w02b" path="res://UI/card_collection_gui.tscn" id="1_6gjxx"]
@@ -103,7 +103,7 @@ metadata/_custom_type_script = "uid://dk3qs7y52r5yr"
 
 [sub_resource type="Resource" id="Resource_dnod1"]
 script = ExtResource("12_wn2dn")
-speaker = "Cashier Tim"
+speaker = "Cashier"
 portrait_key = "happy"
 lines = Array[ExtResource("12_875ti")]([SubResource("Resource_sqaok"), SubResource("Resource_wn2dn"), SubResource("Resource_ml0x8")])
 metadata/_custom_type_script = "uid://dbiae2rlq18dl"
@@ -182,6 +182,20 @@ portrait_key = "proud"
 lines = Array[ExtResource("12_875ti")]([SubResource("Resource_lk0oh"), SubResource("Resource_hgrjg"), SubResource("Resource_ojarg"), SubResource("Resource_lcn6i"), SubResource("Resource_8dfl2"), SubResource("Resource_esa3u"), SubResource("Resource_1eshp"), SubResource("Resource_4u7mm"), SubResource("Resource_itvu8")])
 metadata/_custom_type_script = "uid://dbiae2rlq18dl"
 
+[sub_resource type="Resource" id="Resource_kmjgh"]
+script = ExtResource("12_875ti")
+end_after_line = true
+text = "You gonna grab those cards? Those kids left them, so they're yours for free."
+sfx = null
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"
+
+[sub_resource type="Resource" id="Resource_pqshf"]
+script = ExtResource("12_wn2dn")
+speaker = "Cashier Tim"
+portrait_key = "neutral"
+lines = Array[ExtResource("12_875ti")]([SubResource("Resource_kmjgh")])
+metadata/_custom_type_script = "uid://dbiae2rlq18dl"
+
 [sub_resource type="Resource" id="Resource_wen08"]
 script = ExtResource("12_875ti")
 text = "Nice! Whatcha get?"
@@ -205,7 +219,7 @@ metadata/_custom_type_script = "uid://dbiae2rlq18dl"
 [sub_resource type="Resource" id="Resource_5ddmv"]
 script = ExtResource("14_lk0oh")
 npc_name = "Cashier Tim"
-pages = Array[ExtResource("12_wn2dn")]([SubResource("Resource_dnod1"), SubResource("Resource_bibij"), SubResource("Resource_s4cj3")])
+pages = Array[ExtResource("12_wn2dn")]([SubResource("Resource_dnod1"), SubResource("Resource_bibij"), SubResource("Resource_pqshf"), SubResource("Resource_s4cj3")])
 metadata/_custom_type_script = "uid://bibvvn18gdbao"
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_aicr3"]
@@ -293,10 +307,11 @@ transform = Transform3D(0.6510988, 0, -1.8751788, 0, 1.985, 0, 1.8751788, 0, 0.6
 [node name="Root Scene8" parent="NPCS" instance=ExtResource("37_5donw")]
 transform = Transform3D(-1.250789, 0, -1.5413474, 0, 1.985, 0, 1.5413474, 0, -1.250789, -66.37451, 0.46127233, -53.70064)
 
-[node name="Cashier" parent="NPCS" groups=["npcs"] instance=ExtResource("9_i1s8a")]
+[node name="Cashier" parent="NPCS" node_paths=PackedStringArray("cards_on_counter") groups=["npcs"] instance=ExtResource("9_i1s8a")]
 transform = Transform3D(-1.6810857, 0, -0.64339006, 0, 1.8, 0, 0.64339006, 0, -1.6810857, -52.852722, 0.6337235, -58.085953)
 portraits = ExtResource("11_3ir1u")
 loop_last_page = false
+cards_on_counter = NodePath("../../Gas_Station_Store/CardsOnCounter/Area3D")
 dialogue_script = SubResource("Resource_5ddmv")
 
 [node name="Map" type="Node3D" parent="."]
@@ -1641,7 +1656,13 @@ transform = Transform3D(-4.371141e-08, 0, 1, 0, 1, 0, -1, 0, -4.371141e-08, -3.3
 [node name="CardsOnCounter" parent="Gas_Station_Store" instance=ExtResource("49_wn2dn")]
 transform = Transform3D(0.9999999, 0, -1.4210855e-14, 0, 0.9999999, 0, 1.4210855e-14, 0, 0.9999999, -5.405407, 1.2355211, -4.6332054)
 
+[node name="Area3D" parent="Gas_Station_Store/CardsOnCounter" index="1"]
+interact_action = &"interact"
+
 [node name="Card" parent="Gas_Station_Store" instance=ExtResource("50_lk0oh")]
 transform = Transform3D(-1.732, 0, -2.6152472e-07, 0, 1.732, 0, 2.6152472e-07, 0, -1.732, -6.466751, -0.15908426, 1.0553513)
 
 [editable path="Card_Description_Popup"]
+[editable path="Gas_Station_Store/CardsOnCounter"]
+[editable path="Gas_Station_Store/CardsOnCounter/Cards"]
+[editable path="Gas_Station_Store/CardsOnCounter/Cards/Trading Card"]

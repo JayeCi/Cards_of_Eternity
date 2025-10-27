@@ -17,6 +17,7 @@ var _is_revealing := false
 var _full_text := ""
 var _char_index := 0
 var _accum_time := 0.0
+var _choices_active := false
 
 func _ready() -> void:
 	set_anchors_preset(PRESET_FULL_RECT)
@@ -28,6 +29,7 @@ func _ready() -> void:
 	
 func show_choices(choices: Array[String]) -> void:
 	choices_container.visible = true
+	_choices_active = true  
 	for c in choices:
 		var btn := choice_button_a.duplicate()
 		btn.visible = true
@@ -97,13 +99,8 @@ func show_line(line: DialogueLine, page: DialoguePage = null) -> void:
 func _process(delta: float) -> void:
 	if not _is_revealing:
 		return
+		
 
-	# 🟢 Skip instantly if player presses continue
-	if Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("ui_accept"):
-		text_label.visible_characters = -1
-		_is_revealing = false
-		set_process(false)
-		return
 
 	# ✍️ Normal typewriter reveal
 	_accum_time += delta
@@ -116,20 +113,36 @@ func _process(delta: float) -> void:
 			text_label.visible_characters = -1
 			_is_revealing = false
 			set_process(false)
+			
+	if _choices_active:
+		return
+				
+	# 🟢 Skip instantly if player presses continue
+	if Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("ui_accept"):
+		text_label.visible_characters = -1
+		_is_revealing = false
+		set_process(false)
+		return
 
 func _on_choice_pressed(choice_text: String) -> void:
 	print("[DialogueUI] Player chose:", choice_text)
 	choices_container.visible = false
+	_choices_active = false  
 	for child in choices_container.get_children():
 		if child != choice_button_a:
 			child.queue_free()
 	emit_signal("request_continue", choice_text)
+
 
 # ---------------------------------------------------------
 # Called when player presses "continue"
 # (only works once the text is fully revealed)
 # ---------------------------------------------------------
 func on_player_pressed_continue() -> void:
+	if _choices_active:
+		print("[DialogueUI] Continue ignored: choices active.")
+		return
+
 	if _is_revealing:
 		print("[DialogueUI] Continue ignored: still revealing text.")
 		return
