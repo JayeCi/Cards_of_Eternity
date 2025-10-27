@@ -1,6 +1,7 @@
-[gd_scene load_steps=85 format=4 uid="uid://cop0pbl47e5hg"]
+[gd_scene load_steps=86 format=4 uid="uid://cop0pbl47e5hg"]
 
 [ext_resource type="PackedScene" uid="uid://dj3eff86fnta5" path="res://Downloaded/Trees/Tree_1.tscn" id="1_3k304"]
+[ext_resource type="Texture2D" uid="uid://bgdpr2y6d5sii" path="res://Images/hay_bales_2k.exr" id="1_5ddmv"]
 [ext_resource type="PackedScene" uid="uid://cv0hqr5q4w02b" path="res://UI/card_collection_gui.tscn" id="1_6gjxx"]
 [ext_resource type="PackedScene" uid="uid://bemh6okuv88np" path="res://UI/taskbar.tscn" id="1_sqaok"]
 [ext_resource type="PackedScene" uid="uid://de6gwgsbmpf3y" path="res://Phases/Card_Description_Popup.tscn" id="2_aicr3"]
@@ -53,33 +54,25 @@
 [ext_resource type="AudioStream" uid="uid://drm75qutqh8pe" path="res://Audio/ES_Sunset Fever - Forever Sunset.mp3" id="50_dnod1"]
 [ext_resource type="PackedScene" uid="uid://4ftlpnnxlo53" path="res://Cards/Utilities/cardpickup.tscn" id="50_lk0oh"]
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_u78lj"]
-sky_top_color = Color(0.007778549, 0.01140905, 0.017903144, 1)
-sky_horizon_color = Color(0, 0, 0, 1)
-sky_curve = 0.022297567
-ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
-sun_curve = 0.6892185
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_5ddmv"]
+panorama = ExtResource("1_5ddmv")
 
-[sub_resource type="Sky" id="Sky_rk63j"]
-sky_material = SubResource("ProceduralSkyMaterial_u78lj")
+[sub_resource type="Sky" id="Sky_hgrjg"]
+sky_material = SubResource("PanoramaSkyMaterial_5ddmv")
 
-[sub_resource type="Environment" id="Environment_8rh0k"]
+[sub_resource type="Environment" id="Environment_bibij"]
 background_mode = 2
-sky = SubResource("Sky_rk63j")
-tonemap_mode = 2
+sky = SubResource("Sky_hgrjg")
 ssr_enabled = true
 ssao_enabled = true
 ssil_enabled = true
 glow_enabled = true
-fog_mode = 1
-fog_light_energy = 0.31
-fog_density = 0.957
-fog_aerial_perspective = 0.301
-fog_sky_affect = 0.129
+glow_normalized = true
 volumetric_fog_enabled = true
-volumetric_fog_density = 0.0392
-volumetric_fog_emission = Color(0.033853278, 0.033853278, 0.033853274, 1)
-volumetric_fog_sky_affect = 0.591
+volumetric_fog_density = 0.0402
+volumetric_fog_albedo = Color(1, 1, 0.8745098, 1)
+volumetric_fog_anisotropy = -0.66
+volumetric_fog_sky_affect = 0.361
 
 [sub_resource type="Resource" id="Resource_sqaok"]
 script = ExtResource("12_875ti")
@@ -267,6 +260,14 @@ size = Vector3(0.57684326, 3.204834, 3.7843018)
 
 [node name="Node3D" type="Node3D"]
 
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 246.3282, 0)
+shadow_enabled = true
+shadow_blur = 0.775
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_bibij")
+
 [node name="Taskbar" parent="." instance=ExtResource("1_sqaok")]
 mouse_filter = 1
 
@@ -277,15 +278,6 @@ mouse_filter = 2
 visible = false
 
 [node name="Card_Description_Popup" parent="." instance=ExtResource("2_aicr3")]
-
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment_8rh0k")
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 54.806885, 0, 0)
-light_indirect_energy = 1.33
-shadow_enabled = true
-sky_mode = 2
 
 [node name="Player" parent="." instance=ExtResource("7_rk63j")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60.83298, 2.1231225, -60.818977)
@@ -1661,6 +1653,10 @@ interact_action = &"interact"
 
 [node name="Card" parent="Gas_Station_Store" instance=ExtResource("50_lk0oh")]
 transform = Transform3D(-1.732, 0, -2.6152472e-07, 0, 1.732, 0, 2.6152472e-07, 0, -1.732, -6.466751, -0.15908426, 1.0553513)
+
+[node name="Ceiling Light" parent="." instance=ExtResource("39_6fif0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56.574238, 6.3306804, -66.13824)
+enable_flicker = false
 
 [editable path="Card_Description_Popup"]
 [editable path="Gas_Station_Store/CardsOnCounter"]

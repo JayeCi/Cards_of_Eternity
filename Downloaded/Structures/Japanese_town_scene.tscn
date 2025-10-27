@@ -1,0 +1,201 @@
+[gd_scene load_steps=35 format=3 uid="uid://ca2j1i8slihhw"]
+
+[ext_resource type="PackedScene" uid="uid://do46l6tuy3bmo" path="res://Downloaded/Structures/japanese_town.tscn" id="1_s81qo"]
+[ext_resource type="PackedScene" uid="uid://bemh6okuv88np" path="res://UI/taskbar.tscn" id="2_3gmp2"]
+[ext_resource type="PackedScene" uid="uid://cv0hqr5q4w02b" path="res://UI/card_collection_gui.tscn" id="3_l45to"]
+[ext_resource type="PackedScene" uid="uid://dlnjhpppr6qcv" path="res://Dialogue/dialogue_ui.tscn" id="4_ojhan"]
+[ext_resource type="PackedScene" uid="uid://de6gwgsbmpf3y" path="res://Phases/Card_Description_Popup.tscn" id="5_kenh0"]
+[ext_resource type="PackedScene" uid="uid://8eemhx56fscd" path="res://player.tscn" id="6_o53uc"]
+[ext_resource type="PackedScene" uid="uid://b6x1ra6bhocwm" path="res://Downloaded/Entities/hoodie.tscn" id="7_3gmp2"]
+[ext_resource type="Resource" uid="uid://doovcay5cs7u7" path="res://Dialogue/DialogueImages/Cashier/Dialogue/Cashier_Portraits.tres" id="8_ojhan"]
+[ext_resource type="Script" uid="uid://dbiae2rlq18dl" path="res://Dialogue/dialogue_page.gd" id="9_o53uc"]
+[ext_resource type="Script" uid="uid://dk3qs7y52r5yr" path="res://Dialogue/DialogueLine.gd" id="10_4yb35"]
+[ext_resource type="Script" uid="uid://bibvvn18gdbao" path="res://Dialogue/dialoguescript.gd" id="11_pdgyp"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_4yb35"]
+sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+
+[sub_resource type="Sky" id="Sky_pdgyp"]
+sky_material = SubResource("ProceduralSkyMaterial_4yb35")
+
+[sub_resource type="Environment" id="Environment_b4xw5"]
+background_mode = 2
+sky = SubResource("Sky_pdgyp")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="Resource" id="Resource_sqaok"]
+script = ExtResource("10_4yb35")
+text = "Hey there! Welcome in."
+sfx = null
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"
+
+[sub_resource type="Resource" id="Resource_wn2dn"]
+script = ExtResource("10_4yb35")
+text = "You don't look like you're from around here."
+sfx = null
+portrait_key = "neutral"
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"
+
+[sub_resource type="Resource" id="Resource_ml0x8"]
+script = ExtResource("10_4yb35")
+text = "You're not some inspector or something... right?"
+sfx = null
+portrait_key = "concerned"
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"
+
+[sub_resource type="Resource" id="Resource_dnod1"]
+script = ExtResource("9_o53uc")
+speaker = "Cashier"
+portrait_key = "happy"
+lines = Array[ExtResource("10_4yb35")]([SubResource("Resource_sqaok"), SubResource("Resource_wn2dn"), SubResource("Resource_ml0x8")])
+metadata/_custom_type_script = "uid://dbiae2rlq18dl"
+
+[sub_resource type="Resource" id="Resource_lk0oh"]
+script = ExtResource("10_4yb35")
+text = "My name is Tim! This is my shop. It may seem like a gas station to you, but don't be so naive."
+sfx = null
+portrait_key = "proud"
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"
+
+[sub_resource type="Resource" id="Resource_hgrjg"]
+script = ExtResource("10_4yb35")
+text = "Cuz' you're standing in the future greatest game shop in the world!"
+sfx = null
+portrait_key = "happy"
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"
+
+[sub_resource type="Resource" id="Resource_ojarg"]
+script = ExtResource("10_4yb35")
+text = "You play right?"
+sfx = null
+portrait_key = "happy"
+choices = Array[String](["Play what?", "Of course"])
+next_indices = Array[int]([3, 7])
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"
+
+[sub_resource type="Resource" id="Resource_lcn6i"]
+script = ExtResource("10_4yb35")
+text = "What?!?!"
+sfx = null
+portrait_key = "concerned"
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"
+
+[sub_resource type="Resource" id="Resource_8dfl2"]
+script = ExtResource("10_4yb35")
+text = "What do you mean play what?!?!"
+sfx = null
+portrait_key = "concerned"
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"
+
+[sub_resource type="Resource" id="Resource_esa3u"]
+script = ExtResource("10_4yb35")
+text = "Cards of Eternity? Only the worlds hottest card / board game being played right now!"
+sfx = null
+portrait_key = "proud"
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"
+
+[sub_resource type="Resource" id="Resource_1eshp"]
+script = ExtResource("10_4yb35")
+end_after_line = true
+text = "Im almost ashamed to have you in here... look over there. Some kids left some common cards on the counter. Go grab them, it'll get you started."
+sfx = null
+portrait_key = "neutral"
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"
+
+[sub_resource type="Resource" id="Resource_4u7mm"]
+script = ExtResource("10_4yb35")
+text = "That's what I like to hear! We should definetely battle some time. It would be a blast..."
+sfx = null
+portrait_key = "happy"
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"
+
+[sub_resource type="Resource" id="Resource_itvu8"]
+script = ExtResource("10_4yb35")
+end_after_line = true
+text = "Hey you see that over there on my counter? Looks like some kids left some common cards. They're yours if you want!"
+sfx = null
+portrait_key = "proud"
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"
+
+[sub_resource type="Resource" id="Resource_bibij"]
+script = ExtResource("9_o53uc")
+speaker = "Cashier Tim"
+portrait_key = "proud"
+lines = Array[ExtResource("10_4yb35")]([SubResource("Resource_lk0oh"), SubResource("Resource_hgrjg"), SubResource("Resource_ojarg"), SubResource("Resource_lcn6i"), SubResource("Resource_8dfl2"), SubResource("Resource_esa3u"), SubResource("Resource_1eshp"), SubResource("Resource_4u7mm"), SubResource("Resource_itvu8")])
+metadata/_custom_type_script = "uid://dbiae2rlq18dl"
+
+[sub_resource type="Resource" id="Resource_kmjgh"]
+script = ExtResource("10_4yb35")
+end_after_line = true
+text = "You gonna grab those cards? Those kids left them, so they're yours for free."
+sfx = null
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"
+
+[sub_resource type="Resource" id="Resource_pqshf"]
+script = ExtResource("9_o53uc")
+speaker = "Cashier Tim"
+portrait_key = "neutral"
+lines = Array[ExtResource("10_4yb35")]([SubResource("Resource_kmjgh")])
+metadata/_custom_type_script = "uid://dbiae2rlq18dl"
+
+[sub_resource type="Resource" id="Resource_wen08"]
+script = ExtResource("10_4yb35")
+text = "Nice! Whatcha get?"
+sfx = null
+portrait_key = "concerned"
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"
+
+[sub_resource type="Resource" id="Resource_omin2"]
+script = ExtResource("10_4yb35")
+text = "Oh you don't know how to see the cards you just picked up? Just open your collection with [TAB]"
+sfx = null
+metadata/_custom_type_script = "uid://dk3qs7y52r5yr"
+
+[sub_resource type="Resource" id="Resource_s4cj3"]
+script = ExtResource("9_o53uc")
+speaker = "Cashier Tim"
+portrait_key = "neutral"
+lines = Array[ExtResource("10_4yb35")]([SubResource("Resource_wen08"), SubResource("Resource_omin2")])
+metadata/_custom_type_script = "uid://dbiae2rlq18dl"
+
+[sub_resource type="Resource" id="Resource_b4xw5"]
+script = ExtResource("11_pdgyp")
+npc_name = "Cashier Tim"
+pages = Array[ExtResource("9_o53uc")]([SubResource("Resource_dnod1"), SubResource("Resource_bibij"), SubResource("Resource_pqshf"), SubResource("Resource_s4cj3")])
+metadata/_custom_type_script = "uid://bibvvn18gdbao"
+
+[node name="Main" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_b4xw5")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Japanese_Town" parent="." instance=ExtResource("1_s81qo")]
+transform = Transform3D(50, 0, 0, 0, 50, 0, 0, 0, 50, 0, 0, 0)
+
+[node name="Taskbar" parent="." instance=ExtResource("2_3gmp2")]
+mouse_filter = 1
+
+[node name="Card_Collection_GUI" parent="." instance=ExtResource("3_l45to")]
+mouse_filter = 2
+
+[node name="DialogueUI" parent="." instance=ExtResource("4_ojhan")]
+visible = false
+
+[node name="Card_Description_Popup" parent="." instance=ExtResource("5_kenh0")]
+
+[node name="Player" parent="." instance=ExtResource("6_o53uc")]
+transform = Transform3D(0.77, 0, 0, 0, 0.77, 0, 0, 0, 0.77, 0, 1.1659558, 0)
+
+[node name="Root Scene" parent="." instance=ExtResource("7_3gmp2")]
+transform = Transform3D(1.2018567, 0, -1.0561916, 0, 1.6, 0, 1.0561916, 0, 1.2018567, 12.303871, -0.71007186, -16.8956)
+portraits = ExtResource("8_ojhan")
+dialogue_script = SubResource("Resource_b4xw5")
+
+[editable path="Japanese_Town"]
+[editable path="Card_Description_Popup"]
