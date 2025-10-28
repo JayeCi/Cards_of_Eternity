@@ -1,4 +1,4 @@
-[gd_scene load_steps=28 format=4 uid="uid://b0mrl7osoahqg"]
+[gd_scene load_steps=25 format=4 uid="uid://b0mrl7osoahqg"]
 
 [ext_resource type="PackedScene" uid="uid://8eemhx56fscd" path="res://player.tscn" id="1_1bd20"]
 [ext_resource type="Script" uid="uid://bs3prbmyy3oly" path="res://Phases/main.gd" id="1_4sm75"]
@@ -15,9 +15,6 @@
 [ext_resource type="PackedScene" uid="uid://berfhel3pcdsp" path="res://Downloaded/Entities/Rat.tscn" id="12_78xcr"]
 [ext_resource type="AudioStream" uid="uid://djx6vxpo2ibaj" path="res://Audio/Sound FX/droning.mp3" id="13_tyqmw"]
 [ext_resource type="PackedScene" uid="uid://dbn58l2hyiqty" path="res://Downloaded/Decor/Stool.tscn" id="14_gech2"]
-[ext_resource type="PackedScene" uid="uid://d4gg3wsfmcld4" path="res://Entities/Sci Fi Character.tscn" id="15_q0kgl"]
-[ext_resource type="Resource" uid="uid://d0ie67kaq5j1g" path="res://Dialogue/Ivory_Intro.tres" id="18_548ak"]
-[ext_resource type="Resource" uid="uid://db12dqomxtqsy" path="res://Dialogue/Ivory_Post.tres" id="19_uikla"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_vdkhp"]
 sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
@@ -421,7 +418,6 @@ transform = Transform3D(-0.230474, 0, 0.973078, 0, 1, 0, -0.973078, 0, -0.230474
 
 [node name="Card24" parent="." instance=ExtResource("6_it1pc")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.107558, -0.465662, 13.62307)
-popup_manager_path = NodePath("../Card_Description_Popup/CardPickupManager")
 
 [node name="Rat" parent="." instance=ExtResource("12_78xcr")]
 transform = Transform3D(0.0511428, 0, 0, 0, 0.0511428, 0, 0, 0, 0.0511428, 1.33017, 0.150583, 5.55467)
@@ -433,10 +429,5 @@ autoplay = true
 
 [node name="Stool" parent="." instance=ExtResource("14_gech2")]
 transform = Transform3D(1.28901, 0, 0, 0, 1.28901, 0, 0, 0, 1.28901, 2.2156, 0.1217, 13.8851)
-
-[node name="NPC_1" parent="." instance=ExtResource("15_q0kgl")]
-transform = Transform3D(0.447887, 0, -0.689079, 0, 0.821847, 0, 0.689079, 0, 0.447887, 2.17042, 0.1217, 13.1898)
-dialogue_data = ExtResource("18_548ak")
-post_battle_dialogue = ExtResource("19_uikla")
 
 [editable path="Card_Description_Popup"]
