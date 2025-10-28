@@ -1,0 +1,11 @@
+[gd_resource type="LabelSettings" load_steps=2 format=3 uid="uid://c0vp22la4t2u1"]
+
+[sub_resource type="SystemFont" id="SystemFont_f8jwg"]
+font_names = PackedStringArray("Century Gothic")
+
+[resource]
+font = SubResource("SystemFont_f8jwg")
+outline_size = 1
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 5
+shadow_color = Color(0, 0, 0, 1)

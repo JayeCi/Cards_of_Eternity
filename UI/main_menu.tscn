@@ -1,14 +1,10 @@
-[gd_scene load_steps=9 format=3 uid="uid://cnirerbyp4a6f"]
+[gd_scene load_steps=10 format=3 uid="uid://cnirerbyp4a6f"]
 
 [ext_resource type="Script" uid="uid://btfhwg5xl8rw4" path="res://UI/main_menu.gd" id="1_tk8dj"]
 [ext_resource type="Texture2D" uid="uid://bnt2b723up3yk" path="res://Images/summer.png" id="2_d8nwk"]
-[ext_resource type="Texture2D" uid="uid://f7pymirktyn1" path="res://Images/cards_of_eternity.png" id="2_tk8dj"]
-
-[sub_resource type="LabelSettings" id="LabelSettings_4cwpn"]
-outline_size = 4
-outline_color = Color(0, 0, 0, 1)
-shadow_size = 3
-shadow_color = Color(0, 0, 0, 0.77254903)
+[ext_resource type="Texture2D" uid="uid://cxfl0k6le8rkl" path="res://Images/Cards_Of_Eternity_Logo.png" id="3_d8nwk"]
+[ext_resource type="Texture2D" uid="uid://du1401htgmf0a" path="res://UI/ButtonPanel (3).png" id="4_f40uw"]
+[ext_resource type="LabelSettings" uid="uid://c0vp22la4t2u1" path="res://UI/main_menu_text.tres" id="5_8ctay"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_d8nwk"]
 font_size = 10
@@ -32,7 +28,7 @@ tracks/0/keys = {
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("LogoContainer/GameLogo:modulate")
+tracks/1/path = NodePath("GameLogo:modulate")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
@@ -44,11 +40,11 @@ tracks/1/keys = {
 tracks/2/type = "value"
 tracks/2/imported = false
 tracks/2/enabled = true
-tracks/2/path = NodePath("LogoContainer/Subtitle:modulate")
+tracks/2/path = NodePath("ButtonContainer:modulate")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(1.47, 2),
+"times": PackedFloat32Array(2, 3),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
@@ -56,14 +52,14 @@ tracks/2/keys = {
 tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
-tracks/3/path = NodePath("ButtonContainer:modulate")
+tracks/3/path = NodePath("GameLogo:size")
 tracks/3/interp = 1
 tracks/3/loop_wrap = true
 tracks/3/keys = {
-"times": PackedFloat32Array(2, 3),
-"transitions": PackedFloat32Array(1, 1),
+"times": PackedFloat32Array(1.02),
+"transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+"values": [Vector2(300, 300)]
 }
 
 [sub_resource type="Animation" id="Animation_8ctay"]
@@ -83,7 +79,7 @@ tracks/0/keys = {
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("LogoContainer/GameLogo:modulate")
+tracks/1/path = NodePath("GameLogo:modulate")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
@@ -95,7 +91,7 @@ tracks/1/keys = {
 tracks/2/type = "value"
 tracks/2/imported = false
 tracks/2/enabled = true
-tracks/2/path = NodePath("LogoContainer/Subtitle:modulate")
+tracks/2/path = NodePath("ButtonContainer:modulate")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
@@ -107,14 +103,14 @@ tracks/2/keys = {
 tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
-tracks/3/path = NodePath("ButtonContainer:modulate")
+tracks/3/path = NodePath("GameLogo:size")
 tracks/3/interp = 1
 tracks/3/loop_wrap = true
 tracks/3/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Color(1, 1, 1, 0)]
+"values": [Vector2(300, 300)]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_ev3b6"]
@@ -143,30 +139,18 @@ grow_vertical = 2
 texture = ExtResource("2_d8nwk")
 expand_mode = 1
 
-[node name="LogoContainer" type="VBoxContainer" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="GameLogo" type="TextureRect" parent="LogoContainer"]
+[node name="GameLogo" type="TextureRect" parent="."]
 modulate = Color(1, 1, 1, 0)
 custom_minimum_size = Vector2(300, 300)
-layout_mode = 2
+layout_mode = 0
+offset_left = 426.0
+offset_right = 726.0
+offset_bottom = 300.0
 size_flags_horizontal = 4
 size_flags_vertical = 0
-texture = ExtResource("2_tk8dj")
+texture = ExtResource("3_d8nwk")
 expand_mode = 1
 stretch_mode = 4
-
-[node name="Subtitle" type="Label" parent="LogoContainer"]
-modulate = Color(1, 1, 1, 0)
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 0
-label_settings = SubResource("LabelSettings_4cwpn")
 
 [node name="ButtonContainer" type="VBoxContainer" parent="."]
 modulate = Color(1, 1, 1, 0)
@@ -178,46 +162,155 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -100.0
-offset_top = -32.0
+offset_top = -46.0
 offset_right = 100.0
-offset_bottom = 218.0
+offset_bottom = 270.0
 grow_horizontal = 2
 grow_vertical = 2
+pivot_offset = Vector2(100, 158)
 
-[node name="PlayButton" type="Button" parent="ButtonContainer"]
+[node name="PlayButton" type="TextureButton" parent="ButtonContainer"]
+custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 size_flags_vertical = 3
+toggle_mode = true
+texture_normal = ExtResource("4_f40uw")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="ButtonContainer/PlayButton"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -16.5
+offset_top = -11.5
+offset_right = 16.5
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
 text = "Play"
+label_settings = ExtResource("5_8ctay")
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="ContinueButton" type="Button" parent="ButtonContainer"]
+[node name="ContinueButton" type="TextureButton" parent="ButtonContainer"]
+custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 size_flags_vertical = 3
+texture_normal = ExtResource("4_f40uw")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="Label" type="Label" parent="ButtonContainer/ContinueButton"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -36.0
+offset_top = -11.5
+offset_right = 36.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
 text = "Continue"
+label_settings = ExtResource("5_8ctay")
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="CollectionButton" type="Button" parent="ButtonContainer"]
+[node name="CollectionButton" type="TextureButton" parent="ButtonContainer"]
+custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 size_flags_vertical = 3
+texture_normal = ExtResource("4_f40uw")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="Label" type="Label" parent="ButtonContainer/CollectionButton"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -40.0
+offset_top = -11.5
+offset_right = 40.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
 text = "Collection"
+label_settings = ExtResource("5_8ctay")
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="OptionsButton" type="Button" parent="ButtonContainer"]
+[node name="OptionsButton" type="TextureButton" parent="ButtonContainer"]
+custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 size_flags_vertical = 3
+texture_normal = ExtResource("4_f40uw")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="Label" type="Label" parent="ButtonContainer/OptionsButton"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -30.0
+offset_top = -11.5
+offset_right = 30.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
 text = "Options"
+label_settings = ExtResource("5_8ctay")
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="ExitButton" type="Button" parent="ButtonContainer"]
+[node name="ExitButton" type="TextureButton" parent="ButtonContainer"]
+custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 size_flags_vertical = 3
+texture_normal = ExtResource("4_f40uw")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="Label" type="Label" parent="ButtonContainer/ExitButton"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -11.5
+offset_right = 20.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
 text = "Exit"
+label_settings = ExtResource("5_8ctay")
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="VersionLabel" type="Label" parent="."]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_top = -23.0
-offset_right = 206.0
+offset_left = 13.0
+offset_top = -19.0
+offset_right = 219.0
+offset_bottom = 4.0
 grow_vertical = 0
-text = "\"v2.4.2a | Prototype Build\""
+text = "v2.4.2a | Prototype Build"
 label_settings = SubResource("LabelSettings_d8nwk")
 
 [node name="FadeInAnimation" type="AnimationPlayer" parent="."]

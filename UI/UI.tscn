@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://dcus3e1lnkiqj"]
+[gd_scene load_steps=16 format=3 uid="uid://dcus3e1lnkiqj"]
 
 [ext_resource type="Texture2D" uid="uid://bof3211rwmtev" path="res://Images/Egyptian.png" id="1_6dd3c"]
 [ext_resource type="Script" uid="uid://b5ngergka1wik" path="res://Arena/Arena3D/ArenaScript/arena_ui.gd" id="1_e707p"]
@@ -8,22 +8,9 @@
 [ext_resource type="PackedScene" uid="uid://d1csyo8c677k5" path="res://UI/fusion_pending.tscn" id="4_qgmx8"]
 [ext_resource type="PackedScene" uid="uid://dpo8aa3x7hm2t" path="res://UI/orb_grid.tscn" id="5_byuxr"]
 [ext_resource type="LabelSettings" uid="uid://br0x7c0gu7782" path="res://UI/PhaseLabel.tres" id="6_d050y"]
+[ext_resource type="Texture2D" uid="uid://du1401htgmf0a" path="res://UI/ButtonPanel (3).png" id="6_r2vy3"]
 [ext_resource type="Texture2D" uid="uid://br4jgqp33lyt2" path="res://UI/HealthBar.png" id="7_byuxr"]
-
-[sub_resource type="SystemFont" id="SystemFont_qgmx8"]
-font_names = PackedStringArray("Tahoma")
-subpixel_positioning = 0
-
-[sub_resource type="SystemFont" id="SystemFont_vx7wu"]
-font_names = PackedStringArray("Tahoma")
-subpixel_positioning = 0
-
-[sub_resource type="LabelSettings" id="LabelSettings_r2vy3"]
-font = SubResource("SystemFont_vx7wu")
-outline_size = 2
-outline_color = Color(0, 0, 0, 1)
-shadow_size = 2
-shadow_color = Color(0, 0, 0, 0.80784315)
+[ext_resource type="LabelSettings" uid="uid://dou52j0pdhw0i" path="res://UI/EndTurnUI.tres" id="7_qhxh2"]
 
 [sub_resource type="SystemFont" id="SystemFont_d050y"]
 font_names = PackedStringArray("Tahoma")
@@ -107,7 +94,8 @@ offset_top = -40.0
 offset_right = 40.0
 grow_vertical = 0
 
-[node name="EndTurnButton" type="Button" parent="."]
+[node name="EndTurnButton" type="TextureButton" parent="."]
+custom_minimum_size = Vector2(100, 55)
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
@@ -118,19 +106,27 @@ offset_left = -78.0
 offset_top = -31.0
 grow_horizontal = 0
 grow_vertical = 0
-theme_override_fonts/font = SubResource("SystemFont_qgmx8")
+texture_normal = ExtResource("6_r2vy3")
+ignore_texture_size = true
+stretch_mode = 0
 
 [node name="EndTurnLabel" type="Label" parent="EndTurnButton"]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -31.5
+offset_top = -10.5
+offset_right = 31.5
+offset_bottom = 10.5
 grow_horizontal = 2
 grow_vertical = 2
 text = "End Turn"
-label_settings = SubResource("LabelSettings_r2vy3")
-horizontal_alignment = 1
-vertical_alignment = 1
+label_settings = ExtResource("7_qhxh2")
+horizontal_alignment = 3
+vertical_alignment = 3
 
 [node name="BottomContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
@@ -174,11 +170,30 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 mouse_filter = 2
 
-[node name="LogButton" type="Button" parent="VBoxContainer"]
+[node name="LogButton" type="TextureButton" parent="VBoxContainer"]
+custom_minimum_size = Vector2(103.46, 37.57)
 layout_mode = 2
 size_flags_horizontal = 0
 toggle_mode = true
+texture_normal = ExtResource("6_r2vy3")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="Label" type="Label" parent="VBoxContainer/LogButton"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.999998
+offset_top = -11.5
+offset_right = 19.999998
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
 text = "Show Log"
+label_settings = ExtResource("7_qhxh2")
 
 [node name="BattleLogLabel" type="RichTextLabel" parent="VBoxContainer"]
 layout_mode = 2

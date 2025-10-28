@@ -14,7 +14,8 @@ script = ExtResource("1_4flbx")
 transform = Transform3D(1.795, 0, 0, 0, 1.795, 0, 0, 0, 1.795, 0, 0.710197, 0)
 
 [node name="Camera3D" type="Camera3D" parent="Head"]
-transform = Transform3D(1.795, 0, 0, 0, 1.795, 0, 0, 0, 1.795, 0, 0, 0)
+transform = Transform3D(0.7235105, 0, 0, 0, 0.7235105, 0, 0, 0, 0.7235105, 0, 0.34886032, -0.20361291)
+far = 7000.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(0.96608293, 0, 0, 0, 1.795, 0, 0, 0, 1.0928477, 0, 0, 0)

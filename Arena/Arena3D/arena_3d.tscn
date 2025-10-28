@@ -1,7 +1,8 @@
-[gd_scene load_steps=14 format=3 uid="uid://camg64m8fg43w"]
+[gd_scene load_steps=17 format=3 uid="uid://camg64m8fg43w"]
 
 [ext_resource type="Script" uid="uid://uk6se88h2jyj" path="res://Arena/Arena3D/ArenaScript/arena_core.gd" id="1_2nnof"]
 [ext_resource type="PackedScene" uid="uid://da27pnrvn5yna" path="res://Arena/Arena3D/Board3D.tscn" id="1_5ykft"]
+[ext_resource type="Texture2D" uid="uid://cjw8qsb0thllt" path="res://Images/abstract-heavy-blue-haze-liquid (1).jpg" id="2_i7u7f"]
 [ext_resource type="PackedScene" uid="uid://dcus3e1lnkiqj" path="res://UI/UI.tscn" id="2_opwpc"]
 [ext_resource type="AudioStream" uid="uid://w7n2h3ha0xhe" path="res://Audio/Music/Yu-Gi-Oh! Duelist of the Roses_ VS.  Seto - C. Rosenkruez  Extended.mp3" id="3_aj210"]
 [ext_resource type="Script" uid="uid://bqkc1hsxx6w73" path="res://Arena/Arena3D/ArenaScript/arena_camera.gd" id="5_2nnof"]
@@ -11,11 +12,31 @@
 [ext_resource type="PackedScene" uid="uid://d3k7rvjpylid4" path="res://UI/battle_ui.tscn" id="10_2nnof"]
 [ext_resource type="Script" uid="uid://khurkxh2646n" path="res://Arena/Arena3D/ArenaScript/arena_cutscene.gd" id="10_i7u7f"]
 
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_08t7x"]
+panorama = ExtResource("2_i7u7f")
+
+[sub_resource type="Sky" id="Sky_pkj7r"]
+sky_material = SubResource("PanoramaSkyMaterial_08t7x")
+
 [sub_resource type="Environment" id="Environment_6q22w"]
-background_mode = 1
+background_mode = 2
 background_color = Color(0.0137245, 0.0722071, 0.0761018, 1)
-fog_enabled = true
-fog_light_color = Color(0.00847996, 0.0731864, 0.0787612, 1)
+sky = SubResource("Sky_pkj7r")
+ssr_enabled = true
+ssao_enabled = true
+ssil_enabled = true
+glow_normalized = true
+fog_mode = 1
+fog_light_color = Color(1, 1, 1, 1)
+fog_light_energy = 0.83
+fog_density = 0.3485
+fog_aerial_perspective = 1.0
+fog_depth_begin = 0.0
+fog_depth_end = 62.1
+volumetric_fog_density = 0.0761
+volumetric_fog_sky_affect = 0.0
+adjustment_enabled = true
+adjustment_saturation = 1.08
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_i42j4"]
 albedo_texture = ExtResource("5_i5af3")

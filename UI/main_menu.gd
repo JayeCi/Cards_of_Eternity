@@ -1,11 +1,13 @@
-# MainMenu.gd
 extends Control
 
 @onready var music: AudioStreamPlayer = $BackgroundMusic
 @onready var fade: AnimationPlayer = $FadeInAnimation
 @onready var click_sfx: AudioStreamPlayer = $ClickSound
 @onready var hover_sfx: AudioStreamPlayer = $HoverSound
-@onready var exit_button: Button = $ButtonContainer/ExitButton
+@onready var exit_button: TextureButton = $ButtonContainer/ExitButton
+
+# Keep track of tweens per button
+var active_tweens := {}
 
 func _ready():
 	music.play()
@@ -14,14 +16,34 @@ func _ready():
 
 func _connect_buttons():
 	for button in $ButtonContainer.get_children():
-		if button is Button:
-			button.mouse_entered.connect(_on_button_hovered)
+		if button is TextureButton:
+			button.pivot_offset = button.size / 2.0  # 🔥 Center pivot for proper scaling
+			button.mouse_entered.connect(_on_button_hovered.bind(button))
+			button.mouse_exited.connect(_on_button_unhovered.bind(button))
 			button.pressed.connect(_on_button_pressed.bind(button))
 
-func _on_button_hovered():
+func _on_button_hovered(button: TextureButton):
 	hover_sfx.play()
 
-func _on_button_pressed(button: Button):
+	# cancel old tween
+	if active_tweens.has(button):
+		active_tweens[button].kill()
+
+	var tween = create_tween()
+	active_tweens[button] = tween
+	tween.tween_property(button, "scale", Vector2(1.1, 1.1), 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.tween_property(button, "modulate", Color(1.2, 1.2, 1.2, 1), 0.15)
+
+func _on_button_unhovered(button: TextureButton):
+	if active_tweens.has(button):
+		active_tweens[button].kill()
+
+	var tween = create_tween()
+	active_tweens[button] = tween
+	tween.tween_property(button, "scale", Vector2.ONE, 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	tween.tween_property(button, "modulate", Color(1, 1, 1, 1), 0.15)
+
+func _on_button_pressed(button: TextureButton):
 	click_sfx.play()
 	match button.name:
 		"PlayButton": _start_new_game()

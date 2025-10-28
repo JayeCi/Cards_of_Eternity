@@ -117,3 +117,4 @@ textures/canvas_textures/default_texture_repeat=1
 textures/default_filters/use_nearest_mipmap_filter=true
 textures/default_filters/anisotropic_filtering_level=3
 environment/volumetric_fog/volume_size=128
+mesh_lod/lod_change/threshold_pixels=0.0
