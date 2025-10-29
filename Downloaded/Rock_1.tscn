@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=4 uid="uid://bhmcb77cxx21"]
 
-[ext_resource type="Texture2D" uid="uid://b3r2yedwxfeby" path="res://Downloaded/low_poly_trees_12.png" id="1_36bte"]
+[ext_resource type="Texture2D" uid="uid://b3r2yedwxfeby" path="res://Downloaded/Trees/low_poly_trees_12.png" id="1_36bte"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_24jui"]
 resource_name = "Rock_1"

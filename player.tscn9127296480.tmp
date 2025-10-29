@@ -1,0 +1,32 @@
+[gd_scene load_steps=4 format=3 uid="uid://8eemhx56fscd"]
+
+[ext_resource type="Script" uid="uid://6tuynxo43ua5" path="res://player.gd" id="1_4flbx"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_4flbx"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_onrkg"]
+
+[node name="Player" type="CharacterBody3D" groups=["player"]]
+transform = Transform3D(0.77, 0, 0, 0, 0.77, 0, 0, 0, 0.77, 0, 0, 0)
+floor_max_angle = 1.5760323
+script = ExtResource("1_4flbx")
+
+[node name="Head" type="Node3D" parent="."]
+transform = Transform3D(1.795, 0, 0, 0, 1.795, 0, 0, 0, 1.795, 0, 0.710197, 0)
+
+[node name="Camera3D" type="Camera3D" parent="Head"]
+transform = Transform3D(0.7235105, 0, 0, 0, 0.7235105, 0, 0, 0, 0.7235105, 0, 0.34886032, -0.20361291)
+far = 7000.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(0.96608293, 0, 0, 0, 1.795, 0, 0, 0, 1.0928477, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_4flbx")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.96608293, 0, 0, 0, 1.795, 0, 0, 0, 1.0928477, 0, 0, 0)
+mesh = SubResource("CapsuleMesh_onrkg")
+skeleton = NodePath("../..")
+
+[node name="StepPlayer" type="AudioStreamPlayer3D" parent="."]
+volume_db = -51.262
+bus = &"SFX"

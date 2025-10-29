@@ -1,10 +1,22 @@
-[gd_scene load_steps=10 format=3 uid="uid://cnirerbyp4a6f"]
+[gd_scene load_steps=16 format=3 uid="uid://cnirerbyp4a6f"]
 
 [ext_resource type="Script" uid="uid://btfhwg5xl8rw4" path="res://UI/main_menu.gd" id="1_tk8dj"]
 [ext_resource type="Texture2D" uid="uid://bnt2b723up3yk" path="res://Images/summer.png" id="2_d8nwk"]
 [ext_resource type="Texture2D" uid="uid://cxfl0k6le8rkl" path="res://Images/Cards_Of_Eternity_Logo.png" id="3_d8nwk"]
+[ext_resource type="Shader" uid="uid://hvxwyfcflm0v" path="res://UI/Coe_Logo_Shimer.gdshader" id="3_ev3b6"]
+[ext_resource type="PackedScene" uid="uid://br6pjage5kiio" path="res://UI/cardloop.tscn" id="3_k0a0m"]
+[ext_resource type="Script" uid="uid://bcep4b50aq1q4" path="res://UI/game_logo.gd" id="4_8ctay"]
 [ext_resource type="Texture2D" uid="uid://du1401htgmf0a" path="res://UI/ButtonPanel (3).png" id="4_f40uw"]
 [ext_resource type="LabelSettings" uid="uid://c0vp22la4t2u1" path="res://UI/main_menu_text.tres" id="5_8ctay"]
+[ext_resource type="AudioStream" uid="uid://cc0j6hlesvql6" path="res://Audio/Sound FX/Action Beep.mp3" id="9_2mudq"]
+[ext_resource type="AudioStream" uid="uid://dfkmkny1i2g7h" path="res://Audio/Sound FX/CardMove.mp3" id="9_cafmx"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_k0a0m"]
+shader = ExtResource("3_ev3b6")
+shader_parameter/speed = 0.38000001479012
+shader_parameter/width = 1.0
+shader_parameter/shine_color = Color(1, 1, 0.85882354, 0.7607843)
+shader_parameter/intensity = 0.086000004085
 
 [sub_resource type="LabelSettings" id="LabelSettings_d8nwk"]
 font_size = 10
@@ -139,8 +151,12 @@ grow_vertical = 2
 texture = ExtResource("2_d8nwk")
 expand_mode = 1
 
+[node name="Control" parent="." instance=ExtResource("3_k0a0m")]
+layout_mode = 1
+
 [node name="GameLogo" type="TextureRect" parent="."]
 modulate = Color(1, 1, 1, 0)
+material = SubResource("ShaderMaterial_k0a0m")
 custom_minimum_size = Vector2(300, 300)
 layout_mode = 0
 offset_left = 426.0
@@ -151,6 +167,7 @@ size_flags_vertical = 0
 texture = ExtResource("3_d8nwk")
 expand_mode = 1
 stretch_mode = 4
+script = ExtResource("4_8ctay")
 
 [node name="ButtonContainer" type="VBoxContainer" parent="."]
 modulate = Color(1, 1, 1, 0)
@@ -173,6 +190,7 @@ pivot_offset = Vector2(100, 158)
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 size_flags_vertical = 3
+mouse_default_cursor_shape = 2
 toggle_mode = true
 texture_normal = ExtResource("4_f40uw")
 ignore_texture_size = true
@@ -200,6 +218,7 @@ vertical_alignment = 1
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 size_flags_vertical = 3
+mouse_default_cursor_shape = 2
 texture_normal = ExtResource("4_f40uw")
 ignore_texture_size = true
 stretch_mode = 0
@@ -226,6 +245,7 @@ vertical_alignment = 1
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 size_flags_vertical = 3
+mouse_default_cursor_shape = 2
 texture_normal = ExtResource("4_f40uw")
 ignore_texture_size = true
 stretch_mode = 0
@@ -252,6 +272,7 @@ vertical_alignment = 1
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 size_flags_vertical = 3
+mouse_default_cursor_shape = 2
 texture_normal = ExtResource("4_f40uw")
 ignore_texture_size = true
 stretch_mode = 0
@@ -278,6 +299,7 @@ vertical_alignment = 1
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 size_flags_vertical = 3
+mouse_default_cursor_shape = 2
 texture_normal = ExtResource("4_f40uw")
 ignore_texture_size = true
 stretch_mode = 0
@@ -321,5 +343,10 @@ libraries = {
 [node name="BackgroundMusic" type="AudioStreamPlayer" parent="."]
 
 [node name="HoverSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("9_cafmx")
+volume_db = -13.419
+bus = &"SFX"
 
 [node name="ClickSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("9_2mudq")
+volume_db = -13.0

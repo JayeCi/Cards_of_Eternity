@@ -1,8 +1,12 @@
 extends CharacterBody3D
 
-const SPEED = 10.0
-const JUMP_VELOCITY = 7.5
+const SPEED = 5.0
+const SPRINT_MULTIPLIER = 1.7  
+const JUMP_VELOCITY = 4.5
 const MOUSE_SENSITIVITY = 0.003
+# --- Sprinting ---
+var is_sprinting := false
+var sprint_speed := SPEED * SPRINT_MULTIPLIER
 
 # --- FOOTSTEPS ---
 const STEP_DISTANCE := 2.0            # meters per step
@@ -136,6 +140,12 @@ func get_card(path: String) -> CardData:
 	return card
 
 func _input(event):
+	# Sprint toggle
+	if event.is_action_pressed("sprint"):
+		is_sprinting = true
+	elif event.is_action_released("sprint"):
+		is_sprinting = false
+
 	if event.is_action_pressed("interact"):
 		var mgr = get_tree().get_first_node_in_group("dialogue_manager")
 		if mgr and mgr._is_running:
@@ -186,6 +196,10 @@ func _physics_process(delta: float) -> void:
 	# Movement input
 	var input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_downward")
 	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+	
+	var current_speed = SPEED
+	if is_sprinting:
+		current_speed = sprint_speed
 
 	if direction:
 		velocity.x = direction.x * SPEED
@@ -213,6 +227,29 @@ func _physics_process(delta: float) -> void:
 			_step_dist_accum = 0.0
 	else:
 		_step_dist_accum = 0.0  # reset in air
+	# --- HOVER HIGHLIGHT ---
+	var space_state = get_world_3d().direct_space_state
+
+	var from = cam.global_position
+	var to = from + -cam.global_transform.basis.z * 5.0
+	var result = space_state.intersect_ray(PhysicsRayQueryParameters3D.create(from, to))
+
+	# Keep track of the last hovered object
+	var last_hovered = null
+
+	if result and result.collider.is_in_group("deck"):
+		# Turn ON outline
+		if last_hovered and last_hovered != result.collider:
+			last_hovered.disable_outline()
+
+		result.collider.enable_outline()
+		last_hovered = result.collider
+
+	else:
+		# We’re not looking at a deck
+		if last_hovered:
+			last_hovered.disable_outline()
+			last_hovered = null
 
 func _play_footstep() -> void:
 	_time_since_step = 0.0

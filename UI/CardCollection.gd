@@ -47,10 +47,15 @@ func get_card_count(card_id: String) -> int:
 		return 0
 	return collection[card_id].count
 
+func get_all_cards() -> Array[CardData]:
+	var arr: Array[CardData] = []
+	for entry in collection.values():
+		arr.append(entry.card)
+	return arr
 
-func get_all_cards() -> Array:
+func get_all_cardss() -> Array:
 	return collection.keys()  # return IDs
-
+#
 
 func get_card_data(id: String) -> CardData:
 	if not collection.has(id):

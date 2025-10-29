@@ -71,9 +71,9 @@ func _owned_count(id: String) -> int:
 		return int(CardCollection.get_card_count(id))
 
 	# Fallbacks: derive from available APIs
-	if CardCollection and CardCollection.has_method("get_all_cards"):
+	if CardCollection and CardCollection.has_method("get_all_cardss"):
 		var cnt := 0
-		for cid in CardCollection.get_all_cards():
+		for cid in CardCollection.get_all_cardss():
 			if cid == id:
 				cnt += 1
 		# If IDs are unique (no duplicates), treat presence as 1

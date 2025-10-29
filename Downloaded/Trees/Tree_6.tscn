@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=4 uid="uid://doljk1uf4k6kq"]
 
-[ext_resource type="Texture2D" uid="uid://gx1nrj7artvl" path="res://Downloaded/low_poly_trees_5.png" id="1_khol8"]
+[ext_resource type="Texture2D" uid="uid://gx1nrj7artvl" path="res://Downloaded/Trees/low_poly_trees_5.png" id="1_khol8"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_v4xv2"]
 radius = 1.3876953

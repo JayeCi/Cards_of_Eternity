@@ -228,7 +228,7 @@ func _refresh_deck_grid():
 # 🧩 ADD/REMOVE CARDS
 # ==========================================================
 func _populate_existing_cards():
-	for id in CardCollection.get_all_cards():
+	for id in CardCollection.get_all_cardss():
 		var data = CardCollection.get_card_data(id)
 		if data:
 			_add_card_to_gui(data)

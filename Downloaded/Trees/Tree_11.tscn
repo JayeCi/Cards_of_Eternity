@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=4 uid="uid://7iyq6h5526pm"]
 
-[ext_resource type="Texture2D" uid="uid://c1epj0rsiw4kg" path="res://Downloaded/low_poly_trees_10.png" id="1_2hvfp"]
+[ext_resource type="Texture2D" uid="uid://c1epj0rsiw4kg" path="res://Downloaded/Trees/low_poly_trees_10.png" id="1_2hvfp"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0nn5g"]
 resource_name = "8_tree"
