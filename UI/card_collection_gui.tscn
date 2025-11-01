@@ -1,4 +1,4 @@
-[gd_scene load_steps=66 format=3 uid="uid://cv0hqr5q4w02b"]
+[gd_scene load_steps=67 format=3 uid="uid://cv0hqr5q4w02b"]
 
 [ext_resource type="Texture2D" uid="uid://i5686epsut3j" path="res://UI/Banner.png" id="1_4jpk6"]
 [ext_resource type="Script" uid="uid://srlpa0q17rnv" path="res://UI/card_collection_gui.gd" id="1_jm07a"]
@@ -14,10 +14,14 @@ texture = ExtResource("1_4jpk6")
 axis_stretch_horizontal = 1
 axis_stretch_vertical = 1
 
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_2imwr"]
+[sub_resource type="Gradient" id="Gradient_uxg7g"]
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_rs70i"]
+gradient = SubResource("Gradient_uxg7g")
+use_hdr = true
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_uxg7g"]
-texture = SubResource("GradientTexture2D_2imwr")
+texture = SubResource("GradientTexture2D_rs70i")
 modulate_color = Color(0.019607844, 0.11764706, 0.22745098, 1)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_2imwr"]
@@ -345,7 +349,6 @@ corner_radius_bottom_right = 2
 corner_radius_bottom_left = 2
 
 [node name="Card_Collection_GUI" type="Control"]
-visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

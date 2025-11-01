@@ -1,8 +1,9 @@
-[gd_scene load_steps=13 format=4 uid="uid://c7vmx6xsjr87c"]
+[gd_scene load_steps=22 format=4 uid="uid://dqc1808n4kni2"]
 
-[ext_resource type="Texture2D" uid="uid://ci7yb1yn0igl5" path="res://Downloaded/Structures/HUB/card_back.png" id="1_3jmn6"]
-[ext_resource type="Script" uid="uid://ckybk4578heq5" path="res://Downloaded/Structures/HUB/deck.gd" id="1_vwiu0"]
-[ext_resource type="Texture2D" uid="uid://besg70vadk0mt" path="res://Images/Zei Panda.png" id="2_vwiu0"]
+[ext_resource type="Script" uid="uid://ckybk4578heq5" path="res://Downloaded/Structures/HUB/deck.gd" id="1_p13be"]
+[ext_resource type="Texture2D" uid="uid://ci7yb1yn0igl5" path="res://Downloaded/Structures/HUB/card_back.png" id="2_qwq7f"]
+[ext_resource type="Texture2D" uid="uid://besg70vadk0mt" path="res://Images/Zei Panda.png" id="3_u1gsq"]
+[ext_resource type="AudioStream" uid="uid://d3pin4xqyru05" path="res://Audio/Sound FX/DeckSounds/ocean-waves-376898.mp3" id="4_qwq7f"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_3jmn6"]
 size = Vector3(0.114746094, 0.041412354, 0.1171875)
@@ -12,11 +13,58 @@ size = Vector3(0.114746094, 0.041412354, 0.1171875)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nm6el"]
 albedo_color = Color(0.18431373, 0.1882353, 0.19215687, 1)
 
+[sub_resource type="Gradient" id="Gradient_p13be"]
+colors = PackedColorArray(0, 0, 1, 1, 0, 1, 1, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_x3sph"]
+gradient = SubResource("Gradient_p13be")
+
+[sub_resource type="Curve" id="Curve_qwq7f"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.13350783, 1), 0.0, 0.0, 0, 0, Vector2(0.5811518, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="CurveTexture" id="CurveTexture_6wgel"]
+curve = SubResource("Curve_qwq7f")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_u1gsq"]
+emission_shape = 1
+emission_sphere_radius = 0.5
+gravity = Vector3(2, 4, 0)
+linear_accel_min = -0.5000022
+linear_accel_max = 0.49999776
+scale_min = 0.01
+scale_max = 0.049999997
+scale_curve = SubResource("CurveTexture_6wgel")
+color_initial_ramp = SubResource("GradientTexture1D_x3sph")
+hue_variation_min = -2.2351742e-08
+hue_variation_max = 0.019999977
+turbulence_enabled = true
+turbulence_noise_strength = 0.5
+turbulence_noise_scale = 1.0
+
+[sub_resource type="Curve" id="Curve_uwfmv"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qqi0f"]
+render_priority = 4
+cull_mode = 2
+vertex_color_use_as_albedo = true
+emission_enabled = true
+emission = Color(0, 0, 1, 1)
+emission_energy_multiplier = 10.0
+use_particle_trails = true
+
+[sub_resource type="RibbonTrailMesh" id="RibbonTrailMesh_yowol"]
+material = SubResource("StandardMaterial3D_qqi0f")
+sections = 2
+curve = SubResource("Curve_uwfmv")
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cqvyh"]
 resource_name = "back"
 transparency = 4
 cull_mode = 2
-albedo_texture = ExtResource("1_3jmn6")
+albedo_texture = ExtResource("2_qwq7f")
 roughness = 0.89426285
 uv1_scale = Vector3(0.945, 0.945, 0.945)
 uv1_offset = Vector3(0.035, 0.03, 2.46)
@@ -56,7 +104,7 @@ shadow_mesh = SubResource("ArrayMesh_2j1ab")
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_k6cab"]
 resource_name = "front1"
 cull_mode = 2
-albedo_texture = ExtResource("2_vwiu0")
+albedo_texture = ExtResource("3_u1gsq")
 roughness = 0.38247734
 uv1_scale = Vector3(1.065, 1.065, 1.065)
 uv1_offset = Vector3(0.51, -0.855, 0.42)
@@ -94,10 +142,10 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_22868")
 
-[node name="Deck" type="Node3D" node_paths=PackedStringArray("label") groups=["interactable"]]
+[node name="StarterDeck_Water" type="Node3D" node_paths=PackedStringArray("label") groups=["interactable"]]
 transform = Transform3D(1, -1.7484555e-07, 0, 1.7484555e-07, 1, 0, 0, 0, 1, 0, 0, 0)
-visible = false
-script = ExtResource("1_vwiu0")
+script = ExtResource("1_p13be")
+element_type = "Water"
 label = NodePath("Label3D")
 
 [node name="Area3D" type="Area3D" parent="."]
@@ -110,6 +158,23 @@ shape = SubResource("BoxShape3D_3jmn6")
 transform = Transform3D(0.0772157, 0, 0, 4.440892e-16, 0.017293196, 0, 0, 0, 0.10926601, 4.697549e-10, 0.00537337, 0.0065914057)
 mesh = SubResource("BoxMesh_vwiu0")
 surface_material_override/0 = SubResource("StandardMaterial3D_nm6el")
+
+[node name="Light" type="OmniLight3D" parent="BODY"]
+visible = false
+light_color = Color(7.70092e-06, 0.7593809, 0.89030135, 1)
+light_energy = 2.0
+
+[node name="Sparks" type="GPUParticles3D" parent="BODY"]
+transform = Transform3D(4.0000005, 0, 0, -2.2737368e-13, 8.605762, 0, 0, 0, 4, -1.7763568e-14, 4.098288, 0)
+cast_shadow = 0
+emitting = false
+amount = 40
+amount_ratio = 0.3758
+lifetime = 0.5
+trail_enabled = true
+trail_lifetime = 0.05
+process_material = SubResource("ParticleProcessMaterial_u1gsq")
+draw_pass_1 = SubResource("RibbonTrailMesh_yowol")
 
 [node name="BACK" type="MeshInstance3D" parent="."]
 transform = Transform3D(0.07760437, 0, -0.00011588252, 0, 0.00029476557, -2.7755576e-17, 7.265933e-05, 6.5451105e-20, 0.12376923, -0.00046266709, 0.014523934, 0.0018832609)
@@ -124,7 +189,16 @@ skeleton = NodePath("")
 [node name="Label3D" type="Label3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.090064e-08, 0.17673106, 0)
 visible = false
+pixel_size = 0.0015
 billboard = 1
-text = "Fire Deck"
+text = "Water Deck"
 font_size = 15
 outline_size = 6
+
+[node name="SFX" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("4_qwq7f")
+volume_db = -40.806
+bus = &"SFX"
+
+[connection signal="body_entered" from="Area3D" to="." method="_on_body_entered"]
+[connection signal="body_exited" from="Area3D" to="." method="_on_body_exited"]

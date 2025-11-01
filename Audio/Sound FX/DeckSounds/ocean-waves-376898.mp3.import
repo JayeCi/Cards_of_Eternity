@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://d3pin4xqyru05"
+path="res://.godot/imported/ocean-waves-376898.mp3-7ee70647e5d3b2fe373c2e2ff18cf452.mp3str"
+
+[deps]
+
+source_file="res://Audio/Sound FX/DeckSounds/ocean-waves-376898.mp3"
+dest_files=["res://.godot/imported/ocean-waves-376898.mp3-7ee70647e5d3b2fe373c2e2ff18cf452.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

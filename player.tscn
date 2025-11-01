@@ -1,10 +1,13 @@
-[gd_scene load_steps=4 format=3 uid="uid://8eemhx56fscd"]
+[gd_scene load_steps=5 format=3 uid="uid://8eemhx56fscd"]
 
 [ext_resource type="Script" uid="uid://6tuynxo43ua5" path="res://player.gd" id="1_4flbx"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_4flbx"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_onrkg"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_4flbx"]
+font_size = 25
 
 [node name="Player" type="CharacterBody3D" groups=["player"]]
 transform = Transform3D(0.77, 0, 0, 0, 0.77, 0, 0, 0, 0.77, 0, 0, 0)
@@ -16,6 +19,11 @@ transform = Transform3D(1.795, 0, 0, 0, 1.795, 0, 0, 0, 1.795, 0, 0.710197, 0)
 
 [node name="Camera3D" type="Camera3D" parent="Head"]
 transform = Transform3D(0.7235105, 0, 0, 0, 0.7235105, 0, 0, 0, 0.7235105, 0, 0.34886032, -0.20361291)
+
+[node name="RayCast3D" type="RayCast3D" parent="Head"]
+transform = Transform3D(0.55710304, 0, 0, 0, -2.4351747e-08, 0.55710304, 0, -0.55710304, -2.4351747e-08, 0, 0.3278576, 0)
+target_position = Vector3(0, 5.515, 0)
+collide_with_areas = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(0.96608293, 0, 0, 0, 1.795, 0, 0, 0, 1.0928477, 0, 0, 0)
@@ -29,3 +37,33 @@ skeleton = NodePath("../..")
 [node name="StepPlayer" type="AudioStreamPlayer3D" parent="."]
 volume_db = -51.262
 bus = &"SFX"
+
+[node name="Crosshair" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 6
+size_flags_vertical = 6
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="Crosshair"]
+modulate = Color(0.21230483, 0.21230483, 0.21230483, 1)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "•"
+label_settings = SubResource("LabelSettings_4flbx")
+horizontal_alignment = 1
+vertical_alignment = 1

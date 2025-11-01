@@ -476,25 +476,26 @@ func regen_units_for_owner(owner: int, amount: int = 2) -> void:
 		card_details_ui.call("refresh_if_showing", card_details_ui.current_unit)
 
 func _build_decks() -> void:
-	# 🔹 PLAYER: Respect injected deck. If empty, fall back once.
-	if player_deck.is_empty():
-		if DeckManager and DeckManager.size() > 0:
-			player_deck.clear()
-			for cd in DeckManager.get_deck_carddatas():
-				# duplicate to avoid shared instance mutations during battle
+	# 🔹 PLAYER DECK BUILD
+	player_deck.clear()
+
+	# 1️⃣ Pull from DeckManager if present
+	if DeckManager and DeckManager.has_method("get_deck_carddatas"):
+		var dm_cards := DeckManager.get_deck_carddatas()
+		if dm_cards.size() > 0:
+			for cd in dm_cards:
 				if cd:
 					player_deck.append(cd.duplicate())
-		else:
-			# (Optional) last-resort fallback to collection, if you still want it:
-			player_deck.clear()
-			var all_ids = CardCollection.get_all_cards()
-			for id in all_ids:
-				var count = 1
-				if CardCollection.has_method("get_card_count"):
-					count = int(CardCollection.get_card_count(id))
-				var card_data = CardCollection.get_card_data(id)
-				for i in range(count):
-					player_deck.append(card_data.duplicate())
+
+	# 2️⃣ Fallback — use CardCollection if still empty
+	if player_deck.is_empty():
+		var all_cards = CardCollection.get_all_cards()
+		for card_data in all_cards:
+			if card_data:
+				player_deck.append(card_data.duplicate())
+
+	# ✅ Shuffle last
+	player_deck.shuffle()
 
 	# 🔹 ENEMY: Auto-build from folders (as you already do)
 	enemy_deck.clear()

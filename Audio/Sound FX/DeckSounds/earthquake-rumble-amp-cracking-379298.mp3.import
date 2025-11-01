@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://t5wigtb7bqhn"
+path="res://.godot/imported/earthquake-rumble-amp-cracking-379298.mp3-51c3790e6d397d81d7674784ff8f6462.mp3str"
+
+[deps]
+
+source_file="res://Audio/Sound FX/DeckSounds/earthquake-rumble-amp-cracking-379298.mp3"
+dest_files=["res://.godot/imported/earthquake-rumble-amp-cracking-379298.mp3-51c3790e6d397d81d7674784ff8f6462.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

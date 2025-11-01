@@ -14,7 +14,7 @@ const STEP_MIN_GAP := 0.15            # seconds, avoids machine-gun on stalls
 const VOLUME_DB_RANGE := Vector2(-23.0, -21.0)
 const PITCH_RANGE := Vector2(0.92, 1.08)
 
-@onready var step_player: AudioStreamPlayer3D = $StepPlayer
+
 var _footstep_streams: Array[AudioStream] = [
 	preload("res://Audio/footstep1.mp3"),
 	preload("res://Audio/footstep2.mp3"),
@@ -23,6 +23,9 @@ var _footstep_streams: Array[AudioStream] = [
 var _rng := RandomNumberGenerator.new()
 var _step_dist_accum := 0.0
 var _time_since_step := 0.0
+var hovered_deck: Node3D = null
+@onready var crosshair: Label = $Crosshair/Label
+
 
 # ------------------
 const CARD_PATHS := {
@@ -65,47 +68,57 @@ const CARD_PATHS := {
 @onready var head = $Head
 @onready var collection_ui: Control = $"../Card_Collection_GUI"
 @onready var taskbar: Control = $"../Taskbar"
+@onready var ray_cast_3d: RayCast3D = $Head/RayCast3D
+@onready var step_player: AudioStreamPlayer3D = $StepPlayer
 
 var rotation_x = 0.0
 var mouse_locked = true
+var current_interactable: Node3D = null
+var deck_claimed := {
+	"Fire": false,
+	"Water": false,
+	"Earth": false,
+	"Wind": false,
+}
+
 
 func _ready() -> void:
 	if Engine.has_singleton("DialogueManager"):
 		DialogueManager._ui = $DialogueUI
 		print("[World] Registered DialogueUI manually")
 		
-	CardCollection.add_card(get_card(CARD_PATHS.GOBLIN))
-	CardCollection.add_card(get_card(CARD_PATHS.DIRT))
-	CardCollection.add_card(get_card(CARD_PATHS.COLD_SLOTH))
-	CardCollection.add_card(get_card(CARD_PATHS.FYSH))
-	CardCollection.add_card(get_card(CARD_PATHS.FOREST_FAE))
-	CardCollection.add_card(get_card(CARD_PATHS.IMP))
-	CardCollection.add_card(get_card(CARD_PATHS.LAVA_HARE))
-	CardCollection.add_card(get_card(CARD_PATHS.NAGA))
-	CardCollection.add_card(get_card(CARD_PATHS.FIREBALL))
-	CardCollection.add_card(get_card(CARD_PATHS.LYZARD))
-	CardCollection.add_card(get_card(CARD_PATHS.ERUPTION))
-	CardCollection.add_card(get_card(CARD_PATHS.DRAKE_OF_EMERALD))
-	CardCollection.add_card(get_card(CARD_PATHS.FLAME_FAE))
-	CardCollection.add_card(get_card(CARD_PATHS.AXO_THE_KNIGHT))
-	CardCollection.add_card(get_card(CARD_PATHS.FINN))
-	CardCollection.add_card(get_card(CARD_PATHS.FALCREEP))
-	CardCollection.add_card(get_card(CARD_PATHS.SNAPTRAP))
-	CardCollection.add_card(get_card(CARD_PATHS.MOLTEN_PIG))
-	CardCollection.add_card(get_card(CARD_PATHS.NINJOAD))
-	CardCollection.add_card(get_card(CARD_PATHS.BOOGLES))
-	CardCollection.add_card(get_card(CARD_PATHS.FUNGOO))
-	CardCollection.add_card(get_card(CARD_PATHS.ORB_OF_DARKNESS))
-	CardCollection.add_card(get_card(CARD_PATHS.SHADOW_CANDLES))
-	CardCollection.add_card(get_card(CARD_PATHS.JESTER_OF_FLAMES))
-	CardCollection.add_card(get_card(CARD_PATHS.VOIDLING_ERO))
-	CardCollection.add_card(get_card(CARD_PATHS.MUSHMONK))
-	CardCollection.add_card(get_card(CARD_PATHS.ZEI_PANDA))
-	CardCollection.add_card(get_card(CARD_PATHS.YORG_ARCHER))
-	CardCollection.add_card(get_card(CARD_PATHS.STONE_FAE))
-	CardCollection.add_card(get_card(CARD_PATHS.CONFLAGURATION_BLADE))
-	CardCollection.add_card(get_card(CARD_PATHS.TIDAL_WAVE))
-	CardCollection.add_card(get_card(CARD_PATHS.AQUA_WHIP))
+	#CardCollection.add_card(get_card(CARD_PATHS.GOBLIN))
+	#CardCollection.add_card(get_card(CARD_PATHS.DIRT))
+	#CardCollection.add_card(get_card(CARD_PATHS.COLD_SLOTH))
+	#CardCollection.add_card(get_card(CARD_PATHS.FYSH))
+	#CardCollection.add_card(get_card(CARD_PATHS.FOREST_FAE))
+	#CardCollection.add_card(get_card(CARD_PATHS.IMP))
+	#CardCollection.add_card(get_card(CARD_PATHS.LAVA_HARE))
+	#CardCollection.add_card(get_card(CARD_PATHS.NAGA))
+	#CardCollection.add_card(get_card(CARD_PATHS.FIREBALL))
+	#CardCollection.add_card(get_card(CARD_PATHS.LYZARD))
+	#CardCollection.add_card(get_card(CARD_PATHS.ERUPTION))
+	#CardCollection.add_card(get_card(CARD_PATHS.DRAKE_OF_EMERALD))
+	#CardCollection.add_card(get_card(CARD_PATHS.FLAME_FAE))
+	#CardCollection.add_card(get_card(CARD_PATHS.AXO_THE_KNIGHT))
+	#CardCollection.add_card(get_card(CARD_PATHS.FINN))
+	#CardCollection.add_card(get_card(CARD_PATHS.FALCREEP))
+	#CardCollection.add_card(get_card(CARD_PATHS.SNAPTRAP))
+	#CardCollection.add_card(get_card(CARD_PATHS.MOLTEN_PIG))
+	#CardCollection.add_card(get_card(CARD_PATHS.NINJOAD))
+	#CardCollection.add_card(get_card(CARD_PATHS.BOOGLES))
+	#CardCollection.add_card(get_card(CARD_PATHS.FUNGOO))
+	#CardCollection.add_card(get_card(CARD_PATHS.ORB_OF_DARKNESS))
+	#CardCollection.add_card(get_card(CARD_PATHS.SHADOW_CANDLES))
+	#CardCollection.add_card(get_card(CARD_PATHS.JESTER_OF_FLAMES))
+	#CardCollection.add_card(get_card(CARD_PATHS.VOIDLING_ERO))
+	#CardCollection.add_card(get_card(CARD_PATHS.MUSHMONK))
+	#CardCollection.add_card(get_card(CARD_PATHS.ZEI_PANDA))
+	#CardCollection.add_card(get_card(CARD_PATHS.YORG_ARCHER))
+	#CardCollection.add_card(get_card(CARD_PATHS.STONE_FAE))
+	#CardCollection.add_card(get_card(CARD_PATHS.CONFLAGURATION_BLADE))
+	#CardCollection.add_card(get_card(CARD_PATHS.TIDAL_WAVE))
+	#CardCollection.add_card(get_card(CARD_PATHS.AQUA_WHIP))
 
 	_rng.randomize()
 	# Ensure step player exists (optional safety)
@@ -140,6 +153,9 @@ func get_card(path: String) -> CardData:
 	return card
 
 func _input(event):
+	if event.is_action_pressed("interact") and current_interactable:
+		if current_interactable is ElementDeck:
+			_handle_element_deck(current_interactable.element_type)
 	# Sprint toggle
 	if event.is_action_pressed("sprint"):
 		is_sprinting = true
@@ -152,6 +168,7 @@ func _input(event):
 			if mgr._ui and mgr._ui.visible:
 				mgr._ui.on_player_pressed_continue()
 			return
+			
 
 
 		# Only check NPCs if not already talking
@@ -165,6 +182,66 @@ func _input(event):
 	if Input.is_action_just_pressed("open_collection"):
 		_toggle_collection()
 
+func _handle_element_deck(element_type: String):
+	var starter: Array = []
+
+	match element_type:
+		"Fire":
+			starter = [
+				get_card(CARD_PATHS.LAVA_HARE),
+				get_card(CARD_PATHS.FLAME_FAE),
+				get_card(CARD_PATHS.FIREBALL),
+				get_card(CARD_PATHS.JESTER_OF_FLAMES),
+				get_card(CARD_PATHS.ERUPTION),
+			]
+
+		"Water":
+			starter = [
+				get_card(CARD_PATHS.FYSH),
+				get_card(CARD_PATHS.LYZARD),
+				get_card(CARD_PATHS.TIDAL_WAVE),
+				get_card(CARD_PATHS.AQUA_WHIP),
+				get_card(CARD_PATHS.MUSHMONK),
+			]
+
+		"Earth":
+			starter = [
+				get_card(CARD_PATHS.DIRT),
+				get_card(CARD_PATHS.COLD_SLOTH),
+				get_card(CARD_PATHS.STONE_FAE),
+				get_card(CARD_PATHS.SNAPTRAP),
+				get_card(CARD_PATHS.DRAKE_OF_EMERALD),
+			]
+
+		"Wind":
+			starter = [
+				get_card(CARD_PATHS.ZEI_PANDA),
+				get_card(CARD_PATHS.FALCREEP),
+				get_card(CARD_PATHS.YORG_ARCHER),
+				# add real wind cards later
+			]
+
+	# already claimed?
+	if deck_claimed[element_type]:
+		show_pickup_popup("You've already claimed this starter deck.")
+		return
+
+	deck_claimed[element_type] = true
+
+	# Add them to the player's collection
+	for c in starter:
+		CardCollection.add_card(c)
+
+	show_pickup_popup(element_type + " Starter Deck Obtained!")
+	# After showing popup and adding cards
+	current_interactable.queue_free()
+	current_interactable = null
+	hovered_deck = null
+
+func show_pickup_popup(text: String):
+	# You can replace this later with real UI
+	print(text)
+
 func _unhandled_input(event: InputEvent) -> void:
 	if collection_ui.visible:
 		return
@@ -175,11 +252,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		rotation_x = clamp(rotation_x, deg_to_rad(-89), deg_to_rad(89))
 		head.rotation.x = rotation_x
 
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		if mouse_locked:
-			_unlock_mouse()
-		else:
-			_lock_mouse()
 
 func _physics_process(delta: float) -> void:
 	if collection_ui.visible:
@@ -227,29 +299,49 @@ func _physics_process(delta: float) -> void:
 			_step_dist_accum = 0.0
 	else:
 		_step_dist_accum = 0.0  # reset in air
-	# --- HOVER HIGHLIGHT ---
-	var space_state = get_world_3d().direct_space_state
 
-	var from = cam.global_position
-	var to = from + -cam.global_transform.basis.z * 5.0
-	var result = space_state.intersect_ray(PhysicsRayQueryParameters3D.create(from, to))
+		# --- HOVER HIGHLIGHT USING RAYCAST3D ---
+	ray_cast_3d.force_raycast_update()
 
-	# Keep track of the last hovered object
-	var last_hovered = null
+	if not ray_cast_3d.is_colliding():
+		if hovered_deck:
+			hovered_deck.hide_label()
+			hovered_deck = null
+		current_interactable = null      # ✅ reset
+		_crosshair_hover_off()
+		return
 
-	if result and result.collider.is_in_group("deck"):
-		# Turn ON outline
-		if last_hovered and last_hovered != result.collider:
-			last_hovered.disable_outline()
 
-		result.collider.enable_outline()
-		last_hovered = result.collider
+	var hit = ray_cast_3d.get_collider()
+	var root = hit
 
-	else:
-		# We’re not looking at a deck
-		if last_hovered:
-			last_hovered.disable_outline()
-			last_hovered = null
+	# climb upward until we find something interactable
+	while root and not root.is_in_group("interactable"):
+		root = root.get_parent()
+
+	# if nothing found
+	if not root:
+		if hovered_deck:
+			hovered_deck.hide_label()
+			hovered_deck = null
+		return
+
+	# FOUND interactable!
+	if hovered_deck != root:
+		if hovered_deck:
+			hovered_deck.hide_label()
+
+		root.show_label()
+		hovered_deck = root
+		current_interactable = root     # ✅ NOW HERE
+		_crosshair_hover_on()
+
+
+func _crosshair_hover_on():
+	crosshair.modulate = Color(1, 1, 1, 1) # white / full alpha
+
+func _crosshair_hover_off():
+	crosshair.modulate = Color("363636b3") # dim
 
 func _play_footstep() -> void:
 	_time_since_step = 0.0
@@ -282,6 +374,7 @@ func _lock_mouse():
 func _unlock_mouse():
 	mouse_locked = false
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	
 # Player.gd (add this helper anywhere in the script)
 func _dl(speaker: String, text: String, expr := "neutral") -> DialogueLine:
 	var l := DialogueLine.new()

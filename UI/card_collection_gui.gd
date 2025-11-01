@@ -106,6 +106,12 @@ func _on_card_unhovered(card_data: CardData = null):
 		_clear_left_panel()
 
 func _on_card_clicked(event: InputEvent, card_ui):
+		# 🛑 REFUSE collection→deck moves if deck is full
+	if deck_grid.get_child_count() >= 10:
+		sfx_action_beep.play()
+		print("[DeckBuilder] 🚫 Deck full. Cannot add more.")
+		return
+
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if sfx_action_beep:
 			sfx_action_beep.play()
@@ -115,8 +121,11 @@ func _on_card_clicked(event: InputEvent, card_ui):
 
 		# --- Move from Collection to Deck ---
 		if deck_collection_grid.is_ancestor_of(card_ui) or parent_grid == deck_collection_grid:
-			_move_card_to_deck(card_ui.card_data)
-			card_ui.queue_free()
+			if _move_card_to_deck(card_ui.card_data):
+				card_ui.queue_free()
+			else:
+				print("[DeckBuilder] ❌ Add failed. Not destroying UI.")
+
 			print("[DeckBuilder] ➕ Moved", card_ui.card_data.name, "→ Deck")
 
 		# --- Move from Deck to Collection ---
@@ -128,26 +137,19 @@ func _on_card_clicked(event: InputEvent, card_ui):
 		selected_card = card_ui.card_data
 		_update_left_panel(selected_card)
 
-func _move_card_to_deck(card_data: CardData):
-	var current_count := deck_grid.get_child_count()
-	if current_count >= 10:
-		print("[DeckBuilder] ⚠️ Deck full!")
-		if sfx_action_beep:
-			sfx_action_beep.play()
-		return
-
-	for child in deck_grid.get_children():
-		if child.card_data and child.card_data.id == card_data.id:
-			print("[DeckBuilder] ⚠️ Already in deck:", card_data.name)
-			return
+func _move_card_to_deck(card_data: CardData) -> bool:
+	if deck_grid.get_child_count() >= 10:
+		return false
 
 	if not DeckManager.add(card_data.id):
-		print("[DeckBuilder] ⚠️ Can't add:", card_data.name, "(deck full / not owned / copies capped)")
-		return
+		return false
 
 	_refresh_deck_grid()
 	_refresh_collection_counts()
 	_update_deck_count()
+	return true
+
+
 func _on_card_count_changed(card_id: String, new_count: int) -> void:
 	# Loop over both main collection and deck collection grids
 	for grid in [main_panel, deck_collection_grid]:

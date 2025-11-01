@@ -29,24 +29,37 @@ func _ready():
 	_pick_new_target()
 
 func _physics_process(delta: float) -> void:
-		# If velocity is basically zero while in GO_SIT, still sitting
-	if state == STATE_GO_SIT and velocity.length() < 0.01:
-		# give up and just sit
-		_start_sit()
-
-	if agent.is_navigation_finished() and state == STATE_WANDER:
-		_pick_new_target()
+	# Always feed velocity to agent or avoidance breaks
+	agent.set_velocity(velocity)
 
 	match state:
 		STATE_WANDER:
-			_wander(delta)
+			# WANDER
+			if agent.distance_to_target() < 0.3:
+
+				# 20% sit
+				if randf() < 0.2:
+					_pick_sit_spot()
+				# 15% idle
+				elif randf() < 0.15:
+					_idle_pause()
+				else:
+					_pick_new_target()
+			_move_agent(delta)
+
 		STATE_GO_SIT:
-			_go_sit(delta)
+						# GO_SIT
+			if agent.distance_to_target() < 0.5:
+
+				_start_sit()
+			else:
+				_move_agent(delta)
+
 		STATE_SITTING:
-			# No movement
 			velocity = Vector3.ZERO
+
 		STATE_STAND_UP:
-			# Animation callback will switch back to wander
+			# Standing animation works async
 			pass
 
 	move_and_slide()
@@ -56,31 +69,39 @@ func _physics_process(delta: float) -> void:
 # ======================================================
 func _wander(delta):
 	if agent.is_navigation_finished():
+
 		# 20% chance to sit when reaching a point
 		if randf() < 0.2:
 			_pick_sit_spot()
+			return
+
+		# ✅ 15% chance to idle
+		if randf() < 0.15:
+			_idle_pause()
 			return
 
 		_pick_new_target()
 
 	_move_agent(delta)
 
+
+func _idle_pause():
+	state = STATE_SITTING
+	anim.play("Idle")
+
+	var t = randf_range(2.0, 5.0)
+	await get_tree().create_timer(t).timeout
+
+	state = STATE_WANDER
+	_pick_new_target()
+
 # ======================================================
 # Going to sit spot
 # ======================================================
 func _go_sit(delta):
-	var dist = global_transform.origin.distance_to(sit_target.global_transform.origin)
-
-	# Close enough to the bench?
-	if dist < 1.2:
+	if agent.get_remaining_distance() < 0.5:
 		_start_sit()
 		return
-
-	# If walking target is reached by path logic
-	if agent.is_navigation_finished():
-		_start_sit()
-		return
-
 	_move_agent(delta)
 
 # ======================================================
@@ -88,18 +109,17 @@ func _go_sit(delta):
 # ======================================================
 func _move_agent(delta):
 	var next := agent.get_next_path_position()
-	var direction := next - global_transform.origin
+	var direction := (next - global_transform.origin)
 	direction.y = 0
 
-	if direction.length() > 0.2:
+	if direction.length() > 0.1:
 		direction = direction.normalized()
 		velocity = direction * SPEED
 		anim.play("Walk")
 
-		# ✅ Snap rotation (simple, no shrinking ever)
+		# Smooth facing
 		var target_rot_y = atan2(direction.x, direction.z)
-		rotation.y = target_rot_y
-
+		rotation.y = lerp_angle(rotation.y, target_rot_y, delta * TURN_SPEED)
 	else:
 		velocity = Vector3.ZERO
 		anim.play("Idle")
@@ -129,7 +149,8 @@ func _start_sit():
 	anim.play("StandToSit")
 	state = STATE_SITTING
 
-	await anim.animation_finished
+	await get_tree().create_timer(anim.current_animation_length).timeout
+
 
 	# Face bench direction
 	var forward = sit_target.global_transform.basis.z
@@ -148,7 +169,8 @@ func _start_sit():
 func _stand_up():
 	anim.play("SitToStand")
 	state = STATE_STAND_UP
-	await anim.animation_finished
+	await get_tree().create_timer(anim.current_animation_length).timeout
+
 
 	# Return to wandering
 	state = STATE_WANDER

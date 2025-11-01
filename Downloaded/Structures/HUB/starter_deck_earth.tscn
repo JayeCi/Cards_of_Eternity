@@ -1,8 +1,9 @@
-[gd_scene load_steps=13 format=4 uid="uid://c7vmx6xsjr87c"]
+[gd_scene load_steps=22 format=4 uid="uid://c32wvwf27eegd"]
 
-[ext_resource type="Texture2D" uid="uid://ci7yb1yn0igl5" path="res://Downloaded/Structures/HUB/card_back.png" id="1_3jmn6"]
-[ext_resource type="Script" uid="uid://ckybk4578heq5" path="res://Downloaded/Structures/HUB/deck.gd" id="1_vwiu0"]
-[ext_resource type="Texture2D" uid="uid://besg70vadk0mt" path="res://Images/Zei Panda.png" id="2_vwiu0"]
+[ext_resource type="Script" uid="uid://ckybk4578heq5" path="res://Downloaded/Structures/HUB/deck.gd" id="1_6cuc0"]
+[ext_resource type="Texture2D" uid="uid://ci7yb1yn0igl5" path="res://Downloaded/Structures/HUB/card_back.png" id="2_t335t"]
+[ext_resource type="Texture2D" uid="uid://besg70vadk0mt" path="res://Images/Zei Panda.png" id="3_5a660"]
+[ext_resource type="AudioStream" uid="uid://t5wigtb7bqhn" path="res://Audio/Sound FX/DeckSounds/earthquake-rumble-amp-cracking-379298.mp3" id="4_t335t"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_3jmn6"]
 size = Vector3(0.114746094, 0.041412354, 0.1171875)
@@ -12,11 +13,58 @@ size = Vector3(0.114746094, 0.041412354, 0.1171875)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nm6el"]
 albedo_color = Color(0.18431373, 0.1882353, 0.19215687, 1)
 
+[sub_resource type="Gradient" id="Gradient_6cuc0"]
+colors = PackedColorArray(0.8509804, 1, 0, 1, 0, 1, 0, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_2txox"]
+gradient = SubResource("Gradient_6cuc0")
+
+[sub_resource type="Curve" id="Curve_t335t"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.13350783, 1), 0.0, 0.0, 0, 0, Vector2(0.5811518, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="CurveTexture" id="CurveTexture_uoc37"]
+curve = SubResource("Curve_t335t")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_5a660"]
+emission_shape = 1
+emission_sphere_radius = 0.5
+gravity = Vector3(2, 4, 0)
+linear_accel_min = -0.5000022
+linear_accel_max = 0.49999776
+scale_min = 0.01
+scale_max = 0.049999997
+scale_curve = SubResource("CurveTexture_uoc37")
+color_initial_ramp = SubResource("GradientTexture1D_2txox")
+hue_variation_min = -2.2351742e-08
+hue_variation_max = 0.019999977
+turbulence_enabled = true
+turbulence_noise_strength = 0.5
+turbulence_noise_scale = 1.0
+
+[sub_resource type="Curve" id="Curve_arjyu"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rh0km"]
+render_priority = 4
+cull_mode = 2
+vertex_color_use_as_albedo = true
+emission_enabled = true
+emission = Color(0, 1, 0, 1)
+emission_energy_multiplier = 10.0
+use_particle_trails = true
+
+[sub_resource type="RibbonTrailMesh" id="RibbonTrailMesh_x7a0u"]
+material = SubResource("StandardMaterial3D_rh0km")
+sections = 2
+curve = SubResource("Curve_arjyu")
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cqvyh"]
 resource_name = "back"
 transparency = 4
 cull_mode = 2
-albedo_texture = ExtResource("1_3jmn6")
+albedo_texture = ExtResource("2_t335t")
 roughness = 0.89426285
 uv1_scale = Vector3(0.945, 0.945, 0.945)
 uv1_offset = Vector3(0.035, 0.03, 2.46)
@@ -56,7 +104,7 @@ shadow_mesh = SubResource("ArrayMesh_2j1ab")
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_k6cab"]
 resource_name = "front1"
 cull_mode = 2
-albedo_texture = ExtResource("2_vwiu0")
+albedo_texture = ExtResource("3_5a660")
 roughness = 0.38247734
 uv1_scale = Vector3(1.065, 1.065, 1.065)
 uv1_offset = Vector3(0.51, -0.855, 0.42)
@@ -94,10 +142,10 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_22868")
 
-[node name="Deck" type="Node3D" node_paths=PackedStringArray("label") groups=["interactable"]]
+[node name="StarterDeck_Earth" type="Node3D" node_paths=PackedStringArray("label") groups=["interactable"]]
 transform = Transform3D(1, -1.7484555e-07, 0, 1.7484555e-07, 1, 0, 0, 0, 1, 0, 0, 0)
-visible = false
-script = ExtResource("1_vwiu0")
+script = ExtResource("1_6cuc0")
+element_type = "Earth"
 label = NodePath("Label3D")
 
 [node name="Area3D" type="Area3D" parent="."]
@@ -110,6 +158,23 @@ shape = SubResource("BoxShape3D_3jmn6")
 transform = Transform3D(0.0772157, 0, 0, 4.440892e-16, 0.017293196, 0, 0, 0, 0.10926601, 4.697549e-10, 0.00537337, 0.0065914057)
 mesh = SubResource("BoxMesh_vwiu0")
 surface_material_override/0 = SubResource("StandardMaterial3D_nm6el")
+
+[node name="Light" type="OmniLight3D" parent="BODY"]
+visible = false
+light_color = Color(0, 0.7607843, 0, 1)
+light_energy = 2.0
+
+[node name="Sparks" type="GPUParticles3D" parent="BODY"]
+transform = Transform3D(3.6583402, -6.82121e-13, 0, -1.8189894e-12, 56.446606, 0, 0, 0, 2.695791, 0, 0, 0)
+cast_shadow = 0
+emitting = false
+amount = 40
+amount_ratio = 0.3356
+lifetime = 0.5
+trail_enabled = true
+trail_lifetime = 0.05
+process_material = SubResource("ParticleProcessMaterial_5a660")
+draw_pass_1 = SubResource("RibbonTrailMesh_x7a0u")
 
 [node name="BACK" type="MeshInstance3D" parent="."]
 transform = Transform3D(0.07760437, 0, -0.00011588252, 0, 0.00029476557, -2.7755576e-17, 7.265933e-05, 6.5451105e-20, 0.12376923, -0.00046266709, 0.014523934, 0.0018832609)
@@ -124,7 +189,16 @@ skeleton = NodePath("")
 [node name="Label3D" type="Label3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.090064e-08, 0.17673106, 0)
 visible = false
+pixel_size = 0.0015
 billboard = 1
-text = "Fire Deck"
+text = "Earth Deck"
 font_size = 15
 outline_size = 6
+
+[node name="SFX" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("4_t335t")
+volume_db = -41.879
+bus = &"SFX"
+
+[connection signal="body_entered" from="Area3D" to="." method="_on_body_entered"]
+[connection signal="body_exited" from="Area3D" to="." method="_on_body_exited"]
