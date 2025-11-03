@@ -24,7 +24,8 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
 	auto_timer.one_shot = true
-	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mouse_filter = Control.MOUSE_FILTER_STOP
+
 	focus_mode = Control.FOCUS_NONE
 	
 func show_choices(choices: Array[String]) -> void:
@@ -85,6 +86,10 @@ func show_line(line: DialogueLine, page: DialoguePage = null) -> void:
 # ---------------------------------------------------------
 # Typewriter reveal loop (non-skippable)
 # ---------------------------------------------------------
+func _unhandled_input(event):
+	if InputState.mode == InputState.Mode.DIALOGUE and event is InputEventMouseButton and event.pressed:
+		get_viewport().set_input_as_handled()
+		# your advance-text logic here
 
 func _process(delta: float) -> void:
 	if not _is_revealing:
@@ -140,6 +145,11 @@ func on_player_pressed_continue() -> void:
 	print("[DialogueUI] Player pressed continue after text complete.")
 	emit_signal("request_continue")
 
+# Instantly finish the typewriter reveal
+func reveal_all_now():
+	_is_revealing = false
+	text_label.visible_characters = -1
+	set_process(false)
 
 # ---------------------------------------------------------
 # Auto-advance timer

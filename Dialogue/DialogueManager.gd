@@ -16,9 +16,18 @@ var _convo_id: StringName = &""
 var _previous_input_state := {"physics": true, "input": true}
 var _ui_active := false
 var _current_page: DialoguePage
+var _just_revealed := false
 
 func _ready() -> void:
 	add_to_group("dialogue_manager")
+
+func _unhandled_input(event: InputEvent) -> void:
+	if InputState.mode != InputState.Mode.DIALOGUE:
+		return
+
+	if event.is_action_pressed("interact") or event.is_action_pressed("ui_accept"):
+		on_player_continue_input()
+		get_viewport().set_input_as_handled()
 
 
 func _process(_delta):
@@ -98,13 +107,18 @@ func on_player_continue_input() -> void:
 	if not _is_running or not _ui or not is_instance_valid(_ui):
 		return
 
-	# 🧩 Only allow continue when line fully revealed
+	# If still revealing → reveal and don't advance yet
 	if _ui._is_revealing:
-		print("[DialogueManager] Ignored input: line still revealing.")
+		_ui.reveal_all_now()
+		_just_revealed = true
+		return
+
+	# If we just revealed last frame, swallow that input
+	if _just_revealed:
+		_just_revealed = false
 		return
 
 	_advance_dialogue_line()
-
 
 # -------------------------------------------------------
 # 🔄 Move to next line or end convo
@@ -205,6 +219,12 @@ func _end_convo() -> void:
 	emit_signal("finished", ended_id)
 	print("[DM] finished signal emitted")
 
+func _dl(speaker: String, text: String, expr := "neutral") -> DialogueLine:
+	var l := DialogueLine.new()
+	l.speaker = speaker
+	l.text = text
+	l.expression = expr
+	return l
 
 # -------------------------------------------------------
 # 🚷 Lock/Unlock player movement

@@ -1,0 +1,47 @@
+[gd_scene load_steps=7 format=3 uid="uid://camg64m8fg43w"]
+
+[ext_resource type="PackedScene" uid="uid://da27pnrvn5yna" path="res://Arena/Arena3D/Board3D.tscn" id="1_5ykft"]
+[ext_resource type="Script" uid="uid://bmu6yj2gr6rm0" path="res://arena.gd" id="1_6q22w"]
+[ext_resource type="PackedScene" uid="uid://dcus3e1lnkiqj" path="res://UI/UI.tscn" id="2_opwpc"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_opwpc"]
+sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+ground_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+
+[sub_resource type="Sky" id="Sky_6q22w"]
+sky_material = SubResource("ProceduralSkyMaterial_opwpc")
+
+[sub_resource type="Environment" id="Environment_pfipv"]
+background_mode = 2
+sky = SubResource("Sky_6q22w")
+tonemap_mode = 2
+glow_enabled = true
+
+[node name="Arena3D" type="Node3D"]
+script = ExtResource("1_6q22w")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866024, -0.433016, 0.250001, 0, 0.499998, 0.866026, -0.500003, 0.749999, -0.43301, 0, 0, 0)
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_pfipv")
+
+[node name="Board3D" parent="." instance=ExtResource("1_5ykft")]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.99639, 0.0414365, 0.0740987, -0.0798196, 0.159901, 0.983901, 0.0289209, -0.986263, 0.162632, 0.531002, 24.6682, 3.0595)
+projection = 1
+current = true
+fov = 51.5
+size = 8.619
+near = 0.01
+far = 500.0
+
+[node name="UI" parent="." instance=ExtResource("2_opwpc")]
+
+[node name="VBoxContainer" parent="UI/SummonMode" index="1"]
+offset_right = 96.0
+offset_bottom = 96.0
+
+[editable path="UI"]

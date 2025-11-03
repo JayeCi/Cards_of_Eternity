@@ -9,7 +9,7 @@ signal interacted(element_type)
 @export var label: Label3D
 @onready var sparks: GPUParticles3D = $BODY/Sparks
 @onready var sfx: AudioStreamPlayer3D = $SFX
-
+var enabled := true
 
 
 func show_label():
@@ -33,3 +33,16 @@ func hide_label():
 	t.tween_property(label, "modulate:a", 0.0, 0.15)
 	t.finished.connect(func():
 		label.visible = false)
+
+func disable_deck():
+	enabled = false
+	hide_label()
+	visible = false
+
+	# Disable all collision shapes in this deck
+	for shape in get_children():
+		if shape is CollisionShape3D:
+			shape.disabled = true
+		elif shape is CollisionObject3D:
+			shape.collision_layer = 0
+			shape.collision_mask = 0

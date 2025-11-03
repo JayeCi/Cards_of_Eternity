@@ -14,7 +14,7 @@ func _ready():
 	# ✅ Wait one more frame so guide/global transforms update
 	await get_tree().process_frame
 
-	player.face_target(guide)
+	player.face_target(table_target)
 
 	InputState.set_mode(InputState.Mode.CUTSCENE)
 	guide.approach_player(player)

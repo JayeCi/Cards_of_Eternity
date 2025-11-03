@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3 uid="uid://dnc8hiye485ru"]
+
+[ext_resource type="Script" uid="uid://b6j1c3vbr3jor" path="res://Arena/Arena3DTutorial/board_3dTutorial.gd" id="1_ovma7"]
+[ext_resource type="PackedScene" uid="uid://dymngijkrptcc" path="res://Arena/tile_3d.tscn" id="2_uwa68"]
+
+[node name="Board3D" type="Node3D"]
+script = ExtResource("1_ovma7")
+tile_scene = ExtResource("2_uwa68")

@@ -24,6 +24,7 @@ DeckManager="*res://UI/DeckManager.gd"
 DialogueManager="*res://Dialogue/DialogueManager.gd"
 EscMenu="*res://UI/Esc_Menu.tscn"
 InputState="*res://inputstate.gd"
+Globals="*res://Globals.gd"
 
 [display]
 
@@ -41,6 +42,9 @@ battle_scene=""
 npcs=""
 sit_spots=""
 interactable=""
+element_deck="StarterDeckDisableGroup"
+tutorial_portal=""
+guide=""
 
 [input]
 

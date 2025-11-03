@@ -1,0 +1,122 @@
+[gd_scene load_steps=18 format=3 uid="uid://bw3mtqt1ljwca"]
+
+[ext_resource type="Script" uid="uid://bgd2tndhf07cf" path="res://Arena/Arena3DTutorial/ArenaScript/arena_core_tutorial.gd" id="1_4pxlm"]
+[ext_resource type="Texture2D" uid="uid://cjw8qsb0thllt" path="res://Images/abstract-heavy-blue-haze-liquid (1).jpg" id="2_c0qsf"]
+[ext_resource type="PackedScene" uid="uid://dnc8hiye485ru" path="res://Arena/Arena3DTutorial/Board3DTutorial.tscn" id="3_ke5ei"]
+[ext_resource type="AudioStream" uid="uid://w7n2h3ha0xhe" path="res://Audio/Music/Yu-Gi-Oh! Duelist of the Roses_ VS.  Seto - C. Rosenkruez  Extended.mp3" id="4_vj034"]
+[ext_resource type="Texture2D" uid="uid://dkes2i4j5tjot" path="res://Images/Textures/metall005-new-tileable.png" id="5_n0myg"]
+[ext_resource type="Script" uid="uid://v05lxy2mlb1k" path="res://Arena/Arena3DTutorial/ArenaScript/arena_camera_tutorial.gd" id="6_10qql"]
+[ext_resource type="PackedScene" uid="uid://dcus3e1lnkiqj" path="res://UI/UI.tscn" id="7_sw0of"]
+[ext_resource type="Script" uid="uid://cqftocxsoxij" path="res://Arena/Arena3DTutorial/ArenaScript/arena_ui_tutorial.gd" id="8_10qql"]
+[ext_resource type="PackedScene" uid="uid://d3k7rvjpylid4" path="res://UI/battle_ui.tscn" id="8_kkfft"]
+[ext_resource type="Script" uid="uid://dfvwy36elwnxl" path="res://Arena/Arena3DTutorial/ArenaScript/arena_battle_tutorial.gd" id="9_fnsh8"]
+[ext_resource type="Script" uid="uid://m5snwhpbgnhn" path="res://Arena/Arena3DTutorial/ArenaScript/arena_ai_tutorial.gd" id="10_da2gl"]
+[ext_resource type="Script" uid="uid://kw5iatc7hmda" path="res://Arena/Arena3DTutorial/ArenaScript/arena_cutscene_tutorial.gd" id="11_s2x0l"]
+
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_08t7x"]
+panorama = ExtResource("2_c0qsf")
+
+[sub_resource type="Sky" id="Sky_pkj7r"]
+sky_material = SubResource("PanoramaSkyMaterial_08t7x")
+
+[sub_resource type="Environment" id="Environment_6q22w"]
+background_mode = 2
+background_color = Color(0.0137245, 0.0722071, 0.0761018, 1)
+sky = SubResource("Sky_pkj7r")
+ssr_enabled = true
+ssao_enabled = true
+ssil_enabled = true
+glow_normalized = true
+fog_mode = 1
+fog_light_color = Color(1, 1, 1, 1)
+fog_light_energy = 0.83
+fog_density = 0.3485
+fog_aerial_perspective = 1.0
+fog_depth_begin = 0.0
+fog_depth_end = 62.1
+volumetric_fog_density = 0.0761
+volumetric_fog_sky_affect = 0.0
+adjustment_enabled = true
+adjustment_saturation = 1.08
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_i42j4"]
+albedo_texture = ExtResource("5_n0myg")
+uv1_scale = Vector3(1.765, 1.765, 1.765)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pfipv"]
+
+[node name="Arena3D" type="Node3D" groups=["battle_scene"]]
+script = ExtResource("1_4pxlm")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866026, -0.499851, 0.0122161, 0, 0.0244322, 0.999701, -0.5, 0.865767, -0.0211589, 0, 0, 0)
+shadow_enabled = true
+shadow_transmittance_bias = 16.0
+shadow_opacity = 0.79
+shadow_blur = 6.876
+directional_shadow_max_distance = 52.9
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_6q22w")
+
+[node name="Board3D" parent="." instance=ExtResource("3_ke5ei")]
+tile_scene = null
+
+[node name="BGMusic" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("4_vj034")
+volume_db = -45.207
+autoplay = true
+bus = &"Music"
+parameters/looping = true
+
+[node name="UnderBoard" type="MeshInstance3D" parent="."]
+transform = Transform3D(50, 0, 0, 0, 50, 0, 0, 0, 50, 0, -27.8305, 0)
+material_override = SubResource("StandardMaterial3D_i42j4")
+mesh = SubResource("BoxMesh_pfipv")
+
+[node name="CameraSystem" type="Camera3D" parent="."]
+transform = Transform3D(0.9963897, 0.04143649, 0.074098594, -0.07981956, 0.159901, 0.98390067, 0.028920949, -0.98626304, 0.16263114, 0.531002, 24.47908, 3.0595)
+current = true
+fov = 51.5
+size = 8.619
+near = 0.01
+far = 101.25
+script = ExtResource("6_10qql")
+
+[node name="UISystemTutorial" parent="." instance=ExtResource("7_sw0of")]
+script = ExtResource("8_10qql")
+fusion_fade_in_duration = null
+fusion_rotate_amplitude = null
+fusion_rotate_speed = null
+fusion_glow_pulse = null
+fusion_glow_min = null
+fusion_glow_max = null
+fusion_glow_speed = null
+fusion_glow_color = null
+fusion_label_color_ready = null
+fusion_label_color_result = null
+fusion_enable_rotation = null
+
+[node name="BattleUI" parent="UISystemTutorial" instance=ExtResource("8_kkfft")]
+visible = false
+layout_mode = 1
+
+[node name="BattleSystem" type="Node3D" parent="."]
+script = ExtResource("9_fnsh8")
+
+[node name="AISystemTutorial" type="Node3D" parent="."]
+script = ExtResource("10_da2gl")
+
+[node name="CutsceneSystem" type="Node3D" parent="."]
+script = ExtResource("11_s2x0l")
+
+[connection signal="pressed" from="UISystemTutorial/EndTurnButton" to="." method="_on_end_turn_button_pressed"]
+[connection signal="pressed" from="UISystemTutorial/VBoxContainer/LogButton" to="." method="_on_log_button_pressed"]
+[connection signal="pressed" from="UISystemTutorial/SummonMode/VBoxContainer/AttackMode" to="." method="_on_attack_mode_pressed"]
+[connection signal="pressed" from="UISystemTutorial/SummonMode/VBoxContainer/DefenseMode" to="." method="_on_defense_mode_pressed"]
+[connection signal="pressed" from="UISystemTutorial/SummonMode/VBoxContainer/FaceDown" to="UISystemTutorial" method="_on_facedown_mode_pressed"]
+
+[editable path="UISystemTutorial"]
+[editable path="UISystemTutorial/BottomContainer/OrbGrid"]
+[editable path="UISystemTutorial/BottomContainer/OrbGrid/OrbGrid/Control"]
+[editable path="UISystemTutorial/BattleUI"]

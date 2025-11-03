@@ -5,6 +5,9 @@ class_name GuideNPC
 @onready var agent: NavigationAgent3D = $NavigationAgent3D
 @onready var anim: AnimationPlayer = $AnimationPlayer
 @onready var player: Node3D = get_tree().get_first_node_in_group("player")
+@onready var head: Node3D = $Head
+@onready var look_target: Node3D = $Head/LookTarget
+
 var sit_spots: Array = []
 
 @export var earth_portal_path: NodePath
@@ -21,7 +24,7 @@ signal reached_table
 signal reached_target
 
 # --- Movement constants ---
-const SPEED := 2.5
+const SPEED := 5.5
 const TURN_SPEED := 6.0
 const WANDER_RADIUS := 15.0
 
@@ -225,6 +228,35 @@ func _on_final_cutscene_done(_id := StringName("")) -> void:
 	InputState.set_mode(InputState.Mode.FREE)
 	_set_state(STATE_CUTSCENE_FINISHED)
 
+func _on_battle_finished(result):
+	get_tree().change_scene_to_file("res://World/HUB.tscn")
+	Globals.tutorial_completed = true
+
+func start_tutorial_battle_dialogue(player: Node3D):
+	DialogueManager.start_convo([
+		_dl("Guide", "Wait..."),
+		_dl("Guide", "I don't feel right sending you into the Earth Realm unprepared."),
+		_dl("Guide", "Yes, you have cards — but you don’t know how to wield them."),
+		_dl("Guide", "I will teach you the basics of battle. Watch closely.")
+	])
+
+	if !DialogueManager.finished.is_connected(_on_tutorial_battle_dialogue_finished):
+		DialogueManager.finished.connect(_on_tutorial_battle_dialogue_finished, Object.CONNECT_ONE_SHOT)
+
+func _on_tutorial_battle_dialogue_finished(_id := StringName("")):
+	# Load tutorial arena
+	var arena_scene := load("res://Arena/Arena3DTutorial/arena_3d_tutorial.tscn")
+	var arena = arena_scene.instantiate()
+
+	# Connect battle finished signal back to THIS GuideNPC
+	arena.battle_finished.connect(_on_battle_finished)
+
+	# Add arena on top of current world
+	get_tree().root.add_child(arena)
+
+	# Remove the shrine/hub world from scene tree
+	get_tree().current_scene.queue_free()
+
 # ===========================
 # Helpers
 # ===========================
@@ -263,7 +295,7 @@ func on_player_chosen_deck(element_type: String) -> void:
 	player.save_camera_rotation()
 
 	# 1) Look at portal
-	var tween1 = player.look_toward_point(earth_portal.get_look_point(), 1.5)
+	var tween1 = player.look_toward_point(get_look_point(), 1.5)
 
 	await tween1.finished
 
@@ -324,7 +356,9 @@ func _on_show_first_portal(_id := StringName("")) -> void:
 		
 # Always return a good chest-height look target
 func get_look_point() -> Vector3:
-	return global_transform.origin + Vector3(0, 1.0, 0)
+	if look_target and is_instance_valid(look_target):
+		return -look_target.global_transform.origin
+	return global_transform.origin + Vector3.UP * 1.6
 
 func _deck_description(element_type: String) -> String:
 	match element_type:

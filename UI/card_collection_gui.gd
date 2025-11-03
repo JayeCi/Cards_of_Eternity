@@ -11,12 +11,15 @@ extends Control
 @onready var wind_ball: AnimatedSprite2D = $LeftPanel/CardName/WindBall
 @onready var earth_ball: AnimatedSprite2D = $LeftPanel/CardName/EarthBall
 @onready var deck_count: Label = $DeckPanel/Deck/Panel/DeckLabel/MarginContainer/DeckCount
+@onready var tutorial_popups: Panel = $Tutorial_Popups
+@onready var continue_btn: Button = $Tutorial_Popups/Tutorial_Panel/Tutorial_VBox/Tutorial_Continue_Button
 
 
 
 var _sort_mode := "name"
 var _sort_ascending := true
 
+var tutorial_can_continue := false
 
 var left_panel: Control
 var card_name_label: Label
@@ -33,7 +36,9 @@ var art_border: TextureRect
 var displayed_cards := {}
 var player = null
 var _elem_to_ball := {}
+@onready var tutorial_label: RichTextLabel = $Tutorial_Popups/Tutorial_Panel/Tutorial_VBox/MarginContainer/Tutorial_Text
 
+	
 @onready var collection_panel: Panel = $CollectionPanel
 @onready var leader_panel: Panel = $LeaderPanel
 @onready var deck_panel: Panel = $DeckPanel
@@ -90,6 +95,22 @@ func _ready():
 	_clear_left_panel()
 
 	print("[CollectionGUI] ✅ Ready – drag/drop initialized.")
+	
+	tutorial_popups.visible = true
+	tutorial_label.clear()
+	tutorial_label.bbcode_enabled = true
+
+	tutorial_label.append_text("[center][b]Welcome to Cards of Eternity![/b][/center]\n\n")
+	tutorial_label.append_text("This is the [b]Card Collection UI[/b].\n")
+	tutorial_label.append_text("Here you can view all of the cards you have collected, inspect their details, and see which cards are currently in your deck.\n\n")
+	tutorial_label.append_text("[color=yellow]• Hover[/color] a card to inspect it in detail.\n")
+	tutorial_label.append_text("[color=green]• Click[/color] a card to add or remove it from your deck.\n\n")
+	tutorial_label.append_text("When you're ready, click the [b]\"C\"[/b] on the toolbar to go to your full collection list.")
+	tutorial_can_continue = false
+	_unlock_tutorial_continue()
+
+	var tween = create_tween()
+	tween.tween_property(tutorial_label, "visible_characters", tutorial_label.get_total_character_count(), 1.75)
 
 # ==========================================================
 # 🖱️ CARD INTERACTION (Click + Hover)
@@ -194,19 +215,23 @@ func _refresh_collection_counts():
 				child.set_quantity(left)  # show true remaining
 
 func _update_deck_count() -> void:
-	await get_tree().process_frame  # wait 1 frame so UI and DeckManager sync
+	await get_tree().process_frame
 
 	var ids := DeckManager.get_ids()
 	var count := ids.size()
 	deck_count.text = "%d / 10" % count
 
-	# Optional color feedback (green → yellow → red)
 	if count >= 10:
-		deck_count.add_theme_color_override("font_color", Color(1, 0.3, 0.3))  # red
+		deck_count.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
 	elif count >= 7:
-		deck_count.add_theme_color_override("font_color", Color(1, 0.8, 0.3))  # yellow
+		deck_count.add_theme_color_override("font_color", Color(1, 0.8, 0.3))
 	else:
-		deck_count.add_theme_color_override("font_color", Color(0.8, 1, 0.8))  # green
+		deck_count.add_theme_color_override("font_color", Color(0.8, 1, 0.8))
+
+	# 👉 Trigger Tutorial Stage 3
+	if count == 5 and Globals.tutorial_stage == 2:
+		_show_tutorial_stage_3()
+		Globals.tutorial_stage = 3
 
 func _refresh_deck_grid():
 	for c in deck_grid.get_children():
@@ -467,6 +492,70 @@ func _compare_cards(a: CardData, b: CardData) -> bool:
 	return result < 0 if _sort_ascending else result > 0
 
 # ==========================================================
+# 🧭 TUTORIAL_STAGE SWITCHING
+# ==========================================================
+func _show_tutorial_stage_1():
+	tutorial_popups.visible = true
+	tutorial_label.clear()
+	tutorial_label.bbcode_enabled = true
+
+	tutorial_label.append_text("[center][b]Great![/b][/center]\n\n")
+	tutorial_label.append_text("Now that you know how to access the [b]Card Collection[/b], let's take the next step.\n\n")
+	tutorial_label.append_text("To build and modify your deck, navigate to the [b]Deck Builder[/b] panel.\n\n")
+	tutorial_label.append_text("Click on the [color=cyan][b]\"D\"[/b][/color] on the toolbar to continue!")
+	tutorial_label.visible_characters = 0
+	tutorial_can_continue = false
+	_unlock_tutorial_continue()
+	
+	var tween = create_tween()
+	tween.tween_property(tutorial_label, "visible_characters", tutorial_label.get_total_character_count(), 1.75)
+
+func _show_tutorial_stage_2():
+	tutorial_popups.visible = true
+	tutorial_label.clear()
+	tutorial_label.bbcode_enabled = true
+
+	tutorial_label.append_text("[center][b]Welcome to the Deck Builder![/b][/center]\n\n")
+	tutorial_label.append_text("Here, you assemble the cards you’ll bring into battle.\n\n")
+	tutorial_label.append_text("You can bring in any amount of cards, the maximum right now is 10.\n\n")
+	tutorial_label.append_text("• Click a card to add it to your deck.\n")
+	tutorial_label.append_text("• Click again to remove it.\n\n")
+	tutorial_label.append_text("Try building your first deck now with your first 5 cards!")
+	tutorial_label.visible_characters = 0
+	tutorial_can_continue = false
+	_unlock_tutorial_continue()
+	
+	var tween = create_tween()
+	tween.tween_property(tutorial_label, "visible_characters", tutorial_label.get_total_character_count(), 1.75)
+
+
+func _show_tutorial_stage_3():
+	tutorial_popups.visible = true
+	tutorial_label.clear()
+	tutorial_label.bbcode_enabled = true
+
+	tutorial_label.append_text("[center][b]Your First Deck Is Ready![/b][/center]\n\n")
+	tutorial_label.append_text("Throughout your adventure, you will discover many cards from different [b]elements[/b] and [b]types[/b].\n\n")
+	tutorial_label.append_text("Experiment and get creative — some cards work brilliantly together!\n\n")
+	tutorial_label.append_text("Each card also has a [b]rarity[/b] that describes both how powerful and how difficult it is to find.\n\n")
+	tutorial_label.append_text("When you're ready to continue, close this screen by pressing [color=yellow][b]X[/b][/color] or [color=yellow][b]TAB[/b][/color].\n\n")
+	tutorial_label.append_text("[center]You can return here anytime with [b]TAB[/b].[/center]")
+
+	tutorial_label.visible_characters = 0
+	tutorial_can_continue = false
+	_unlock_tutorial_continue()
+
+	var tween = create_tween()
+	tween.tween_property(tutorial_label, "visible_characters", tutorial_label.get_total_character_count(), 1.75)
+
+func _unlock_tutorial_continue():
+	continue_btn.disabled = true
+	continue_btn.visible = false
+	await get_tree().create_timer(5.0).timeout
+	tutorial_can_continue = true
+	continue_btn.visible = true
+	continue_btn.disabled = false
+# ==========================================================
 # 🧭 PANEL SWITCHING
 # ==========================================================
 func _on_leader_button_pressed() -> void:
@@ -482,12 +571,27 @@ func _on_deck_button_pressed() -> void:
 	leader_panel.visible = false
 	main_panel_label.text = "Deck Builder"
 
+	# ✅ Stage 2 tutorial (if you want continuation later)
+	if Globals.tutorial_stage == 1:
+		_show_tutorial_stage_2()
+		Globals.tutorial_stage = 2
+
 func _on_collection_button_pressed() -> void:
 	collection_panel.visible = true
 	deck_panel.visible = false
 	leader_panel.visible = false
 	main_panel_label.text = "Card Collection"
 
+	# ✅ NEW tutorial page trigger
+	if Globals.tutorial_stage == 0:
+		_show_tutorial_stage_1()
+		Globals.tutorial_stage = 1
 
 func _on_x_pressed() -> void:
 	player._toggle_collection()
+
+
+func _on_tutorial_continue_button_pressed() -> void:
+	if not tutorial_can_continue:
+		return # too early!
+	tutorial_popups.visible = false

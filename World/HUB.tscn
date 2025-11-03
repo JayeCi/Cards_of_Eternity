@@ -1,4 +1,4 @@
-[gd_scene load_steps=65 format=3 uid="uid://bp0h2hrcf2ohw"]
+[gd_scene load_steps=67 format=3 uid="uid://bp0h2hrcf2ohw"]
 
 [ext_resource type="Texture2D" uid="uid://bgdpr2y6d5sii" path="res://Images/hay_bales_2k.exr" id="1_024pt"]
 [ext_resource type="Texture2D" uid="uid://bou8ui3k0rheg" path="res://UI/packed_grass.png" id="1_l2uf4"]
@@ -15,6 +15,7 @@
 [ext_resource type="PackedScene" uid="uid://b1lmaxf3wjdva" path="res://Downloaded/Structures/HUB/earthportal.tscn" id="11_pfj73"]
 [ext_resource type="PackedScene" uid="uid://bemh6okuv88np" path="res://UI/taskbar.tscn" id="13_x1o02"]
 [ext_resource type="ArrayMesh" uid="uid://d03migplcm3op" path="res://Downloaded/Decor/Rocks/Rock_1.res" id="16_8p0fb"]
+[ext_resource type="Script" uid="uid://c4sqrykhclmta" path="res://World/TutorialPortalTrigger.gd" id="16_024pt"]
 [ext_resource type="ArrayMesh" uid="uid://c2sehneicafeb" path="res://Downloaded/Decor/Rocks/rock5.res" id="17_0lw8i"]
 [ext_resource type="PackedScene" uid="uid://dn44p5vpvt4hj" path="res://Downloaded/Structures/HUB/base_campfire.tscn" id="17_dmdbc"]
 [ext_resource type="PackedScene" uid="uid://cod3wfps2ok0k" path="res://Downloaded/Structures/HUB/smoke_particle_toon.tscn" id="17_iuqrg"]
@@ -941,6 +942,9 @@ normal_texture = SubResource("ImageTexture_qs6ow")
 mesh_list = Array[Terrain3DMeshAsset]([SubResource("Terrain3DMeshAsset_di3fq")])
 texture_list = Array[Terrain3DTextureAsset]([SubResource("Terrain3DTextureAsset_i7fa6"), SubResource("Terrain3DTextureAsset_5jh1l"), SubResource("Terrain3DTextureAsset_30vp3")])
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_pjshm"]
+size = Vector3(426.20898, 982.9509, 659.81836)
+
 [sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_i7fa6"]
 points = PackedVector3Array(0.0039306204, -4.3798238e-05, 0.0036341345, 0.003587469, -0.0012994788, 0.0029808276, 0.0036446615, -0.0004438029, -0.00022037665, 0.0034444896, 0.0018902202, 3.2516196e-05, 0.0032417946, 0.0021391297, 0.004403351, 0.0028330414, 0.0025574248, 0.011758322, 0.0037792302, 0.00021226844, 0.0050018644, 0.0015588403, -0.00016865041, 0.017703416, 0.0032762787, -0.0021440214, 0.0024328923, 0.0013704435, -0.0008374456, 0.016970027, 0.0027136113, -0.0021114168, 0.0003296656, 0.0005764859, -0.00096786453, -0.0015185608, 0.0004949034, 0.00074746367, -0.0020812477, 0.0031753513, -0.0024167881, 0.0022558675, 0.001529403, 0.0045980057, -7.707067e-05, 0.0022964473, 0.0036524674, 0.00024536788, 0.0021072095, 0.0041097295, 0.007134595, 0.0019045146, 0.0029367534, 0.014219814, 0.002530261, 0.0022011586, 0.014506427, 0.0020626332, 0.0010202301, 0.016198702, 0.00011054007, 5.1630428e-05, 0.019433627, 0.00070180325, -0.0007022552, 0.0191997, 0.0010617757, -0.0007046409, 0.018731847, -0.00214181, -0.0011738312, -0.00061446836, -7.5333286e-05, -0.0012318835, -0.0014321557, 0.0017573298, -0.0024923356, 0.002302231, -0.0022536705, 0.00034984457, -0.0019358343, -2.739299e-05, 0.0008357349, -0.002096, -4.841946e-05, 0.005228629, -0.0003489306, 0.0009869216, -0.0014434168, 0.012883696, -0.00071117235, 0.0056318147, 0.0009892948, 0.0015529529, 0.0046409485, 0.005642527, 0.0014124964, 0.0030950056, 0.014457955, 0.00065470394, 0.0018178537, 0.017463168, 0.0014192248, 0.0015912112, 0.016628621, -0.0012343097, 1.0278076e-05, 0.018025855, -0.0027145697, 0.002888244, 0.01436312, -0.0031695815, 0.002469949, 0.014443203, -0.0034858189, 0.0016142731, 0.014757211, -0.0004731533, -0.0010068312, 0.017467383, -0.0020804128, -0.0015221455, 0.0012084688, -0.0046616164, 0.0006902064, 0.0023233055, -0.004596855, 0.0010011445, 0.00076169125, -1.0571908e-05, -0.0023173832, 0.004801657, -0.004179691, 0.0023069251, -0.00037000503, -0.0024572064, 0.004726039, 0.0021884295, -0.0024706633, 0.0047188816, 0.0034065305, -0.0010980584, 0.0053781336, 0.0045508714, -0.0010391844, 0.0052731624, 0.0077689346, 0.00022155978, 0.0034051486, 0.014991137, -0.0031922902, 0.0005128684, 0.014620229, -0.0010963762, 0.004022253, 0.01309444, -0.0025497226, 0.0032031583, 0.013804649, -0.002998006, 0.0031268154, 0.012970101, -0.0039063473, 0.0010822588, 0.0132166715, -0.0038062616, 0.00031883037, 0.011907951, -0.0010417076, -0.0015499787, 0.012401092, -0.00083312555, -0.0020374595, 0.0044096727, -0.003204906, -0.000664879, 0.0054001706, -0.0037961688, -0.00015672203, 0.005065087, -0.00431426, 0.0008118779, 0.008224143, -0.0041157706, 0.0024007633, 0.00083966646, -0.0034790905, 0.003567377, 0.002472934, -0.0024420673, 0.0046552625, 0.007176744, -0.002410107, 0.0047037723, 0.0056636008, -0.0011729125, 0.0051268386, 0.008668813, -0.0012435613, 0.004960634, 0.009423276, -0.0033655479, 0.0027363533, 0.010413774, -0.0031157539, 0.0038520722, 0.006552941, -0.004011479, 0.0010083015, 0.011971174, -0.0041157706, 0.00093354913, 0.010725676, -0.0032234092, 0.0037876582, 0.0051936414, -0.0033546141, 0.0036795055, 0.0037352915)
 
@@ -1017,7 +1021,7 @@ slide_on_ceiling = false
 floor_block_on_wall = false
 floor_max_angle = 0.9878563
 
-[node name="HUB_Guide_Walking" parent="." instance=ExtResource("24_iuqrg")]
+[node name="HUB_Guide_Walking" parent="." groups=["guide"] instance=ExtResource("24_iuqrg")]
 transform = Transform3D(-2.1153278, 0, 1.8492784e-07, 0, 2.1153278, 0, -1.8492784e-07, 0, -2.1153278, -12.547766, 0, -3.3003101)
 earth_portal_path = NodePath("../Portal")
 deck_table_target_path = NodePath("../Table")
@@ -1052,6 +1056,15 @@ transform = Transform3D(0.57691574, 0, 0, 0, 0.57691574, 0, 0, 0, 0.57691574, 0,
 
 [node name="Portal" parent="." instance=ExtResource("11_pfj73")]
 transform = Transform3D(-8.0357676e-10, 0, 0.018383695, 0, 0.018383695, 0, -0.018383695, 0, -8.0357676e-10, -30.913628, 2.673005, -0.77449924)
+
+[node name="Node3D" type="Node3D" parent="Portal"]
+
+[node name="Tutorial_4_Trigger" type="Area3D" parent="Portal/Node3D" groups=["tutorial_portal"]]
+script = ExtResource("16_024pt")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Portal/Node3D/Tutorial_4_Trigger"]
+transform = Transform3D(1, 0, 9.485746e-13, 0, 1, 0, -9.485746e-13, 0, 1, 0, 0, 0)
+shape = SubResource("BoxShape3D_pjshm")
 
 [node name="Rocks" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29.681, 2.097, 5.918)
@@ -1174,16 +1187,16 @@ parameters/looping = true
 [node name="Table" parent="." instance=ExtResource("25_0vg4e")]
 transform = Transform3D(-5.520283e-08, 0, -1.2628937, 0, 1.2628937, 0, 1.2628937, 0, -5.520283e-08, 0.05089378, -0.040789485, -7.2887115)
 
-[node name="StarterDeck_Fire" parent="Table" instance=ExtResource("26_i7fa6")]
+[node name="StarterDeck_Fire" parent="Table" groups=["element_deck"] instance=ExtResource("26_i7fa6")]
 transform = Transform3D(-9.976489e-08, 1.3552527e-20, -2.2823539, 7.9811883e-07, 2.2823539, -3.4886895e-14, 2.2823539, -7.9811883e-07, -9.976489e-08, 0, 1.4325801, -0.44936213)
 
-[node name="StarterDeck_Water" parent="Table" instance=ExtResource("27_pjshm")]
+[node name="StarterDeck_Water" parent="Table" groups=["element_deck"] instance=ExtResource("27_pjshm")]
 transform = Transform3D(-9.976489e-08, 1.7443454e-14, -2.2823539, 1.1971782e-06, 2.2823539, -3.4886895e-14, 2.2823539, -1.1971782e-06, -9.976489e-08, 0, 1.4325801, 1.5836644)
 
-[node name="StarterDeck_Wind" parent="Table" instance=ExtResource("28_024pt")]
+[node name="StarterDeck_Wind" parent="Table" groups=["element_deck"] instance=ExtResource("28_024pt")]
 transform = Transform3D(-9.976489e-08, 1.0164395e-20, -2.2823539, 7.9811883e-07, 2.2823539, -3.4886895e-14, 2.2823539, -7.9811883e-07, -9.976489e-08, 0, 1.4325798, -1.5836651)
 
-[node name="StarterDeck_Earth" parent="Table" instance=ExtResource("29_5jh1l")]
+[node name="StarterDeck_Earth" parent="Table" groups=["element_deck"] instance=ExtResource("29_5jh1l")]
 transform = Transform3D(-9.976489e-08, 1.3552527e-20, -2.2823539, 7.9811883e-07, 2.2823539, -3.4886895e-14, 2.2823539, -7.9811883e-07, -9.976489e-08, 0, 1.4325801, 0.5443164)
 
 [node name="Bench" parent="." groups=["sit_spots"] instance=ExtResource("27_di3fq")]
@@ -1195,6 +1208,8 @@ script = ExtResource("28_di3fq")
 [node name="Label" type="Label" parent="FPSCounter"]
 offset_right = 40.0
 offset_bottom = 23.0
+
+[connection signal="body_entered" from="Portal/Node3D/Tutorial_4_Trigger" to="Player" method="_on_tutorial_portal_entered"]
 
 [editable path="Card_Description_Popup"]
 [editable path="Player"]

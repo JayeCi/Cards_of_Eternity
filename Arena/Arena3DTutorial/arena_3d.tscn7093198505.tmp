@@ -1,0 +1,82 @@
+[gd_scene load_steps=14 format=3 uid="uid://camg64m8fg43w"]
+
+[ext_resource type="Script" uid="uid://uk6se88h2jyj" path="res://Arena/Arena3D/ArenaScript/arena_core.gd" id="1_2nnof"]
+[ext_resource type="PackedScene" uid="uid://da27pnrvn5yna" path="res://Arena/Arena3D/Board3D.tscn" id="1_5ykft"]
+[ext_resource type="PackedScene" uid="uid://dcus3e1lnkiqj" path="res://UI/UI.tscn" id="2_opwpc"]
+[ext_resource type="AudioStream" uid="uid://b5kmgf3x0byk" path="res://Audio/Music/classic-rock-solo-jam-epic-guitar-performance-225274.mp3" id="4_pfipv"]
+[ext_resource type="Script" uid="uid://bqkc1hsxx6w73" path="res://Arena/Arena3D/ArenaScript/arena_camera.gd" id="5_2nnof"]
+[ext_resource type="Texture2D" uid="uid://dkes2i4j5tjot" path="res://Images/Textures/metall005-new-tileable.png" id="5_i5af3"]
+[ext_resource type="Script" uid="uid://khurkxh2646n" path="res://Arena/Arena3D/ArenaScript/arena_cutscene.gd" id="6_i42j4"]
+[ext_resource type="Script" uid="uid://b5ngergka1wik" path="res://Arena/Arena3D/ArenaScript/arena_ui.gd" id="7_i7u7f"]
+[ext_resource type="Script" uid="uid://c01bdnjyd3qmh" path="res://Arena/Arena3D/ArenaScript/arena_battle.gd" id="8_08t7x"]
+[ext_resource type="Script" uid="uid://bjt3wnmra8jjr" path="res://Arena/Arena3D/ArenaScript/arena_ai.gd" id="9_pkj7r"]
+
+[sub_resource type="Environment" id="Environment_6q22w"]
+background_mode = 1
+background_color = Color(0.0137245, 0.0722071, 0.0761018, 1)
+fog_enabled = true
+fog_light_color = Color(0.00847996, 0.0731864, 0.0787612, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_i42j4"]
+albedo_texture = ExtResource("5_i5af3")
+uv1_scale = Vector3(1.765, 1.765, 1.765)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pfipv"]
+
+[node name="Arena3D" type="Node3D" groups=["battle_scene"]]
+script = ExtResource("1_2nnof")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866024, -0.433016, 0.250001, 0, 0.499998, 0.866026, -0.500003, 0.749999, -0.43301, 0, 0, 0)
+shadow_enabled = true
+directional_shadow_max_distance = 52.9
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_6q22w")
+
+[node name="Board3D" parent="." instance=ExtResource("1_5ykft")]
+
+[node name="BGMusic" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("4_pfipv")
+volume_db = -36.54
+autoplay = true
+bus = &"Music"
+parameters/looping = true
+
+[node name="UnderBoard" type="MeshInstance3D" parent="."]
+transform = Transform3D(50, 0, 0, 0, 50, 0, 0, 0, 50, 0, -27.8305, 0)
+material_override = SubResource("StandardMaterial3D_i42j4")
+mesh = SubResource("BoxMesh_pfipv")
+
+[node name="CameraSystem" type="Camera3D" parent="."]
+transform = Transform3D(0.99639, 0.0414365, 0.0740987, -0.0798196, 0.159901, 0.983901, 0.0289209, -0.986263, 0.162632, 0.531002, 24.6682, 3.0595)
+current = true
+fov = 51.5
+size = 8.619
+near = 0.01
+far = 101.25
+script = ExtResource("5_2nnof")
+
+[node name="UISystem" parent="." instance=ExtResource("2_opwpc")]
+script = ExtResource("7_i7u7f")
+
+[node name="VBoxContainer" parent="UISystem/SummonMode" index="1"]
+offset_right = 96.0
+offset_bottom = 96.0
+
+[node name="BattleSystem" type="Node3D" parent="."]
+script = ExtResource("8_08t7x")
+
+[node name="AISystem" type="Node3D" parent="."]
+script = ExtResource("9_pkj7r")
+
+[node name="CutsceneSystem" type="Node3D" parent="."]
+script = ExtResource("6_i42j4")
+
+[connection signal="pressed" from="UISystem/EndTurnButton" to="." method="_on_end_turn_button_pressed"]
+[connection signal="pressed" from="UISystem/VBoxContainer/LogButton" to="." method="_on_log_button_pressed"]
+[connection signal="pressed" from="UISystem/SummonMode/VBoxContainer/AttackMode" to="." method="_on_attack_mode_pressed"]
+[connection signal="pressed" from="UISystem/SummonMode/VBoxContainer/DefenseMode" to="." method="_on_defense_mode_pressed"]
+[connection signal="pressed" from="UISystem/SummonMode/VBoxContainer/FaceDown" to="." method="_on_facedown_mode_pressed"]
+
+[editable path="UISystem"]

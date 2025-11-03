@@ -134,7 +134,7 @@ func _ready() -> void:
 		step_player.attenuation_filter_cutoff_hz = 5000.0
 		
 	InputState.register_player(self)
-
+	starter_deck_chosen.connect(_on_deck_chosen)
 
 func get_card(path: String) -> CardData:
 	var card := load(path)
@@ -383,6 +383,14 @@ func _crosshair_hover_on():
 func _crosshair_hover_off():
 	crosshair.modulate = Color("363636b3") # dim
 
+func _on_deck_chosen(chosen_type: String):
+	# get all elemental deck nodes
+	var all_decks = get_tree().get_nodes_in_group("element_deck")
+	for deck in all_decks:
+		if deck.element_type != chosen_type:
+			deck.queue_free()
+
+
 func _play_footstep() -> void:
 	_time_since_step = 0.0
 	if _footstep_streams.is_empty():
@@ -412,3 +420,16 @@ func _dl(speaker: String, text: String, expr := "neutral") -> DialogueLine:
 	l.text = text
 	l.expression = expr
 	return l
+
+func _on_tutorial_portal_entered(body):
+	if Globals.tutorial_stage < 3:
+		show_pickup_popup("You should finish talking to the Guide first!")
+		return
+
+	# Freeze player movement
+	InputState.set_mode(InputState.Mode.CUTSCENE)
+
+	# Trigger Guide dialogue
+	var guide = get_tree().get_first_node_in_group("guide")
+	if guide:
+		guide.start_tutorial_battle_dialogue(self)
