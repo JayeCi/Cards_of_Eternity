@@ -1,6 +1,7 @@
-[gd_scene load_steps=27 format=4 uid="uid://b1lmaxf3wjdva"]
+[gd_scene load_steps=28 format=4 uid="uid://b1lmaxf3wjdva"]
 
 [ext_resource type="Texture2D" uid="uid://mj7mtnalttwc" path="res://Downloaded/Structures/HUB/ancient_portal_0.png" id="1_aw1u7"]
+[ext_resource type="Script" uid="uid://dq83bnfojpaxw" path="res://Downloaded/Structures/HUB/earthportal.gd" id="1_rtqht"]
 [ext_resource type="Texture2D" uid="uid://dh4lbwk7178vb" path="res://Downloaded/Structures/HUB/ancient_portal_1.png" id="2_et5dw"]
 [ext_resource type="Texture2D" uid="uid://c0l0lcso4q7gq" path="res://Downloaded/Structures/HUB/ancient_portal_2.png" id="3_rtqht"]
 [ext_resource type="Texture2D" uid="uid://100sld6t0gyr" path="res://Downloaded/Structures/HUB/ancient_portal_3.png" id="4_qkq7o"]
@@ -280,6 +281,7 @@ material = SubResource("ShaderMaterial_rtqht")
 
 [node name="Sketchfab_Scene" type="Node3D"]
 transform = Transform3D(0.004142359, 0, 0, 0, 0.004142359, 0, 0, 0, 0.004142359, 0, 0, 0)
+script = ExtResource("1_rtqht")
 
 [node name="Sketchfab_model" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 2.220446e-16, 1, 0, -1, 2.220446e-16, 0, 0, 0)

@@ -23,6 +23,7 @@ TerrainManager="*res://UI/Terrains/TerrainManager.gd"
 DeckManager="*res://UI/DeckManager.gd"
 DialogueManager="*res://Dialogue/DialogueManager.gd"
 EscMenu="*res://UI/Esc_Menu.tscn"
+InputState="*res://inputstate.gd"
 
 [display]
 
@@ -122,9 +123,9 @@ stores/character_store_path="uid://bqag2bftp0jru"
 
 textures/canvas_textures/default_texture_filter=0
 textures/canvas_textures/default_texture_repeat=1
-textures/default_filters/use_nearest_mipmap_filter=true
-textures/default_filters/anisotropic_filtering_level=3
+viewport/hdr_2d=true
 anti_aliasing/quality/msaa_3d=2
 scaling_3d/scale=1.25
-environment/volumetric_fog/volume_size=128
+environment/defaults/default_clear_color=Color(0.49833435, 0.19297162, 0.09022827, 1)
+viewport/transparent_background=true
 mesh_lod/lod_change/threshold_pixels=0.0

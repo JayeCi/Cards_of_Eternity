@@ -1,0 +1,16 @@
+[gd_resource type="Environment" load_steps=3 format=3 uid="uid://cyy4acf0geavg"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_i7fa6"]
+
+[sub_resource type="Sky" id="Sky_pjshm"]
+sky_material = SubResource("ProceduralSkyMaterial_i7fa6")
+
+[resource]
+background_mode = 2
+sky = SubResource("Sky_pjshm")
+sky_rotation = Vector3(0.44854963, 0, 0)
+ambient_light_sky_contribution = 0.0
+tonemap_mode = 2
+ssr_enabled = true
+volumetric_fog_density = 0.0428
+volumetric_fog_albedo = Color(0.4765119, 0.71478, 0.4478644, 1)

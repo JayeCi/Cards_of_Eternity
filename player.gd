@@ -8,6 +8,8 @@ const MOUSE_SENSITIVITY = 0.003
 var is_sprinting := false
 var sprint_speed := SPEED * SPRINT_MULTIPLIER
 
+signal starter_deck_chosen(element_type)
+
 # --- FOOTSTEPS ---
 const STEP_DISTANCE := 2.0            # meters per step
 const STEP_MIN_GAP := 0.15            # seconds, avoids machine-gun on stalls
@@ -24,6 +26,7 @@ var _rng := RandomNumberGenerator.new()
 var _step_dist_accum := 0.0
 var _time_since_step := 0.0
 var hovered_deck: Node3D = null
+
 @onready var crosshair: Label = $Crosshair/Label
 
 
@@ -83,6 +86,7 @@ var deck_claimed := {
 
 
 func _ready() -> void:
+	
 	if Engine.has_singleton("DialogueManager"):
 		DialogueManager._ui = $DialogueUI
 		print("[World] Registered DialogueUI manually")
@@ -129,23 +133,9 @@ func _ready() -> void:
 		step_player.unit_size = 1.0
 		step_player.attenuation_filter_cutoff_hz = 5000.0
 		
-	var mgr := get_tree().get_first_node_in_group("dialogue_manager")
-	if mgr:
-		# Use the finished signal from DialogueManager, not custom ones
-		mgr.started.connect(_on_dialogue_started)
-		mgr.finished.connect(_on_dialogue_finished)
-		
-	_lock_mouse()
-	#_start_intro_dialogue()
-	
-func _on_dialogue_started(_id = null):
-	# DialogueManager already disables movement
-	_unlock_mouse()
+	InputState.register_player(self)
 
-func _on_dialogue_finished(_id = null):
-	# DialogueManager already re-enables movement
-	_lock_mouse()
-	
+
 func get_card(path: String) -> CardData:
 	var card := load(path)
 	if card == null:
@@ -237,6 +227,45 @@ func _handle_element_deck(element_type: String):
 	current_interactable.queue_free()
 	current_interactable = null
 	hovered_deck = null
+	emit_signal("starter_deck_chosen", element_type)
+
+
+var _saved_yaw := 0.0
+var _saved_pitch := 0.0
+
+func save_camera_rotation():
+	_saved_yaw = rotation.y
+	_saved_pitch = head.rotation.x
+
+func restore_camera_rotation(duration: float = 1.3):
+	var tween = get_tree().create_tween()
+	tween.set_trans(Tween.TRANS_SINE)
+	tween.set_ease(Tween.EASE_OUT)
+
+	tween.tween_property(self, "rotation:y", _saved_yaw, duration)
+	tween.parallel().tween_property(head, "rotation:x", _saved_pitch, duration)
+	return tween
+
+
+func look_toward_point(point: Vector3, duration: float = 1.3) -> Tween:
+	var tween = get_tree().create_tween()
+	tween.set_trans(Tween.TRANS_SINE)
+	tween.set_ease(Tween.EASE_OUT)
+
+	# --- YAW (body) ---
+	var flat = point - global_position
+	flat.y = 0.0
+	if flat.length() > 0.001:
+		var yaw = atan2(flat.x, flat.z)
+		tween.tween_property(self, "rotation:y", yaw, duration)
+
+	# --- PITCH (camera) ---
+	var dir = (point - cam.global_position).normalized()
+	var pitch = asin(dir.y)
+	pitch = clamp(pitch, deg_to_rad(-60), deg_to_rad(60))
+	tween.parallel().tween_property(head, "rotation:x", -pitch, duration)
+
+	return tween
 
 func show_pickup_popup(text: String):
 	# You can replace this later with real UI
@@ -245,6 +274,10 @@ func show_pickup_popup(text: String):
 func _unhandled_input(event: InputEvent) -> void:
 	if collection_ui.visible:
 		return
+	if InputState.mode != InputState.Mode.FREE:
+		return
+
+
 
 	if event is InputEventMouseMotion and mouse_locked:
 		rotate_y(-event.relative.x * MOUSE_SENSITIVITY)
@@ -336,6 +369,13 @@ func _physics_process(delta: float) -> void:
 		current_interactable = root     # ✅ NOW HERE
 		_crosshair_hover_on()
 
+func face_target(target: Node3D):
+	var p := target.global_position
+	p.y = global_position.y # keep head level
+	look_at(p, Vector3.UP)
+	rotation_x = 0.0
+	head.rotation.x = 0.0
+
 
 func _crosshair_hover_on():
 	crosshair.modulate = Color(1, 1, 1, 1) # white / full alpha
@@ -357,24 +397,14 @@ func _toggle_collection():
 
 	if collection_ui.visible:
 		collection_ui.hide()
-		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-		mouse_locked = true
-		if not taskbar.visible:
-			taskbar.visible = true
+		InputState.set_mode(InputState.Mode.FREE)
+		taskbar.visible = true
 	else:
 		collection_ui.show()
-		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-		mouse_locked = false
-		if taskbar.visible:
-			taskbar.visible = false
-func _lock_mouse():
-	mouse_locked = true
-	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+		InputState.set_mode(InputState.Mode.UI)
+		taskbar.visible = false
 
-func _unlock_mouse():
-	mouse_locked = false
-	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-	
+
 # Player.gd (add this helper anywhere in the script)
 func _dl(speaker: String, text: String, expr := "neutral") -> DialogueLine:
 	var l := DialogueLine.new()
@@ -382,11 +412,3 @@ func _dl(speaker: String, text: String, expr := "neutral") -> DialogueLine:
 	l.text = text
 	l.expression = expr
 	return l
-
-#func _start_intro_dialogue():
-	#var lines: Array[DialogueLine] = [
-		#_dl("Player", "What the..."),
-		#_dl("Player", "The air here feels heavy — and my head! Ugh..."),
-		#_dl("Player", "I need to find out where I am...")
-	#]
-	#DialogueManager.start_dialogue(lines)  # ✅ now Array[DialogueLine]

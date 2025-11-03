@@ -12,3 +12,5 @@ class_name DialogueLine
 
 @export var choices: Array[String] = []     # e.g. ["Yes", "No", "Ask for info"]
 @export var next_indices: Array[int] = []   # index in dialogue array each choice leads to
+@export var speaker: String = ""
+@export var expression: String = "neutral"

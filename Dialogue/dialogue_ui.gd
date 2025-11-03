@@ -41,53 +41,43 @@ func show_choices(choices: Array[String]) -> void:
 # Display a line with typewriter reveal
 # ---------------------------------------------------------
 func show_line(line: DialogueLine, page: DialoguePage = null) -> void:
+	if line == null:
+		push_error("DialogueUI.show_line called with NULL line!")
+		return
+
 	visible = true
 	_is_revealing = true
 	_char_index = 0
 	_accum_time = 0.0
 
-	# --- Speaker & Portrait ---
-# --- Speaker priority: always line speaker first ---
-	var speaker_name := ""
-	if page.speaker != "":
+	# --- Speaker ---
+	var speaker_name := line.speaker
+	if speaker_name == "" and page and page.speaker != "":
 		speaker_name = page.speaker
-	elif page and page.speaker != "":
-		speaker_name = page.speaker
-
-
-	# --- Portrait priority: always line key first ---
-	var portrait_key := ""
-	if line.portrait_key != "":
-		portrait_key = line.portrait_key
-	#elif page and page.portrait_key != "":
-		#portrait_key = page.portrait_key
-
-
-	if line.has_meta("portrait_key"):
-		portrait_key = line.portrait_key
-	#elif page and page.portrait_key != "":
-		#portrait_key = page.portrait_key
-
 	speaker_label.text = speaker_name
+
+	# --- Portrait ---
+	var portrait_key := line.portrait_key
+	if portrait_key == "" and page and page.portrait_key != "":
+		portrait_key = page.portrait_key
 
 	if portraits and portrait_key != "":
 		portrait.texture = portraits.get_face(portrait_key)
 	else:
 		portrait.texture = null
 
-	# --- Prepare text ---
+	# --- Text reveal ---
 	_full_text = line.text
 	text_label.text = _full_text
 	text_label.visible_characters = 0
 
-	# --- Optional sound ---
+	# --- SFX ---
 	if line.sfx:
 		sfx_player.stream = line.sfx
 		sfx_player.play()
 
-	# --- Auto-advance setup ---
 	auto_timer.stop()
-	if not line.wait_for_input and line.has_meta("auto_advance_time") and line.auto_advance_time > 0.0:
+	if not line.wait_for_input and line.auto_advance_time > 0.0:
 		auto_timer.start(line.auto_advance_time)
 
 	set_process(true)

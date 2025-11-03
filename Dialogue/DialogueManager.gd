@@ -210,17 +210,10 @@ func _end_convo() -> void:
 # 🚷 Lock/Unlock player movement
 # -------------------------------------------------------
 func _disable_player_inputs(yes: bool) -> void:
-	var player := _find_player_character()
-	if player:
-		if yes:
-			_previous_input_state["physics"] = player.is_physics_processing()
-			_previous_input_state["input"] = player.is_processing_input()
-			player.set_physics_process(false)
-			player.set_process_input(true)  # keep E key active
-		else:
-			player.set_physics_process(_previous_input_state["physics"])
-			player.set_process_input(_previous_input_state["input"])
-
+	if yes:
+		InputState.set_mode(InputState.Mode.DIALOGUE)
+	else:
+		InputState.set_mode(InputState.Mode.FREE)
 
 # -------------------------------------------------------
 # 🔍 Find player node by group

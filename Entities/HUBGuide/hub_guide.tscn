@@ -1436,8 +1436,6 @@ libraries = {
 }
 autoplay = "Idle"
 
-[node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
-
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.88554025, 0)
 shape = SubResource("CapsuleShape3D_phef1")
@@ -1447,3 +1445,5 @@ shape = SubResource("CapsuleShape3D_phef1")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2294451, 0)
 shape = SubResource("SphereShape3D_ypoe0")
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]

@@ -13,7 +13,7 @@ var displayed_cards := {}  # { "CARD_ID": card_ui_node }
 func _ready():
 	connect("visibility_changed", Callable(self, "_on_visibility_changed"))
 	CardCollection.connect("card_added", Callable(self, "_on_card_added"))
-	_load_existing_cards()
+	#_load_existing_cards()
 	zoom.hide()
 
 func _on_visibility_changed():
@@ -35,12 +35,12 @@ func _on_visibility_changed():
 	else:
 		if battle_scene.has_method("show_game_ui"):
 			battle_scene.show_game_ui()
-
-func _load_existing_cards():
-	for card_id in CardCollection.get_all_cards():
-		var card_data = CardCollection.get_card_data(card_id)
-		var count = CardCollection.get_card_count(card_id)
-		_add_or_update_card_ui(card_data, count)
+#
+#func _load_existing_cards():
+	#for card_id in CardCollection.get_all_cards():
+		#var card_data = CardCollection.get_card_data(card_id)
+		#var count = CardCollection.get_card_count(card_id)
+		#_add_or_update_card_ui(card_data, count)
 
 func _on_card_added(card: CardData, count: int) -> void:
 	_add_or_update_card_ui(card, count)
