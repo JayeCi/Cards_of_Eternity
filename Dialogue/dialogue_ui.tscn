@@ -38,21 +38,13 @@ font_size = 12
 outline_size = 2
 outline_color = Color(0, 0, 0, 1)
 
-[node name="DialogueUI" type="Control"]
+[node name="DialogueUI" type="CanvasLayer"]
 process_mode = 3
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
 script = ExtResource("1_5kv0d")
 
 [node name="Portrait" type="TextureRect" parent="."]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 300)
-layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
@@ -64,7 +56,6 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="PanelContainer" type="PanelContainer" parent="."]
-layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
@@ -120,7 +111,6 @@ region_rect = Rect2(505, 1, 46, 46)
 [node name="ChoicesContainer" type="VBoxContainer" parent="."]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(150, 75)
-layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0

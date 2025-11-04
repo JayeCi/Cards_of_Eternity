@@ -229,8 +229,18 @@ func _on_final_cutscene_done(_id := StringName("")) -> void:
 	_set_state(STATE_CUTSCENE_FINISHED)
 
 func _on_battle_finished(result):
-	get_tree().change_scene_to_file("res://World/HUB.tscn")
 	Globals.tutorial_completed = true
+	
+	if GameSession.hub_instance:
+		# Remove arena
+		get_tree().current_scene.queue_free()
+
+		# Reinsert saved hub
+		get_tree().root.add_child(GameSession.hub_instance)
+		get_tree().current_scene = GameSession.hub_instance
+	else:
+		# fallback if something weird happened
+		get_tree().change_scene_to_file("res://World/HUB.tscn")
 
 func start_tutorial_battle_dialogue(player: Node3D):
 	DialogueManager.start_convo([
@@ -245,6 +255,7 @@ func start_tutorial_battle_dialogue(player: Node3D):
 
 func _on_tutorial_battle_dialogue_finished(_id := StringName("")):
 	# Load tutorial arena
+	
 	var arena_scene := load("res://Arena/Arena3DTutorial/arena_3d_tutorial.tscn")
 	var arena = arena_scene.instantiate()
 
@@ -254,8 +265,12 @@ func _on_tutorial_battle_dialogue_finished(_id := StringName("")):
 	# Add arena on top of current world
 	get_tree().root.add_child(arena)
 
-	# Remove the shrine/hub world from scene tree
-	get_tree().current_scene.queue_free()
+	# Save hub reference
+	GameSession.hub_instance = get_tree().current_scene
+
+	# Temporarily remove hub from tree (but DON'T destroy)
+	GameSession.hub_instance.get_parent().remove_child(GameSession.hub_instance)
+
 
 # ===========================
 # Helpers

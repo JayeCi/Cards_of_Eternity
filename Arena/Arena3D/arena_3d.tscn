@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://uk6se88h2jyj" path="res://Arena/Arena3D/ArenaScript/arena_core.gd" id="1_2nnof"]
 [ext_resource type="PackedScene" uid="uid://da27pnrvn5yna" path="res://Arena/Arena3D/Board3D.tscn" id="1_5ykft"]
-[ext_resource type="Texture2D" uid="uid://cjw8qsb0thllt" path="res://Images/abstract-heavy-blue-haze-liquid (1).jpg" id="2_i7u7f"]
+[ext_resource type="Shader" uid="uid://cl6icqkoi1s3a" path="res://sky.gdshader" id="2_i7u7f"]
 [ext_resource type="PackedScene" uid="uid://dcus3e1lnkiqj" path="res://UI/UI.tscn" id="2_opwpc"]
 [ext_resource type="AudioStream" uid="uid://w7n2h3ha0xhe" path="res://Audio/Music/Yu-Gi-Oh! Duelist of the Roses_ VS.  Seto - C. Rosenkruez  Extended.mp3" id="3_aj210"]
 [ext_resource type="Script" uid="uid://bqkc1hsxx6w73" path="res://Arena/Arena3D/ArenaScript/arena_camera.gd" id="5_2nnof"]
@@ -12,11 +12,20 @@
 [ext_resource type="PackedScene" uid="uid://d3k7rvjpylid4" path="res://UI/battle_ui.tscn" id="10_2nnof"]
 [ext_resource type="Script" uid="uid://khurkxh2646n" path="res://Arena/Arena3D/ArenaScript/arena_cutscene.gd" id="10_i7u7f"]
 
-[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_08t7x"]
-panorama = ExtResource("2_i7u7f")
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_08t7x"]
+shader = ExtResource("2_i7u7f")
+shader_parameter/sky_color = Color(0.03, 0.05, 0.11, 1)
+shader_parameter/star_base_color = Color(0.1857988, 0.0025796639, 0.24000108, 1)
+shader_parameter/star_hue_offset = 0.1200000057
+shader_parameter/star_intensity = 0.08
+shader_parameter/star_twinkle_speed = 1.56800007448
+shader_parameter/star_twinkle_intensity = 0.80800003838
+shader_parameter/layer_scale = 60.0
+shader_parameter/layer_scale_step = 15.4400007334
+shader_parameter/layers_count = 4
 
 [sub_resource type="Sky" id="Sky_pkj7r"]
-sky_material = SubResource("PanoramaSkyMaterial_08t7x")
+sky_material = SubResource("ShaderMaterial_08t7x")
 
 [sub_resource type="Environment" id="Environment_6q22w"]
 background_mode = 2
@@ -34,7 +43,9 @@ fog_aerial_perspective = 1.0
 fog_depth_begin = 0.0
 fog_depth_end = 62.1
 volumetric_fog_density = 0.0761
-volumetric_fog_sky_affect = 0.0
+volumetric_fog_gi_inject = 0.62
+volumetric_fog_anisotropy = 0.9
+volumetric_fog_sky_affect = 0.245
 adjustment_enabled = true
 adjustment_saturation = 1.08
 
@@ -70,6 +81,7 @@ parameters/looping = true
 [node name="UnderBoard" type="MeshInstance3D" parent="."]
 transform = Transform3D(50, 0, 0, 0, 50, 0, 0, 0, 50, 0, -27.8305, 0)
 material_override = SubResource("StandardMaterial3D_i42j4")
+transparency = 1.0
 mesh = SubResource("BoxMesh_pfipv")
 
 [node name="CameraSystem" type="Camera3D" parent="."]

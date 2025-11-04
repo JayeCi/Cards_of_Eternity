@@ -1,0 +1,13 @@
+[gd_resource type="StandardMaterial3D" load_steps=3 format=3 uid="uid://bjr3n6cwl5d05"]
+
+[ext_resource type="Texture2D" uid="uid://cskia6r7t62a4" path="res://Downloaded/Structures/HUB/stone_table_-_classical_style_0.jpg" id="1_sboqm"]
+[ext_resource type="Texture2D" uid="uid://dad6vtkmhafhe" path="res://Downloaded/Structures/HUB/stone_table_-_classical_style_1.png" id="2_6py5l"]
+
+[resource]
+resource_name = "TabMat"
+cull_mode = 2
+albedo_texture = ExtResource("1_sboqm")
+metallic_texture = ExtResource("2_6py5l")
+metallic_texture_channel = 2
+roughness_texture = ExtResource("2_6py5l")
+roughness_texture_channel = 1

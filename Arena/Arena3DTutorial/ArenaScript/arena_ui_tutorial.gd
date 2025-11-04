@@ -272,27 +272,23 @@ func show_popup(card: CardData, callback = null) -> void:
 	summon_mode_popup.visible = true
 	summon_mode_popup.popup_centered()
 
-
-	# NEW: lock input
+	# Lock input while the guide talks
 	summon_mode_locked = true
 	_disable_summon_buttons()
 
-	# mark the tutorial state
 	core.tutorial_waiting_for_attack_choice = true
-
-	# start dialogue
-	InputState.set_mode(InputState.Mode.DIALOGUE)
 	get_viewport().set_input_as_handled()
 
-
-	DialogueManager.start_convo([
-		DialogueManager._dl("Guide", "Attack Mode places your card face-up activating any On Summon abilities. Lets try that now"),
-	])
-	if !DialogueManager.finished.is_connected(_on_attack_explanation_finished):
-		DialogueManager.finished.connect(_on_attack_explanation_finished, Object.CONNECT_ONE_SHOT)
+	# 🔔 New TutorialManager handoff (will auto-unlock via its own one-shot finished hook)
+	if Engine.has_singleton("TutorialManager") or typeof(TutorialManager) != TYPE_NIL:
+		TutorialManager.on_popup_shown_attack_mode(core)
+	else:
+		# Fallback if manager missing
+		if !DialogueManager.finished.is_connected(_on_attack_explanation_finished):
+			DialogueManager.finished.connect(_on_attack_explanation_finished, Object.CONNECT_ONE_SHOT)
 
 func _on_attack_explanation_finished(_id := StringName("")):
-	InputState.set_mode(InputState.Mode.FREE)
+	InputState.set_mode(InputState.Mode.UI)
 	summon_mode_locked = false
 	_enable_summon_buttons()
 	core._log("✅ Now click ATTACK MODE!", Color(0.8,1.0,0.6))
@@ -628,7 +624,41 @@ func _on_hp_changed(owner: int, hp: int) -> void:
 		_flash(enemy_hp_label)
 
 	_update_hp_bar()
+	
+	# 🧨 Check victory/defeat
+	if core.player_leader.hp <= 0:
+		_end_battle(false)
+	elif core.enemy_leader.hp <= 0:
+		_end_battle(true)
 
+# ==========================================================
+# 🎉 TUTORIAL VICTORY / DEFEAT HANDLER
+# ==========================================================
+func _end_battle(player_won: bool) -> void:
+	# Stop further UI updates
+	_lock_hp_updates = true
+	
+	# Freeze input
+	InputState.set_mode(InputState.Mode.DIALOGUE)
+	core.is_cutscene_active = true
+
+	# Show message
+	if player_won:
+		show_battle_message("Victory! Tutorial Complete!", 2.5)
+		core._log("🎉 You defeated the enemy leader!", Color(0.6,1.0,0.6))
+		if Engine.has_singleton("TutorialManager") or typeof(TutorialManager) != TYPE_NIL:
+			TutorialManager.on_battle_victory()
+
+	else:
+		show_battle_message("Defeat! Try again?", 2.5)
+		core._log("💀 You were defeated by the enemy leader...", Color(1,0.6,0.6))
+
+	# Brief dramatic pause
+	await get_tree().process_frame
+	await get_tree().create_timer(2.5).timeout
+
+	# 🎬 Return to the HUB scene
+	get_tree().change_scene_to_file("res://World/HubScene.tscn")
 
 func _flash(lbl: Label) -> void:
 	var t = create_tween()
@@ -713,7 +743,7 @@ func _on_unit_stats_changed(unit: UnitData) -> void:
 		card_details_ui.call("refresh_if_showing", unit)
 
 func show_battle_message(text: String, duration := 2.0) -> void:
-	var label: Label = $"../UISystem/BattlePopup"
+	var label: Label = $"../UISystemTutorial/BattlePopup"
 	if not label:
 		return
 	label.text = text
@@ -784,7 +814,8 @@ func _handle_summon_choice(mode: int) -> void:
 
 	# 🔍 Detect current summon context
 	if core.fusion_selection.size() == 2:
-		#core._log("🧬 Fusion confirmed via popup button.")
+		
+		core._log("🧬 Fusion confirmed via popup button.")
 		core.confirm_summon_in_mode(mode)  # ✅ directly place the fused card
 	elif core.fusion_selection.size() == 1:
 		#core._log("🎴 Normal summon confirmed via popup button.")

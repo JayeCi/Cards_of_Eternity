@@ -2,20 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d24voaou4nk6w"
-path.s3tc="res://.godot/imported/stone_table_-_classical_style_2.png-674f8614c956416e4062eea49cf72cc1.s3tc.ctex"
+uid="uid://bybgjqjinw7sl"
+path.s3tc="res://.godot/imported/Grass_Grass.png-eab9d7a9cc6df16d24de68c123105ac0.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "60cc48f56ff75248d4edf6e86b0340fa"
+"md5": "c140038d5dd43b86d212442f70ad5d7f"
 }
 
 [deps]
 
-source_file="res://Downloaded/Structures/HUB/stone_table_-_classical_style_2.png"
-dest_files=["res://.godot/imported/stone_table_-_classical_style_2.png-674f8614c956416e4062eea49cf72cc1.s3tc.ctex"]
+source_file="res://Downloaded/Grass_Grass.png"
+dest_files=["res://.godot/imported/Grass_Grass.png-eab9d7a9cc6df16d24de68c123105ac0.s3tc.ctex"]
 
 [params]
 

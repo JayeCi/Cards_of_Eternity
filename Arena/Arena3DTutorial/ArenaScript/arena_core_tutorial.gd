@@ -190,7 +190,8 @@ var all_biomes = [
 
 func _ready() -> void:
 	await get_tree().process_frame
-
+	InputState.set_mode(InputState.Mode.FREE)
+	
 	# 🕶 Immediately cover screen with black before anything loads
 	if ui_sys.has_node("FadeRect"):
 		var fade_rect: ColorRect = ui_sys.get_node("FadeRect")
@@ -271,11 +272,15 @@ func _deferred_startup():
 	
 
 
-	cutscene_sys.call("init_cutscene", self)
-#
-#
-#
+	cutscene_sys.init_cutscene(self)
+
+	# ✅ CONNECT BEFORE starting intro
+	if not cutscene_sys.intro_finished.is_connected(_on_intro_over):
+		cutscene_sys.intro_finished.connect(_on_intro_over)
+
+	# ✅ NOW start intro
 	cutscene_sys._intro()
+
 
 		# 🎥 Start fade-in BEFORE intro begins
 	if ui_sys.has_node("FadeRect"):
@@ -302,8 +307,25 @@ func _deferred_startup():
 	_draw_starting_hand(5)
 	_set_phase(Phase.SUMMON_OR_MOVE)
 	_update_phase_ui()
-	
-	
+
+
+func _on_intro_over():
+	# Hand off to the new TutorialManager
+	if Engine.has_singleton("TutorialManager") or typeof(TutorialManager) != TYPE_NIL:
+		TutorialManager.start_arena_summon_tutorial()
+	else:
+		push_warning("TutorialManager autoload is missing.")
+
+	# If you still want a “tap to continue” gating elsewhere, keep this:
+	if !DialogueManager.finished.is_connected(_on_tutorial_dialogue_finished):
+		DialogueManager.finished.connect(_on_tutorial_dialogue_finished, Object.CONNECT_ONE_SHOT)
+
+func _on_tutorial_dialogue_finished(_id := StringName("")):
+	# This was blocking all board clicks via _unhandled_input early-return
+	# InputState.set_mode(InputState.Mode.UI)
+	InputState.set_mode(InputState.Mode.UI)
+
+
 func _input(event):
 	if event.is_action_pressed("interact"):
 		var mgr = get_tree().get_first_node_in_group("dialogue_manager")
@@ -404,6 +426,9 @@ func _apply_terrain_bonus(unit: UnitData, terrain: String) -> void:
 		tile.update_stat_labels(unit.current_atk, unit.current_def)
 		var pos3d = tile.global_position + Vector3(0, 1.2, 0)
 		_float_text(pos3d, "%s%.1f%% %s" % [sign, abs(diff_percent), ("buff" if is_buff else "debuff")], color)
+	# 🔔 Tutorial: first time learning terrain
+	if Engine.has_singleton("TutorialManager") or typeof(TutorialManager) != TYPE_NIL:
+		TutorialManager.on_standing_on_terrain(terrain)
 
 func _float_text(world_pos: Vector3, text: String, color: Color = Color.WHITE) -> void:
 	if ui_sys and ui_sys.has_method("_float_text"):
@@ -509,27 +534,19 @@ func _build_decks() -> void:
 	# ✅ Shuffle last
 	player_deck.shuffle()
 
-	# 🔹 ENEMY: Auto-build from folders (as you already do)
+	# 🔹 ENEMY: Tutorial-only deck
 	enemy_deck.clear()
-	var enemy_folders = [
-		"res://Cards/Monster Cards",
-		"res://Cards/Spell Cards"
-	]
-	for folder_path in enemy_folders:
-		var dir := DirAccess.open(folder_path)
-		if not dir:
-			push_warning("⚠️ Missing folder: %s" % folder_path)
-			continue
-		for file_name in dir.get_files():
-			if file_name.ends_with(".tres"):
-				var path := "%s/%s" % [folder_path, file_name]
-				var card := ResourceLoader.load(path)
-				if card:
-					var copies := 5
-					for i in range(copies):
-						enemy_deck.append(card.duplicate())
 
-	player_deck.shuffle()
+	var goblin_path := "res://Cards/Monster Cards/Tutorial_Goblin.tres"
+	var goblin := ResourceLoader.load(goblin_path)
+
+	if goblin:
+		var copies := 10 # adjust if needed
+		for i in range(copies):
+			enemy_deck.append(goblin.duplicate())
+	else:
+		push_warning("⚠️ Tutorial_Goblin.tres not found at: %s" % goblin_path)
+
 	enemy_deck.shuffle()
 
 	_log("✅ Decks built: Player=%d, Enemy=%d" % [player_deck.size(), enemy_deck.size()])
@@ -705,6 +722,9 @@ func on_hand_card_clicked(card: CardData) -> void:
 			battle_sys.call("show_valid_summon_tiles")
 
 	elif fusion_selection.size() == 2:
+		if TutorialManager and TutorialManager.has_method("on_attempt_fusion"):
+			TutorialManager.on_attempt_fusion()
+
 		selected_card = fusion_selection[1]
 		dragging_card = selected_card
 		if ui_sys and ui_sys.has_method("fade_hand_out"):
@@ -742,102 +762,34 @@ func _play_card_flip_sound() -> void:
 func try_place_dragged_card(hover_tile: Node3D) -> void:
 	if hover_tile == null:
 		return
-			
-	# 🟥 Prevent summoning on non-highlight tiles
-	if not hover_tile or not hover_tile.summon_highlight:
-		_log("🚫 You can only summon on a highlighted tile!", Color(1, 0.5, 0.5))
 
-		# Hide summon highlights immediately
+	# ✅ Only enforce highlight if the flag exists and is false.
+	var has_flag := hover_tile.has_method("get") and hover_tile.get("summon_highlight") != null
+	var is_highlighted := has_flag and bool(hover_tile.get("summon_highlight"))
+
+	if has_flag and not is_highlighted:
+		_log("🚫 You can only summon on a highlighted tile!", Color(1, 0.5, 0.5))
 		if battle_sys and battle_sys.has_method("clear_summon_highlights"):
 			battle_sys.call("clear_summon_highlights")
-
-		# Fully reset card placement state
-		ui_sys.call("cancel_drag")
+		if ui_sys: ui_sys.call("cancel_drag")
 		fusion_selection.clear()
 		selected_card = null
 		dragging_card = null
 		_set_phase(Phase.SUMMON_OR_MOVE)
 		_update_phase_ui()
-
-		# Fade hand back in to visually confirm cancel
 		if ui_sys and ui_sys.has_method("fade_hand_in"):
 			ui_sys.call("fade_hand_in")
-
 		return
+		# ✅ We passed highlight checks — store position
+		selected_pos = hover_tile.board_pos if hover_tile.has_method("board_pos") else hover_tile.pos
 
-	print("🧩 DEBUG fusion_selection size:", fusion_selection.size())
+		# ✅ Show summon mode popup
+		if ui_sys and ui_sys.has_method("show_popup"):
+			ui_sys.show_popup(selected_card, confirm_summon_in_mode)
 
-	if fusion_selection.size() == 2:
-		var a = fusion_selection[0]
-		var b = fusion_selection[1]
-		var result := _check_fusion_pair(a, b)
-
-		if not result:
-			# 🧩 INVALID FUSION
-			_fusion_was_valid = false
-			_log("⚠️ No valid fusion found — %s will be consumed and %s will be summoned instead." %
-				[a.name, b.name], Color(0.843, 0.0, 0.0, 1.0))
-
-			player_hand = player_hand.filter(func(c): return c != a)
-			ui_sys.refresh_hand(player_hand, player_essence)
-
-			selected_card = b
-			selected_pos = Vector2i(hover_tile.x, hover_tile.y)
-			_set_phase(Phase.SELECT_SUMMON_TILE)
-			_update_phase_ui()
-			ui_sys.show_popup(b)
-			return
-		else:
-			# ✅ VALID FUSION
-			_fusion_was_valid = true
-			var cost := int(result.cost) if "cost" in result else 1
-			if player_essence < cost:
-				_log("❌ Not enough Essence to fuse %s (Cost %d, you have %d)." %
-					[result.name, cost, player_essence])
-				ui_sys.cancel_drag()
-				fusion_selection.clear()
-				return
-
-			selected_pos = Vector2i(hover_tile.x, hover_tile.y)
-			selected_card = result
-			_set_phase(Phase.SELECT_SUMMON_TILE)
-			_update_phase_ui()
-			_log("🧬 Fusion pair ready — select summon mode.")
-			ui_sys.show_popup(result)
-			return
-
-
-		## Store intent for when the popup button is pressed
-		#selected_pos = Vector2i(hover_tile.x, hover_tile.y)
-		selected_card = result
+		# ✅ Lock phase so movement can't happen accidentally
 		_set_phase(Phase.SELECT_SUMMON_TILE)
 		_update_phase_ui()
-
-		_log("🧬 Fusion pair ready — select summon mode.")
-		ui_sys.show_popup(result)  # user will press Attack/Defense/FaceDown
-		return
-
-
-	# --- 🟢 Handle normal summon (single card)
-	if fusion_selection.size() == 1:
-		selected_card = fusion_selection[0]
-		selected_pos = Vector2i(hover_tile.x, hover_tile.y)
-
-		var card_cost := int(selected_card.cost) if "cost" in selected_card else 1
-		if player_essence < card_cost:
-			_log("❌ Not enough Essence to summon %s (Cost %d, you have %d)." %
-				[selected_card.name, card_cost, player_essence], Color(1, 0.5, 0.3))
-			return
-
-		_log("🎴 Summon ready — select summon mode.")
-		_set_phase(Phase.SELECT_SUMMON_TILE)
-		_update_phase_ui()
-		ui_sys.show_popup(selected_card)
-		return
-
-
-	# --- 🟡 Nothing selected
-	_log("⚠️ Clicked tile but no card selected.", Color(1, 0.8, 0.3))
 
 func _try_place_regular_card(hover_tile: Node3D) -> void:
 	if selected_card == null:
@@ -1043,9 +995,26 @@ func _start_player_turn() -> void:
 	turn_count += 1
 
 	# Optional tutorial logic:
-	if turn_count == 2:
+	if turn_count == 1:
 		DialogueManager.start_convo([
-			DialogueManager._dl("Guide", "Good! Now try attacking.")
+			DialogueManager._dl("Guide", "Good! Now let's try moving and attacking."),
+
+			DialogueManager._dl("Guide", "In Cards of Eternity, every monster card has two stats: Attack and Defense."),
+
+			DialogueManager._dl("Guide", "When a monster moves onto an enemy’s tile, a battle begins."),
+
+			DialogueManager._dl("Guide", "Monster cards can gain bonuses or suffer penalties based on the tile they are standing on, depending on their element or type."),
+
+			DialogueManager._dl("Guide", "Terrain bonuses are calculated using the DEFENDER’s tile — this is VERY important to remember."),
+
+			DialogueManager._dl("Guide", "During battle, the attacker strikes first, and then the defender counterattacks."),
+
+			DialogueManager._dl("Guide", "Each attack reduces the opponent’s Defense. If damage exceeds Defense, any overflow is dealt directly to the enemy Leader’s health."),
+
+			DialogueManager._dl("Guide", "Move your monster card through the battlefield, and challenge an enemies card to battle!")
+
+
+
 		])
 
 	await get_tree().process_frame
@@ -1258,17 +1227,12 @@ func restart_level():
 # -----------------------------
 
 func _unhandled_input(event: InputEvent) -> void:
-	# --- Global dialogue lockout ---
-	if InputState.mode == InputState.Mode.DIALOGUE:
-		get_viewport().set_input_as_handled()
+	# --- Global dialogue/UI lockout ---
+	# Allow placement clicks if we're in a summon flow
+	var placing := selected_card != null or fusion_selection.size() > 0
+	if InputState.mode == InputState.Mode.UI and not placing:
 		return
 
-	# Disable fusion only once a second card is selected
-	if fusion_selection.size() > 1:
-		_log("Fusion is disabled in the tutorial.")
-		fusion_selection.clear()
-		selected_card = null
-		return
 
 		# ==========================================================
 	# 🧬 FUSION PENDING INPUT HANDLING

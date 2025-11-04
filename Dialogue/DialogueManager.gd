@@ -5,21 +5,40 @@ signal started(convo_id)
 signal advanced(index)
 signal finished(convo_id)
 
-@export var dialogue_ui_path: NodePath = "DialogueUI"
 @export var default_portraits: DialoguePortraits
 
-var _ui: Control
+var _ui: DialogueUi = null
 var _lines: Array[DialogueLine] = []
 var _i := 0
 var _is_running := false
 var _convo_id: StringName = &""
-var _previous_input_state := {"physics": true, "input": true}
 var _ui_active := false
 var _current_page: DialoguePage
 var _just_revealed := false
 
 func _ready() -> void:
 	add_to_group("dialogue_manager")
+	# Try linking immediately
+	_link_ui()
+
+func _process(_delta):
+	if _ui == null:
+		_link_ui()
+		if _ui:
+			print("[DialogueManager] UI linked (late).")
+			set_process(false) # stop polling
+
+func _link_ui() -> void:
+	# Because DialogueUI is an autoload singleton:
+	if DialogueUi:
+		_ui = DialogueUi
+		if default_portraits:
+			_ui.portraits = default_portraits
+		if not _ui.request_continue.is_connected(_on_ui_request_continue):
+			_ui.request_continue.connect(_on_ui_request_continue)
+		print("[DialogueManager] Linked ->", _ui)
+	else:
+		print("[DialogueManager] DialogueUI autoload missing!")
 
 func _unhandled_input(event: InputEvent) -> void:
 	if InputState.mode != InputState.Mode.DIALOGUE:
@@ -30,57 +49,24 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
-func _process(_delta):
-	if _ui == null:
-		var found = get_tree().get_root().find_child("DialogueUI", true, false)
-		if found:
-			_ui = found
-			print("[DialogueManager] Found UI later ->", _ui.get_path())
-			_ui.request_continue.connect(_on_ui_request_continue)
-			set_process(false)
-
-
-# -------------------------------------------------------
-# 🔧 Locate DialogueUI once
-# -------------------------------------------------------
-func _init_ui() -> void:
-	_ui = get_tree().get_root().find_child("DialogueUI", true, false)
-
-	if not _ui:
-		push_error("DialogueManager: Could not find DialogueUI!")
-		return
-
-	if not _ui.request_continue.is_connected(_on_ui_request_continue):
-		_ui.request_continue.connect(_on_ui_request_continue)
-
-	if default_portraits and "portraits" in _ui:
-		_ui.portraits = default_portraits
-
-	print("[DialogueManager] Linked to DialogueUI ->", _ui.get_path())
-
-
 # -------------------------------------------------------
 # 🗣️ Start a conversation
 # -------------------------------------------------------
 func start_convo(lines: Array[DialogueLine], convo_id: StringName = &"", page: DialoguePage = null) -> void:
 	_current_page = page
-
 	if lines.is_empty():
 		push_warning("DialogueManager: start_convo() called with empty lines.")
 		return
+
 	if _is_running:
-		push_warning("DialogueManager: a conversation is already running.")
+		push_warning("DialogueManager: Conversation already active.")
 		return
 
-	if _ui == null or not is_instance_valid(_ui):
-		_ui = get_tree().get_root().find_child("DialogueUI", true, false)
-		if not _ui:
-			push_warning("DialogueManager: UI not found, waiting one frame...")
-			await get_tree().process_frame
-			_ui = get_tree().get_root().find_child("DialogueUI", true, false)
-			if not _ui:
-				push_error("DialogueManager: Could not locate DialogueUI at all.")
-				return
+	if _ui == null:
+		_link_ui()
+		if _ui == null:
+			push_error("DialogueManager: DialogueUI singleton missing!")
+			return
 
 	_is_running = true
 	_convo_id = convo_id
@@ -96,32 +82,25 @@ func start_convo(lines: Array[DialogueLine], convo_id: StringName = &"", page: D
 	emit_signal("started", _convo_id)
 	_show_current_line()
 
-	print("[DialogueManager] Dialogue started ->", convo_id)
-	print("[DialogueManager] Lines:", _lines.size())
-
 
 # -------------------------------------------------------
-# 🎮 Player pressed "Continue"
+# 🎮 Player pressed continue (input or click)
 # -------------------------------------------------------
 func on_player_continue_input() -> void:
-	if not _is_running or not _ui or not is_instance_valid(_ui):
+	if not _is_running or not is_instance_valid(_ui):
 		return
 
-	# If still revealing → reveal and don't advance yet
 	if _ui._is_revealing:
 		_ui.reveal_all_now()
 		_just_revealed = true
 		return
 
-	# If we just revealed last frame, swallow that input
 	if _just_revealed:
 		_just_revealed = false
 		return
 
 	_advance_dialogue_line()
 
-# -------------------------------------------------------
-# 🔄 Move to next line or end convo
 # -------------------------------------------------------
 func _advance_dialogue_line() -> void:
 	_i += 1
@@ -130,113 +109,79 @@ func _advance_dialogue_line() -> void:
 	else:
 		_end_convo()
 
-
-# -------------------------------------------------------
-# 🧩 Stop manually
 # -------------------------------------------------------
 func stop_convo() -> void:
 	_end_convo()
 
-
-# -------------------------------------------------------
-# 🔄 Show the current line
 # -------------------------------------------------------
 func _show_current_line() -> void:
-	_ui_active = true
-	if not _ui:
-		push_error("DialogueManager has no UI linked!")
+	if _ui == null:
+		push_error("DialogueManager: No UI linked!")
 		_end_convo()
 		return
 
-	if _i >= 0 and _i < _lines.size():
-		var line: DialogueLine = _lines[_i]
-		print("[DM] Showing line", _i, "end_after_line =", line.end_after_line)
+	var line: DialogueLine = _lines[_i]
+	_ui.visible = true
+	_ui.show_line(line, _current_page)
 
-		_ui.visible = true
-		_ui.show_line(line, _current_page)
+	emit_signal("advanced", _i)
 
-		emit_signal("advanced", _i)
+	if not line.choices.is_empty():
+		_ui.show_choices(line.choices)
 
-		if not line.choices.is_empty():
-			_ui.show_choices(line.choices)
-	else:
-		_end_convo()
-
-# -------------------------------------------------------
-# 📩 When UI emits request_continue
 # -------------------------------------------------------
 func _on_ui_request_continue(choice_text := "") -> void:
 	if _i < 0 or _i >= _lines.size():
-		print("[DM] ⚠️ Invalid dialogue index:", _i, " (size:", _lines.size(), ") — ending conversation safely.")
 		_end_convo()
 		return
 
 	var line: DialogueLine = _lines[_i]
 
-	# 🟨 1️⃣ Handle branching choices
+	# Branching dialogue:
 	if not line.choices.is_empty():
 		var idx := line.choices.find(choice_text)
 		if idx != -1 and idx < line.next_indices.size():
-			var next_idx := line.next_indices[idx]
-
-			# If -1 or out of range → END dialogue
-			if next_idx < 0 or next_idx >= _lines.size():
+			var next := line.next_indices[idx]
+			if next < 0 or next >= _lines.size():
 				_end_convo()
-				return
-
-			_i = next_idx
-			_show_current_line()
+			else:
+				_i = next
+				_show_current_line()
 			return
 
-	# 🟩 2️⃣ If this line is flagged to end after player continues
 	if line.end_after_line:
-		print("[DialogueManager] Player continued end_after_line =", _i)
 		_end_convo()
 		return
 
-	# 🟩 Otherwise, go to next line normally
 	_advance_dialogue_line()
 
 # -------------------------------------------------------
 # ✅ End & unlock player input
 # -------------------------------------------------------
 func _end_convo() -> void:
-	print("[DM] _end_convo() CALLED at index", _i)
-	_ui_active = false
 	if _ui:
-		await get_tree().create_timer(0.2).timeout
+		await get_tree().create_timer(0.15).timeout
 		_ui.visible = false
-		print("[DM] UI hidden")
 
-	_is_running = false
-	print("[DM] _is_running set to false")
 	var ended_id := _convo_id
+	_is_running = false
 	_convo_id = &""
 	_lines.clear()
 	_i = 0
-
 	_disable_player_inputs(false)
 	emit_signal("finished", ended_id)
-	print("[DM] finished signal emitted")
 
-func _dl(speaker: String, text: String, expr := "neutral") -> DialogueLine:
+# -------------------------------------------------------
+func _dl(s: String, t: String, expr := "neutral") -> DialogueLine:
 	var l := DialogueLine.new()
-	l.speaker = speaker
-	l.text = text
+	l.speaker = s
+	l.text = t
 	l.expression = expr
 	return l
 
 # -------------------------------------------------------
-# 🚷 Lock/Unlock player movement
-# -------------------------------------------------------
 func _disable_player_inputs(yes: bool) -> void:
-	if yes:
-		InputState.set_mode(InputState.Mode.DIALOGUE)
-	else:
-		InputState.set_mode(InputState.Mode.FREE)
+	InputState.set_mode(InputState.Mode.DIALOGUE if yes else InputState.Mode.FREE)
 
-# -------------------------------------------------------
-# 🔍 Find player node by group
-# -------------------------------------------------------
 func _find_player_character() -> Node:
 	return get_tree().get_first_node_in_group("player")

@@ -1,7 +1,9 @@
-extends Control
-signal request_continue()  # Emitted when player presses "continue" (after text fully shown)
+extends CanvasLayer
 
-@export var text_speed: float = 0.03   # Delay between characters
+
+signal request_continue()
+
+@export var text_speed: float = 0.03
 @export var portraits: DialoguePortraits
 
 @onready var portrait: TextureRect = %Portrait
@@ -11,7 +13,6 @@ signal request_continue()  # Emitted when player presses "continue" (after text 
 @onready var auto_timer: Timer = $AutoAdvanceTimer
 @onready var choices_container: VBoxContainer = %ChoicesContainer
 @onready var choice_button_a: Button = %ChoiceButtonA
-#@onready var choice_button_b: Button = %ChoiceButtonB
 
 var _is_revealing := false
 var _full_text := ""
@@ -20,59 +21,43 @@ var _accum_time := 0.0
 var _choices_active := false
 
 func _ready() -> void:
-	set_anchors_preset(PRESET_FULL_RECT)
-	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
 	auto_timer.one_shot = true
-	mouse_filter = Control.MOUSE_FILTER_STOP
+	process_mode = Node.PROCESS_MODE_ALWAYS
 
-	focus_mode = Control.FOCUS_NONE
-	
+
 func show_choices(choices: Array[String]) -> void:
 	choices_container.visible = true
-	_choices_active = true  
+	_choices_active = true
 	for c in choices:
-		var btn := choice_button_a.duplicate()
+		var btn = choice_button_a.duplicate()
 		btn.visible = true
 		btn.text = c
 		btn.pressed.connect(func(): _on_choice_pressed(c))
 		choices_container.add_child(btn)
 
-# ---------------------------------------------------------
-# Display a line with typewriter reveal
-# ---------------------------------------------------------
-func show_line(line: DialogueLine, page: DialoguePage = null) -> void:
-	if line == null:
-		push_error("DialogueUI.show_line called with NULL line!")
-		return
 
+func show_line(line: DialogueLine, page: DialoguePage = null) -> void:
 	visible = true
 	_is_revealing = true
 	_char_index = 0
 	_accum_time = 0.0
 
-	# --- Speaker ---
-	var speaker_name := line.speaker
-	if speaker_name == "" and page and page.speaker != "":
-		speaker_name = page.speaker
-	speaker_label.text = speaker_name
+	var speaker = line.speaker
+	if speaker == "" and page:
+		speaker = page.speaker
+	speaker_label.text = speaker
 
-	# --- Portrait ---
-	var portrait_key := line.portrait_key
-	if portrait_key == "" and page and page.portrait_key != "":
+	var portrait_key = line.portrait_key
+	if portrait_key == "" and page:
 		portrait_key = page.portrait_key
 
-	if portraits and portrait_key != "":
-		portrait.texture = portraits.get_face(portrait_key)
-	else:
-		portrait.texture = null
+	portrait.texture = portraits.get_face(portrait_key) if portraits else null
 
-	# --- Text reveal ---
 	_full_text = line.text
 	text_label.text = _full_text
 	text_label.visible_characters = 0
 
-	# --- SFX ---
 	if line.sfx:
 		sfx_player.stream = line.sfx
 		sfx_player.play()
@@ -83,21 +68,11 @@ func show_line(line: DialogueLine, page: DialoguePage = null) -> void:
 
 	set_process(true)
 
-# ---------------------------------------------------------
-# Typewriter reveal loop (non-skippable)
-# ---------------------------------------------------------
-func _unhandled_input(event):
-	if InputState.mode == InputState.Mode.DIALOGUE and event is InputEventMouseButton and event.pressed:
-		get_viewport().set_input_as_handled()
-		# your advance-text logic here
 
 func _process(delta: float) -> void:
 	if not _is_revealing:
 		return
-		
 
-
-	# ✍️ Normal typewriter reveal
 	_accum_time += delta
 	if _accum_time >= text_speed:
 		_accum_time = 0.0
@@ -108,53 +83,39 @@ func _process(delta: float) -> void:
 			text_label.visible_characters = -1
 			_is_revealing = false
 			set_process(false)
-			
+
 	if _choices_active:
 		return
-				
-	# 🟢 Skip instantly if player presses continue
+
 	if Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("ui_accept"):
 		text_label.visible_characters = -1
 		_is_revealing = false
 		set_process(false)
-		return
 
-func _on_choice_pressed(choice_text: String) -> void:
-	print("[DialogueUI] Player chose:", choice_text)
+
+func _on_choice_pressed(choice: String) -> void:
 	choices_container.visible = false
-	_choices_active = false  
+	_choices_active = false
 	for child in choices_container.get_children():
 		if child != choice_button_a:
 			child.queue_free()
-	emit_signal("request_continue", choice_text)
+	emit_signal("request_continue", choice)
 
 
-# ---------------------------------------------------------
-# Called when player presses "continue"
-# (only works once the text is fully revealed)
-# ---------------------------------------------------------
 func on_player_pressed_continue() -> void:
 	if _choices_active:
-		print("[DialogueUI] Continue ignored: choices active.")
 		return
-
 	if _is_revealing:
-		print("[DialogueUI] Continue ignored: still revealing text.")
 		return
-
-	print("[DialogueUI] Player pressed continue after text complete.")
 	emit_signal("request_continue")
 
-# Instantly finish the typewriter reveal
+
 func reveal_all_now():
 	_is_revealing = false
 	text_label.visible_characters = -1
 	set_process(false)
 
-# ---------------------------------------------------------
-# Auto-advance timer
-# ---------------------------------------------------------
+
 func _on_AutoAdvanceTimer_timeout() -> void:
 	if not _is_revealing:
-		print("[DialogueUI] Auto-advancing line.")
 		emit_signal("request_continue")

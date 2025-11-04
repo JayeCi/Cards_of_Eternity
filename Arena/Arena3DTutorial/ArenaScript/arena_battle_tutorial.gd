@@ -731,6 +731,10 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		core.units.erase(from)
 		core.units[to] = attacker
 		core.mark_unit_acted(attacker)
+		# 🔔 Tutorial: player moved a unit
+		if attacker.owner == core.PLAYER:
+			if Engine.has_singleton("TutorialManager") or typeof(TutorialManager) != TYPE_NIL:
+				TutorialManager.on_unit_moved()
 
 		_is_battle_in_progress = false
 		return

@@ -1,6 +1,8 @@
 extends Node
 class_name ArenaCutsceneTutorial
 
+signal intro_finished
+
 var core: ArenaCoreTutorial
 var board: Node3D
 var camera: Camera3D
@@ -95,18 +97,6 @@ func _intro() -> void:
 	_hide_battle_ui(false)
 	core.is_cutscene_active = false
 	
-	InputState.set_mode(InputState.Mode.DIALOGUE)
-	DialogueManager.start_convo([
-		DialogueManager._dl("Guide", "Welcome to your first battle!"),
-		DialogueManager._dl("Guide", "This is a 7x7 battlefield."),
-		DialogueManager._dl("Guide", "Your goal is to defeat their Leader!"),
-		DialogueManager._dl("Guide", "Try summoning a monster in Attack Mode."),
-		DialogueManager._dl("Guide", "Click a hand card, then click a highlighted tile.")
-		
-	])
-	if !DialogueManager.finished.is_connected(_on_tutorial_dialogue_finished):
-		DialogueManager.finished.connect(_on_tutorial_dialogue_finished, Object.CONNECT_ONE_SHOT)
-
 	# ✅ Ensure both leaders remain visible after cutscene
 	for leader in [core.player_leader, core.enemy_leader]:
 		var pos = get_leader_pos(leader.owner)
@@ -121,7 +111,9 @@ func _intro() -> void:
 				mat.albedo_color = color
 
 	_is_cutscene_running = false
-	
+	emit_signal("intro_finished")
+
+
 func _on_tutorial_dialogue_finished(_id := StringName("")):
 	InputState.set_mode(InputState.Mode.FREE)
 	_disable_input(false)

@@ -2,20 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d24voaou4nk6w"
-path.s3tc="res://.godot/imported/stone_table_-_classical_style_2.png-674f8614c956416e4062eea49cf72cc1.s3tc.ctex"
+uid="uid://cwgvcun8jo7pu"
+path.s3tc="res://.godot/imported/Fern_Leaves.png-dd239280ea840db99449bb92e084670c.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "60cc48f56ff75248d4edf6e86b0340fa"
+"md5": "11857c379298fad10da2810250c8c371"
 }
 
 [deps]
 
-source_file="res://Downloaded/Structures/HUB/stone_table_-_classical_style_2.png"
-dest_files=["res://.godot/imported/stone_table_-_classical_style_2.png-674f8614c956416e4062eea49cf72cc1.s3tc.ctex"]
+source_file="res://Downloaded/Fern_Leaves.png"
+dest_files=["res://.godot/imported/Fern_Leaves.png-dd239280ea840db99449bb92e084670c.s3tc.ctex"]
 
 [params]
 

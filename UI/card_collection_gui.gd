@@ -551,7 +551,7 @@ func _show_tutorial_stage_3():
 func _unlock_tutorial_continue():
 	continue_btn.disabled = true
 	continue_btn.visible = false
-	await get_tree().create_timer(5.0).timeout
+	await get_tree().create_timer(0).timeout
 	tutorial_can_continue = true
 	continue_btn.visible = true
 	continue_btn.disabled = false

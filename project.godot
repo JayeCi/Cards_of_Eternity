@@ -25,6 +25,10 @@ DialogueManager="*res://Dialogue/DialogueManager.gd"
 EscMenu="*res://UI/Esc_Menu.tscn"
 InputState="*res://inputstate.gd"
 Globals="*res://Globals.gd"
+GameSession="*res://GameSession.gd"
+DialogueUi="*res://Dialogue/dialogue_ui.tscn"
+TutorialManager="*res://World/tutorial_manager.gd"
+GameSettings="*res://GameSettings.gd"
 
 [display]
 

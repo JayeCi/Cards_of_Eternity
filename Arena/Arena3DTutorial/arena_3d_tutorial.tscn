@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://bw3mtqt1ljwca"]
+[gd_scene load_steps=19 format=3 uid="uid://bw3mtqt1ljwca"]
 
 [ext_resource type="Script" uid="uid://bgd2tndhf07cf" path="res://Arena/Arena3DTutorial/ArenaScript/arena_core_tutorial.gd" id="1_4pxlm"]
 [ext_resource type="Texture2D" uid="uid://cjw8qsb0thllt" path="res://Images/abstract-heavy-blue-haze-liquid (1).jpg" id="2_c0qsf"]
@@ -13,7 +13,6 @@
 [ext_resource type="Script" uid="uid://dfvwy36elwnxl" path="res://Arena/Arena3DTutorial/ArenaScript/arena_battle_tutorial.gd" id="9_fnsh8"]
 [ext_resource type="Script" uid="uid://m5snwhpbgnhn" path="res://Arena/Arena3DTutorial/ArenaScript/arena_ai_tutorial.gd" id="10_da2gl"]
 [ext_resource type="Script" uid="uid://kw5iatc7hmda" path="res://Arena/Arena3DTutorial/ArenaScript/arena_cutscene_tutorial.gd" id="11_s2x0l"]
-[ext_resource type="PackedScene" uid="uid://dlnjhpppr6qcv" path="res://Dialogue/dialogue_ui.tscn" id="14_7horn"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_08t7x"]
 panorama = ExtResource("2_c0qsf")
@@ -100,8 +99,6 @@ script = ExtResource("10_da2gl")
 
 [node name="CutsceneSystem" type="Node3D" parent="."]
 script = ExtResource("11_s2x0l")
-
-[node name="DialogueUI" parent="." instance=ExtResource("14_7horn")]
 
 [connection signal="pressed" from="UISystemTutorial/EndTurnButton" to="." method="_on_end_turn_button_pressed"]
 [connection signal="pressed" from="UISystemTutorial/VBoxContainer/LogButton" to="." method="_on_log_button_pressed"]

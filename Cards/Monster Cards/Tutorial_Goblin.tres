@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=6 format=3 uid="uid://cbcdughmhgljw"]
+
+[ext_resource type="Texture2D" uid="uid://3j8dhf7kmeed" path="res://Images/Goblin.jpg" id="1_auwa2"]
+[ext_resource type="AudioStream" uid="uid://d0ldl5c7esl57" path="res://Audio/Sound FX/Goblin_Attack.mp3" id="2_xboa0"]
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="3_fjein"]
+[ext_resource type="AudioStream" uid="uid://bsc3hitly21d7" path="res://Audio/Sound FX/Goblin.mp3" id="4_w8uw8"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="5_avqhf"]
+
+[resource]
+script = ExtResource("5_avqhf")
+element = "Earth"
+preferred_terrain = "FOREST"
+id = "00001"
+name = "Goblin"
+description = "Small, wiry, and endlessly resourceful, Goblins thrive in the cracks between civilizations. They cobble together crude weapons from whatever they can scavenge, and their cunning often outweighs their size. Alone they’re pests — together, a swarm of trouble."
+art = ExtResource("1_auwa2")
+atk = 1
+def = 1
+model_path = "res://Cards/Models/GOBLIN_MODEL.tscn"
+model_scale = Vector3(0.52, 0.52, 0.52)
+place_sound = ExtResource("4_w8uw8")
+attack_sound = ExtResource("2_xboa0")
+metadata/_custom_type_script = "uid://57up1u0etcmc"

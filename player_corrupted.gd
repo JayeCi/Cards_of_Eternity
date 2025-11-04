@@ -422,14 +422,22 @@ func _dl(speaker: String, text: String, expr := "neutral") -> DialogueLine:
 	return l
 
 func _on_tutorial_portal_entered(body):
-	if Globals.tutorial_stage < 3:
-		show_pickup_popup("You should finish talking to the Guide first!")
+	if body != self:
+		return
+	
+	# 🚫 Already completed tutorial?
+	if Globals.tutorial_completed:
 		return
 
-	# Freeze player movement
-	InputState.set_mode(InputState.Mode.CUTSCENE)
+	# 🚫 Not the stage where tutorial battle should start?
+	if Globals.tutorial_stage < 2:
+		DialogueManager.start_convo([
+			_dl("Guide", "You're not ready. You need to add your cards to your deck."),
+		])
+		InputState.set_mode(InputState.Mode.CUTSCENE)
+		return
 
-	# Trigger Guide dialogue
+	# ✅ Correct stage, so launch battle
 	var guide = get_tree().get_first_node_in_group("guide")
 	if guide:
 		guide.start_tutorial_battle_dialogue(self)
