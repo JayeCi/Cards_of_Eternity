@@ -41,8 +41,8 @@ func _link_ui() -> void:
 		print("[DialogueManager] DialogueUI autoload missing!")
 
 func _unhandled_input(event: InputEvent) -> void:
-	if InputState.mode != InputState.Mode.DIALOGUE:
-		return
+	#if InputState.mode != InputState.Mode.DIALOGUE:
+		#return
 
 	if event.is_action_pressed("interact") or event.is_action_pressed("ui_accept"):
 		on_player_continue_input()

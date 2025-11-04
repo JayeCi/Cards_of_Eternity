@@ -230,17 +230,29 @@ func _on_final_cutscene_done(_id := StringName("")) -> void:
 
 func _on_battle_finished(result):
 	Globals.tutorial_completed = true
-	
-	if GameSession.hub_instance:
-		# Remove arena
-		get_tree().current_scene.queue_free()
+	DialogueManager.start_convo([
+		_dl("Guide", "Well done! You understand the basics of combat."),
+		_dl("Guide", "Remember to manage your hand and control the board."),
+		_dl("Guide", "The realms will only grow more dangerous from here..."),
+		_dl("Guide", "Return to the Shrine when you're ready.")
+	])
 
-		# Reinsert saved hub
+	if !DialogueManager.finished.is_connected(_return_to_hub):
+		DialogueManager.finished.connect(_return_to_hub, Object.CONNECT_ONE_SHOT)
+
+func _return_to_hub(_id := StringName("")):
+	# ✅ Free arena safely
+	if GameSession.arena_instance and is_instance_valid(GameSession.arena_instance):
+		GameSession.arena_instance.queue_free()
+
+	# ✅ Restore hub
+	if GameSession.hub_instance:
 		get_tree().root.add_child(GameSession.hub_instance)
 		get_tree().current_scene = GameSession.hub_instance
 	else:
-		# fallback if something weird happened
 		get_tree().change_scene_to_file("res://World/HUB.tscn")
+
+	InputState.set_mode(InputState.Mode.FREE)
 
 func start_tutorial_battle_dialogue(player: Node3D):
 	DialogueManager.start_convo([
@@ -256,21 +268,19 @@ func start_tutorial_battle_dialogue(player: Node3D):
 func _on_tutorial_battle_dialogue_finished(_id := StringName("")):
 	# Load tutorial arena
 	
-	var arena_scene := load("res://Arena/Arena3DTutorial/arena_3d_tutorial.tscn")
+	var arena_scene := load("res://Arena/Arena3D/arena_3d.tscn")
 	var arena = arena_scene.instantiate()
+	arena.call_deferred("enable_tutorial_mode")
 
-	# Connect battle finished signal back to THIS GuideNPC
-	arena.battle_finished.connect(_on_battle_finished)
+	# ✅ store a reference!
+	GameSession.arena_instance = arena
 
-	# Add arena on top of current world
+	# Add arena
 	get_tree().root.add_child(arena)
 
 	# Save hub reference
 	GameSession.hub_instance = get_tree().current_scene
-
-	# Temporarily remove hub from tree (but DON'T destroy)
 	GameSession.hub_instance.get_parent().remove_child(GameSession.hub_instance)
-
 
 # ===========================
 # Helpers

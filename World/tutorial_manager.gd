@@ -20,6 +20,20 @@ var has_moved_a_unit: bool = false
 var has_seen_combat: bool = false
 var has_learned_terrain: bool = false
 var has_learned_fusion: bool = false # ✅ NEW
+var has_seen_turn_info: bool = false
+var flags := {
+	"enemy_turn_explained": false,
+	"attack_explained": false,
+	"counter_explained": false,
+	"face_down_explained": false,
+	"overflow_explained": false,
+	"preferred_terrain_explained": false,
+}
+func once(key: String) -> bool:
+	if flags.get(key, false):
+		return false
+	flags[key] = true
+	return true
 
 # Called from HUB
 func start_hub_intro(guide: Node) -> void:
@@ -42,9 +56,21 @@ func start_arena_summon_tutorial() -> void:
 	stage = Stage.ARENA_SUMMON_TUTORIAL
 	DialogueManager.start_convo([
 		DialogueManager._dl("Guide", "Welcome to your first battle!"),
+
+		# ✅ NEW LINES
+		DialogueManager._dl("Guide", "On this board, positioning matters. Move your monsters to control space."),
+		DialogueManager._dl("Guide", "You can damage the enemies HP by attacking their Leader."),
+		DialogueManager._dl("Guide", "Defeating a monster may spill excess damage into the Leader — that's overflow damage!"),
+		DialogueManager._dl("Guide", "Be careful though — if your Leader's HP hits zero, you lose."),
+
+		DialogueManager._dl("Guide", "Managing your deck is important. If you ever run out of cards, it's game over!"),
+		DialogueManager._dl("Guide", "End your turn wisely to gain more Essence for stronger summons, you gain 1 a turn."),
+		DialogueManager._dl("Guide", "Try to build momentum, control and alter the board, and strike when the time is right."),
 		DialogueManager._dl("Guide", "Try summoning a monster in Attack Mode."),
 		DialogueManager._dl("Guide", "Click a hand card, then choose a tile."),
+
 	])
+
 	DialogueManager.finished.connect(func():
 		InputState.set_mode(InputState.Mode.UI)
 	)

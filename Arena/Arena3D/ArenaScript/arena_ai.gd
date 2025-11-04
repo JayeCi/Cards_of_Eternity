@@ -171,7 +171,8 @@ func _leader_behavior() -> void:
 # ---------------------------------------------------------
 func _assist_leader_defense(leader_pos: Vector2i, threats: Array[Vector2i]) -> void:
 	var allies: Array[Vector2i] = []
-	for pos in core.units.keys():
+	for pos in core.units:
+
 		var u = core.units[pos]
 		if u.owner == core.ENEMY and not u.is_leader and core.can_unit_act(u):
 			allies.append(pos)
@@ -280,7 +281,7 @@ func _smart_move_and_attack() -> void:
 	var player_leader = battle.get_leader_pos(core.PLAYER)
 	var movable: Array[Vector2i] = []
 
-	for pos in core.units.keys():
+	for pos in core.units:
 		var u = core.units[pos]
 		if u.owner == core.ENEMY and not u.is_leader and core.can_unit_act(u):
 			movable.append(pos)
@@ -321,7 +322,8 @@ func _smart_move_and_attack() -> void:
 # SMART FLIPPING — AI decides when to reveal facedown cards
 # ---------------------------------------------------------
 func _smart_flip_faceup() -> void:
-	for pos in core.units.keys():
+	for pos in core.units:
+
 		var unit: UnitData = core.units[pos]
 		if unit.owner != core.ENEMY:
 			continue
@@ -526,7 +528,8 @@ func _leader_in_danger() -> bool:
 	var lpos = battle.get_leader_pos(core.ENEMY)
 	if lpos == Vector2i(-1, -1):
 		return false
-	for pos in core.units.keys():
+	for pos in core.units:
+
 		var u = core.units[pos]
 		if u.owner == core.PLAYER and pos.distance_to(lpos) <= PROTECT_LEADER_RADIUS:
 			if _has_clear_path(pos, lpos):

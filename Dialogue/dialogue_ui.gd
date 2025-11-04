@@ -22,7 +22,6 @@ var _choices_active := false
 
 func _ready() -> void:
 	visible = false
-	auto_timer.one_shot = true
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
 
@@ -62,7 +61,7 @@ func show_line(line: DialogueLine, page: DialoguePage = null) -> void:
 		sfx_player.stream = line.sfx
 		sfx_player.play()
 
-	auto_timer.stop()
+
 	if not line.wait_for_input and line.auto_advance_time > 0.0:
 		auto_timer.start(line.auto_advance_time)
 

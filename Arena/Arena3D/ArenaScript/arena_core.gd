@@ -50,7 +50,8 @@ const CARD_PATHS := {
 	"CONFLAGURATION_BLADE": "res://Cards/Spell Cards/Conflaguration_Blade.tres",
 	"TIDAL_WAVE":           "res://Cards/Spell Cards/Tidal_Wave.tres",
 	"AQUA_WHIP":            "res://Cards/Spell Cards/Aqua_whip.tres",
-	#"":                  "res://Cards/Monster Cards/.tres",
+	"TUTORIAL_GOBLIN":      "res://Cards/Monster Cards/Tutorial_Goblin.tres",
+#"":                  "res://Cards/Monster Cards/.tres",
 }
 
 var fusion_selection: Array = []   # up to 2 CardData objects
@@ -110,6 +111,7 @@ enum Phase { SUMMON_OR_MOVE, SELECT_SUMMON_TILE, SELECT_MOVE_TARGET, ENEMY_TURN 
 @export var camera_zoom_speed: float = 10.0
 @export var min_zoom: float = 3.0
 @export var max_zoom: float = 20.0
+@export var is_tutorial_match: bool = false
 
 # -----------------------------
 # NODES
@@ -297,9 +299,17 @@ func _deferred_startup():
 		fade_rect.visible = false
 
 	_draw_starting_hand(5)
+	if is_tutorial_match:
+		TutorialManager.start_arena_summon_tutorial()
+
 	_set_phase(Phase.SUMMON_OR_MOVE)
 	_update_phase_ui()
 	
+func enable_tutorial_mode():
+	is_tutorial_match = true
+	if battle_sys:
+		battle_sys.is_tutorial_match = true
+
 func set_player_deck(arr: Array) -> void:
 	player_deck = arr.duplicate()
 	
@@ -382,6 +392,8 @@ func _apply_terrain_bonus(unit: UnitData, terrain: String) -> void:
 		abs(diff_percent),
 		"buff" if is_buff else "debuff"
 	], color)
+	if is_tutorial_match and not TutorialManager.has_learned_terrain:
+		TutorialManager.on_standing_on_terrain(terrain)
 
 	# --- Safe refresh of visuals ---
 	var pos = board.get_unit_position(unit)
@@ -496,7 +508,16 @@ func _build_decks() -> void:
 
 	# ✅ Shuffle last
 	player_deck.shuffle()
-
+	# 👇 RIGHT HERE after enemy_deck.clear()
+	if is_tutorial_match:
+		enemy_deck.append(load("res://Cards/Monster Cards/Tutorial_Goblin.tres").duplicate())
+		# Add 5–10 copies so the AI always draws something
+		for i in range(8):
+			enemy_deck.append(load("res://Cards/Monster Cards/Tutorial_Goblin.tres").duplicate())
+		enemy_deck.shuffle()
+		_log("🎓 Tutorial enemy deck built: %d Tutorial Goblins" % enemy_deck.size())
+		return
+		
 	# 🔹 ENEMY: Auto-build from folders (as you already do)
 	enemy_deck.clear()
 	var enemy_folders = [
@@ -533,11 +554,22 @@ func _spawn_leaders() -> void:
 	# ✅ Step 1: Initialize both leaders' data
 	player_leader = UnitData.new().init_from_card(get_card(CARD_PATHS.NAGA), PLAYER)
 	player_leader.is_leader = true
-	player_leader.hp = 100
-
+	
 	enemy_leader = UnitData.new().init_from_card(get_card(CARD_PATHS.BOOGLES), ENEMY)
 	enemy_leader.is_leader = true
-	enemy_leader.hp = 100
+
+
+		# =========================
+	# Tutorial HP overrides
+	# =========================
+	if is_tutorial_match:
+		player_leader.hp = 50
+		enemy_leader.hp = 20
+	else:
+		player_leader.hp = 100
+		enemy_leader.hp = 100
+
+
 
 	# ✅ Step 2: Place enemy leader first
 	_place_leader(enemy_leader, Vector2i(BOARD_W / 2, BOARD_H - 1))
@@ -626,6 +658,9 @@ func damage_leader(target: int, amount: int) -> void:
 
 	if ui_sys and ui_sys.has_method("update_leader_hp"):
 		ui_sys.update_leader_hp(player_leader.hp, enemy_leader.hp)
+	if leader.hp <= 0:
+		on_leader_defeated(target)
+		return
 
 func get_terrain_multiplier(unit: UnitData, terrain: String) -> float:
 	if not unit or not unit.card:
@@ -693,6 +728,9 @@ func on_hand_card_clicked(card: CardData) -> void:
 			battle_sys.call("show_valid_summon_tiles")
 
 	elif fusion_selection.size() == 2:
+		if is_tutorial_match:
+			TutorialManager.on_attempt_fusion()
+
 		selected_card = fusion_selection[1]
 		dragging_card = selected_card
 		if ui_sys and ui_sys.has_method("fade_hand_out"):
@@ -765,6 +803,11 @@ func try_place_dragged_card(hover_tile: Node3D) -> void:
 			_fusion_was_valid = false
 			_log("⚠️ No valid fusion found — %s will be consumed and %s will be summoned instead." %
 				[a.name, b.name], Color(0.843, 0.0, 0.0, 1.0))
+			if is_tutorial_match:
+				DialogueManager.start_convo([
+					DialogueManager._dl("Guide", "That combination didn’t create anything new."),
+					DialogueManager._dl("Guide", "Many combinations will fail — experiment!"),
+				])
 
 			player_hand = player_hand.filter(func(c): return c != a)
 			ui_sys.refresh_hand(player_hand, player_essence)
@@ -782,6 +825,12 @@ func try_place_dragged_card(hover_tile: Node3D) -> void:
 			if player_essence < cost:
 				_log("❌ Not enough Essence to fuse %s (Cost %d, you have %d)." %
 					[result.name, cost, player_essence])
+				if is_tutorial_match:
+					DialogueManager.start_convo([
+						DialogueManager._dl("Guide", "Notice your Essence above your hand."),
+						DialogueManager._dl("Guide", "Summoning costs essence. End your turn to gain more."),
+					])
+
 				ui_sys.cancel_drag()
 				fusion_selection.clear()
 				return
@@ -949,6 +998,14 @@ func confirm_summon_in_mode(mode: int) -> void:
 			mode_name = "Defense Mode"
 		UnitData.Mode.FACEDOWN:
 			mode_name = "Face-Down"
+	if is_tutorial_match and not TutorialManager.has_seen_attack_popup and mode == UnitData.Mode.ATTACK:
+		TutorialManager.on_popup_shown_attack_mode(self)
+	if is_tutorial_match and mode == UnitData.Mode.FACEDOWN and not TutorialManager.has_seen_combat:
+		DialogueManager.start_convo([
+			DialogueManager._dl("Guide", "Face-Down summons hide your stats, but disable abilities."),
+			DialogueManager._dl("Guide", "Useful for baiting opponents or blocking movement."),
+			DialogueManager._dl("Guide", "Click a facedown card to move it, hit R while selected to flip it face up!"),
+		])
 
 	# --- 🧬 Handle Fusion Result (pre-set by try_place_dragged_card)
 	if fusion_selection.size() == 2:
@@ -975,6 +1032,12 @@ func confirm_summon_in_mode(mode: int) -> void:
 		if _fusion_was_valid:
 			_log("🧬 %s + %s fused into %s (%s)!" %
 				[a.name, b.name, fused.name, mode_name], Color(1.0, 0.8, 0.4))
+		if is_tutorial_match and not TutorialManager.has_learned_fusion:
+			DialogueManager.start_convo([
+				DialogueManager._dl("Guide", "Excellent!"),
+				DialogueManager._dl("Guide", "Fusion can create stronger monsters than summoning alone."),
+			])
+
 		else:
 			_log("🎴 %s summoned in %s!" % [fused.name, mode_name], Color(0.7, 1.0, 0.7))
 
@@ -1022,6 +1085,11 @@ func _on_end_turn_button_pressed() -> void:
 	_log("📜 Player ends their turn.")
 	ui_sys.call("fade_hand_out")
 	battle_sys.call("_reset_hover_state")
+	if is_tutorial_match and player_hand.size() > 0 and units.size() <= 2: # only leaders on board
+		DialogueManager.start_convo([
+			DialogueManager._dl("Guide", "Try placing a monster first!"),
+			DialogueManager._dl("Guide", "Ending turns without acting puts you at a disadvantage."),
+		])
 
 	# Hand off to enemy (enemy regen + AI handled there)
 	await _start_enemy_turn()
@@ -1082,6 +1150,12 @@ func _start_enemy_turn() -> void:
 		camera_sys.call_deferred("focus_on_leader", ENEMY)
 
 	ui_sys.call("show_battle_message", "Enemy Turn!", 1.5)
+	if is_tutorial_match and TutorialManager.once("enemy_turn_explained"):
+		DialogueManager.start_convo([
+			DialogueManager._dl("Guide", "It's the enemy's turn now."),
+			DialogueManager._dl("Guide", "They move and attack just like you."),
+		])
+
 
 
 	_gain_essence(ENEMY, essence_gain_per_turn)
@@ -1233,6 +1307,8 @@ func on_leader_defeated(owner: int) -> void:
 # INPUT HUB (delegates to systems)
 # -----------------------------
 func _unhandled_input(event: InputEvent) -> void:
+	if InputState.mode == InputState.Mode.DIALOGUE:
+		return
 	# ==========================================================
 	# 🧬 FUSION PENDING INPUT HANDLING
 	# ==========================================================

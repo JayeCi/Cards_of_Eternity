@@ -13,7 +13,7 @@ var _camera_locked: bool = false
 var _battle_cam_default_pos: Vector3
 var _battle_cam_default_fov: float
 @onready var hand: GridContainer = $"../UISystem/BottomContainer/Hand"
-
+@export var is_tutorial_match: bool = false
 var hovered_tile: Node3D = null
 
 func init_battle(core_ref: ArenaCore) -> void:
@@ -1341,6 +1341,11 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 		# Optional: If adjacency abilities (like “gain +2 DEF if ally adjacent”) exist:
 		if core.has_method("_apply_adjacency_effects"):
 			core._apply_adjacency_effects(defn, defender_pos)
+	if core.is_tutorial_match and TutorialManager.once("attack_explained"):
+		DialogueManager.start_convo([
+			DialogueManager._dl("Guide", "When you attack, you deal damage to DEF."),
+			DialogueManager._dl("Guide", "If DEF reaches 0, the card is destroyed."),
+		])
 
 	# --- ATTACK PHASE ---
 	battle_ui.refresh_stats(att, defn)
@@ -1365,6 +1370,11 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 	# --- COUNTER PHASE ---
 	battle_ui.refresh_stats(att, defn)
 	await battle_ui.play_counter_phase(defn, att, damage_to_att)
+	if core.is_tutorial_match and TutorialManager.once("counter_explained"):
+		DialogueManager.start_convo([
+			DialogueManager._dl("Guide", "When attacking a face-up unit in ATTACK mode, it can counterattack."),
+			DialogueManager._dl("Guide", "This damages your card as well."),
+		])
 
 	# Apply counter damage
 	att.current_def = max(att.current_def - damage_to_att, 0)
@@ -1382,7 +1392,10 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 	var result  = result_data["result"]
 	var of_def  = result_data.get("overflow_to_def_leader", result_data.get("overflow", 0))
 	var of_att  = result_data.get("overflow_to_att_leader", 0)
-
+	if core.is_tutorial_match and TutorialManager.once("overflow_explained") and (of_def > 0 or of_att > 0):
+		DialogueManager.start_convo([
+			DialogueManager._dl("Guide", "More ATK than DEF? The extra damage hits the leader directly!"),
+		])
 	# Temporarily unlock so hp_changed updates bars mid-battle
 	if ui:
 		ui._lock_hp_updates = false
