@@ -76,7 +76,7 @@ material_override = SubResource("StandardMaterial3D_i42j4")
 mesh = SubResource("BoxMesh_pfipv")
 
 [node name="CameraSystem" type="Camera3D" parent="."]
-transform = Transform3D(0.9963897, 0.04143649, 0.074098594, -0.07981956, 0.159901, 0.98390067, 0.028920949, -0.98626304, 0.16263114, 0.531002, 24.47908, 3.0595)
+transform = Transform3D(0.99639, 0.0414365, 0.0740986, -0.0798196, 0.159901, 0.983901, 0.0289209, -0.986263, 0.162631, 0.531002, 24.4791, 3.0595)
 current = true
 fov = 51.5
 size = 8.619

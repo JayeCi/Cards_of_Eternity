@@ -7,7 +7,7 @@ var core: ArenaCoreTutorial
 var board: Node3D
 var camera: Camera3D
 var is_dragging_card := false
-var _hover_tween: Tween = null
+
 var _current_hover_card: CardData = null
 var _last_hand_snapshot: Array = []
 var _selected_card_ui_map: Dictionary = {}
@@ -35,7 +35,6 @@ var hover_label: Label3D
 var ghost_card: Sprite3D
 var last_card_ui: Control = null
 var _is_hovering_hand_card := false
-var _hover_check_timer := 0.0
 var hand_forced_hidden := false
 var _hand_orb_tween: Tween = null
 var _is_fusion_pending_active: bool = false
@@ -137,7 +136,15 @@ func refresh_hand(player_hand: Array, player_essence: int, force_update := false
 					if c.has_meta("cost"): cost = int(c.get_meta("cost"))
 					elif c.has_method("get_cost"): cost = c.get_cost()
 					elif "cost" in c: cost = int(c.cost)
-					card_ui.set_playable(cost <= player_essence)
+					var playable := cost <= player_essence
+					card_ui.set_meta("arena_playable", playable)
+
+					if playable:
+						card_ui.modulate = Color(1,1,1,1)
+						card_ui.mouse_filter = Control.MOUSE_FILTER_STOP
+					else:
+						card_ui.modulate = Color(0.4,0.4,0.4,0.5)
+						card_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		return  # 🧠 No need to rebuild cards
 
 	# --- Otherwise, rebuild as usual
@@ -158,15 +165,33 @@ func refresh_hand(player_hand: Array, player_essence: int, force_update := false
 		if c.has_meta("cost"): cost = int(c.get_meta("cost"))
 		elif c.has_method("get_cost"): cost = c.get_cost()
 		elif "cost" in c: cost = int(c.cost)
-		ui.set_playable(cost <= player_essence)
+		var playable := cost <= player_essence
+
+		ui.arena_playable = (cost <= player_essence)
+
+		if ui.arena_playable:
+			ui.modulate = Color(1,1,1,1)
+		else:
+			ui.modulate = Color(0.4,0.4,0.4,0.6)
 
 		# Hover + click
 		if not ui.is_connected("request_show_zoom", Callable(self, "_on_card_hovered_in_hand")):
 			ui.request_show_zoom.connect(Callable(self, "_on_card_hovered_in_hand"))
-			ui.mouse_entered.connect(func(): _animate_card_hover_enter(ui))
 		if not ui.is_connected("request_hide_zoom", Callable(self, "_on_card_hovered_in_hand_exit")):
 			ui.request_hide_zoom.connect(Callable(self, "_on_card_hovered_in_hand_exit"))
-			ui.mouse_exited.connect(func(): _animate_card_hover_exit(ui))
+		ui.connect("mouse_entered", func():
+			if not ui.get_meta("arena_playable"):
+				return # ❌ no hover highlight for unplayable
+			ui.modulate = Color(1.2, 1.2, 1.2, 1.0)
+		)
+
+		ui.connect("mouse_exited", func():
+			if playable:
+				ui.modulate = Color(1,1,1,1)
+			else:
+				ui.modulate = Color(0.4,0.4,0.4,0.6)   # <- force grey back
+		)
+
 
 		ui.gui_input.connect(func(ev):
 			if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
@@ -196,15 +221,8 @@ func _animate_card_selection(ui: Control, is_selected: bool) -> void:
 	if not ui:
 		return
 
-	# 🧩 Prevent pulse conflict if selected
 	if is_selected:
 		_selected_card_ui_map[ui] = true
-		# Kill any running hover pulse
-		if _hover_card_tween_map.has(ui):
-			var old_tween = _hover_card_tween_map[ui]
-			if old_tween and old_tween.is_running():
-				old_tween.kill()
-			_hover_card_tween_map.erase(ui)
 	else:
 		_selected_card_ui_map.erase(ui)
 
@@ -212,65 +230,17 @@ func _animate_card_selection(ui: Control, is_selected: bool) -> void:
 	if is_selected:
 		t.tween_property(ui, "position:y", -25.0, 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 		t.tween_property(ui, "scale", Vector2(1.08, 1.08), 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		t.tween_property(ui, "modulate", Color(1.0, 1.0, 0.8, 1.0), 0.2)
 	else:
 		t.tween_property(ui, "position:y", 0.0, 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 		t.tween_property(ui, "scale", Vector2(1.0, 1.0), 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		t.tween_property(ui, "modulate", Color(1, 1, 1, 1), 0.2)
-# ==========================================================
-# 🎴 HAND CARD HOVER ANIMATION — Safe (No Drift, No Conflict)
-# ==========================================================
-var _hover_card_tween_map: Dictionary = {}
 
-func _animate_card_hover_enter(card_ui: Control) -> void:
-	if not is_instance_valid(card_ui):
-		return
-	# 🛑 Skip hover animation if this card is selected
-	if _selected_card_ui_map.has(card_ui):
-		return
-
-	# Kill any old tween
-	if _hover_card_tween_map.has(card_ui):
-		var old_tween = _hover_card_tween_map[card_ui]
-		if old_tween and old_tween.is_running():
-			old_tween.kill()
-
-	# Create new tween
-	var t := create_tween()
-	t.tween_property(card_ui, "position:y", -20.0, 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	t.tween_property(card_ui, "scale", Vector2(1.08, 1.08), 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-
-	# Continuous pulse effect while hovered
-	var pulse_tween := create_tween()
-	pulse_tween.set_loops()
-	pulse_tween.tween_property(card_ui, "scale", Vector2(1.1, 1.1), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	pulse_tween.tween_property(card_ui, "scale", Vector2(1.08, 1.08), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-
-	_hover_card_tween_map[card_ui] = pulse_tween
-
-
-func _animate_card_hover_exit(card_ui: Control) -> void:
-	if not is_instance_valid(card_ui):
-		return
-	# 🛑 Do nothing if card is selected — keep it raised
-	if _selected_card_ui_map.has(card_ui):
-		return
-
-	# Kill running pulse
-	if _hover_card_tween_map.has(card_ui):
-		var old_tween = _hover_card_tween_map[card_ui]
-		if old_tween and old_tween.is_running():
-			old_tween.kill()
-		_hover_card_tween_map.erase(card_ui)
-
-	# Smoothly return to original position & scale
-	var t := create_tween()
-	t.tween_property(card_ui, "position:y", 0, 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	t.tween_property(card_ui, "scale", Vector2(1, 1), 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 func show_popup(card: CardData, callback = null) -> void:
 	summon_mode_popup.visible = true
 	summon_mode_popup.popup_centered()
+
+	# ➕ ADD THIS
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
 	# Lock input while the guide talks
 	summon_mode_locked = true
@@ -288,7 +258,9 @@ func show_popup(card: CardData, callback = null) -> void:
 			DialogueManager.finished.connect(_on_attack_explanation_finished, Object.CONNECT_ONE_SHOT)
 
 func _on_attack_explanation_finished(_id := StringName("")):
-	InputState.set_mode(InputState.Mode.UI)
+	#InputState.set_mode(InputState.Mode.UI)
+
+
 	summon_mode_locked = false
 	_enable_summon_buttons()
 	core._log("✅ Now click ATTACK MODE!", Color(0.8,1.0,0.6))
@@ -446,6 +418,7 @@ var _hide_task: SceneTreeTimer
 var _hover_state := "idle"  # "idle", "showing", "visible", "hiding"
 
 func _on_card_hovered_in_hand(card: CardData) -> void:
+
 	if InputState.mode == InputState.Mode.DIALOGUE:
 		return
 
@@ -479,16 +452,16 @@ func _on_card_hovered_in_hand(card: CardData) -> void:
 		return
 
 	# 3️⃣ Stop ongoing animations
-	if _hover_tween and _hover_tween.is_running():
-		_hover_tween.kill()
+	#if _hover_tween and _hover_tween.is_running():
+		#_hover_tween.kill()
 
 	match _hover_state:
 		"idle", "hiding":
 			card_details_ui.modulate.a = 0.0
 			card_details_ui.show_card(card)
 			card_details_ui.visible = true
-			_hover_tween = create_tween()
-			_hover_tween.tween_property(card_details_ui, "modulate:a", 1.0, 0.12).set_trans(Tween.TRANS_SINE)
+			#_hover_tween = create_tween()
+			#_hover_tween.tween_property(card_details_ui, "modulate:a", 1.0, 0.12).set_trans(Tween.TRANS_SINE)
 			_hover_state = "visible"
 			print("[ArenaUI] 🟢 Showing details for:", card.name)
 		"visible", "showing":
@@ -807,7 +780,7 @@ func _handle_summon_choice(mode: int) -> void:
 
 	if summon_mode_popup:
 		summon_mode_popup.hide()
-
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	if not core:
 		push_warning("❌ Core missing — cannot complete summon.")
 		return

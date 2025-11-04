@@ -189,9 +189,8 @@ func _update_hover() -> void:
 	var tile: Node3D = null
 	if result:
 		var node = result.collider
-		if node is CollisionShape3D or node is StaticBody3D:
+		while node and not node.has_method("set_highlight"):
 			node = node.get_parent()
-		if node and node.has_method("set_highlight"): tile = node
 
 	if hovered_tile and hovered_tile != tile:
 		hovered_tile.set_highlight(false)

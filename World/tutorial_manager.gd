@@ -31,7 +31,9 @@ func start_hub_intro(guide: Node) -> void:
 		DialogueManager._dl("Guide", "The Cards of Eternity are awakening..."),
 		DialogueManager._dl("Guide", "Let us begin your training."),
 	])
-
+	DialogueManager.finished.connect(func():
+		InputState.set_mode(InputState.Mode.UI)
+	)
 # Called when arena intro is done
 func start_arena_summon_tutorial() -> void:
 	if stage >= Stage.ARENA_SUMMON_TUTORIAL:
@@ -43,7 +45,9 @@ func start_arena_summon_tutorial() -> void:
 		DialogueManager._dl("Guide", "Try summoning a monster in Attack Mode."),
 		DialogueManager._dl("Guide", "Click a hand card, then choose a tile."),
 	])
-
+	DialogueManager.finished.connect(func():
+		InputState.set_mode(InputState.Mode.UI)
+	)
 # Called when popup appears
 func on_popup_shown_attack_mode(core) -> void:
 	if has_seen_attack_popup:
@@ -62,6 +66,7 @@ func on_popup_shown_attack_mode(core) -> void:
 
 	DialogueManager.finished.connect(func(_id):
 		core.ui_sys.call_deferred("_enable_summon_buttons")
+		InputState.set_mode(InputState.Mode.UI)
 	, Object.CONNECT_ONE_SHOT)
 
 # Called after first manual move
@@ -71,7 +76,9 @@ func on_unit_moved():
 		DialogueManager.start_convo([
 			DialogueManager._dl("Guide", "Good! Movement lets you challenge enemies."),
 		])
-
+		DialogueManager.finished.connect(func():
+			InputState.set_mode(InputState.Mode.UI)
+		)
 # Called on first combat resolution
 func on_combat_triggered(attacker, defender):
 	if has_seen_combat:
@@ -83,7 +90,9 @@ func on_combat_triggered(attacker, defender):
 		DialogueManager._dl("Guide", "Combat happens when you step onto an enemy."),
 		DialogueManager._dl("Guide", "Attackers strike first, then defenders counter!"),
 	])
-
+	DialogueManager.finished.connect(func():
+		InputState.set_mode(InputState.Mode.UI)
+	)
 # Called when unit stands on terrain
 func on_standing_on_terrain(tile_type: String):
 	if has_learned_terrain:
@@ -95,7 +104,9 @@ func on_standing_on_terrain(tile_type: String):
 		DialogueManager._dl("Guide", "Different terrain affects your stats."),
 		DialogueManager._dl("Guide", "Matching your element grants bonuses, some tiles grant negative effects so be careful."),
 	])
-
+	DialogueManager.finished.connect(func():
+		InputState.set_mode(InputState.Mode.UI)
+	)
 # ==========================================================
 # 🧬 NEW — Fusion Tutorial
 # ==========================================================
@@ -113,14 +124,18 @@ func on_attempt_fusion():
 		DialogueManager._dl("Guide", "If the fusion fails, the second card will be played and the first is destroyed... so choose carefully."),
 		DialogueManager._dl("Guide", "Experiment! Different combinations may yield powerful new monsters."),
 	])
-
+	DialogueManager.finished.connect(func():
+		InputState.set_mode(InputState.Mode.UI)
+	)
 # Called on win
 func on_battle_victory():
 	stage = Stage.COMPLETED
 	DialogueManager.start_convo([
 		DialogueManager._dl("Guide", "Excellent! You’re ready for the realms."),
 	])
-
+	DialogueManager.finished.connect(func():
+		InputState.set_mode(InputState.Mode.UI)
+	)
 # Helper
 func tutorial_finished() -> bool:
 	return stage == Stage.COMPLETED

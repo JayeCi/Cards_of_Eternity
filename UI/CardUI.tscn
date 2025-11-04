@@ -33,17 +33,17 @@ subpixel_positioning = 0
 font = SubResource("SystemFont_jrlyf")
 font_size = 15
 outline_size = 8
-outline_color = Color(0, 0, 0, 0.5882353)
+outline_color = Color(0, 0, 0, 0.588235)
 shadow_size = 3
-shadow_color = Color(0, 0, 0, 0.57254905)
+shadow_color = Color(0, 0, 0, 0.572549)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_kgeiq"]
 shader = ExtResource("5_3t43t")
 shader_parameter/glow_color = Color(1, 0.8, 0.4, 1)
-shader_parameter/glow_strength = 0.10000000149012
-shader_parameter/glow_size = 1.0000000149012
-shader_parameter/shimmer_speed = 4.5000000670553995
-shader_parameter/shimmer_intensity = 0.71999998390656
+shader_parameter/glow_strength = 0.1
+shader_parameter/glow_size = 1.0
+shader_parameter/shimmer_speed = 4.5
+shader_parameter/shimmer_intensity = 0.72
 shader_parameter/shimmer_direction = Vector2(1, 0)
 
 [sub_resource type="SystemFont" id="SystemFont_kgeiq"]
@@ -53,9 +53,9 @@ subpixel_positioning = 0
 font = SubResource("SystemFont_kgeiq")
 font_size = 15
 outline_size = 8
-outline_color = Color(0, 0, 0, 0.5882353)
+outline_color = Color(0, 0, 0, 0.588235)
 shadow_size = 3
-shadow_color = Color(0, 0, 0, 0.57254905)
+shadow_color = Color(0, 0, 0, 0.572549)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_cvliv"]
 atlas = ExtResource("4_vs81k")
@@ -244,13 +244,13 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -68.80075
-offset_top = -96.623505
-offset_right = 68.80075
-offset_bottom = 96.623505
+offset_left = -68.8008
+offset_top = -96.6235
+offset_right = 68.8008
+offset_bottom = 96.6235
 grow_horizontal = 2
 grow_vertical = 2
-scale = Vector2(0.9956286, 1)
+scale = Vector2(0.995629, 1)
 size_flags_horizontal = 4
 size_flags_vertical = 4
 mouse_default_cursor_shape = 2
@@ -339,16 +339,16 @@ label_settings = SubResource("LabelSettings_2l5o1")
 
 [node name="FireBall" type="AnimatedSprite2D" parent="."]
 visible = false
-modulate = Color(0.52168864, 0.13722745, 4.813075e-08, 1)
-position = Vector2(68.872986, 168.624)
-scale = Vector2(0.63279116, 0.63279116)
+modulate = Color(0.521689, 0.137227, 4.81308e-08, 1)
+position = Vector2(68.873, 168.624)
+scale = Vector2(0.632791, 0.632791)
 sprite_frames = SubResource("SpriteFrames_3mvpk")
 autoplay = "default"
-frame_progress = 0.8528991
+frame_progress = 0.852899
 
 [node name="Fire" type="TextureRect" parent="FireBall"]
 visible = false
-modulate = Color(0.87058824, 0.06666667, 0, 1)
+modulate = Color(0.870588, 0.0666667, 0, 1)
 custom_minimum_size = Vector2(33.48, 43.58)
 anchors_preset = 15
 anchor_right = 1.0
@@ -367,12 +367,12 @@ stretch_mode = 4
 
 [node name="WaterBall" type="AnimatedSprite2D" parent="."]
 visible = false
-modulate = Color(0.4045111, 0.40451115, 0.4045111, 1)
+modulate = Color(0.404511, 0.404511, 0.404511, 1)
 position = Vector2(68.873, 168.624)
 scale = Vector2(0.633, 0.633)
 sprite_frames = SubResource("SpriteFrames_vtawi")
 autoplay = "default"
-frame_progress = 0.16374499
+frame_progress = 0.163745
 
 [node name="Water" type="TextureRect" parent="WaterBall"]
 visible = false
@@ -384,9 +384,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -31.0
-offset_top = -27.05923
+offset_top = -27.0592
 offset_right = -1.0
-offset_bottom = 2.9407692
+offset_bottom = 2.94077
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 6
@@ -397,12 +397,12 @@ stretch_mode = 4
 
 [node name="EarthBall" type="AnimatedSprite2D" parent="."]
 visible = false
-modulate = Color(0.4959101, 0.30444896, 0.21719092, 1)
-position = Vector2(68.872986, 168.624)
+modulate = Color(0.49591, 0.304449, 0.217191, 1)
+position = Vector2(68.873, 168.624)
 scale = Vector2(0.633, 0.633)
 sprite_frames = SubResource("SpriteFrames_owi5e")
 autoplay = "default"
-frame_progress = 0.7746562
+frame_progress = 0.774656
 
 [node name="Earth" type="TextureRect" parent="EarthBall"]
 visible = false
@@ -424,21 +424,21 @@ stretch_mode = 4
 
 [node name="ShadowBall" type="AnimatedSprite2D" parent="."]
 visible = false
-modulate = Color(0.74978, 0.74978, 0.74977994, 1)
-position = Vector2(68.872986, 168.624)
+modulate = Color(0.74978, 0.74978, 0.74978, 1)
+position = Vector2(68.873, 168.624)
 scale = Vector2(0.633, 0.633)
 sprite_frames = SubResource("SpriteFrames_2dfcg")
 autoplay = "default"
-frame_progress = 0.10149078
+frame_progress = 0.101491
 
 [node name="WindBall" type="AnimatedSprite2D" parent="."]
 visible = false
-modulate = Color(0.61339027, 0.61339027, 0.61339027, 1)
+modulate = Color(0.61339, 0.61339, 0.61339, 1)
 position = Vector2(68.873, 168.624)
 scale = Vector2(0.633, 0.633)
 sprite_frames = SubResource("SpriteFrames_8qt44")
 autoplay = "default"
-frame_progress = 0.22412807
+frame_progress = 0.224128
 
 [node name="Wind" type="TextureRect" parent="WindBall"]
 visible = false

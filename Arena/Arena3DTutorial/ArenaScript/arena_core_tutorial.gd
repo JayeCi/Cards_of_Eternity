@@ -324,9 +324,13 @@ func _on_tutorial_dialogue_finished(_id := StringName("")):
 	# This was blocking all board clicks via _unhandled_input early-return
 	# InputState.set_mode(InputState.Mode.UI)
 	InputState.set_mode(InputState.Mode.UI)
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
 
 func _input(event):
+	if InputState.mode == InputState.Mode.DIALOGUE:
+		return
+
 	if event.is_action_pressed("interact"):
 		var mgr = get_tree().get_first_node_in_group("dialogue_manager")
 		if mgr and mgr._is_running:
@@ -781,15 +785,16 @@ func try_place_dragged_card(hover_tile: Node3D) -> void:
 			ui_sys.call("fade_hand_in")
 		return
 		# ✅ We passed highlight checks — store position
-		selected_pos = hover_tile.board_pos if hover_tile.has_method("board_pos") else hover_tile.pos
+# ✅ Fetch true board coords from the board dictionary
+	selected_pos = board.get_pos_for_tile(hover_tile)
 
-		# ✅ Show summon mode popup
-		if ui_sys and ui_sys.has_method("show_popup"):
-			ui_sys.show_popup(selected_card, confirm_summon_in_mode)
+	# ✅ Show summon mode popup
+	if ui_sys and ui_sys.has_method("show_popup"):
+		ui_sys.show_popup(selected_card, confirm_summon_in_mode)
 
-		# ✅ Lock phase so movement can't happen accidentally
-		_set_phase(Phase.SELECT_SUMMON_TILE)
-		_update_phase_ui()
+	# ✅ Lock phase so movement can't happen accidentally
+	_set_phase(Phase.SELECT_SUMMON_TILE)
+	_update_phase_ui()
 
 func _try_place_regular_card(hover_tile: Node3D) -> void:
 	if selected_card == null:
@@ -1226,7 +1231,9 @@ func restart_level():
 # INPUT HUB (delegates to systems)
 # -----------------------------
 
-func _unhandled_input(event: InputEvent) -> void:
+func _unhandled_input(event):
+	if InputState.mode == InputState.Mode.DIALOGUE:
+		return
 	# --- Global dialogue/UI lockout ---
 	# Allow placement clicks if we're in a summon flow
 	var placing := selected_card != null or fusion_selection.size() > 0
@@ -1288,31 +1295,42 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_LEFT:
-			if hovered_tile:
-				# 🧬 If two cards are selected, always do fusion
-				if fusion_selection.size() == 2:
-					try_place_dragged_card(hovered_tile)
-					return
+			# Resolve a tile from either current hover or the click position
+			var clicked_tile := hovered_tile
+			if (clicked_tile == null) and battle_sys and battle_sys.has_method("get_tile_at_screen_pos"):
+				clicked_tile = battle_sys.get_tile_at_screen_pos(event.position)
 
-				# 🎴 If one card is selected (normal summon)
-				elif fusion_selection.size() == 1:
-					
+			# 🔹 Fusion (2 selected) → place on click
+			if fusion_selection.size() == 2:
+				if clicked_tile:
+					try_place_dragged_card(clicked_tile)
+					get_viewport().set_input_as_handled()
+				return
+
+			# 🔹 Normal summon (1 selected) → start placing, then place on click
+			if fusion_selection.size() == 1:
+				# make sure core is in placing state
+				if selected_card == null:
 					selected_card = fusion_selection[0]
+				if dragging_card == null:
 					dragging_card = selected_card
-
 					if ui_sys and ui_sys.has_method("fade_hand_out"):
 						ui_sys.fade_hand_out()
 					if ui_sys and ui_sys.has_method("on_drag_start"):
 						ui_sys.on_drag_start(selected_card)
+					_set_phase(Phase.SELECT_SUMMON_TILE)
+					_update_phase_ui()
 
-					try_place_dragged_card(hovered_tile)
-					return
-
-			# Otherwise, forward click to board
-			if battle_sys and battle_sys.has_method("on_board_click"):
-				battle_sys.call("on_board_click", event.position)
+				# try to place if we resolved a tile this click
+				if clicked_tile:
+					try_place_dragged_card(clicked_tile)
+					get_viewport().set_input_as_handled()
 				return
 
+			# Otherwise, forward click to board for non-summon interactions
+			if battle_sys and battle_sys.has_method("on_board_click"):
+				battle_sys.call("on_board_click", event.position)
+			return
 
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
 			# 🧹 Cancel current selection or drag
@@ -1346,7 +1364,7 @@ func _unhandled_input(event: InputEvent) -> void:
 								if c.has_meta("cost"): cost = int(c.get_meta("cost"))
 								elif c.has_method("get_cost"): cost = c.get_cost()
 								elif "cost" in c: cost = int(c.cost)
-								card_ui.set_playable(cost <= player_essence)
+								#card_ui.set_playable(cost <= player_essence)
 
 			# Reset hover / highlights / selections
 			if ui_sys and ui_sys.has_method("hide_fusion_pending"):

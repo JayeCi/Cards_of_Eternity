@@ -8,7 +8,7 @@ subpixel_positioning = 0
 [resource]
 font = SubResource("SystemFont_l1njj")
 font_size = 10
-font_color = Color(0.47007585, 0.47007585, 0.47007585, 1)
+font_color = Color(0.470076, 0.470076, 0.470076, 1)
 outline_color = Color(0, 0, 0, 1)
 shadow_size = 2
 shadow_color = Color(0, 0, 0, 1)

@@ -30,7 +30,9 @@ func init_camera(core_ref: ArenaCore) -> void:
 	_default_fov = camera.fov
 
 
-func _input(event):
+func _unhandled_input(event):
+	if InputState.mode == InputState.Mode.DIALOGUE:
+		return
 	if event.is_action_pressed("ui_accept"): # press Enter
 		print("Camera position:", camera.position)
 		print("Camera rotation_degrees:", camera.rotation_degrees)

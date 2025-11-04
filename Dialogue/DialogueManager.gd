@@ -77,7 +77,7 @@ func start_convo(lines: Array[DialogueLine], convo_id: StringName = &"", page: D
 		_ui.request_continue.connect(_on_ui_request_continue)
 
 	_ui.visible = true
-	_disable_player_inputs(true)
+	#_disable_player_inputs(true)
 
 	emit_signal("started", _convo_id)
 	_show_current_line()
@@ -168,7 +168,7 @@ func _end_convo() -> void:
 	_convo_id = &""
 	_lines.clear()
 	_i = 0
-	_disable_player_inputs(false)
+	#_disable_player_inputs(false)
 	emit_signal("finished", ended_id)
 
 # -------------------------------------------------------

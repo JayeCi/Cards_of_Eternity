@@ -151,7 +151,14 @@ func _generate_grid() -> void:
 
 	position = Vector3.ZERO
 	print("Generated %d tiles." % tiles.size())
-	
+func get_pos_for_tile(tile: Node3D) -> Vector2i:
+	for pos in tiles.keys():
+		if tiles[pos] == tile:
+			return pos
+	return Vector2i(-1, -1)
+func has_pos(tile: Node3D) -> bool:
+	return tile in tiles.values()
+
 func get_tile_position_for_unit(unit: UnitData) -> Node3D:
 	for pos in tiles.keys():
 		var tile = tiles[pos]

@@ -36,7 +36,7 @@ func _apply():
 		Mode.DIALOGUE:
 			player.set_physics_process(false)
 			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-			player.mouse_locked = false
+			player.mouse_locked = true
 
 		Mode.UI:
 			player.set_physics_process(false)
