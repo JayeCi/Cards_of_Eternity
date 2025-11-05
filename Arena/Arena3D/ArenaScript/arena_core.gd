@@ -187,8 +187,11 @@ var all_biomes = [
 # -----------------------------
 # LIFECYCLE
 # -----------------------------
-func _ready() -> void:
+func _ready():
+	GameSession.arena_instance = self
 	await get_tree().process_frame
+	# After other connects:
+	connect("battle_finished", Callable(self, "_on_battle_concluded"))
 
 	# 🕶 Immediately cover screen with black before anything loads
 	if ui_sys.has_node("FadeRect"):
@@ -201,38 +204,38 @@ func _ready() -> void:
 
 	# minimal registry of cards (your collection)
 
-	CardCollection.add_card(get_card(CARD_PATHS.GOBLIN))
-	CardCollection.add_card(get_card(CARD_PATHS.DIRT))
-	CardCollection.add_card(get_card(CARD_PATHS.COLD_SLOTH))
-	CardCollection.add_card(get_card(CARD_PATHS.FYSH))
-	CardCollection.add_card(get_card(CARD_PATHS.FOREST_FAE))
-	CardCollection.add_card(get_card(CARD_PATHS.IMP))
-	CardCollection.add_card(get_card(CARD_PATHS.LAVA_HARE))
-	CardCollection.add_card(get_card(CARD_PATHS.NAGA))
-	CardCollection.add_card(get_card(CARD_PATHS.FIREBALL))
-	CardCollection.add_card(get_card(CARD_PATHS.LYZARD))
-	CardCollection.add_card(get_card(CARD_PATHS.ERUPTION))
-	CardCollection.add_card(get_card(CARD_PATHS.DRAKE_OF_EMERALD))
-	CardCollection.add_card(get_card(CARD_PATHS.FLAME_FAE))
-	CardCollection.add_card(get_card(CARD_PATHS.AXO_THE_KNIGHT))
-	CardCollection.add_card(get_card(CARD_PATHS.FINN))
-	CardCollection.add_card(get_card(CARD_PATHS.FALCREEP))
-	CardCollection.add_card(get_card(CARD_PATHS.SNAPTRAP))
-	CardCollection.add_card(get_card(CARD_PATHS.MOLTEN_PIG))
-	CardCollection.add_card(get_card(CARD_PATHS.NINJOAD))
-	CardCollection.add_card(get_card(CARD_PATHS.BOOGLES))
-	CardCollection.add_card(get_card(CARD_PATHS.FUNGOO))
-	CardCollection.add_card(get_card(CARD_PATHS.ORB_OF_DARKNESS))
-	CardCollection.add_card(get_card(CARD_PATHS.SHADOW_CANDLES))
-	CardCollection.add_card(get_card(CARD_PATHS.JESTER_OF_FLAMES))
-	CardCollection.add_card(get_card(CARD_PATHS.VOIDLING_ERO))
-	CardCollection.add_card(get_card(CARD_PATHS.MUSHMONK))
-	CardCollection.add_card(get_card(CARD_PATHS.ZEI_PANDA))
-	CardCollection.add_card(get_card(CARD_PATHS.YORG_ARCHER))
-	CardCollection.add_card(get_card(CARD_PATHS.STONE_FAE))
-	CardCollection.add_card(get_card(CARD_PATHS.CONFLAGURATION_BLADE))
-	CardCollection.add_card(get_card(CARD_PATHS.TIDAL_WAVE))
-	CardCollection.add_card(get_card(CARD_PATHS.AQUA_WHIP))
+	#CardCollection.add_card(get_card(CARD_PATHS.GOBLIN))
+	#CardCollection.add_card(get_card(CARD_PATHS.DIRT))
+	#CardCollection.add_card(get_card(CARD_PATHS.COLD_SLOTH))
+	#CardCollection.add_card(get_card(CARD_PATHS.FYSH))
+	#CardCollection.add_card(get_card(CARD_PATHS.FOREST_FAE))
+	#CardCollection.add_card(get_card(CARD_PATHS.IMP))
+	#CardCollection.add_card(get_card(CARD_PATHS.LAVA_HARE))
+	#CardCollection.add_card(get_card(CARD_PATHS.NAGA))
+	#CardCollection.add_card(get_card(CARD_PATHS.FIREBALL))
+	#CardCollection.add_card(get_card(CARD_PATHS.LYZARD))
+	#CardCollection.add_card(get_card(CARD_PATHS.ERUPTION))
+	#CardCollection.add_card(get_card(CARD_PATHS.DRAKE_OF_EMERALD))
+	#CardCollection.add_card(get_card(CARD_PATHS.FLAME_FAE))
+	#CardCollection.add_card(get_card(CARD_PATHS.AXO_THE_KNIGHT))
+	#CardCollection.add_card(get_card(CARD_PATHS.FINN))
+	#CardCollection.add_card(get_card(CARD_PATHS.FALCREEP))
+	#CardCollection.add_card(get_card(CARD_PATHS.SNAPTRAP))
+	#CardCollection.add_card(get_card(CARD_PATHS.MOLTEN_PIG))
+	#CardCollection.add_card(get_card(CARD_PATHS.NINJOAD))
+	#CardCollection.add_card(get_card(CARD_PATHS.BOOGLES))
+	#CardCollection.add_card(get_card(CARD_PATHS.FUNGOO))
+	#CardCollection.add_card(get_card(CARD_PATHS.ORB_OF_DARKNESS))
+	#CardCollection.add_card(get_card(CARD_PATHS.SHADOW_CANDLES))
+	#CardCollection.add_card(get_card(CARD_PATHS.JESTER_OF_FLAMES))
+	#CardCollection.add_card(get_card(CARD_PATHS.VOIDLING_ERO))
+	#CardCollection.add_card(get_card(CARD_PATHS.MUSHMONK))
+	#CardCollection.add_card(get_card(CARD_PATHS.ZEI_PANDA))
+	#CardCollection.add_card(get_card(CARD_PATHS.YORG_ARCHER))
+	#CardCollection.add_card(get_card(CARD_PATHS.STONE_FAE))
+	#CardCollection.add_card(get_card(CARD_PATHS.CONFLAGURATION_BLADE))
+	#CardCollection.add_card(get_card(CARD_PATHS.TIDAL_WAVE))
+	#CardCollection.add_card(get_card(CARD_PATHS.AQUA_WHIP))
 
 	# ✅ Connect essence UI
 	var orb_grid := ui_sys.get_node_or_null("OrbGrid")
@@ -309,6 +312,18 @@ func enable_tutorial_mode():
 	is_tutorial_match = true
 	if battle_sys:
 		battle_sys.is_tutorial_match = true
+		
+func _on_battle_concluded(result: String) -> void:
+	# Small delay so the battle message can play
+	var tree := get_tree()  # keep a ref if you need the timer
+	await tree.create_timer(2.0).timeout
+	if DialogueManager and DialogueManager.has_method("force_close"):
+		DialogueManager.force_close()
+
+	# ✅ Hand off to GameSession; it will remove/free the arena and restore the hub safely.
+	Globals.pending_post_tutorial_dialogue = true
+	GameSession.switch_to_hub()
+
 
 func set_player_deck(arr: Array) -> void:
 	player_deck = arr.duplicate()
@@ -551,10 +566,15 @@ func _spawn_leaders() -> void:
 			var mdl = leader.get_meta("leader_model")
 			if mdl: mdl.visible = false
 
-	# ✅ Step 1: Initialize both leaders' data
-	player_leader = UnitData.new().init_from_card(get_card(CARD_PATHS.NAGA), PLAYER)
+	# ✅ Use chosen leader if any
+	if Globals.selected_leader:
+		player_leader = UnitData.new().init_from_card(Globals.selected_leader, PLAYER)
+	else:
+		player_leader = UnitData.new().init_from_card(get_card(CARD_PATHS.GOBLIN), PLAYER)
+
 	player_leader.is_leader = true
-	
+
+		
 	enemy_leader = UnitData.new().init_from_card(get_card(CARD_PATHS.BOOGLES), ENEMY)
 	enemy_leader.is_leader = true
 

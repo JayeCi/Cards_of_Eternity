@@ -1,12 +1,15 @@
 extends CharacterBody3D
 class_name GuideNPC
 
+
 # --- Nodes ---
 @onready var agent: NavigationAgent3D = $NavigationAgent3D
 @onready var anim: AnimationPlayer = $AnimationPlayer
 @onready var player: Node3D = get_tree().get_first_node_in_group("player")
 @onready var head: Node3D = $Head
 @onready var look_target: Node3D = $Head/LookTarget
+@export var battle_trigger_area_path: NodePath
+var battle_trigger_area: Area3D
 
 var sit_spots: Array = []
 
@@ -56,6 +59,8 @@ func _dbg_state():
 
 func _ready() -> void:
 	sit_spots = get_tree().get_nodes_in_group("sit_spots")
+	if battle_trigger_area_path != NodePath():
+		battle_trigger_area = get_node_or_null(battle_trigger_area_path)
 
 	_randomize_agent()
 	_resolve_table_target() # also sets table_nav_pos
@@ -230,59 +235,51 @@ func _on_final_cutscene_done(_id := StringName("")) -> void:
 
 func _on_battle_finished(result):
 	Globals.tutorial_completed = true
-	DialogueManager.start_convo([
-		_dl("Guide", "Well done! You understand the basics of combat."),
-		_dl("Guide", "Remember to manage your hand and control the board."),
-		_dl("Guide", "The realms will only grow more dangerous from here..."),
-		_dl("Guide", "Return to the Shrine when you're ready.")
-	])
-
-	if !DialogueManager.finished.is_connected(_return_to_hub):
-		DialogueManager.finished.connect(_return_to_hub, Object.CONNECT_ONE_SHOT)
-
+	if battle_trigger_area:
+		battle_trigger_area.monitoring = false
+		battle_trigger_area.monitorable = false
+		battle_trigger_area.collision_layer = 0
+		battle_trigger_area.collision_mask = 0
+		
 func _return_to_hub(_id := StringName("")):
-	# ✅ Free arena safely
-	if GameSession.arena_instance and is_instance_valid(GameSession.arena_instance):
-		GameSession.arena_instance.queue_free()
+	GameSession.switch_to_hub()
+	# Disable portal so you can't trigger again
 
-	# ✅ Restore hub
-	if GameSession.hub_instance:
-		get_tree().root.add_child(GameSession.hub_instance)
-		get_tree().current_scene = GameSession.hub_instance
-	else:
-		get_tree().change_scene_to_file("res://World/HUB.tscn")
+	var guide := get_tree().current_scene.get_node_or_null("GuideNPC")
+	if guide:
+		guide.look_at(player.global_position, Vector3.UP)
 
-	InputState.set_mode(InputState.Mode.FREE)
+	if Engine.has_singleton("InputState"):
+		InputState.set_mode(InputState.Mode.FREE)
+	# Kill leftover dialogue UI
+	var d_ui := get_tree().root.get_node_or_null("DialogueUI")
+	if d_ui:
+		d_ui.visible = false
 
+	var player := get_tree().current_scene.get_node("Player")
+	if player:
+		player.call_deferred("_enable_controls")
+		player.call_deferred("_lock_mouse")
+		
 func start_tutorial_battle_dialogue(player: Node3D):
+	if Globals.tutorial_completed:
+		return # ✅ STOP LOOPING
+		
+	InputState.set_mode(InputState.Mode.CUTSCENE)
 	DialogueManager.start_convo([
 		_dl("Guide", "Wait..."),
 		_dl("Guide", "I don't feel right sending you into the Earth Realm unprepared."),
 		_dl("Guide", "Yes, you have cards — but you don’t know how to wield them."),
 		_dl("Guide", "I will teach you the basics of battle. Watch closely.")
 	])
-
+	Globals.tutorial_completed = true
 	if !DialogueManager.finished.is_connected(_on_tutorial_battle_dialogue_finished):
 		DialogueManager.finished.connect(_on_tutorial_battle_dialogue_finished, Object.CONNECT_ONE_SHOT)
 
 func _on_tutorial_battle_dialogue_finished(_id := StringName("")):
-	# Load tutorial arena
-	
-	var arena_scene := load("res://Arena/Arena3D/arena_3d.tscn")
-	var arena = arena_scene.instantiate()
-	arena.call_deferred("enable_tutorial_mode")
+	GameSession.switch_to_arena(true)
 
-	# ✅ store a reference!
-	GameSession.arena_instance = arena
-
-	# Add arena
-	get_tree().root.add_child(arena)
-
-	# Save hub reference
-	GameSession.hub_instance = get_tree().current_scene
-	GameSession.hub_instance.get_parent().remove_child(GameSession.hub_instance)
-
-# ===========================
+	# ===========================
 # Helpers
 # ===========================
 func _randomize_agent() -> void:
@@ -382,7 +379,7 @@ func _on_show_first_portal(_id := StringName("")) -> void:
 # Always return a good chest-height look target
 func get_look_point() -> Vector3:
 	if look_target and is_instance_valid(look_target):
-		return -look_target.global_transform.origin
+		return look_target.global_transform.origin
 	return global_transform.origin + Vector3.UP * 1.6
 
 func _deck_description(element_type: String) -> String:

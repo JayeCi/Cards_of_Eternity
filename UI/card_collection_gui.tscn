@@ -1,8 +1,7 @@
-[gd_scene load_steps=71 format=3 uid="uid://cv0hqr5q4w02b"]
+[gd_scene load_steps=70 format=3 uid="uid://cv0hqr5q4w02b"]
 
 [ext_resource type="Texture2D" uid="uid://i5686epsut3j" path="res://UI/Banner.png" id="1_4jpk6"]
 [ext_resource type="Script" uid="uid://srlpa0q17rnv" path="res://UI/card_collection_gui.gd" id="1_jm07a"]
-[ext_resource type="Texture2D" uid="uid://cp6ef7ogds3cj" path="res://UI/FIRE_EMBLEM.png" id="2_m5y4w"]
 [ext_resource type="Texture2D" uid="uid://ccsq4ujlcj6ps" path="res://UI/rotating_orbs.png" id="3_0dsxg"]
 [ext_resource type="Texture2D" uid="uid://bq6fn5ar8y44d" path="res://Cards/Utilities/CardModel/Border_TP_Edge.png" id="4_ypw0p"]
 [ext_resource type="LabelSettings" uid="uid://b2i0kf1b6wirm" path="res://UI/card_collection_gui.tres" id="5_jm07a"]
@@ -359,6 +358,7 @@ corner_radius_bottom_left = 6
 
 [sub_resource type="SystemFont" id="SystemFont_efr3b"]
 font_names = PackedStringArray("Tahoma")
+subpixel_positioning = 0
 
 [sub_resource type="LabelSettings" id="LabelSettings_plkv2"]
 font = SubResource("SystemFont_efr3b")
@@ -452,9 +452,7 @@ modulate = Color(3.4615762, 0, 0, 1)
 custom_minimum_size = Vector2(50, 50)
 layout_mode = 2
 size_flags_horizontal = 0
-texture = ExtResource("2_m5y4w")
-expand_mode = 1
-stretch_mode = 4
+tooltip_text = "Testssssssssss"
 
 [node name="Cost" type="TextureRect" parent="LeftPanel/CardName"]
 custom_minimum_size = Vector2(50, 0)
@@ -553,6 +551,8 @@ grow_vertical = 0
 z_index = 1
 layout_mode = 2
 size_flags_horizontal = 6
+tooltip_text = "This is your cards ATTACK points!"
+mouse_filter = 1
 text = "25"
 label_settings = SubResource("LabelSettings_0dsxg")
 
@@ -560,6 +560,8 @@ label_settings = SubResource("LabelSettings_0dsxg")
 z_index = 1
 layout_mode = 2
 size_flags_horizontal = 6
+tooltip_text = "This is your cards DEFENSE points!"
+mouse_filter = 1
 text = "25"
 label_settings = SubResource("LabelSettings_0dsxg")
 
@@ -591,6 +593,22 @@ text = "Sub / Types"
 label_settings = SubResource("LabelSettings_rs70i")
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="LeaderHbox" type="HBoxContainer" parent="LeftPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 2
+size_flags_vertical = 2
+
+[node name="Label" type="Label" parent="LeftPanel/ScrollContainer/VBoxContainer/LeaderHbox"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 1
+text = "Leader"
+
+[node name="Leader_Checkbox" type="CheckBox" parent="LeftPanel/ScrollContainer/VBoxContainer/LeaderHbox"]
+layout_mode = 2
+size_flags_horizontal = 8
+tooltip_text = "Checking this box sets this card as your current Leader!"
 
 [node name="Abilities" type="Label" parent="LeftPanel/ScrollContainer/VBoxContainer"]
 custom_minimum_size = Vector2(300, 0)
@@ -734,7 +752,6 @@ size_flags_vertical = 6
 columns = 6
 
 [node name="LeaderPanel" type="Panel" parent="."]
-visible = false
 custom_minimum_size = Vector2(300, 640.745)
 layout_mode = 1
 anchors_preset = 15
@@ -937,6 +954,7 @@ pitch_scale = 1.26
 bus = &"SFX"
 
 [node name="Tutorial_Popups" type="Panel" parent="."]
+visible = false
 z_index = 10
 layout_mode = 1
 anchors_preset = 15

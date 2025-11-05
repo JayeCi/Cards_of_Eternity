@@ -154,6 +154,8 @@ func _on_ui_request_continue(choice_text := "") -> void:
 		return
 
 	_advance_dialogue_line()
+func _exit_tree():
+	force_close()
 
 # -------------------------------------------------------
 # ✅ End & unlock player input
@@ -170,6 +172,14 @@ func _end_convo() -> void:
 	_i = 0
 	#_disable_player_inputs(false)
 	emit_signal("finished", ended_id)
+	
+func force_close():
+	if not _is_running:
+		return
+	_end_convo()
+	InputState.set_mode(InputState.Mode.FREE)
+	if _ui:
+		_ui.visible = false
 
 # -------------------------------------------------------
 func _dl(s: String, t: String, expr := "neutral") -> DialogueLine:

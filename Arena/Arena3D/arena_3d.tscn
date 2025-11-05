@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://da27pnrvn5yna" path="res://Arena/Arena3D/Board3D.tscn" id="1_5ykft"]
 [ext_resource type="Shader" uid="uid://cl6icqkoi1s3a" path="res://sky.gdshader" id="2_i7u7f"]
 [ext_resource type="PackedScene" uid="uid://dcus3e1lnkiqj" path="res://UI/UI.tscn" id="2_opwpc"]
-[ext_resource type="AudioStream" uid="uid://w7n2h3ha0xhe" path="res://Audio/Music/Yu-Gi-Oh! Duelist of the Roses_ VS.  Seto - C. Rosenkruez  Extended.mp3" id="3_aj210"]
+[ext_resource type="AudioStream" uid="uid://2mg2mygsyho6" path="res://Audio/ES_An Inconvenient Affair - Indigo Days.mp3" id="4_i7u7f"]
 [ext_resource type="Script" uid="uid://bqkc1hsxx6w73" path="res://Arena/Arena3D/ArenaScript/arena_camera.gd" id="5_2nnof"]
 [ext_resource type="Texture2D" uid="uid://dkes2i4j5tjot" path="res://Images/Textures/metall005-new-tileable.png" id="5_i5af3"]
 [ext_resource type="Script" uid="uid://c01bdnjyd3qmh" path="res://Arena/Arena3D/ArenaScript/arena_battle.gd" id="8_08t7x"]
@@ -73,8 +73,8 @@ environment = SubResource("Environment_6q22w")
 [node name="Board3D" parent="." instance=ExtResource("1_5ykft")]
 
 [node name="BGMusic" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("3_aj210")
-volume_db = -45.207
+stream = ExtResource("4_i7u7f")
+volume_db = -37.155
 autoplay = true
 bus = &"Music"
 parameters/looping = true

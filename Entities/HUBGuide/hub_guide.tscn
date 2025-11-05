@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://ctatrschsj14h" path="res://Entities/HUBGuide/HUB_Guide_Walking_0.png" id="1_phef1"]
 [ext_resource type="Script" uid="uid://b8xte1bekeko8" path="res://Entities/HUBGuide/hub_guide_corrupted.gd" id="1_ypoe0"]
 [ext_resource type="Texture2D" uid="uid://ly4xo5fcf8p6" path="res://Entities/HUBGuide/HUB_Guide_Walking_3.png" id="2_ypoe0"]
-[ext_resource type="Animation" uid="uid://domaynogoavwv" path="res://Entities/HUBGuide/Idle.res" id="3_0du4p"]
+[ext_resource type="Animation" uid="uid://b2jy8jchexmcm" path="res://Entities/HUBGuide/Idle.res" id="3_0du4p"]
 [ext_resource type="Animation" uid="uid://3gyfkey6wfw3" path="res://Entities/HUBGuide/stand_to_sit.res" id="4_ce3c6"]
 [ext_resource type="Animation" uid="uid://d07fs8ocudjmy" path="res://Entities/HUBGuide/sit_to_stand.res" id="5_k1brb"]
 [ext_resource type="Animation" uid="uid://ccnxtiq60lhw7" path="res://Entities/HUBGuide/sitting.res" id="6_yvirr"]

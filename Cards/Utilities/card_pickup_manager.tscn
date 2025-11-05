@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dffda5a8krvyr" path="res://Cards/Utilities/card_pickup_manager.gd" id="1_g26e7"]
 
-[node name="CardPickupManager" type="Control"]
+[node name="CardPickupManager" type="Control" groups=["card_pickups"]]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

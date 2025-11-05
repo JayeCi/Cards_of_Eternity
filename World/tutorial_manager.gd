@@ -91,7 +91,9 @@ func on_popup_shown_attack_mode(core) -> void:
 	])
 
 	DialogueManager.finished.connect(func(_id):
-		core.ui_sys.call_deferred("_enable_summon_buttons")
+		if core and core.ui_sys:
+			core.ui_sys.call_deferred("_enable_summon_buttons")
+
 		InputState.set_mode(InputState.Mode.UI)
 	, Object.CONNECT_ONE_SHOT)
 

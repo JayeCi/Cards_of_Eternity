@@ -13,6 +13,7 @@ extends Control
 @onready var deck_count: Label = $DeckPanel/Deck/Panel/DeckLabel/MarginContainer/DeckCount
 @onready var tutorial_popups: Panel = $Tutorial_Popups
 @onready var continue_btn: Button = $Tutorial_Popups/Tutorial_Panel/Tutorial_VBox/Tutorial_Continue_Button
+@onready var leader_checkbox: CheckBox = $LeftPanel/ScrollContainer/VBoxContainer/LeaderHbox/Leader_Checkbox
 
 
 
@@ -49,6 +50,7 @@ var selected_card: CardData = null
 func _ready():
 	if sort_button:
 		sort_button.pressed.connect(_on_sort_button_pressed)
+	leader_checkbox.toggled.connect(_on_leader_checkbox_toggled)
 
 	# 🧩 Setup layout references
 	left_panel = get_node_or_null("LeftPanel")
@@ -116,47 +118,65 @@ func _ready():
 # 🖱️ CARD INTERACTION (Click + Hover)
 # ==========================================================
 func _on_card_hovered(card_data: CardData):
-	if selected_card and selected_card == card_data:
+	# If a card is selected, ignore hover
+	if selected_card != null and selected_card != card_data:
 		return
+
 	_update_left_panel(card_data, true)
 
-func _on_card_unhovered(card_data: CardData = null):
-	if selected_card:
-		_update_left_panel(selected_card)
-	else:
-		_clear_left_panel()
 
-func _on_card_clicked(event: InputEvent, card_ui):
-		# 🛑 REFUSE collection→deck moves if deck is full
-	if deck_grid.get_child_count() >= 10:
-		sfx_action_beep.play()
-		print("[DeckBuilder] 🚫 Deck full. Cannot add more.")
+func _on_card_unhovered(card_data: CardData = null):
+	# do nothing — selected card stays locked
+	if selected_card:
+		return
+	_clear_left_panel()
+
+func _on_leader_checkbox_toggled(checked: bool) -> void:
+	if selected_card == null:
+		leader_checkbox.button_pressed = false
 		return
 
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if sfx_action_beep:
-			sfx_action_beep.play()
+	if checked:
+		# Assign new leader
+		Globals.selected_leader = selected_card
+		if player:
+			player.set_leader(selected_card)
+		print("[Leader] Selected:", selected_card.name)
+	else:
+		# Unassign if this card was the leader
+		if Globals.selected_leader == selected_card:
+			Globals.selected_leader = null
+			if player:
+				player.leader_card = null
+			print("[Leader] Cleared leader selection.")
 
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		var parent_grid = card_ui.get_parent()
+func _on_card_clicked(event: InputEvent, card_ui):
+	if event is InputEventMouseButton and event.pressed:
 
-		# --- Move from Collection to Deck ---
-		if deck_collection_grid.is_ancestor_of(card_ui) or parent_grid == deck_collection_grid:
-			if _move_card_to_deck(card_ui.card_data):
+		# LEFT CLICK: SELECT ONLY
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			selected_card = card_ui.card_data
+			_update_left_panel(selected_card)
+			return
+
+		# RIGHT CLICK: MOVE
+		if event.button_index == MOUSE_BUTTON_RIGHT:
+			var parent_grid = card_ui.get_parent()
+
+			# deck → collection
+			if deck_grid.is_ancestor_of(card_ui) or parent_grid == deck_grid:
+				_move_card_to_collection(card_ui.card_data)
 				card_ui.queue_free()
-			else:
-				print("[DeckBuilder] ❌ Add failed. Not destroying UI.")
+				return
 
-			print("[DeckBuilder] ➕ Moved", card_ui.card_data.name, "→ Deck")
-
-		# --- Move from Deck to Collection ---
-		elif deck_grid.is_ancestor_of(card_ui) or parent_grid == deck_grid:
-			_move_card_to_collection(card_ui.card_data)
-			card_ui.queue_free()
-			print("[DeckBuilder] ↩️ Moved", card_ui.card_data.name, "→ Collection")
-
-		selected_card = card_ui.card_data
-		_update_left_panel(selected_card)
+			# collection → deck
+			if deck_collection_grid.is_ancestor_of(card_ui) or parent_grid == deck_collection_grid:
+				if deck_grid.get_child_count() >= 10:
+					sfx_action_beep.play()
+					return
+				if _move_card_to_deck(card_ui.card_data):
+					card_ui.queue_free()
+					return
 
 func _move_card_to_deck(card_data: CardData) -> bool:
 	if deck_grid.get_child_count() >= 10:
@@ -339,7 +359,12 @@ func _update_left_panel(card_data: CardData, temporary := false):
 		art_texture_rect.texture = card_data.art
 	if art_border: art_border.visible = true
 	_update_left_panel_element(card_data)   # <- add this
-	
+		# --- Leader checkbox reflects state ---
+	if Globals.selected_leader == card_data:
+		leader_checkbox.button_pressed = true
+	else:
+		leader_checkbox.button_pressed = false
+
 func _clear_left_panel():
 	for label in [card_name_label, rarity_label, cost_label, atk_label, def_label, subtype_label, abilities_label, ability_desc_label, description_label]:
 		if label:
@@ -348,7 +373,8 @@ func _clear_left_panel():
 		art_texture_rect.texture = null
 	art_border.visible = false
 	_hide_all_element_balls()   
-	
+
+
 func _hide_all_element_balls() -> void:
 	for node in [_elem_to_ball.get("fire"), _elem_to_ball.get("water"), _elem_to_ball.get("earth"), _elem_to_ball.get("wind"), _elem_to_ball.get("shadow")]:
 		if node:
@@ -589,6 +615,7 @@ func _on_collection_button_pressed() -> void:
 
 func _on_x_pressed() -> void:
 	player._toggle_collection()
+	selected_card = null
 
 
 func _on_tutorial_continue_button_pressed() -> void:

@@ -1,12 +1,14 @@
 extends CharacterBody3D
 
-const SPEED = 5.0
+const SPEED = 7.0
 const SPRINT_MULTIPLIER = 1.7  
 const JUMP_VELOCITY = 4.5
 const MOUSE_SENSITIVITY = 0.003
 # --- Sprinting ---
 var is_sprinting := false
 var sprint_speed := SPEED * SPRINT_MULTIPLIER
+var selected_leader: CardData = null
+var leader_card
 
 signal starter_deck_chosen(element_type)
 
@@ -28,6 +30,7 @@ var _time_since_step := 0.0
 var hovered_deck: Node3D = null
 
 @onready var crosshair: Label = $Crosshair/Label
+@onready var card_pickup_manager: Node = $"../Card_Description_Popup/CardPickupManager"
 
 
 # ------------------
@@ -86,7 +89,8 @@ var deck_claimed := {
 
 
 func _ready() -> void:
-	
+	safe_margin = 0.06
+
 	if Engine.has_singleton("DialogueManager"):
 		DialogueManager._ui = $DialogueUI
 		print("[World] Registered DialogueUI manually")
@@ -173,7 +177,8 @@ func _input(event):
 		_toggle_collection()
 
 func _handle_element_deck(element_type: String):
-	var starter: Array = []
+	var starter: Array[CardData] = []
+
 
 	match element_type:
 		"Fire":
@@ -181,7 +186,7 @@ func _handle_element_deck(element_type: String):
 				get_card(CARD_PATHS.LAVA_HARE),
 				get_card(CARD_PATHS.FLAME_FAE),
 				get_card(CARD_PATHS.FIREBALL),
-				get_card(CARD_PATHS.JESTER_OF_FLAMES),
+				get_card(CARD_PATHS.MOLTEN_PIG),
 				get_card(CARD_PATHS.ERUPTION),
 			]
 
@@ -197,10 +202,10 @@ func _handle_element_deck(element_type: String):
 		"Earth":
 			starter = [
 				get_card(CARD_PATHS.DIRT),
-				get_card(CARD_PATHS.COLD_SLOTH),
+				get_card(CARD_PATHS.YORG_ARCHER),
 				get_card(CARD_PATHS.STONE_FAE),
 				get_card(CARD_PATHS.SNAPTRAP),
-				get_card(CARD_PATHS.DRAKE_OF_EMERALD),
+				get_card(CARD_PATHS.GOBLIN),
 			]
 
 		"Wind":
@@ -208,7 +213,9 @@ func _handle_element_deck(element_type: String):
 				get_card(CARD_PATHS.ZEI_PANDA),
 				get_card(CARD_PATHS.FALCREEP),
 				get_card(CARD_PATHS.YORG_ARCHER),
-				# add real wind cards later
+				get_card(CARD_PATHS.BOOGLES),
+				get_card(CARD_PATHS.DRAKE_OF_EMERALD),
+
 			]
 
 	# already claimed?
@@ -221,7 +228,14 @@ func _handle_element_deck(element_type: String):
 	# Add them to the player's collection
 	for c in starter:
 		CardCollection.add_card(c)
+			# 🔔 UI notification
+	var taskbar := get_tree().get_first_node_in_group("taskbar")
+	if taskbar:
+		taskbar.show_notification()
 
+	if card_pickup_manager:
+		card_pickup_manager.show_card(starter)
+		
 	show_pickup_popup(element_type + " Starter Deck Obtained!")
 	# After showing popup and adding cards
 	current_interactable.queue_free()
@@ -236,6 +250,11 @@ var _saved_pitch := 0.0
 func save_camera_rotation():
 	_saved_yaw = rotation.y
 	_saved_pitch = head.rotation.x
+
+func set_leader(card: CardData):
+	leader_card = card
+	Globals.selected_leader = card
+	print("[Player] Leader set to:", card.name)
 
 func restore_camera_rotation(duration: float = 1.3):
 	var tween = get_tree().create_tween()
@@ -289,6 +308,8 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	if collection_ui.visible:
 		return
+	if is_on_floor() and velocity.y < 0:
+		velocity.y = -0.01
 
 	# Gravity
 	if not is_on_floor():
@@ -301,7 +322,11 @@ func _physics_process(delta: float) -> void:
 	# Movement input
 	var input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_downward")
 	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
-	
+
+	# project movement along floor normal
+	if is_on_floor():
+		direction = direction.slide(get_floor_normal())
+
 	var current_speed = SPEED
 	if is_sprinting:
 		current_speed = sprint_speed
@@ -310,8 +335,9 @@ func _physics_process(delta: float) -> void:
 		velocity.x = direction.x * SPEED
 		velocity.z = direction.z * SPEED
 	else:
-		velocity.x = move_toward(velocity.x, 0, SPEED)
-		velocity.z = move_toward(velocity.z, 0, SPEED)
+		velocity.x = lerp(velocity.x, 0.0, delta * 6.0)
+		velocity.z = lerp(velocity.z, 0.0, delta * 6.0)
+
 
 	move_and_slide()
 
@@ -407,11 +433,15 @@ func _toggle_collection():
 		collection_ui.hide()
 		InputState.set_mode(InputState.Mode.FREE)
 		taskbar.visible = true
+
+		# ✅ Clear notif
+		if taskbar:
+			taskbar.hide_notification()
+
 	else:
 		collection_ui.show()
 		InputState.set_mode(InputState.Mode.UI)
 		taskbar.visible = false
-
 
 # Player.gd (add this helper anywhere in the script)
 func _dl(speaker: String, text: String, expr := "neutral") -> DialogueLine:
@@ -434,10 +464,24 @@ func _on_tutorial_portal_entered(body):
 		DialogueManager.start_convo([
 			_dl("Guide", "You're not ready. You need to add your cards to your deck."),
 		])
-		InputState.set_mode(InputState.Mode.CUTSCENE)
+		InputState.set_mode(InputState.Mode.DIALOGUE)
+
+		# ✅ THIS
+		if !DialogueManager.finished.is_connected(_unlock_after_not_ready):
+			DialogueManager.finished.connect(_unlock_after_not_ready, Object.CONNECT_ONE_SHOT)
+		return
+
+	if Globals.selected_leader == null:
+		DialogueManager.start_convo([
+			_dl("Guide", "Choose a Leader first from your Card Collection.")
+		])
+		InputState.set_mode(InputState.Mode.DIALOGUE)
 		return
 
 	# ✅ Correct stage, so launch battle
 	var guide = get_tree().get_first_node_in_group("guide")
 	if guide:
 		guide.start_tutorial_battle_dialogue(self)
+		
+func _unlock_after_not_ready(_id := StringName("")) -> void:
+	InputState.set_mode(InputState.Mode.FREE)

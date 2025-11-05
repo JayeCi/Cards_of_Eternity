@@ -29,6 +29,8 @@ GameSession="*res://GameSession.gd"
 DialogueUi="*res://Dialogue/dialogue_ui.tscn"
 TutorialManager="*res://World/tutorial_manager.gd"
 GameSettings="*res://GameSettings.gd"
+TransitionFade="*res://TransitionFade.tscn"
+TransitionFadeScript="*res://transition_fade.gd"
 
 [display]
 
@@ -49,6 +51,8 @@ interactable=""
 element_deck="StarterDeckDisableGroup"
 tutorial_portal=""
 guide=""
+taskbar=""
+card_pickups=""
 
 [input]
 
