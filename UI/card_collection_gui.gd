@@ -14,6 +14,7 @@ extends Control
 @onready var tutorial_popups: Panel = $Tutorial_Popups
 @onready var continue_btn: Button = $Tutorial_Popups/Tutorial_Panel/Tutorial_VBox/Tutorial_Continue_Button
 @onready var leader_checkbox: CheckBox = $LeftPanel/ScrollContainer/VBoxContainer/LeaderHbox/Leader_Checkbox
+@onready var main_menu: Control = $"../MainMenu"
 
 
 
@@ -614,9 +615,9 @@ func _on_collection_button_pressed() -> void:
 		Globals.tutorial_stage = 1
 
 func _on_x_pressed() -> void:
-	player._toggle_collection()
+	visible = false
 	selected_card = null
-
+	main_menu.visible = true
 
 func _on_tutorial_continue_button_pressed() -> void:
 	if not tutorial_can_continue:

@@ -7,6 +7,7 @@ extends Control
 @onready var exit_button: TextureButton = $ButtonContainer/ExitButton
 @onready var background: TextureRect = $Background
 @onready var game_logo: TextureRect = $GameLogo
+@onready var collection_gui: Control =$"../Card_Collection_GUI" # Adjust path as needed
 
 # Keep track of tweens per button
 var active_tweens := {}
@@ -26,7 +27,6 @@ func _connect_buttons():
 func _on_button_hovered(button: TextureButton):
 	hover_sfx.play()
 
-	# cancel old tween
 	if active_tweens.has(button):
 		active_tweens[button].kill()
 
@@ -48,7 +48,7 @@ func _on_button_pressed(button: TextureButton):
 	click_sfx.play()
 	match button.name:
 		"PlayButton": _start_new_game()
-		"ContinueButton": _continue_game()
+		"ShopButton": _shop_open()
 		"CollectionButton": _open_collection()
 		"OptionsButton": _open_options()
 		"ExitButton": get_tree().quit()
@@ -56,11 +56,16 @@ func _on_button_pressed(button: TextureButton):
 func _start_new_game():
 	get_tree().change_scene_to_file("res://Arena/Arena3D/arena_3d.tscn")
 
-func _continue_game():
+func _shop_open():
 	get_tree().change_scene_to_file("")
 
 func _open_collection():
-	get_tree().change_scene_to_file("res://UI/card_collection_gui.tscn")
+	# Hide main menu and show the collection UI
+	visible = false
+	if collection_gui:
+		collection_gui.visible = true
+	else:
+		push_error("Collection GUI not found. Check node path in _ready().")
 
 func _open_options():
 	get_tree().change_scene_to_file("res://UI/OptionsMenu.tscn")

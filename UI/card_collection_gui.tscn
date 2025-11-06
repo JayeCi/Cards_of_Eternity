@@ -719,7 +719,6 @@ layout_mode = 2
 text = "X"
 
 [node name="CollectionPanel" type="Panel" parent="."]
-visible = false
 custom_minimum_size = Vector2(300, 640.745)
 layout_mode = 1
 anchors_preset = 15
@@ -752,6 +751,7 @@ size_flags_vertical = 6
 columns = 6
 
 [node name="LeaderPanel" type="Panel" parent="."]
+visible = false
 custom_minimum_size = Vector2(300, 640.745)
 layout_mode = 1
 anchors_preset = 15

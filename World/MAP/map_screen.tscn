@@ -1,0 +1,289 @@
+[gd_scene load_steps=12 format=3 uid="uid://bx8mbd37psymu"]
+
+[ext_resource type="Script" uid="uid://c7p6ht8pl08vn" path="res://map_screen.gd" id="1_txqf5"]
+[ext_resource type="PackedScene" uid="uid://bw2igg30xct5v" path="res://World/MAP/map_node.tscn" id="2_1rsxy"]
+[ext_resource type="Texture2D" uid="uid://b6eiv3fsfjl2k" path="res://World/MAP/EarthMap.png" id="2_q23gr"]
+[ext_resource type="Texture2D" uid="uid://bo3mvkv6c8ip" path="res://World/MAP/card_fan.png" id="2_th673"]
+[ext_resource type="Texture2D" uid="uid://27hw07f2m60c" path="res://World/MAP/Knight_Node.png" id="3_dwpl3"]
+[ext_resource type="Script" uid="uid://x5gllef2oogk" path="res://World/MAP/background.gd" id="3_q23gr"]
+[ext_resource type="Texture2D" uid="uid://de01vcf3is6sv" path="res://World/MAP/Fight_Encounter_Node.png" id="4_abfg7"]
+[ext_resource type="Texture2D" uid="uid://c5ytyg16nfvtl" path="res://World/MAP/Fight_Encounter_Node_Hover.png" id="5_abfg7"]
+[ext_resource type="Texture2D" uid="uid://dn58jnufxljcq" path="res://World/MAP/Fire_Node.png" id="6_415wl"]
+
+[sub_resource type="SystemFont" id="SystemFont_ai041"]
+font_names = PackedStringArray("Tahoma")
+
+[sub_resource type="LabelSettings" id="LabelSettings_dwpl3"]
+font = SubResource("SystemFont_ai041")
+outline_size = 4
+outline_color = Color(0, 0, 0, 1)
+
+[node name="MapScene" type="Node2D"]
+script = ExtResource("1_txqf5")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+layer = 0
+follow_viewport_enabled = true
+
+[node name="MapRoot" type="Node2D" parent="CanvasLayer"]
+
+[node name="GreenBackDrop" type="ColorRect" parent="CanvasLayer/MapRoot"]
+process_mode = 3
+offset_left = -2563.0
+offset_top = -2017.0
+offset_right = 6437.0
+offset_bottom = 6983.0
+scale = Vector2(0.9579734, 1.1538944)
+color = Color(0.043137256, 0.105882354, 0.039215688, 1)
+
+[node name="Map" type="TextureRect" parent="CanvasLayer/MapRoot"]
+process_mode = 3
+offset_left = -74.0
+offset_top = -347.00006
+offset_right = 1462.0
+offset_bottom = 676.99994
+scale = Vector2(0.9579734, 1.1538944)
+texture = ExtResource("2_q23gr")
+script = ExtResource("3_q23gr")
+
+[node name="LineLayer" type="Node2D" parent="CanvasLayer/MapRoot"]
+z_index = 1
+position = Vector2(73, 27)
+
+[node name="Line1" type="Line2D" parent="CanvasLayer/MapRoot/LineLayer"]
+position = Vector2(1082, 158)
+points = PackedVector2Array(-1, 149, -49, 217)
+width = 2.0
+
+[node name="Line2" type="Line2D" parent="CanvasLayer/MapRoot/LineLayer"]
+position = Vector2(1078, 36)
+points = PackedVector2Array(-87, 463, -44, 336)
+width = 2.0
+default_color = Color(1, 1, 1, 0.11764706)
+
+[node name="Line3" type="Line2D" parent="CanvasLayer/MapRoot/LineLayer"]
+position = Vector2(1078, 36)
+points = PackedVector2Array(-87, 463, -71, 510, -21, 528, 55, 530, 109, 513, 125, 462)
+width = 2.0
+default_color = Color(1, 1, 1, 0.11764706)
+
+[node name="NodeLayer" type="Node2D" parent="CanvasLayer/MapRoot"]
+
+[node name="Start" parent="CanvasLayer/MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1130.0
+offset_top = 316.0
+offset_right = 1180.0
+offset_bottom = 347.0
+grow_horizontal = 0
+grow_vertical = 0
+texture_normal = ExtResource("3_dwpl3")
+stretch_mode = 5
+next_nodes = Array[NodePath]([NodePath("../MapNode2")])
+
+[node name="MapNode1" parent="CanvasLayer/MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 1081.0
+offset_top = 385.0
+offset_right = 1131.0
+offset_bottom = 416.0
+grow_horizontal = 1
+grow_vertical = 1
+texture_normal = ExtResource("4_abfg7")
+texture_hover = ExtResource("5_abfg7")
+stretch_mode = 5
+
+[node name="MapNode3" parent="CanvasLayer/MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 1040.0
+offset_top = 511.0
+offset_right = 1090.0
+offset_bottom = 542.0
+grow_horizontal = 1
+grow_vertical = 1
+texture_normal = ExtResource("4_abfg7")
+texture_hover = ExtResource("5_abfg7")
+stretch_mode = 5
+
+[node name="MapNode2" parent="CanvasLayer/MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 1251.0
+offset_top = 509.0
+offset_right = 1301.0
+offset_bottom = 540.0
+grow_horizontal = 1
+grow_vertical = 1
+texture_normal = ExtResource("6_415wl")
+stretch_mode = 5
+
+[node name="MapCamera" type="Camera2D" parent="CanvasLayer"]
+position = Vector2(576, 324)
+position_smoothing_enabled = true
+
+[node name="UIOverlay" type="Control" parent="."]
+visible = false
+layout_mode = 3
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+grow_horizontal = 0
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Taskbar" type="Control" parent="UIOverlay"]
+visible = false
+custom_minimum_size = Vector2(35, 0)
+anchors_preset = 0
+offset_right = 35.0
+offset_bottom = 648.0
+size_flags_horizontal = 0
+mouse_filter = 2
+
+[node name="Panel" type="Panel" parent="UIOverlay/Taskbar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UIOverlay/Taskbar/Panel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 113.0
+grow_horizontal = 2
+
+[node name="Button" type="Button" parent="UIOverlay/Taskbar/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+text = "D"
+
+[node name="Button2" type="Button" parent="UIOverlay/Taskbar/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+text = "C"
+
+[node name="Button3" type="Button" parent="UIOverlay/Taskbar/Panel/VBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="UIOverlay/Taskbar/Panel"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -56.5
+offset_bottom = 56.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TextureRect" type="TextureRect" parent="UIOverlay/Taskbar/Panel/VBoxContainer2"]
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+texture = ExtResource("2_th673")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="UIOverlay/Taskbar/Panel/VBoxContainer2/TextureRect"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -0.5
+offset_top = -11.5
+offset_right = 0.5
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "25"
+label_settings = SubResource("LabelSettings_dwpl3")
+
+[node name="TextureRect2" type="TextureRect" parent="UIOverlay/Taskbar/Panel/VBoxContainer2"]
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+
+[node name="TextureRect3" type="TextureRect" parent="UIOverlay/Taskbar/Panel/VBoxContainer2"]
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+
+[node name="VBoxContainer3" type="VBoxContainer" parent="UIOverlay/Taskbar/Panel"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -113.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Button" type="Button" parent="UIOverlay/Taskbar/Panel/VBoxContainer3"]
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+
+[node name="Button2" type="Button" parent="UIOverlay/Taskbar/Panel/VBoxContainer3"]
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+
+[node name="Button3" type="Button" parent="UIOverlay/Taskbar/Panel/VBoxContainer3"]
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+
+[node name="InfoPanel" type="Control" parent="UIOverlay"]
+visible = false
+custom_minimum_size = Vector2(325, 650)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 824.0
+offset_right = 1149.0
+offset_bottom = 650.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Panel" type="Panel" parent="UIOverlay/InfoPanel"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BackButton" type="Button" parent="UIOverlay"]
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -50.0
+offset_bottom = 31.0
+grow_horizontal = 0
+mouse_filter = 2
+text = "BACK"

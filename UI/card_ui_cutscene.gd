@@ -4,7 +4,7 @@ extends Control
 
 @onready var art = $MarginContainer/Art
 
-@onready var cost: Label = $MarginContainer/VBoxContainer/Cost
+
 @onready var fusion_glow: TextureRect = $FusionGlow
 @onready var quantity_label: Label = $QuantityLabel
 
@@ -120,11 +120,7 @@ func _disable_child_mouse_filters(node: Node):
 			child.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			_disable_child_mouse_filters(child)
 
-func hide_labels() -> void:
-	#if name_label: name_label.visible = false
-	#if atk: atk.visible = false
-	#if def: def.visible = false
-	if cost: cost.visible = false
+
 
 # -------------------------------
 # Refresh visuals
@@ -132,31 +128,14 @@ func hide_labels() -> void:
 func refresh():
 	if card_data == null:
 		print("[CardUI] ⚠️ refresh() called with null data")
-		#if name_label: name_label.text = ""
 		if art: art.texture = null
-		#if atk: atk.text = ""
-		#if def: def.text = ""
-		if cost: cost.text = ""
+
 		return
-	#if atk and def:
-		#atk.visible = true
-		#def.visible = true
-	#print("[CardUI] Refreshing card:", card_data.name)
-	#if name_label: name_label.text = card_data.name
+
 	if art: art.texture = card_data.art
-	if cost: cost.text = str(card_data.cost)
+
 	_update_element_ball()
-	## 🧩 Only set ATK/DEF for Monster cards
-	#if card_data.card_type == CardData.CardType.MONSTER:
-		#if atk: atk.text = str(card_data.atk)
-		#if def: def.text = str(card_data.def)
-	#else:
-		#if atk:
-			#atk.visible = false
-		#if def:
-			#def.visible = false
-		## 🛑 Skip setting ATK/DEF for non-monsters
-		#pass
+
 
 # --- Helpers ---
 func _hide_all_element_balls() -> void:
