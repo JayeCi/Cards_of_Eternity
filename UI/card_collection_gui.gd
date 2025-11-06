@@ -15,6 +15,8 @@ extends Control
 @onready var continue_btn: Button = $Tutorial_Popups/Tutorial_Panel/Tutorial_VBox/Tutorial_Continue_Button
 @onready var leader_checkbox: CheckBox = $LeftPanel/ScrollContainer/VBoxContainer/LeaderHbox/Leader_Checkbox
 @onready var main_menu: Control = $"../MainMenu"
+@onready var taskbar: Control = $"../../UIOverlay/Taskbar"
+
 
 
 
@@ -617,7 +619,9 @@ func _on_collection_button_pressed() -> void:
 func _on_x_pressed() -> void:
 	visible = false
 	selected_card = null
-	main_menu.visible = true
+	taskbar.visible = true
+	if main_menu:
+		main_menu.visible = true
 
 func _on_tutorial_continue_button_pressed() -> void:
 	if not tutorial_can_continue:

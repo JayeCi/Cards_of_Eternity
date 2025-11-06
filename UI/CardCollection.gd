@@ -53,10 +53,17 @@ func get_all_cards() -> Array[CardData]:
 		arr.append(entry.card)
 	return arr
 
+func remove_card(card: CardData):
+	collection.erase(card)
+	emit_signal("collection_changed")
+	
 func get_all_cardss() -> Array:
 	return collection.keys()  # return IDs
 #
 
+func count() -> int:
+	return collection.size()
+	
 func get_card_data(id: String) -> CardData:
 	if not collection.has(id):
 		return null

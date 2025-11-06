@@ -11,6 +11,7 @@ extends Control
 
 # Keep track of tweens per button
 var active_tweens := {}
+@export var is_first_time_playing := true
 
 func _ready():
 	music.play()
@@ -54,7 +55,12 @@ func _on_button_pressed(button: TextureButton):
 		"ExitButton": get_tree().quit()
 
 func _start_new_game():
-	get_tree().change_scene_to_file("res://Arena/Arena3D/arena_3d.tscn")
+	await TransitionFade.fade_out()
+	
+	if is_first_time_playing == true:
+		get_tree().change_scene_to_file("res://World/INTRO_CUTSCENE.tscn")
+	else:
+		get_tree().change_scene_to_file("res://World/MAP/map_screen.tscn")
 
 func _shop_open():
 	get_tree().change_scene_to_file("")

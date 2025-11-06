@@ -37,9 +37,11 @@ TutorialManager="*res://World/tutorial_manager.gd"
 GameSettings="*res://GameSettings.gd"
 TransitionFade="*res://TransitionFade.tscn"
 TransitionFadeScript="*res://transition_fade.gd"
+CardDb="*res://CardDB.gd"
 
 [display]
 
+window/size/mode=3
 window/stretch/mode="canvas_items"
 
 [editor_plugins]

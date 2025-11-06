@@ -31,15 +31,20 @@ offset_bottom = 20.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Exit" type="Button" parent="Control/VBoxContainer"]
-process_mode = 2
+[node name="MainMenu" type="Button" parent="Control/VBoxContainer"]
 layout_mode = 2
-text = "Exit Game"
+text = "Main Menu"
 
 [node name="Resume" type="Button" parent="Control/VBoxContainer"]
 process_mode = 2
 layout_mode = 2
 text = "Resume Game"
 
-[connection signal="pressed" from="Control/VBoxContainer/Exit" to="Control" method="_on_exit_pressed"]
+[node name="Exit" type="Button" parent="Control/VBoxContainer"]
+process_mode = 2
+layout_mode = 2
+text = "Exit Game"
+
+[connection signal="pressed" from="Control/VBoxContainer/MainMenu" to="Control" method="_on_main_menu_pressed"]
 [connection signal="pressed" from="Control/VBoxContainer/Resume" to="Control" method="_on_resume_pressed"]
+[connection signal="pressed" from="Control/VBoxContainer/Exit" to="Control" method="_on_exit_pressed"]

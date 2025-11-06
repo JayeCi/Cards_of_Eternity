@@ -1,19 +1,16 @@
-[gd_scene load_steps=17 format=3 uid="uid://bx8mbd37psymu"]
+[gd_scene load_steps=14 format=3 uid="uid://bx8mbd37psymu"]
 
 [ext_resource type="Script" uid="uid://c7p6ht8pl08vn" path="res://map_screen.gd" id="1_txqf5"]
 [ext_resource type="PackedScene" uid="uid://bw2igg30xct5v" path="res://World/MAP/map_node.tscn" id="2_1rsxy"]
-[ext_resource type="PackedScene" uid="uid://cv0hqr5q4w02b" path="res://UI/card_collection_gui.tscn" id="2_7hypk"]
 [ext_resource type="Texture2D" uid="uid://b6eiv3fsfjl2k" path="res://World/MAP/EarthMap.png" id="2_q23gr"]
 [ext_resource type="Texture2D" uid="uid://bo3mvkv6c8ip" path="res://World/MAP/card_fan.png" id="2_th673"]
-[ext_resource type="Script" uid="uid://bkr5rkembjini" path="res://World/MAP/ui_overlay.gd" id="2_uhhbm"]
+[ext_resource type="Texture2D" uid="uid://27hw07f2m60c" path="res://World/MAP/Knight_Node.png" id="3_dwpl3"]
 [ext_resource type="Script" uid="uid://x5gllef2oogk" path="res://World/MAP/background.gd" id="3_q23gr"]
-[ext_resource type="Texture2D" uid="uid://csya7myvxxlhb" path="res://World/MAP/hooded_antagonist.png" id="4_7hypk"]
+[ext_resource type="Texture2D" uid="uid://de01vcf3is6sv" path="res://World/MAP/Fight_Encounter_Node.png" id="4_abfg7"]
 [ext_resource type="Script" uid="uid://8bbkeqyshhmk" path="res://World/MAP/line_drawer.gd" id="4_jnlq2"]
+[ext_resource type="Texture2D" uid="uid://c5ytyg16nfvtl" path="res://World/MAP/Fight_Encounter_Node_Hover.png" id="5_abfg7"]
+[ext_resource type="Texture2D" uid="uid://dn58jnufxljcq" path="res://World/MAP/Fire_Node.png" id="6_415wl"]
 [ext_resource type="Texture2D" uid="uid://bdh225tfiv5ri" path="res://World/MAP/PlayerLocation.png" id="6_haur7"]
-[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="8_haur7"]
-[ext_resource type="Resource" uid="uid://jne2skd0eidt" path="res://Cards/Monster Cards/Dirt.tres" id="9_jnlq2"]
-[ext_resource type="Resource" uid="uid://bfwj21trvei3d" path="res://Cards/Monster Cards/Finn.tres" id="10_vf0ra"]
-[ext_resource type="Resource" uid="uid://l8hkcr570yry" path="res://Cards/Monster Cards/Fysh.tres" id="11_uhhbm"]
 
 [sub_resource type="SystemFont" id="SystemFont_ai041"]
 font_names = PackedStringArray("Tahoma")
@@ -27,25 +24,23 @@ outline_color = Color(0, 0, 0, 1)
 script = ExtResource("1_txqf5")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
-layer = 4
+layer = 0
+follow_viewport_enabled = true
 
-[node name="UIOverlay" type="Control" parent="CanvasLayer"]
+[node name="UIOverlay" type="Control" parent="."]
+visible = false
 layout_mode = 3
 anchors_preset = 6
 anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = -1152.0
-offset_top = -324.0
-offset_right = -1152.0
-offset_bottom = -324.0
 grow_horizontal = 0
 grow_vertical = 2
 mouse_filter = 2
-script = ExtResource("2_uhhbm")
 
-[node name="Taskbar" type="Control" parent="CanvasLayer/UIOverlay"]
+[node name="Taskbar" type="Control" parent="UIOverlay"]
+visible = false
 custom_minimum_size = Vector2(35, 0)
 anchors_preset = 0
 offset_right = 35.0
@@ -53,7 +48,7 @@ offset_bottom = 648.0
 size_flags_horizontal = 0
 mouse_filter = 2
 
-[node name="Panel" type="Panel" parent="CanvasLayer/UIOverlay/Taskbar"]
+[node name="Panel" type="Panel" parent="UIOverlay/Taskbar"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -61,29 +56,29 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/UIOverlay/Taskbar/Panel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="UIOverlay/Taskbar/Panel"]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
 offset_bottom = 113.0
 grow_horizontal = 2
 
-[node name="Button" type="Button" parent="CanvasLayer/UIOverlay/Taskbar/Panel/VBoxContainer"]
+[node name="Button" type="Button" parent="UIOverlay/Taskbar/Panel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 35)
 layout_mode = 2
 text = "D"
 
-[node name="CollectionButton" type="Button" parent="CanvasLayer/UIOverlay/Taskbar/Panel/VBoxContainer"]
+[node name="Button2" type="Button" parent="UIOverlay/Taskbar/Panel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 35)
 layout_mode = 2
 text = "C"
 
-[node name="Button3" type="Button" parent="CanvasLayer/UIOverlay/Taskbar/Panel/VBoxContainer"]
+[node name="Button3" type="Button" parent="UIOverlay/Taskbar/Panel/VBoxContainer"]
 visible = false
 custom_minimum_size = Vector2(0, 35)
 layout_mode = 2
 
-[node name="VBoxContainer2" type="VBoxContainer" parent="CanvasLayer/UIOverlay/Taskbar/Panel"]
+[node name="VBoxContainer2" type="VBoxContainer" parent="UIOverlay/Taskbar/Panel"]
 layout_mode = 1
 anchors_preset = 14
 anchor_top = 0.5
@@ -94,14 +89,14 @@ offset_bottom = 56.5
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="TextureRect" type="TextureRect" parent="CanvasLayer/UIOverlay/Taskbar/Panel/VBoxContainer2"]
+[node name="TextureRect" type="TextureRect" parent="UIOverlay/Taskbar/Panel/VBoxContainer2"]
 custom_minimum_size = Vector2(0, 35)
 layout_mode = 2
 texture = ExtResource("2_th673")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="DeckCount" type="Label" parent="CanvasLayer/UIOverlay/Taskbar/Panel/VBoxContainer2/TextureRect"]
+[node name="Label" type="Label" parent="UIOverlay/Taskbar/Panel/VBoxContainer2/TextureRect"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -117,15 +112,15 @@ grow_vertical = 2
 text = "25"
 label_settings = SubResource("LabelSettings_dwpl3")
 
-[node name="TextureRect2" type="TextureRect" parent="CanvasLayer/UIOverlay/Taskbar/Panel/VBoxContainer2"]
+[node name="TextureRect2" type="TextureRect" parent="UIOverlay/Taskbar/Panel/VBoxContainer2"]
 custom_minimum_size = Vector2(0, 35)
 layout_mode = 2
 
-[node name="TextureRect3" type="TextureRect" parent="CanvasLayer/UIOverlay/Taskbar/Panel/VBoxContainer2"]
+[node name="TextureRect3" type="TextureRect" parent="UIOverlay/Taskbar/Panel/VBoxContainer2"]
 custom_minimum_size = Vector2(0, 35)
 layout_mode = 2
 
-[node name="VBoxContainer3" type="VBoxContainer" parent="CanvasLayer/UIOverlay/Taskbar/Panel"]
+[node name="VBoxContainer3" type="VBoxContainer" parent="UIOverlay/Taskbar/Panel"]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -135,19 +130,19 @@ offset_top = -113.0
 grow_horizontal = 2
 grow_vertical = 0
 
-[node name="Button" type="Button" parent="CanvasLayer/UIOverlay/Taskbar/Panel/VBoxContainer3"]
+[node name="Button" type="Button" parent="UIOverlay/Taskbar/Panel/VBoxContainer3"]
 custom_minimum_size = Vector2(0, 35)
 layout_mode = 2
 
-[node name="Button2" type="Button" parent="CanvasLayer/UIOverlay/Taskbar/Panel/VBoxContainer3"]
+[node name="Button2" type="Button" parent="UIOverlay/Taskbar/Panel/VBoxContainer3"]
 custom_minimum_size = Vector2(0, 35)
 layout_mode = 2
 
-[node name="Button3" type="Button" parent="CanvasLayer/UIOverlay/Taskbar/Panel/VBoxContainer3"]
+[node name="Button3" type="Button" parent="UIOverlay/Taskbar/Panel/VBoxContainer3"]
 custom_minimum_size = Vector2(0, 35)
 layout_mode = 2
 
-[node name="InfoPanel" type="Control" parent="CanvasLayer/UIOverlay"]
+[node name="InfoPanel" type="Control" parent="UIOverlay"]
 visible = false
 custom_minimum_size = Vector2(325, 650)
 layout_mode = 1
@@ -163,7 +158,8 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="Panel" type="Panel" parent="CanvasLayer/UIOverlay/InfoPanel"]
+[node name="Panel" type="Panel" parent="UIOverlay/InfoPanel"]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -171,72 +167,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/UIOverlay/InfoPanel/Panel"]
-custom_minimum_size = Vector2(300, 550)
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -20.0
-offset_top = -25.0
-offset_right = 20.0
-offset_bottom = 25.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 11
-
-[node name="EnemyName" type="Label" parent="CanvasLayer/UIOverlay/InfoPanel/Panel/VBoxContainer"]
-layout_mode = 2
-text = "Name"
-horizontal_alignment = 1
-autowrap_mode = 3
-
-[node name="Art" type="TextureRect" parent="CanvasLayer/UIOverlay/InfoPanel/Panel/VBoxContainer"]
-custom_minimum_size = Vector2(75, 300)
-layout_mode = 2
-texture = ExtResource("4_7hypk")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="Difficulty" type="Label" parent="CanvasLayer/UIOverlay/InfoPanel/Panel/VBoxContainer"]
-layout_mode = 2
-text = "Difficulty"
-horizontal_alignment = 1
-autowrap_mode = 3
-
-[node name="Completion" type="Label" parent="CanvasLayer/UIOverlay/InfoPanel/Panel/VBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 1
-text = "Not Completed"
-horizontal_alignment = 1
-autowrap_mode = 2
-
-[node name="Elements" type="HBoxContainer" parent="CanvasLayer/UIOverlay/InfoPanel/Panel/VBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme_override_constants/separation = 25
-alignment = 1
-
-[node name="StartButton" type="Button" parent="CanvasLayer/UIOverlay/InfoPanel/Panel"]
-custom_minimum_size = Vector2(100, 35)
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -4.0
-offset_top = -8.0
-offset_right = 4.0
-grow_horizontal = 2
-grow_vertical = 0
-text = "START FIGHT"
-
-[node name="BackButton" type="Button" parent="CanvasLayer/UIOverlay"]
+[node name="BackButton" type="Button" parent="UIOverlay"]
 visible = false
 layout_mode = 1
 anchors_preset = 1
@@ -248,9 +179,6 @@ grow_horizontal = 0
 mouse_filter = 2
 text = "BACK"
 
-[node name="Card_Collection_GUI" parent="CanvasLayer" instance=ExtResource("2_7hypk")]
-visible = false
-
 [node name="MapRoot" type="Node2D" parent="."]
 
 [node name="GreenBackDrop" type="ColorRect" parent="MapRoot"]
@@ -260,7 +188,6 @@ offset_top = -2017.0
 offset_right = 6437.0
 offset_bottom = 6983.0
 scale = Vector2(0.9579734, 1.1538944)
-mouse_force_pass_scroll_events = false
 mouse_default_cursor_shape = 2
 color = Color(0.043137256, 0.105882354, 0.039215688, 1)
 
@@ -279,8 +206,6 @@ script = ExtResource("3_q23gr")
 z_index = 1
 position = Vector2(73, 27)
 script = ExtResource("4_jnlq2")
-node_layer = NodePath("../NodeLayer")
-map_core_path = NodePath("../..")
 
 [node name="Line1" type="Line2D" parent="MapRoot/LineDrawer"]
 visible = false
@@ -316,12 +241,10 @@ offset_right = 393.0
 offset_bottom = 503.0
 grow_horizontal = 0
 grow_vertical = 0
+texture_normal = ExtResource("3_dwpl3")
 stretch_mode = 5
-encounter_type = "start"
-enemy_name = "Start Marker"
+encounter_type = "rest"
 connected_nodes = Array[NodePath]([NodePath("../MapNode1")])
-battle_completed = true
-is_completed = true
 
 [node name="MapNode1" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
 anchors_preset = 0
@@ -335,11 +258,10 @@ offset_right = 344.0
 offset_bottom = 572.0
 grow_horizontal = 1
 grow_vertical = 1
+texture_normal = ExtResource("4_abfg7")
+texture_hover = ExtResource("5_abfg7")
 stretch_mode = 5
-enemy_name = "Unknown Figure"
-enemy_deck = Array[ExtResource("8_haur7")]([ExtResource("9_jnlq2"), ExtResource("10_vf0ra"), ExtResource("11_uhhbm")])
 connected_nodes = Array[NodePath]([NodePath("../MapNode2")])
-randomize_event = false
 
 [node name="MapNode2" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
 anchors_preset = 0
@@ -353,9 +275,9 @@ offset_right = 343.0
 offset_bottom = 698.0
 grow_horizontal = 1
 grow_vertical = 1
+texture_normal = ExtResource("4_abfg7")
+texture_hover = ExtResource("5_abfg7")
 stretch_mode = 5
-enemy_name = "Enemy 2"
-difficulty = 2
 connected_nodes = Array[NodePath]([NodePath("../MapNode3")])
 
 [node name="MapNode3" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
@@ -370,9 +292,8 @@ offset_right = 515.0
 offset_bottom = 696.0
 grow_horizontal = 1
 grow_vertical = 1
+texture_normal = ExtResource("6_415wl")
 stretch_mode = 5
-enemy_name = "Enemy 3"
-difficulty = 3
 
 [node name="Player" type="Sprite2D" parent="MapRoot/NodeLayer"]
 z_index = 5
@@ -381,14 +302,9 @@ scale = Vector2(0.059167415, 0.059167415)
 texture = ExtResource("6_haur7")
 
 [node name="MapCamera" type="Camera2D" parent="."]
-position = Vector2(503, 510)
+position = Vector2(576, 324)
 limit_left = -100
 limit_top = -375
 limit_right = 1425
 limit_bottom = 865
 position_smoothing_enabled = true
-
-[connection signal="pressed" from="CanvasLayer/UIOverlay/Taskbar/Panel/VBoxContainer/CollectionButton" to="CanvasLayer/UIOverlay" method="_on_collection_button_pressed"]
-[connection signal="pressed" from="CanvasLayer/UIOverlay/InfoPanel/Panel/StartButton" to="CanvasLayer/UIOverlay" method="_on_start_button_pressed"]
-
-[editable path="CanvasLayer/Card_Collection_GUI"]

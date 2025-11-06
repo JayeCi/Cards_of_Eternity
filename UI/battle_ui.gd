@@ -11,7 +11,7 @@ class_name BattleUI
 @onready var defender_def: Label = $HBoxContainer/EnemyPanel/EnemyArt/DEFContainer/DEFSTAT
 @onready var player_dmg: Label = $HBoxContainer/PlayerPanel/PlayerArt/PlayerDamageLabel
 @onready var enemy_dmg: Label = $HBoxContainer/EnemyPanel/EnemyArt/EnemyDamageLabel
-@onready var hand: GridContainer = $"../../UISystemTutorial/BottomContainer/Hand"
+@onready var hand: GridContainer = $"../BottomContainer/Hand"
 
 # --- Default fallback Audio ---
 @export var default_attack_sound: AudioStream = preload("res://Audio/Sound FX/Attack.mp3")

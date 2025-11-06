@@ -1,8 +1,9 @@
-[gd_scene load_steps=70 format=3 uid="uid://cv0hqr5q4w02b"]
+[gd_scene load_steps=71 format=3 uid="uid://cv0hqr5q4w02b"]
 
 [ext_resource type="Texture2D" uid="uid://i5686epsut3j" path="res://UI/Banner.png" id="1_4jpk6"]
 [ext_resource type="Script" uid="uid://srlpa0q17rnv" path="res://UI/card_collection_gui.gd" id="1_jm07a"]
 [ext_resource type="Texture2D" uid="uid://ccsq4ujlcj6ps" path="res://UI/rotating_orbs.png" id="3_0dsxg"]
+[ext_resource type="Texture2D" uid="uid://b03jwbojyba53" path="res://Images/Jester of Flames.jpeg" id="4_0dsxg"]
 [ext_resource type="Texture2D" uid="uid://bq6fn5ar8y44d" path="res://Cards/Utilities/CardModel/Border_TP_Edge.png" id="4_ypw0p"]
 [ext_resource type="LabelSettings" uid="uid://b2i0kf1b6wirm" path="res://UI/card_collection_gui.tres" id="5_jm07a"]
 [ext_resource type="AudioStream" uid="uid://cc0j6hlesvql6" path="res://Audio/Sound FX/Action Beep.mp3" id="5_m5y4w"]
@@ -229,7 +230,7 @@ shadow_size = 4
 shadow_color = Color(0, 0, 0, 0.752941)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jm07a"]
-bg_color = Color(0.007843138, 0, 0.10980392, 1)
+bg_color = Color(0.007843138, 0, 0.10980392, 0.45490196)
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
 
@@ -364,16 +365,23 @@ subpixel_positioning = 0
 font = SubResource("SystemFont_efr3b")
 font_size = 12
 
-[node name="Card_Collection_GUI" type="Control"]
-layout_mode = 3
+[node name="MarginContainer" type="MarginContainer"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="Card_Collection_GUI" type="Control" parent="."]
+layout_mode = 2
 script = ExtResource("1_jm07a")
 
-[node name="BackgroundContainer" type="PanelContainer" parent="."]
+[node name="BackgroundContainer" type="PanelContainer" parent="Card_Collection_GUI"]
 z_index = -4
 layout_mode = 1
 anchors_preset = 15
@@ -383,7 +391,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxTexture_0dsxg")
 
-[node name="LeftPanel" type="Panel" parent="."]
+[node name="LeftPanel" type="Panel" parent="Card_Collection_GUI"]
 z_index = -4
 custom_minimum_size = Vector2(300, 600)
 layout_mode = 1
@@ -398,7 +406,7 @@ size_flags_horizontal = 0
 size_flags_vertical = 4
 theme_override_styles/panel = SubResource("StyleBoxTexture_uxg7g")
 
-[node name="CardName" type="PanelContainer" parent="LeftPanel"]
+[node name="CardName" type="PanelContainer" parent="Card_Collection_GUI/LeftPanel"]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 1
 anchors_preset = 10
@@ -406,7 +414,7 @@ anchor_right = 1.0
 offset_bottom = 50.0
 grow_horizontal = 2
 
-[node name="ShadowBall" type="AnimatedSprite2D" parent="LeftPanel/CardName"]
+[node name="ShadowBall" type="AnimatedSprite2D" parent="Card_Collection_GUI/LeftPanel/CardName"]
 visible = false
 modulate = Color(0.7490196, 0.7490196, 0.7490196, 1)
 position = Vector2(24, 25)
@@ -414,7 +422,7 @@ sprite_frames = SubResource("SpriteFrames_plkv2")
 autoplay = "default"
 frame_progress = 0.358672
 
-[node name="WaterBall" type="AnimatedSprite2D" parent="LeftPanel/CardName"]
+[node name="WaterBall" type="AnimatedSprite2D" parent="Card_Collection_GUI/LeftPanel/CardName"]
 visible = false
 modulate = Color(0.40392157, 0.40392157, 0.40392157, 1)
 position = Vector2(24, 25)
@@ -422,7 +430,7 @@ sprite_frames = SubResource("SpriteFrames_cwlg1")
 autoplay = "default"
 frame_progress = 0.41517124
 
-[node name="FireBall" type="AnimatedSprite2D" parent="LeftPanel/CardName"]
+[node name="FireBall" type="AnimatedSprite2D" parent="Card_Collection_GUI/LeftPanel/CardName"]
 visible = false
 modulate = Color(0.52156866, 0.13725491, 0, 1)
 position = Vector2(24, 25)
@@ -430,7 +438,7 @@ sprite_frames = SubResource("SpriteFrames_8v1qg")
 autoplay = "default"
 frame_progress = 0.14228007
 
-[node name="WindBall" type="AnimatedSprite2D" parent="LeftPanel/CardName"]
+[node name="WindBall" type="AnimatedSprite2D" parent="Card_Collection_GUI/LeftPanel/CardName"]
 visible = false
 modulate = Color(0.6117647, 0.6117647, 0.6117647, 1)
 position = Vector2(24, 25)
@@ -438,7 +446,7 @@ sprite_frames = SubResource("SpriteFrames_ncur6")
 autoplay = "default"
 frame_progress = 0.5321693
 
-[node name="EarthBall" type="AnimatedSprite2D" parent="LeftPanel/CardName"]
+[node name="EarthBall" type="AnimatedSprite2D" parent="Card_Collection_GUI/LeftPanel/CardName"]
 visible = false
 modulate = Color(0.49411765, 0.30588236, 0.21568628, 1)
 position = Vector2(24, 25)
@@ -446,7 +454,7 @@ sprite_frames = SubResource("SpriteFrames_nteha")
 autoplay = "default"
 frame_progress = 0.7274642
 
-[node name="Element" type="TextureRect" parent="LeftPanel/CardName"]
+[node name="Element" type="TextureRect" parent="Card_Collection_GUI/LeftPanel/CardName"]
 visible = false
 modulate = Color(3.4615762, 0, 0, 1)
 custom_minimum_size = Vector2(50, 50)
@@ -454,12 +462,12 @@ layout_mode = 2
 size_flags_horizontal = 0
 tooltip_text = "Testssssssssss"
 
-[node name="Cost" type="TextureRect" parent="LeftPanel/CardName"]
+[node name="Cost" type="TextureRect" parent="Card_Collection_GUI/LeftPanel/CardName"]
 custom_minimum_size = Vector2(50, 0)
 layout_mode = 2
 size_flags_horizontal = 8
 
-[node name="CostLabel" type="Label" parent="LeftPanel/CardName/Cost"]
+[node name="CostLabel" type="Label" parent="Card_Collection_GUI/LeftPanel/CardName/Cost"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -470,7 +478,7 @@ text = "2"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Name" type="Label" parent="LeftPanel/CardName"]
+[node name="Name" type="Label" parent="Card_Collection_GUI/LeftPanel/CardName"]
 custom_minimum_size = Vector2(100, 28)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -480,7 +488,7 @@ label_settings = SubResource("LabelSettings_efr3b")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Rarity" type="Label" parent="LeftPanel/CardName"]
+[node name="Rarity" type="Label" parent="Card_Collection_GUI/LeftPanel/CardName"]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 8
@@ -488,7 +496,7 @@ text = "Rarity"
 label_settings = SubResource("LabelSettings_8uuty")
 horizontal_alignment = 1
 
-[node name="Panel" type="Panel" parent="LeftPanel"]
+[node name="Panel" type="Panel" parent="Card_Collection_GUI/LeftPanel"]
 z_index = 1
 layout_mode = 1
 anchors_preset = 15
@@ -500,7 +508,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_jm07a")
 
-[node name="Art" type="TextureRect" parent="LeftPanel/Panel"]
+[node name="Art" type="TextureRect" parent="Card_Collection_GUI/LeftPanel/Panel"]
 z_index = 1
 custom_minimum_size = Vector2(256, 384)
 layout_mode = 1
@@ -509,16 +517,18 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -128.0
-offset_top = -192.0
-offset_right = 128.0
-offset_bottom = 192.0
+offset_left = -107.935
+offset_top = -163.0
+offset_right = 148.065
+offset_bottom = 221.0
 grow_horizontal = 2
 grow_vertical = 2
+scale = Vector2(0.84289414, 0.84289414)
+texture = ExtResource("4_0dsxg")
 expand_mode = 1
 stretch_mode = 4
 
-[node name="Border" type="TextureRect" parent="LeftPanel/Panel"]
+[node name="Border" type="TextureRect" parent="Card_Collection_GUI/LeftPanel/Panel"]
 z_index = 1
 custom_minimum_size = Vector2(256, 384)
 layout_mode = 1
@@ -527,17 +537,18 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -160.065
-offset_top = -204.0
-offset_right = 160.065
-offset_bottom = 204.0
+offset_left = -136.935
+offset_top = -175.0
+offset_right = 183.195
+offset_bottom = 233.0
 grow_horizontal = 2
 grow_vertical = 2
+scale = Vector2(0.84289414, 0.84289414)
 texture = ExtResource("4_ypw0p")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="HBoxContainer" type="HBoxContainer" parent="LeftPanel/Panel/Border"]
+[node name="HBoxContainer" type="HBoxContainer" parent="Card_Collection_GUI/LeftPanel/Panel/Border"]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -547,7 +558,7 @@ offset_top = -22.0
 grow_horizontal = 2
 grow_vertical = 0
 
-[node name="ATK" type="Label" parent="LeftPanel/Panel/Border/HBoxContainer"]
+[node name="ATK" type="Label" parent="Card_Collection_GUI/LeftPanel/Panel/Border/HBoxContainer"]
 z_index = 1
 layout_mode = 2
 size_flags_horizontal = 6
@@ -556,7 +567,7 @@ mouse_filter = 1
 text = "25"
 label_settings = SubResource("LabelSettings_0dsxg")
 
-[node name="DEF" type="Label" parent="LeftPanel/Panel/Border/HBoxContainer"]
+[node name="DEF" type="Label" parent="Card_Collection_GUI/LeftPanel/Panel/Border/HBoxContainer"]
 z_index = 1
 layout_mode = 2
 size_flags_horizontal = 6
@@ -565,26 +576,31 @@ mouse_filter = 1
 text = "25"
 label_settings = SubResource("LabelSettings_0dsxg")
 
-[node name="ScrollContainer" type="ScrollContainer" parent="LeftPanel"]
+[node name="ScrollContainer" type="ScrollContainer" parent="Card_Collection_GUI/LeftPanel"]
 clip_contents = false
-layout_mode = 0
-offset_left = 0.99999994
-offset_top = 454.0
-offset_right = 310.0
-offset_bottom = 639.0
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -158.5
+offset_top = -179.745
+offset_right = 158.5
+offset_bottom = -0.18017578
+grow_horizontal = 2
+grow_vertical = 0
 scale = Vector2(0.9668494, 0.9668494)
 follow_focus = true
-draw_focus_border = true
 horizontal_scroll_mode = 0
-vertical_scroll_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="LeftPanel/ScrollContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Card_Collection_GUI/LeftPanel/ScrollContainer"]
 custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
 size_flags_horizontal = 6
 size_flags_vertical = 3
 
-[node name="Subtype" type="Label" parent="LeftPanel/ScrollContainer/VBoxContainer"]
+[node name="Subtype" type="Label" parent="Card_Collection_GUI/LeftPanel/ScrollContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -594,23 +610,23 @@ label_settings = SubResource("LabelSettings_rs70i")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="LeaderHbox" type="HBoxContainer" parent="LeftPanel/ScrollContainer/VBoxContainer"]
+[node name="LeaderHbox" type="HBoxContainer" parent="Card_Collection_GUI/LeftPanel/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 2
 size_flags_vertical = 2
 
-[node name="Label" type="Label" parent="LeftPanel/ScrollContainer/VBoxContainer/LeaderHbox"]
+[node name="Label" type="Label" parent="Card_Collection_GUI/LeftPanel/ScrollContainer/VBoxContainer/LeaderHbox"]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 1
 text = "Leader"
 
-[node name="Leader_Checkbox" type="CheckBox" parent="LeftPanel/ScrollContainer/VBoxContainer/LeaderHbox"]
+[node name="Leader_Checkbox" type="CheckBox" parent="Card_Collection_GUI/LeftPanel/ScrollContainer/VBoxContainer/LeaderHbox"]
 layout_mode = 2
 size_flags_horizontal = 8
 tooltip_text = "Checking this box sets this card as your current Leader!"
 
-[node name="Abilities" type="Label" parent="LeftPanel/ScrollContainer/VBoxContainer"]
+[node name="Abilities" type="Label" parent="Card_Collection_GUI/LeftPanel/ScrollContainer/VBoxContainer"]
 custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -622,7 +638,7 @@ autowrap_trim_flags = 128
 visible_characters = 25
 visible_ratio = 2.7777777
 
-[node name="Ability Description" type="Label" parent="LeftPanel/ScrollContainer/VBoxContainer"]
+[node name="Ability Description" type="Label" parent="Card_Collection_GUI/LeftPanel/ScrollContainer/VBoxContainer"]
 custom_minimum_size = Vector2(301, 0)
 layout_mode = 2
 size_flags_vertical = 3
@@ -630,18 +646,18 @@ text = "Connected hover and click signals for"
 label_settings = SubResource("LabelSettings_jm07a")
 autowrap_mode = 3
 
-[node name="_______" type="Label" parent="LeftPanel/ScrollContainer/VBoxContainer"]
+[node name="_______" type="Label" parent="Card_Collection_GUI/LeftPanel/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 autowrap_mode = 3
 
-[node name="Description" type="Label" parent="LeftPanel/ScrollContainer/VBoxContainer"]
+[node name="Description" type="Label" parent="Card_Collection_GUI/LeftPanel/ScrollContainer/VBoxContainer"]
 custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
 text = "Description"
 label_settings = SubResource("LabelSettings_2imwr")
 autowrap_mode = 3
 
-[node name="Toolbar" type="Panel" parent="."]
+[node name="Toolbar" type="Panel" parent="Card_Collection_GUI"]
 z_index = 10
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 1
@@ -653,7 +669,7 @@ offset_right = -1.0
 offset_bottom = 54.0
 grow_horizontal = 2
 
-[node name="MainPanelLabel" type="Label" parent="Toolbar"]
+[node name="MainPanelLabel" type="Label" parent="Card_Collection_GUI/Toolbar"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -668,29 +684,29 @@ grow_horizontal = 2
 grow_vertical = 2
 text = "Collection"
 
-[node name="ButtonRow1" type="HBoxContainer" parent="Toolbar"]
+[node name="ButtonRow1" type="HBoxContainer" parent="Card_Collection_GUI/Toolbar"]
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
 offset_right = 128.0
 grow_vertical = 2
 
-[node name="Leader_button" type="Button" parent="Toolbar/ButtonRow1"]
+[node name="Leader_button" type="Button" parent="Card_Collection_GUI/Toolbar/ButtonRow1"]
 custom_minimum_size = Vector2(40, 15)
 layout_mode = 2
 text = "L"
 
-[node name="Deck_button" type="Button" parent="Toolbar/ButtonRow1"]
+[node name="Deck_button" type="Button" parent="Card_Collection_GUI/Toolbar/ButtonRow1"]
 custom_minimum_size = Vector2(40, 15)
 layout_mode = 2
 text = "D"
 
-[node name="Collection_button" type="Button" parent="Toolbar/ButtonRow1"]
+[node name="Collection_button" type="Button" parent="Card_Collection_GUI/Toolbar/ButtonRow1"]
 custom_minimum_size = Vector2(40, 15)
 layout_mode = 2
 text = "C"
 
-[node name="ButtonRow2" type="HBoxContainer" parent="Toolbar"]
+[node name="ButtonRow2" type="HBoxContainer" parent="Card_Collection_GUI/Toolbar"]
 layout_mode = 1
 anchors_preset = 6
 anchor_left = 1.0
@@ -703,23 +719,24 @@ offset_bottom = 20.0
 grow_horizontal = 0
 grow_vertical = 2
 
-[node name="SortButton" type="Button" parent="Toolbar/ButtonRow2"]
+[node name="SortButton" type="Button" parent="Card_Collection_GUI/Toolbar/ButtonRow2"]
 custom_minimum_size = Vector2(40, 15)
 layout_mode = 2
 text = "Sort"
 
-[node name="Button3" type="Button" parent="Toolbar/ButtonRow2"]
+[node name="Button3" type="Button" parent="Card_Collection_GUI/Toolbar/ButtonRow2"]
 custom_minimum_size = Vector2(40, 15)
 layout_mode = 2
 text = "?"
 
-[node name="X" type="Button" parent="Toolbar/ButtonRow2"]
+[node name="X" type="Button" parent="Card_Collection_GUI/Toolbar/ButtonRow2"]
 custom_minimum_size = Vector2(40, 15)
 layout_mode = 2
 text = "X"
 
-[node name="CollectionPanel" type="Panel" parent="."]
-custom_minimum_size = Vector2(300, 640.745)
+[node name="CollectionPanel" type="Panel" parent="Card_Collection_GUI"]
+visible = false
+custom_minimum_size = Vector2(300, 600)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -734,7 +751,7 @@ size_flags_vertical = 4
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxTexture_plkv2")
 
-[node name="ScrollContainer" type="ScrollContainer" parent="CollectionPanel"]
+[node name="ScrollContainer" type="ScrollContainer" parent="Card_Collection_GUI/CollectionPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -744,15 +761,15 @@ grow_horizontal = 2
 grow_vertical = 2
 horizontal_scroll_mode = 0
 
-[node name="GridContainer" type="GridContainer" parent="CollectionPanel/ScrollContainer"]
+[node name="GridContainer" type="GridContainer" parent="Card_Collection_GUI/CollectionPanel/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 6
 size_flags_vertical = 6
 columns = 6
 
-[node name="LeaderPanel" type="Panel" parent="."]
+[node name="LeaderPanel" type="Panel" parent="Card_Collection_GUI"]
 visible = false
-custom_minimum_size = Vector2(300, 640.745)
+custom_minimum_size = Vector2(300, 600)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -767,7 +784,7 @@ size_flags_vertical = 4
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxTexture_ypw0p")
 
-[node name="ScrollContainer" type="ScrollContainer" parent="LeaderPanel"]
+[node name="ScrollContainer" type="ScrollContainer" parent="Card_Collection_GUI/LeaderPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -777,13 +794,13 @@ grow_horizontal = 2
 grow_vertical = 2
 horizontal_scroll_mode = 0
 
-[node name="GridContainer" type="GridContainer" parent="LeaderPanel/ScrollContainer"]
+[node name="GridContainer" type="GridContainer" parent="Card_Collection_GUI/LeaderPanel/ScrollContainer"]
 layout_mode = 2
 columns = 6
 
-[node name="DeckPanel" type="Panel" parent="."]
+[node name="DeckPanel" type="Panel" parent="Card_Collection_GUI"]
 visible = false
-custom_minimum_size = Vector2(300, 640.745)
+custom_minimum_size = Vector2(300, 600)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -798,7 +815,7 @@ size_flags_vertical = 4
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxTexture_rs70i")
 
-[node name="Panel" type="Panel" parent="DeckPanel"]
+[node name="Panel" type="Panel" parent="Card_Collection_GUI/DeckPanel"]
 custom_minimum_size = Vector2(350, 0)
 layout_mode = 1
 anchors_preset = 9
@@ -810,7 +827,7 @@ offset_bottom = -3.0
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxTexture_efr3b")
 
-[node name="Collection" type="VBoxContainer" parent="DeckPanel/Panel"]
+[node name="Collection" type="VBoxContainer" parent="Card_Collection_GUI/DeckPanel/Panel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -818,14 +835,14 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Panel" type="Panel" parent="DeckPanel/Panel/Collection"]
+[node name="Panel" type="Panel" parent="Card_Collection_GUI/DeckPanel/Panel/Collection"]
 custom_minimum_size = Vector2(351.07, 25)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
 theme_override_styles/panel = ExtResource("5_ypw0p")
 
-[node name="CollectionLabel" type="Label" parent="DeckPanel/Panel/Collection/Panel"]
+[node name="CollectionLabel" type="Label" parent="Card_Collection_GUI/DeckPanel/Panel/Collection/Panel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -838,7 +855,7 @@ text = "Collection"
 label_settings = ExtResource("5_jm07a")
 horizontal_alignment = 1
 
-[node name="SortDeck" type="Button" parent="DeckPanel/Panel/Collection/Panel/CollectionLabel"]
+[node name="SortDeck" type="Button" parent="Card_Collection_GUI/DeckPanel/Panel/Collection/Panel/CollectionLabel"]
 custom_minimum_size = Vector2(100, 8.92)
 layout_mode = 1
 anchors_preset = 4
@@ -855,20 +872,20 @@ theme_override_font_sizes/font_size = 14
 theme_override_styles/normal = SubResource("StyleBoxFlat_mqaap")
 text = "Sort"
 
-[node name="ScrollContainer" type="ScrollContainer" parent="DeckPanel/Panel/Collection"]
+[node name="ScrollContainer" type="ScrollContainer" parent="Card_Collection_GUI/DeckPanel/Panel/Collection"]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 2
 
-[node name="CollectionGrid" type="GridContainer" parent="DeckPanel/Panel/Collection/ScrollContainer"]
+[node name="CollectionGrid" type="GridContainer" parent="Card_Collection_GUI/DeckPanel/Panel/Collection/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 6
 size_flags_vertical = 3
 mouse_filter = 0
 columns = 2
 
-[node name="Deck" type="VBoxContainer" parent="DeckPanel"]
+[node name="Deck" type="VBoxContainer" parent="Card_Collection_GUI/DeckPanel"]
 layout_mode = 1
 anchors_preset = 11
 anchor_left = 1.0
@@ -882,13 +899,13 @@ grow_horizontal = 0
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="Panel" type="Panel" parent="DeckPanel/Deck"]
+[node name="Panel" type="Panel" parent="Card_Collection_GUI/DeckPanel/Deck"]
 custom_minimum_size = Vector2(447.385, 25)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_styles/panel = ExtResource("5_ypw0p")
 
-[node name="DeckLabel" type="Label" parent="DeckPanel/Deck/Panel"]
+[node name="DeckLabel" type="Label" parent="Card_Collection_GUI/DeckPanel/Deck/Panel"]
 layout_mode = 1
 anchors_preset = 14
 anchor_top = 0.5
@@ -903,7 +920,7 @@ label_settings = ExtResource("5_jm07a")
 horizontal_alignment = 1
 vertical_alignment = 3
 
-[node name="MarginContainer" type="MarginContainer" parent="DeckPanel/Deck/Panel/DeckLabel"]
+[node name="MarginContainer" type="MarginContainer" parent="Card_Collection_GUI/DeckPanel/Deck/Panel/DeckLabel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -915,7 +932,7 @@ theme_override_constants/margin_top = 2
 theme_override_constants/margin_right = 4
 theme_override_constants/margin_bottom = 2
 
-[node name="DeckCount" type="Label" parent="DeckPanel/Deck/Panel/DeckLabel/MarginContainer"]
+[node name="DeckCount" type="Label" parent="Card_Collection_GUI/DeckPanel/Deck/Panel/DeckLabel/MarginContainer"]
 layout_mode = 2
 size_flags_horizontal = 8
 text = "10 / 10"
@@ -923,7 +940,7 @@ label_settings = ExtResource("5_jm07a")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="SortDeck" type="Button" parent="DeckPanel/Deck/Panel/DeckLabel/MarginContainer"]
+[node name="SortDeck" type="Button" parent="Card_Collection_GUI/DeckPanel/Deck/Panel/DeckLabel/MarginContainer"]
 visible = false
 custom_minimum_size = Vector2(100, 22)
 layout_mode = 2
@@ -934,26 +951,26 @@ theme_override_font_sizes/font_size = 14
 theme_override_styles/normal = SubResource("StyleBoxFlat_mqaap")
 text = "Sort"
 
-[node name="ScrollContainer" type="ScrollContainer" parent="DeckPanel/Deck"]
+[node name="ScrollContainer" type="ScrollContainer" parent="Card_Collection_GUI/DeckPanel/Deck"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="DeckGrid" type="GridContainer" parent="DeckPanel/Deck/ScrollContainer"]
+[node name="DeckGrid" type="GridContainer" parent="Card_Collection_GUI/DeckPanel/Deck/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 6
 size_flags_vertical = 2
 mouse_filter = 0
 columns = 3
 
-[node name="ActionBeep" type="AudioStreamPlayer" parent="."]
+[node name="ActionBeep" type="AudioStreamPlayer" parent="Card_Collection_GUI"]
 stream = ExtResource("5_m5y4w")
 volume_db = -16.22
 pitch_scale = 1.26
 bus = &"SFX"
 
-[node name="Tutorial_Popups" type="Panel" parent="."]
+[node name="Tutorial_Popups" type="Panel" parent="Card_Collection_GUI"]
 visible = false
 z_index = 10
 layout_mode = 1
@@ -964,7 +981,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxEmpty_0dsxg")
 
-[node name="Tutorial_Panel" type="Panel" parent="Tutorial_Popups"]
+[node name="Tutorial_Panel" type="Panel" parent="Card_Collection_GUI/Tutorial_Popups"]
 custom_minimum_size = Vector2(400, 200)
 layout_mode = 1
 anchors_preset = 8
@@ -980,7 +997,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_2imwr")
 
-[node name="Tutorial_VBox" type="VBoxContainer" parent="Tutorial_Popups/Tutorial_Panel"]
+[node name="Tutorial_VBox" type="VBoxContainer" parent="Card_Collection_GUI/Tutorial_Popups/Tutorial_Panel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -988,11 +1005,11 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Tutorial_Bar" type="Panel" parent="Tutorial_Popups/Tutorial_Panel/Tutorial_VBox"]
+[node name="Tutorial_Bar" type="Panel" parent="Card_Collection_GUI/Tutorial_Popups/Tutorial_Panel/Tutorial_VBox"]
 custom_minimum_size = Vector2(0, 25)
 layout_mode = 2
 
-[node name="Tutorial_Label" type="Label" parent="Tutorial_Popups/Tutorial_Panel/Tutorial_VBox/Tutorial_Bar"]
+[node name="Tutorial_Label" type="Label" parent="Card_Collection_GUI/Tutorial_Popups/Tutorial_Panel/Tutorial_VBox/Tutorial_Bar"]
 layout_mode = 0
 offset_left = 169.0
 offset_right = 230.0
@@ -1002,7 +1019,7 @@ grow_vertical = 2
 size_flags_horizontal = 4
 text = "Tutorial"
 
-[node name="MarginContainer" type="MarginContainer" parent="Tutorial_Popups/Tutorial_Panel/Tutorial_VBox"]
+[node name="MarginContainer" type="MarginContainer" parent="Card_Collection_GUI/Tutorial_Popups/Tutorial_Panel/Tutorial_VBox"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/margin_left = 6
@@ -1010,19 +1027,19 @@ theme_override_constants/margin_top = 3
 theme_override_constants/margin_right = 6
 theme_override_constants/margin_bottom = 3
 
-[node name="Tutorial_Text" type="RichTextLabel" parent="Tutorial_Popups/Tutorial_Panel/Tutorial_VBox/MarginContainer"]
+[node name="Tutorial_Text" type="RichTextLabel" parent="Card_Collection_GUI/Tutorial_Popups/Tutorial_Panel/Tutorial_VBox/MarginContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 horizontal_alignment = 1
 
-[node name="Tutorial_Continue_Button" type="Button" parent="Tutorial_Popups/Tutorial_Panel/Tutorial_VBox"]
+[node name="Tutorial_Continue_Button" type="Button" parent="Card_Collection_GUI/Tutorial_Popups/Tutorial_Panel/Tutorial_VBox"]
 custom_minimum_size = Vector2(65, 25)
 layout_mode = 2
 size_flags_horizontal = 6
 size_flags_vertical = 4
 
-[node name="Tutorial_Button_Text" type="Label" parent="Tutorial_Popups/Tutorial_Panel/Tutorial_VBox/Tutorial_Continue_Button"]
+[node name="Tutorial_Button_Text" type="Label" parent="Card_Collection_GUI/Tutorial_Popups/Tutorial_Panel/Tutorial_VBox/Tutorial_Continue_Button"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1034,8 +1051,8 @@ label_settings = SubResource("LabelSettings_plkv2")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[connection signal="pressed" from="Toolbar/ButtonRow1/Leader_button" to="." method="_on_leader_button_pressed"]
-[connection signal="pressed" from="Toolbar/ButtonRow1/Deck_button" to="." method="_on_deck_button_pressed"]
-[connection signal="pressed" from="Toolbar/ButtonRow1/Collection_button" to="." method="_on_collection_button_pressed"]
-[connection signal="pressed" from="Toolbar/ButtonRow2/X" to="." method="_on_x_pressed"]
-[connection signal="pressed" from="Tutorial_Popups/Tutorial_Panel/Tutorial_VBox/Tutorial_Continue_Button" to="." method="_on_tutorial_continue_button_pressed"]
+[connection signal="pressed" from="Card_Collection_GUI/Toolbar/ButtonRow1/Leader_button" to="Card_Collection_GUI" method="_on_leader_button_pressed"]
+[connection signal="pressed" from="Card_Collection_GUI/Toolbar/ButtonRow1/Deck_button" to="Card_Collection_GUI" method="_on_deck_button_pressed"]
+[connection signal="pressed" from="Card_Collection_GUI/Toolbar/ButtonRow1/Collection_button" to="Card_Collection_GUI" method="_on_collection_button_pressed"]
+[connection signal="pressed" from="Card_Collection_GUI/Toolbar/ButtonRow2/X" to="Card_Collection_GUI" method="_on_x_pressed"]
+[connection signal="pressed" from="Card_Collection_GUI/Tutorial_Popups/Tutorial_Panel/Tutorial_VBox/Tutorial_Continue_Button" to="Card_Collection_GUI" method="_on_tutorial_continue_button_pressed"]

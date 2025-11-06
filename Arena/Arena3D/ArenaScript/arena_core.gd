@@ -170,6 +170,8 @@ var _cache := {}
 # Turn bookkeeping
 var acted_this_turn := {} # {UnitData: true}
 
+var data = GameSession.encounter_data
+
 # Camera lock used by focus tweens/cutscenes
 var _is_camera_locked := false
 var is_cutscene_active: bool = false
@@ -244,6 +246,17 @@ func _ready():
 	else:
 		push_warning("⚠️ OrbGrid not found or missing set_essence() in UISystem")
 		
+	if data:
+		print("🎭 Fighting:", data.enemy_name)
+		print("🧠 AI Style:", data.ai_style)
+		print("🔥 Difficulty:", data.difficulty)
+
+		# Build enemy deck based on payload
+		enemy_deck.clear()
+		for card_data in data.enemy_deck:
+			if card_data:
+				enemy_deck.append(card_data.duplicate())
+
 func _deferred_startup():
 	randomize()
 	board.biome = all_biomes[randi() % all_biomes.size()]
@@ -322,7 +335,7 @@ func _on_battle_concluded(result: String) -> void:
 
 	# ✅ Hand off to GameSession; it will remove/free the arena and restore the hub safely.
 	Globals.pending_post_tutorial_dialogue = true
-	GameSession.switch_to_hub()
+	GameSession.switch_to_map()
 
 
 func set_player_deck(arr: Array) -> void:
@@ -534,6 +547,11 @@ func _build_decks() -> void:
 		return
 		
 	# 🔹 ENEMY: Auto-build from folders (as you already do)
+	
+	# ✅ If enemy deck is already populated from MapNode, STOP
+	if enemy_deck.size() > 0 and not is_tutorial_match:
+		enemy_deck.shuffle()
+		return
 	enemy_deck.clear()
 	var enemy_folders = [
 		"res://Cards/Monster Cards",
@@ -586,8 +604,8 @@ func _spawn_leaders() -> void:
 		player_leader.hp = 50
 		enemy_leader.hp = 20
 	else:
-		player_leader.hp = 100
-		enemy_leader.hp = 100
+		player_leader.hp = 20
+		enemy_leader.hp = 20
 
 
 
@@ -1316,11 +1334,13 @@ func on_leader_damaged(owner: int, new_hp: int) -> void:
 func on_leader_defeated(owner: int) -> void:
 	if owner == PLAYER:
 		_log("💀 Your Leader has fallen!", Color(1,0.3,0.3))
-		ui_sys.call("show_battle_message", "Your Leader has fallen! You lose!", 3.0)
+		ui_sys.call("show_battle_message", "Your Leader has fallen! You lose!", 2.5)
+		await get_tree().create_timer(2.5).timeout
 		emit_signal("battle_finished", "player_lost")
 	else:
 		_log("🏆 Enemy Leader defeated! You win!", Color(0.3,1,0.3))
-		ui_sys.call("show_battle_message", "Enemy Leader defeated! You win!", 3.0)
+		ui_sys.call("show_battle_message", "Enemy Leader defeated! You win!", 2.5)
+		await get_tree().create_timer(2.5).timeout
 		emit_signal("battle_finished", "player_won")
 
 # -----------------------------

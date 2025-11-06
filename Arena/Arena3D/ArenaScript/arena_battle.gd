@@ -1326,21 +1326,20 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 		push_error("❌ Could not find BattleUI in UISystem — add a node named 'BattleUI'.")
 		if is_instance_valid(hand): hand.visible = true
 		return result_data
-		
-	# --- Ensure defender's tile context applies ---
+
+	# --- Ensure defender/attacker tile context applies ---
 	var defender_pos := core.board.get_unit_position(defn)
 	var attacker_pos := core.board.get_unit_position(att)
 	var defender_tile := core.board.get_tile(defender_pos.x, defender_pos.y)
 	var attacker_tile := core.board.get_tile(attacker_pos.x, attacker_pos.y)
 
-	# ✅ Apply defender tile’s terrain bonus and adjacency effects
+	# ✅ Apply defender tile’s terrain bonus and adjacency effects before anim
 	if defender_tile:
 		core._apply_terrain_bonus(att, defender_tile.terrain_type)
 		core._apply_terrain_bonus(defn, defender_tile.terrain_type)
-		
-		# Optional: If adjacency abilities (like “gain +2 DEF if ally adjacent”) exist:
 		if core.has_method("_apply_adjacency_effects"):
 			core._apply_adjacency_effects(defn, defender_pos)
+
 	if core.is_tutorial_match and TutorialManager.once("attack_explained"):
 		DialogueManager.start_convo([
 			DialogueManager._dl("Guide", "When you attack, you deal damage to DEF."),
@@ -1356,34 +1355,37 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 
 	# Apply attack damage
 	if defn.is_leader:
-		defn.hp = max(defn.hp - damage_to_def, 0)
-		core.on_leader_damaged(defn.owner, defn.hp)
+		# ✅ Route through ArenaCore so defeat logic & signals always fire
+		core.damage_leader(defn.owner, damage_to_def)
 	else:
 		defn.current_def = max(defn.current_def - damage_to_def, 0)
 
 	battle_ui.refresh_stats(att, defn)
 
-	# 🟢 NOW trigger on_attack (e.g., Vampirism) — “after every attack”
+	# 🟢 Trigger on_attack for attacker (post-attack)
 	_trigger_ability(att, "on_attack")
 	battle_ui.refresh_stats(att, defn)
 
-	# --- COUNTER PHASE ---
-	battle_ui.refresh_stats(att, defn)
-	await battle_ui.play_counter_phase(defn, att, damage_to_att)
-	if core.is_tutorial_match and TutorialManager.once("counter_explained"):
-		DialogueManager.start_convo([
-			DialogueManager._dl("Guide", "When attacking a face-up unit in ATTACK mode, it can counterattack."),
-			DialogueManager._dl("Guide", "This damages your card as well."),
-		])
-
-	# Apply counter damage
-	att.current_def = max(att.current_def - damage_to_att, 0)
-	battle_ui.refresh_stats(att, defn)
-
-	# 🟣 NEW: Trigger on_attack for defender during counterattacks
-	if damage_to_att > 0 and defn.current_def > 0:
-		_trigger_ability(defn, "on_attack")
+	# --- COUNTER PHASE (only if there IS counter damage) ---
+	var do_counter := (damage_to_att > 0)
+	if do_counter:
 		battle_ui.refresh_stats(att, defn)
+		await battle_ui.play_counter_phase(defn, att, damage_to_att)
+
+		if core.is_tutorial_match and TutorialManager.once("counter_explained"):
+			DialogueManager.start_convo([
+				DialogueManager._dl("Guide", "When attacking a face-up unit in ATTACK mode, it can counterattack."),
+				DialogueManager._dl("Guide", "This damages your card as well."),
+			])
+
+		# Apply counter damage
+		att.current_def = max(att.current_def - damage_to_att, 0)
+		battle_ui.refresh_stats(att, defn)
+
+		# 🟣 on_attack for defender when it successfully countered
+		if att.current_def > 0:
+			_trigger_ability(defn, "on_attack")
+			battle_ui.refresh_stats(att, defn)
 
 	await get_tree().create_timer(0.25).timeout
 	await get_tree().process_frame
@@ -1392,10 +1394,12 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 	var result  = result_data["result"]
 	var of_def  = result_data.get("overflow_to_def_leader", result_data.get("overflow", 0))
 	var of_att  = result_data.get("overflow_to_att_leader", 0)
+
 	if core.is_tutorial_match and TutorialManager.once("overflow_explained") and (of_def > 0 or of_att > 0):
 		DialogueManager.start_convo([
 			DialogueManager._dl("Guide", "More ATK than DEF? The extra damage hits the leader directly!"),
 		])
+
 	# Temporarily unlock so hp_changed updates bars mid-battle
 	if ui:
 		ui._lock_hp_updates = false
@@ -1423,8 +1427,6 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 		await _kill_unit(defn)
 	if attacker_dead:
 		await _kill_unit(att)
-
-	# Battlefield visuals refresh …
 
 	# --- Wrap up ---
 	if ui:
