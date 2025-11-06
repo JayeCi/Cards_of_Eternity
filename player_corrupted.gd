@@ -1,9 +1,11 @@
 extends CharacterBody3D
 
-const SPEED = 7.0
+const SPEED = 10.0
 const SPRINT_MULTIPLIER = 1.7  
 const JUMP_VELOCITY = 4.5
 const MOUSE_SENSITIVITY = 0.003
+const MAX_SLOPE_ANGLE := deg_to_rad(50)
+
 # --- Sprinting ---
 var is_sprinting := false
 var sprint_speed := SPEED * SPRINT_MULTIPLIER
@@ -89,7 +91,7 @@ var deck_claimed := {
 
 
 func _ready() -> void:
-	safe_margin = 0.06
+	safe_margin = 0.01
 
 	if Engine.has_singleton("DialogueManager"):
 		DialogueManager._ui = $DialogueUI
@@ -308,91 +310,109 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	if collection_ui.visible:
 		return
+
+	# --- Camera locked to prevent jitter while browsing UI ---
+	if InputState.mode != InputState.Mode.FREE:
+		return
+
+	# --- Floormode ensures proper grounded movement ---
+	motion_mode = CharacterBody3D.MOTION_MODE_GROUNDED
+	floor_stop_on_slope = true
+	#floor_max_angle = MAX_SLOPE_ANGLE
+	#floor_snap_length = 0.35   # sweet spot on Terrain3D ramps
+
+	# --- Remove leftover downward push ---
 	if is_on_floor() and velocity.y < 0:
-		velocity.y = -0.01
+		velocity.y = 0
 
-	# Gravity
-	if not is_on_floor():
-		velocity += get_gravity() * delta
+	# --- Gravity ---
+	if !is_on_floor():
+		velocity.y += get_gravity().y * delta
 
-	# Jump
+	# --- Jump ---
 	if Input.is_action_just_pressed("jump") and is_on_floor():
 		velocity.y = JUMP_VELOCITY
 
-	# Movement input
+	# --- Directional Input ---
 	var input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_downward")
-	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 
-	# project movement along floor normal
-	if is_on_floor():
-		direction = direction.slide(get_floor_normal())
+	# Always use flattened player-forward (no tilt)
+	var forward = head.global_transform.basis.z
+	forward.y = 0
+	forward = forward.normalized()
 
-	var current_speed = SPEED
-	if is_sprinting:
-		current_speed = sprint_speed
+	var right = head.global_transform.basis.x
+	right.y = 0
+	right = right.normalized()
 
-	if direction:
-		velocity.x = direction.x * SPEED
-		velocity.z = direction.z * SPEED
+	var direction = (right * input_dir.x + forward * input_dir.y).normalized()
+
+
+
+	# --- Speed ---
+	var current_speed = sprint_speed if is_sprinting else SPEED
+
+	if direction.length() > 0:
+		velocity.x = direction.x * current_speed
+		velocity.z = direction.z * current_speed
 	else:
+		# Smooth come-to-stop
 		velocity.x = lerp(velocity.x, 0.0, delta * 6.0)
 		velocity.z = lerp(velocity.z, 0.0, delta * 6.0)
 
-
+	# --- Move ---
 	move_and_slide()
 
-	# --- FOOTSTEPS UPDATE ---
+	# ==========================================================
+	# FOOTSTEP AUDIO (unchanged)
+	# ==========================================================
 	_time_since_step += delta
 	if is_on_floor():
 		var horiz_speed := Vector2(velocity.x, velocity.z).length()
 		var moved := horiz_speed * delta
 		_step_dist_accum += moved
 
-		# First step plays quickly after movement starts
 		var threshold := STEP_DISTANCE
 		if _time_since_step < STEP_MIN_GAP:
-			threshold = STEP_DISTANCE + 999.0  # force wait
+			threshold = STEP_DISTANCE + 999.0
 
 		if horiz_speed > 0.1 and _step_dist_accum >= threshold and _time_since_step >= STEP_MIN_GAP:
 			_play_footstep()
 			_step_dist_accum = 0.0
 	else:
-		_step_dist_accum = 0.0  # reset in air
+		_step_dist_accum = 0.0
 
-		# --- HOVER HIGHLIGHT USING RAYCAST3D ---
+	# ==========================================================
+	# INTERACTION / HOVERING
+	# ==========================================================
 	ray_cast_3d.force_raycast_update()
 
 	if not ray_cast_3d.is_colliding():
 		if hovered_deck:
 			hovered_deck.hide_label()
 			hovered_deck = null
-		current_interactable = null      # ✅ reset
+		current_interactable = null
 		_crosshair_hover_off()
 		return
-
 
 	var hit = ray_cast_3d.get_collider()
 	var root = hit
 
-	# climb upward until we find something interactable
-	while root and not root.is_in_group("interactable"):
+	while root and !root.is_in_group("interactable"):
 		root = root.get_parent()
 
-	# if nothing found
-	if not root:
+	if !root:
 		if hovered_deck:
 			hovered_deck.hide_label()
 			hovered_deck = null
 		return
 
-	# FOUND interactable!
 	if hovered_deck != root:
 		if hovered_deck:
 			hovered_deck.hide_label()
-
 		root.show_label()
 		hovered_deck = root
-		current_interactable = root     # ✅ NOW HERE
+		current_interactable = root
 		_crosshair_hover_on()
 
 func face_target(target: Node3D):

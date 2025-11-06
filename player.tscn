@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://bf8nsgvwrupwb" path="res://player_corrupted.gd" id="1_4flbx"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_4flbx"]
+height = 1.8
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_onrkg"]
 
@@ -12,6 +13,7 @@ font_size = 25
 [node name="Player" type="CharacterBody3D" groups=["player"]]
 transform = Transform3D(0.77, 0, 0, 0, 0.77, 0, 0, 0, 0.77, 0, 0, 0)
 floor_max_angle = 1.5760323
+safe_margin = 0.05
 script = ExtResource("1_4flbx")
 
 [node name="Head" type="Node3D" parent="."]
@@ -32,6 +34,7 @@ shape = SubResource("CapsuleShape3D_4flbx")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(0.96608293, 0, 0, 0, 1.795, 0, 0, 0, 1.0928477, 0, 0, 0)
+visible = false
 mesh = SubResource("CapsuleMesh_onrkg")
 skeleton = NodePath("../..")
 

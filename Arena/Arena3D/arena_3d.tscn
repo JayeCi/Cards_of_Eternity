@@ -57,7 +57,6 @@ uv1_scale = Vector3(1.765, 1.765, 1.765)
 
 [node name="Arena3D" type="Node3D" groups=["battle_scene"]]
 script = ExtResource("1_2nnof")
-is_tutorial_match = true
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(-0.866026, -0.499851, 0.0122161, 0, 0.0244322, 0.999701, -0.5, 0.865767, -0.0211589, 0, 0, 0)
@@ -102,7 +101,6 @@ layout_mode = 1
 
 [node name="BattleSystem" type="Node3D" parent="."]
 script = ExtResource("8_08t7x")
-is_tutorial_match = true
 
 [node name="AISystem" type="Node3D" parent="."]
 script = ExtResource("9_pkj7r")

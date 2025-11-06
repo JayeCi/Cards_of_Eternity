@@ -8,6 +8,12 @@
 
 config_version=5
 
+[ambientcg]
+
+extract_path="res://AmbientCG/Downloads"
+material_file_directory="res://AmbientCG/Materials"
+environment_file_directory="res://AmbientCG/Environments"
+
 [application]
 
 config/name="Cards of Eternity"
@@ -38,7 +44,7 @@ window/stretch/mode="canvas_items"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/terrain_3d/plugin.cfg")
+enabled=PackedStringArray("res://addons/ambientcg/plugin.cfg", "res://addons/godot_3d_cursor/plugin.cfg", "res://addons/terrain_3d/plugin.cfg")
 
 [global_group]
 
@@ -51,8 +57,8 @@ interactable=""
 element_deck="StarterDeckDisableGroup"
 tutorial_portal=""
 guide=""
-taskbar=""
 card_pickups=""
+taskbar=""
 
 [input]
 

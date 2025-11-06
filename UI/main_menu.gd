@@ -54,7 +54,7 @@ func _on_button_pressed(button: TextureButton):
 		"ExitButton": get_tree().quit()
 
 func _start_new_game():
-	get_tree().change_scene_to_file("res://World/HUB.tscn")
+	get_tree().change_scene_to_file("res://Arena/Arena3D/arena_3d.tscn")
 
 func _continue_game():
 	get_tree().change_scene_to_file("")
