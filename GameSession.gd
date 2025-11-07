@@ -71,6 +71,13 @@ func switch_to_arena(tutorial := false) -> void:
 
 	await TransitionFade.fade_in()
 
+# In GameSession.gd or Arena setup code
+func setup_arena(core: ArenaCore):
+	core.ai_sys.configure_style(
+		encounter_data.get("ai_style", "balanced"),
+		int(encounter_data.get("difficulty", 1))
+	)
+
 func _on_battle_finished(result: String) -> void:
 	if map_instance:
 		if result == "player_won":

@@ -10,12 +10,13 @@ var encounter_type := "fight"
 
 @export var difficulty: int = 1
 @export var ai_style: String = "balanced"
-@export var rewards: Array[String] = []
+@export var rewards: Array[CardData] = []
 @export var arena_modifier: String = "none"
 @export var connected_nodes: Array[NodePath] = []
 @export var randomize_event: bool = true
 @export var battle_completed := false
 @export var is_completed := false
+@export_multiline var description: String = "A mysterious encounter awaits..."
 
 var is_reachable := false
 var is_current := false
@@ -24,12 +25,30 @@ var battle_started := false
 
 
 func _ready():
+	self.pressed.connect(_on_pressed)
+
+	if description == "":
+		match encounter_type:
+			"start":
+				description = "The beginning of your journey."
+			"fight":
+				description = "Face off against an enemy in a tactical card duel."
+			"elite":
+				description = "A dangerous elite opponent awaits — tougher rewards too."
+			"boss":
+				description = "The ultimate test of this realm's strength."
+			"shop":
+				description = "Trade cards and items for gold."
+			"fireevent":
+				description = "An elemental event tied to fire energy unfolds here."
+
 
 	self.pressed.connect(_on_pressed)
 	match encounter_type:
 		
 		"shop":
 			texture_normal = preload("res://World/MAP/Shop.png")
+			
 		"unknown":
 			texture_normal = preload("res://World/MAP/Mystery.png")
 		"fight":

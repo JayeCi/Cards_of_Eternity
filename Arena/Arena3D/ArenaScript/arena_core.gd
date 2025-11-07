@@ -228,14 +228,14 @@ func _ready():
 	#CardCollection.add_card(get_card(CARD_PATHS.NINJOAD))
 	#CardCollection.add_card(get_card(CARD_PATHS.BOOGLES))
 	#CardCollection.add_card(get_card(CARD_PATHS.FUNGOO))
-	##CardCollection.add_card(get_card(CARD_PATHS.ORB_OF_DARKNESS))
+	#CardCollection.add_card(get_card(CARD_PATHS.ORB_OF_DARKNESS))
 	#CardCollection.add_card(get_card(CARD_PATHS.SHADOW_CANDLES))
 	#CardCollection.add_card(get_card(CARD_PATHS.JESTER_OF_FLAMES))
 	#CardCollection.add_card(get_card(CARD_PATHS.VOIDLING_ERO))
 	#CardCollection.add_card(get_card(CARD_PATHS.MUSHMONK))
 	#CardCollection.add_card(get_card(CARD_PATHS.ZEI_PANDA))
 	#CardCollection.add_card(get_card(CARD_PATHS.YORG_ARCHER))
-	CardCollection.add_card(get_card(CARD_PATHS.STONE_FAE))
+	#CardCollection.add_card(get_card(CARD_PATHS.STONE_FAE))
 	#CardCollection.add_card(get_card(CARD_PATHS.CONFLAGURATION_BLADE))
 	#CardCollection.add_card(get_card(CARD_PATHS.TIDAL_WAVE))
 	#CardCollection.add_card(get_card(CARD_PATHS.AQUA_WHIP))
@@ -285,7 +285,9 @@ func _deferred_startup():
 	camera_sys.call("init_camera", self)      # places camera top-down
 	battle_sys.call("init_battle", self)      # links helpers/consts
 	ai_sys.call("init_ai", self)
-	
+	if GameSession.has_method("setup_arena"):
+		GameSession.setup_arena(self)
+
 
 
 	cutscene_sys.call("init_cutscene", self)

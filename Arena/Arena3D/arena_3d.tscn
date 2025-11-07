@@ -81,6 +81,7 @@ parameters/looping = true
 
 [node name="EarthRealm_Forest" type="MeshInstance3D" parent="."]
 transform = Transform3D(54.505493, 0, 0, 0, 54.505493, 0, 0, 0, 54.505493, -16.18901, -85.26138, 0)
+visible = false
 material_override = SubResource("StandardMaterial3D_i42j4")
 transparency = 1.0
 mesh = SubResource("BoxMesh_pfipv")

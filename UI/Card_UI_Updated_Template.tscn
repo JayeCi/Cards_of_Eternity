@@ -1,0 +1,459 @@
+[gd_scene load_steps=44 format=3 uid="uid://cgqyfs8kdp4jg"]
+
+[ext_resource type="Script" uid="uid://d131h1pen840s" path="res://UI/card_ui_new.gd" id="1_4bcvu"]
+[ext_resource type="LabelSettings" uid="uid://cgbudukt4ny64" path="res://UI/CardUI_Name.tres" id="2_y42a1"]
+[ext_resource type="Texture2D" uid="uid://b03jwbojyba53" path="res://Images/Jester of Flames.jpeg" id="3_7pdkp"]
+[ext_resource type="Texture2D" uid="uid://bq6fn5ar8y44d" path="res://Cards/Utilities/CardModel/Border_TP_Edge.png" id="4_kt6nx"]
+[ext_resource type="Shader" uid="uid://bt5dty0vh8j7i" path="res://UI/FUSIONGLOW.gdshader" id="5_dwmvg"]
+[ext_resource type="Texture2D" uid="uid://ccsq4ujlcj6ps" path="res://UI/rotating_orbs.png" id="6_23uow"]
+[ext_resource type="Texture2D" uid="uid://cp6ef7ogds3cj" path="res://UI/FIRE_EMBLEM.png" id="7_bpu81"]
+[ext_resource type="Texture2D" uid="uid://c1bncd8qiexd0" path="res://UI/wave2.png" id="8_b66n5"]
+[ext_resource type="Texture2D" uid="uid://ykuho4eu1yj8" path="res://UI/rock_light_gray.png" id="9_p0qqd"]
+[ext_resource type="Texture2D" uid="uid://bhlen8e0rmkqu" path="res://UI/wind.png" id="10_16cyu"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jhlvl"]
+
+[sub_resource type="SystemFont" id="SystemFont_nfm18"]
+font_names = PackedStringArray("Corbel")
+subpixel_positioning = 0
+
+[sub_resource type="LabelSettings" id="LabelSettings_vs81k"]
+font = SubResource("SystemFont_nfm18")
+font_size = 18
+outline_size = 4
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 2
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(0.225, 1.435)
+
+[sub_resource type="SystemFont" id="SystemFont_jrlyf"]
+subpixel_positioning = 0
+
+[sub_resource type="LabelSettings" id="LabelSettings_kskg0"]
+font = SubResource("SystemFont_jrlyf")
+font_size = 15
+outline_size = 8
+outline_color = Color(0, 0, 0, 0.588235)
+shadow_size = 3
+shadow_color = Color(0, 0, 0, 0.572549)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_kgeiq"]
+shader = ExtResource("5_dwmvg")
+shader_parameter/glow_color = Color(1, 0.8, 0.4, 1)
+shader_parameter/glow_strength = 0.1
+shader_parameter/glow_size = 1.0
+shader_parameter/shimmer_speed = 4.5
+shader_parameter/shimmer_intensity = 0.72
+shader_parameter/shimmer_direction = Vector2(1, 0)
+
+[sub_resource type="SystemFont" id="SystemFont_kgeiq"]
+subpixel_positioning = 0
+
+[sub_resource type="LabelSettings" id="LabelSettings_2l5o1"]
+font = SubResource("SystemFont_kgeiq")
+font_size = 15
+outline_size = 8
+outline_color = Color(0, 0, 0, 0.588235)
+shadow_size = 3
+shadow_color = Color(0, 0, 0, 0.572549)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cvliv"]
+atlas = ExtResource("6_23uow")
+region = Rect2(0, 160, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0kox5"]
+atlas = ExtResource("6_23uow")
+region = Rect2(32, 160, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xj6tr"]
+atlas = ExtResource("6_23uow")
+region = Rect2(64, 160, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6050t"]
+atlas = ExtResource("6_23uow")
+region = Rect2(96, 160, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_3mvpk"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cvliv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0kox5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xj6tr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6050t")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_h3lvt"]
+atlas = ExtResource("6_23uow")
+region = Rect2(0, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pvhi5"]
+atlas = ExtResource("6_23uow")
+region = Rect2(32, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_av673"]
+atlas = ExtResource("6_23uow")
+region = Rect2(64, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fmyls"]
+atlas = ExtResource("6_23uow")
+region = Rect2(96, 64, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_vtawi"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_h3lvt")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pvhi5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_av673")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fmyls")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cn5yf"]
+atlas = ExtResource("6_23uow")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fmclv"]
+atlas = ExtResource("6_23uow")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m4fq4"]
+atlas = ExtResource("6_23uow")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vtawi"]
+atlas = ExtResource("6_23uow")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_owi5e"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cn5yf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fmclv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m4fq4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vtawi")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wbinc"]
+atlas = ExtResource("6_23uow")
+region = Rect2(0, 128, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_iwf7m"]
+atlas = ExtResource("6_23uow")
+region = Rect2(32, 128, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8vp6p"]
+atlas = ExtResource("6_23uow")
+region = Rect2(64, 128, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ws8kh"]
+atlas = ExtResource("6_23uow")
+region = Rect2(96, 128, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_2dfcg"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wbinc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_iwf7m")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8vp6p")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ws8kh")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_plm1s"]
+atlas = ExtResource("6_23uow")
+region = Rect2(0, 224, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pmjr2"]
+atlas = ExtResource("6_23uow")
+region = Rect2(32, 224, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_njpyl"]
+atlas = ExtResource("6_23uow")
+region = Rect2(64, 224, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mhooy"]
+atlas = ExtResource("6_23uow")
+region = Rect2(96, 224, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_8qt44"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_plm1s")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pmjr2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_njpyl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mhooy")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="CardContainer" type="PanelContainer"]
+custom_minimum_size = Vector2(137, 193)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -68.8008
+offset_top = -96.6235
+offset_right = 68.8008
+offset_bottom = 96.6235
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.995629, 1)
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_default_cursor_shape = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_jhlvl")
+script = ExtResource("1_4bcvu")
+metadata/_edit_use_anchors_ = true
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 9
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 2
+
+[node name="Name" type="Label" parent="MarginContainer"]
+z_index = 1
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+text = "Name"
+label_settings = ExtResource("2_y42a1")
+horizontal_alignment = 1
+vertical_alignment = 3
+visible_characters = 13
+visible_ratio = 3.25
+
+[node name="Art" type="TextureRect" parent="MarginContainer"]
+layout_mode = 2
+texture = ExtResource("3_7pdkp")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 8
+
+[node name="Cost" type="Label" parent="MarginContainer/VBoxContainer"]
+visible = false
+z_index = 1
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 8
+text = "1"
+label_settings = SubResource("LabelSettings_vs81k")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ATK" type="Label" parent="MarginContainer"]
+z_index = 1
+layout_mode = 2
+size_flags_vertical = 8
+text = "25"
+label_settings = SubResource("LabelSettings_kskg0")
+
+[node name="DEF" type="Label" parent="MarginContainer"]
+z_index = 1
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 8
+text = "25"
+label_settings = SubResource("LabelSettings_kskg0")
+
+[node name="Border" type="TextureRect" parent="."]
+layout_mode = 2
+texture = ExtResource("4_kt6nx")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="FusionGlow" type="TextureRect" parent="."]
+visible = false
+material = SubResource("ShaderMaterial_kgeiq")
+layout_mode = 2
+texture = ExtResource("4_kt6nx")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="QuantityLabel" type="Label" parent="."]
+visible = false
+z_index = 1
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 0
+text = "x3"
+label_settings = SubResource("LabelSettings_2l5o1")
+
+[node name="FireBall" type="AnimatedSprite2D" parent="."]
+visible = false
+modulate = Color(0.521689, 0.137227, 4.81308e-08, 1)
+position = Vector2(68.873, 168.624)
+scale = Vector2(0.632791, 0.632791)
+sprite_frames = SubResource("SpriteFrames_3mvpk")
+autoplay = "default"
+frame_progress = 0.852899
+
+[node name="Fire" type="TextureRect" parent="FireBall"]
+visible = false
+modulate = Color(0.870588, 0.0666667, 0, 1)
+custom_minimum_size = Vector2(33.48, 43.58)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -16.0
+offset_top = -16.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 8
+texture = ExtResource("7_bpu81")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="WaterBall" type="AnimatedSprite2D" parent="."]
+visible = false
+modulate = Color(0.404511, 0.404511, 0.404511, 1)
+position = Vector2(68.873, 168.624)
+scale = Vector2(0.633, 0.633)
+sprite_frames = SubResource("SpriteFrames_vtawi")
+autoplay = "default"
+frame_progress = 0.163745
+
+[node name="Water" type="TextureRect" parent="WaterBall"]
+visible = false
+z_index = 1
+custom_minimum_size = Vector2(30, 30)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -31.0
+offset_top = -27.0592
+offset_right = -1.0
+offset_bottom = 2.94077
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 6
+size_flags_vertical = 6
+texture = ExtResource("8_b66n5")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="EarthBall" type="AnimatedSprite2D" parent="."]
+visible = false
+modulate = Color(0.49591, 0.304449, 0.217191, 1)
+position = Vector2(68.873, 168.624)
+scale = Vector2(0.633, 0.633)
+sprite_frames = SubResource("SpriteFrames_owi5e")
+autoplay = "default"
+frame_progress = 0.774656
+
+[node name="Earth" type="TextureRect" parent="EarthBall"]
+visible = false
+custom_minimum_size = Vector2(39.68, 40.465)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -16.0
+offset_top = -16.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 8
+texture = ExtResource("9_p0qqd")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="ShadowBall" type="AnimatedSprite2D" parent="."]
+visible = false
+modulate = Color(0.74978, 0.74978, 0.74978, 1)
+position = Vector2(68.873, 168.624)
+scale = Vector2(0.633, 0.633)
+sprite_frames = SubResource("SpriteFrames_2dfcg")
+autoplay = "default"
+frame_progress = 0.101491
+
+[node name="WindBall" type="AnimatedSprite2D" parent="."]
+visible = false
+modulate = Color(0.61339, 0.61339, 0.61339, 1)
+position = Vector2(68.873, 168.624)
+scale = Vector2(0.633, 0.633)
+sprite_frames = SubResource("SpriteFrames_8qt44")
+autoplay = "default"
+frame_progress = 0.224128
+
+[node name="Wind" type="TextureRect" parent="WindBall"]
+visible = false
+custom_minimum_size = Vector2(28.73, 35.91)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -16.0
+offset_top = -16.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 8
+texture = ExtResource("10_16cyu")
+expand_mode = 1
+stretch_mode = 4

@@ -1,0 +1,7 @@
+[gd_resource type="AtlasTexture" load_steps=2 format=3 uid="uid://bxw0fhwk4kskn"]
+
+[ext_resource type="Texture2D" uid="uid://dean6lpnscu1b" path="res://World/MAP/Card_UI/set-colorful-fantasy-trading-card-game-tcg-with-class-role-element-customizable-frame-template.png" id="1_vc2ta"]
+
+[resource]
+atlas = ExtResource("1_vc2ta")
+region = Rect2(1475, 933, 59, 59)

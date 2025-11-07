@@ -5,13 +5,14 @@ var core: ArenaCore
 var battle: ArenaBattle
 var ui: ArenaUI
 
-# Personality tuning
-const AGGRESSION := 0.65
-const CAUTION := 0.35
-const FACE_DOWN_CHANCE := 0.75
-const TERRAIN_SYNERGY_BONUS := 4.0
-const PROTECT_LEADER_RADIUS := 3
-const ATTACK_RADIUS := 2
+var aggression := 0.65
+var caution := 0.35
+var face_down_chance := 0.75
+var terrain_synergy_bonus := 4.0
+var protect_leader_radius := 3
+var attack_radius := 2
+var think_delay := 0.5
+
 
 # ---------------------------------------------------------
 # INIT
@@ -20,6 +21,53 @@ func init_ai(core_ref: ArenaCore) -> void:
 	core = core_ref
 	battle = core.get_node("BattleSystem")
 	ui = core.get_node("UISystem")
+
+func configure_style(ai_style: String, difficulty: int) -> void:
+	# --- Difficulty Scaling ---
+	var diff_scale = clamp(float(difficulty), 1.0, 10.0)
+	aggression += (diff_scale - 1.0) * 0.03
+	caution = max(0.1, 0.5 - (diff_scale - 1.0) * 0.02)
+	think_delay = clamp(0.7 - (diff_scale * 0.05), 0.15, 0.7)
+	terrain_synergy_bonus = 4.0 + (diff_scale * 0.4)
+	protect_leader_radius = 2 + int(diff_scale / 3)
+
+	# --- Personality Profiles ---
+	match ai_style:
+		"balanced":
+			aggression = 0.65 + (diff_scale * 0.02)
+			caution = 0.35 - (diff_scale * 0.01)
+			face_down_chance = 0.75
+		"aggressive":
+			aggression = 0.9
+			caution = 0.2
+			face_down_chance = 0.4
+			attack_radius += 1
+		"defensive":
+			aggression = 0.45
+			caution = 0.6
+			face_down_chance = 0.9
+			protect_leader_radius += 1
+		"tactical":
+			aggression = 0.7
+			caution = 0.55
+			face_down_chance = 0.5
+			terrain_synergy_bonus += 3.0
+		"reckless":
+			aggression = 1.0
+			caution = 0.15
+			face_down_chance = 0.2
+		"passive":
+			aggression = 0.4
+			caution = 0.8
+			face_down_chance = 0.9
+		"random":
+			aggression = randf_range(0.4, 1.0)
+			caution = 1.0 - aggression
+			face_down_chance = randf_range(0.3, 0.8)
+	print("AI configured → Style:", ai_style, " | Difficulty:", difficulty)
+
+	core._log("🧠 AI configured: style=%s, diff=%d" % 
+		[ai_style, difficulty, aggression, caution, face_down_chance], Color(0.7, 0.9, 1.0))
 
 # ---------------------------------------------------------
 # MAIN TURN ENTRY
@@ -42,7 +90,7 @@ func run_enemy_turn() -> void:
 
 	# 2️⃣ Try summoning or moving
 	var can_summon := _has_summon_space() and core.enemy_essence > 0
-	if can_summon and randf() < AGGRESSION:
+	if can_summon and randf() < aggression:
 		await _smart_summon()
 	else:
 		await _smart_move_and_attack()
@@ -231,7 +279,7 @@ func _smart_summon() -> void:
 		var t = core.board.get_tile(s.x, s.y)
 		var score = -s.distance_to(player_leader_pos)
 		if t and t.terrain_type == card.preferred_terrain:
-			score += TERRAIN_SYNERGY_BONUS
+			score += terrain_synergy_bonus
 		if score > best_score:
 			best = s
 			best_score = score
@@ -239,7 +287,7 @@ func _smart_summon() -> void:
 	_focus_camera_on(core.board.get_tile(best.x, best.y).global_position, 0.8, 0.5)
 	await get_tree().create_timer(0.3).timeout
 
-	var facedown = randf() < FACE_DOWN_CHANCE
+	var facedown = randf() < face_down_chance
 	var mode = UnitData.Mode.FACEDOWN if facedown else UnitData.Mode.ATTACK
 	battle.place_unit(card, best, core.ENEMY, mode, true)
 	core.enemy_essence -= int(card.cost)
@@ -270,7 +318,7 @@ func _evaluate_card(card, pos: Vector2i) -> float:
 	base -= cost
 	var tile = core.board.get_tile(pos.x, pos.y)
 	if tile and terrain_pref == tile.terrain_type:
-		base += TERRAIN_SYNERGY_BONUS
+		base += terrain_synergy_bonus
 	base += atk * 0.1 + def * 0.05
 	return base
 
@@ -314,7 +362,7 @@ func _smart_move_and_attack() -> void:
 			continue
 
 		# 3️⃣ Weak units retreat (same as player could move back)
-		if unit.current_def < unit.max_def * CAUTION:
+		if unit.current_def < unit.max_def * caution:
 			await _tactical_retreat(from)
 			continue
 
@@ -351,7 +399,7 @@ func _smart_flip_faceup() -> void:
 			should_flip = true
 		elif unit.card and unit.card.ability and unit.card.ability.trigger in ["on_flip", "passive"]:
 			should_flip = true
-		elif randf() < AGGRESSION * 0.4:
+		elif randf() < aggression * 0.4:
 			should_flip = true
 
 		if should_flip:
@@ -372,7 +420,7 @@ func _smart_flip_faceup() -> void:
 # ATTACK DECISION (same ATTACK_RADIUS logic)
 # ---------------------------------------------------------
 func _find_and_attack_target(from: Vector2i) -> bool:
-	var range := ATTACK_RADIUS
+	var range := attack_radius
 	var attacker = core.units.get(from)
 	if not attacker:
 		return false
@@ -531,7 +579,7 @@ func _leader_in_danger() -> bool:
 	for pos in core.units:
 
 		var u = core.units[pos]
-		if u.owner == core.PLAYER and pos.distance_to(lpos) <= PROTECT_LEADER_RADIUS:
+		if u.owner == core.PLAYER and pos.distance_to(lpos) <= protect_leader_radius:
 			if _has_clear_path(pos, lpos):
 				return true
 	return false

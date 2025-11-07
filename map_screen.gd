@@ -111,34 +111,29 @@ func _update_node_reachability():
 
 	_update_node_visuals()
 
-
 func _on_node_clicked(node: MapNode):
 	if not node.is_reachable:
 		click_invalid.play()
 		return
-		
+
 	click_valid.play()
-	# Mark travel
+
 	var key := _edge_key(current_node, node)
 	taken_edges[key] = true
 
 	current_node.is_current = false
-	#current_node.is_completed = true
 	current_node = node
 	current_node.is_current = true
 
-	# ✅ move the icon to the node
 	player_icon.global_position = current_node.global_position + player_offset
 
-	# ✅ PREPARE encounter — but do NOT fight yet
 	_prepare_arena_payload(node)
 
-	# ✅ show info panel instead of fighting
-	ui_overlay.show_encounter_info(node)
+	var animate = not ui_overlay.is_info_panel_open()
+	ui_overlay.show_encounter_info(node, animate)
 
-	_update_node_reachability() # temporarily hides next nodes
+	_update_node_reachability()
 	line_drawer.queue_redraw()
-	
 
 func _update_node_visuals():
 	for n in all_nodes:
@@ -170,9 +165,31 @@ func _set_zoom(new_zoom: Vector2):
 func on_battle_win():
 	current_node.battle_completed = true
 	current_node.is_completed = true
+
+	# ✅ Give rewards from the encounter
+	if GameSession.encounter_data.has("rewards"):
+		var rewards = GameSession.encounter_data["rewards"]
+		for r in rewards:
+			_grant_reward(r)
+			
+		ui_overlay.show_rewards(rewards)
+		
+	# ✅ Update visuals
 	_update_node_reachability()
 	line_drawer.queue_redraw()
-	ui_overlay.show_rewards()
+
+	# ✅ Show the rewards UI (you can make this display what was earned)
+
+
+
+func _grant_reward(card_data: CardData) -> void:
+	if card_data == null:
+		print("⚠️ Tried to grant null reward card")
+		return
+
+	# Add the card to the player's collection
+	CardCollection.add_card(card_data)
+	print("🃏 Granted card reward: ", card_data.name)
 
 func on_battle_loss():
 	current_node.battle_completed = false
@@ -208,6 +225,8 @@ func _prepare_arena_payload(node : MapNode):
 		"rewards": node.rewards,
 		"completion": node.is_completed
 	}
+
+	
 
 func _start_fight(node: MapNode):
 	print("Starting fight at ", node.name)
