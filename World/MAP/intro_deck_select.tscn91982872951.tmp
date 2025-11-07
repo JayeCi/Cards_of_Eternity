@@ -1,19 +1,17 @@
-[gd_scene load_steps=25 format=3 uid="uid://d17sqncfrfh7s"]
+[gd_scene load_steps=23 format=3 uid="uid://d17sqncfrfh7s"]
 
 [ext_resource type="Script" uid="uid://b0wpww58niieu" path="res://World/MAP/intro_deck_select.gd" id="1_wwoti"]
+[ext_resource type="Texture2D" uid="uid://don8jm5ngpm5y" path="res://World/MAP/FIREDECK_RESIZED.png" id="2_3h7ae"]
 [ext_resource type="Shader" uid="uid://bhdeye3vfy1xa" path="res://World/MAP/2D_Outline_AIO_Fire.gdshader" id="2_6n4jv"]
 [ext_resource type="Texture2D" uid="uid://dg7ut2nih87ps" path="res://UI/fire.jpg" id="3_mg2fu"]
 [ext_resource type="Texture2D" uid="uid://pkffjdl3r4q3" path="res://World/MAP/earthdeck.png" id="3_y3fax"]
 [ext_resource type="Texture2D" uid="uid://d3n5old0nqkac" path="res://World/MAP/winddeck.png" id="4_ijd3w"]
-[ext_resource type="Texture2D" uid="uid://cqbneo6gm2fea" path="res://World/MAP/FIREDECK.png" id="4_pbp5d"]
 [ext_resource type="Texture2D" uid="uid://v58k1cwawjan" path="res://World/MAP/waterdeck.png" id="5_k1xmo"]
 [ext_resource type="Shader" uid="uid://buy1axxvjskg4" path="res://World/MAP/2D_Outline_AIO_Earth.gdshader" id="5_pbp5d"]
 [ext_resource type="Texture2D" uid="uid://cbc5l83bvnhjk" path="res://UI/Terrains/Water.png" id="6_k1xmo"]
 [ext_resource type="Texture2D" uid="uid://cqe7he3kmm1tx" path="res://addons/open-world-database/demo/resources/tree/bark.png" id="6_tan88"]
 [ext_resource type="Shader" uid="uid://c11lvjkfmqg31" path="res://World/MAP/2D_Outline_AIO_Wind.gdshader" id="8_yl7oa"]
 [ext_resource type="Texture2D" uid="uid://bhlen8e0rmkqu" path="res://UI/wind.png" id="9_nn5wj"]
-[ext_resource type="AudioStream" uid="uid://dsqlqauyrettj" path="res://Audio/hover.mp3" id="13_pbp5d"]
-[ext_resource type="AudioStream" uid="uid://c4ohnn6g7s2kj" path="res://Audio/Sound FX/UI_Click.mp3" id="14_tan88"]
 
 [sub_resource type="Gradient" id="Gradient_m7upp"]
 
@@ -115,20 +113,19 @@ offset_right = 20.0
 offset_bottom = 20.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/h_separation = 39
 columns = 4
 
 [node name="FireDeck" type="TextureButton" parent="DeckGrid"]
 material = SubResource("ShaderMaterial_ijd3w")
-custom_minimum_size = Vector2(175.425, 359.035)
+custom_minimum_size = Vector2(150, 150)
 layout_mode = 2
-texture_normal = ExtResource("4_pbp5d")
+texture_normal = ExtResource("2_3h7ae")
 ignore_texture_size = true
 stretch_mode = 5
 
 [node name="EarthDeck" type="TextureButton" parent="DeckGrid"]
 material = SubResource("ShaderMaterial_4hfmv")
-custom_minimum_size = Vector2(204, 306)
+custom_minimum_size = Vector2(150, 150)
 layout_mode = 2
 texture_normal = ExtResource("3_y3fax")
 ignore_texture_size = true
@@ -136,7 +133,7 @@ stretch_mode = 5
 
 [node name="WindDeck" type="TextureButton" parent="DeckGrid"]
 material = SubResource("ShaderMaterial_6pej7")
-custom_minimum_size = Vector2(156.45, 306)
+custom_minimum_size = Vector2(150, 150)
 layout_mode = 2
 texture_normal = ExtResource("4_ijd3w")
 ignore_texture_size = true
@@ -144,7 +141,7 @@ stretch_mode = 5
 
 [node name="WaterDeck" type="TextureButton" parent="DeckGrid"]
 material = SubResource("ShaderMaterial_qce27")
-custom_minimum_size = Vector2(204, 306)
+custom_minimum_size = Vector2(150, 150)
 layout_mode = 2
 texture_normal = ExtResource("5_k1xmo")
 ignore_texture_size = true
@@ -159,14 +156,3 @@ offset_left = -20.0
 offset_right = 20.0
 offset_bottom = 23.0
 grow_horizontal = 2
-
-[node name="Sounds" type="Node" parent="."]
-
-[node name="Hover" type="AudioStreamPlayer" parent="Sounds"]
-stream = ExtResource("13_pbp5d")
-volume_db = -21.444
-bus = &"SFX"
-
-[node name="Click" type="AudioStreamPlayer" parent="Sounds"]
-stream = ExtResource("14_tan88")
-bus = &"SFX"

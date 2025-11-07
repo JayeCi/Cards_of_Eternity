@@ -24,6 +24,7 @@ var battle_started := false
 
 
 func _ready():
+
 	self.pressed.connect(_on_pressed)
 	match encounter_type:
 		

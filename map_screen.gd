@@ -5,6 +5,8 @@ class_name MapCore
 @onready var map_sprite: TextureRect = $MapRoot/Map  # your EarthMap
 @onready var line_drawer: Node2D = $MapRoot/LineDrawer
 @onready var ui_overlay: Control = $CanvasLayer/UIOverlay
+@onready var click_valid: AudioStreamPlayer = $Sounds/ClickValid
+@onready var click_invalid: AudioStreamPlayer = $Sounds/ClickInvalid
 
 @onready var node_layer := $MapRoot/NodeLayer
 @onready var player_icon := $MapRoot/NodeLayer/Player
@@ -62,15 +64,6 @@ func _ready():
 			print("Tracking Sprite2D:", child.name)
 
 func _unhandled_input(event):
-	if event is InputEventMouseButton and event.pressed:
-		print("--- CLICK DETECTED ---")
-		print("Mouse pos (viewport): ", event.position)
-		print("Mouse over:", get_tree().get_nodes_in_group("debug_pickables"))
-
-	if event is InputEventMouseButton:
-		print("Mouse Button:", event.button_index, "Pressed:", event.pressed)
-	elif event is InputEventMouseMotion:
-		print("Mouse Motion:", event.relative)
 
 	if event is InputEventMouseButton:
 		match event.button_index:
@@ -85,7 +78,19 @@ func _unhandled_input(event):
 
 	elif event is InputEventMouseMotion and dragging:
 		camera.position -= event.relative / camera.zoom
+		
+	# --- Handle clicks on empty map space ---
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		var clicked_any_node := false
 
+		for node in all_nodes:
+			if node.get_global_rect().has_point(event.position):
+				clicked_any_node = true
+				break
+
+		if not clicked_any_node:
+			click_invalid.play()
+			
 func _update_node_reachability():
 	for n in all_nodes:
 		n.is_reachable = false
@@ -109,8 +114,10 @@ func _update_node_reachability():
 
 func _on_node_clicked(node: MapNode):
 	if not node.is_reachable:
+		click_invalid.play()
 		return
-
+		
+	click_valid.play()
 	# Mark travel
 	var key := _edge_key(current_node, node)
 	taken_edges[key] = true

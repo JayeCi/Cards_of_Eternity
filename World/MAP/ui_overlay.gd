@@ -32,5 +32,14 @@ func show_rewards():
 
 
 func _on_collection_button_pressed() -> void:
+	visible = false                    # ✅ Re-show the entire collection GUI root
+	taskbar.visible = false            # ✅ Hide taskbar while collection is open
 	card_collection_gui.visible = true
-	taskbar.visible = false
+	#deck_panel.visible = false
+	#leader_panel.visible = false
+	#main_panel_label.text = "Card Collection"
+
+	# ✅ NEW tutorial page trigger
+	if Globals.tutorial_stage == 0:
+		#_show_tutorial_stage_1()
+		Globals.tutorial_stage = 1

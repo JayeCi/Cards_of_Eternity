@@ -16,6 +16,7 @@ extends Control
 @onready var leader_checkbox: CheckBox = $LeftPanel/ScrollContainer/VBoxContainer/LeaderHbox/Leader_Checkbox
 @onready var main_menu: Control = $"../MainMenu"
 @onready var taskbar: Control = $"../../UIOverlay/Taskbar"
+@onready var ui_overlay: Control = $"../../UIOverlay"
 
 
 
@@ -606,6 +607,8 @@ func _on_deck_button_pressed() -> void:
 		Globals.tutorial_stage = 2
 
 func _on_collection_button_pressed() -> void:
+	visible = true                     # ✅ Re-show the entire collection GUI root
+	taskbar.visible = false            # ✅ Hide taskbar while collection is open
 	collection_panel.visible = true
 	deck_panel.visible = false
 	leader_panel.visible = false
@@ -617,8 +620,11 @@ func _on_collection_button_pressed() -> void:
 		Globals.tutorial_stage = 1
 
 func _on_x_pressed() -> void:
-	visible = false
+	var root := get_parent()  # Card_Collection_GUI
+	if root:
+		root.visible = false   # hide the whole container
 	selected_card = null
+	ui_overlay.visible = true
 	taskbar.visible = true
 	if main_menu:
 		main_menu.visible = true

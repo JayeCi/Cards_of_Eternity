@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://dlnjhpppr6qcv"]
+[gd_scene load_steps=11 format=3 uid="uid://dlnjhpppr6qcv"]
 
 [ext_resource type="Script" uid="uid://u2l1gv1j7fgn" path="res://Dialogue/dialogue_ui.gd" id="1_5kv0d"]
 [ext_resource type="Texture2D" uid="uid://c3pg04bwt1dr6" path="res://Dialogue/DialogueImages/Cashier/Cashier.png" id="2_vwiwy"]
@@ -30,13 +30,15 @@ shadow_color = Color(0, 0, 0, 1)
 
 [sub_resource type="SystemFont" id="SystemFont_sgqlp"]
 font_names = PackedStringArray("Tahoma")
-subpixel_positioning = 0
 
-[sub_resource type="LabelSettings" id="LabelSettings_bq26a"]
-font = SubResource("SystemFont_sgqlp")
-font_size = 12
-outline_size = 2
-outline_color = Color(0, 0, 0, 1)
+[sub_resource type="SystemFont" id="SystemFont_bq26a"]
+font_names = PackedStringArray("Bahnschrift")
+
+[sub_resource type="SystemFont" id="SystemFont_x2r20"]
+font_names = PackedStringArray("Tahoma")
+
+[sub_resource type="SystemFont" id="SystemFont_iyxtp"]
+font_names = PackedStringArray("Tahoma")
 
 [node name="DialogueUI" type="CanvasLayer"]
 process_mode = 3
@@ -101,12 +103,17 @@ size_flags_vertical = 0
 text = "Name"
 label_settings = SubResource("LabelSettings_sgqlp")
 
-[node name="TextLabel" type="Label" parent="Control/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
+[node name="TextLabel" type="RichTextLabel" parent="Control/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_fonts/normal_font = SubResource("SystemFont_sgqlp")
+theme_override_fonts/bold_font = SubResource("SystemFont_bq26a")
+theme_override_fonts/bold_italics_font = SubResource("SystemFont_x2r20")
+theme_override_fonts/italics_font = SubResource("SystemFont_iyxtp")
+theme_override_font_sizes/bold_font_size = 20
+bbcode_enabled = true
 text = "Description"
-label_settings = SubResource("LabelSettings_bq26a")
-autowrap_mode = 3
+fit_content = true
 
 [node name="E" type="Sprite2D" parent="Control/PanelContainer"]
 position = Vector2(983, 56)

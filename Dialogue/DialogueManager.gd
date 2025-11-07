@@ -100,11 +100,13 @@ func on_player_continue_input() -> void:
 		return
 
 	_advance_dialogue_line()
+	_just_revealed = false   # ✅ ensure we don't skip next line
 
 # -------------------------------------------------------
 func _advance_dialogue_line() -> void:
 	_i += 1
 	if _i < _lines.size():
+		await get_tree().process_frame  # ✅ ensures process() resumes before showing next line
 		_show_current_line()
 	else:
 		_end_convo()
@@ -121,6 +123,16 @@ func _show_current_line() -> void:
 		return
 
 	var line: DialogueLine = _lines[_i]
+
+	# ✅ Reset reveal tracking before showing new line
+	_just_revealed = false
+	if _ui:
+		_ui._is_revealing = true
+		if _ui.text_label:
+			_ui.text_label.visible_characters = 0
+			_ui._char_index = 0
+			_ui._accum_time = 0.0
+
 	_ui.visible = true
 	_ui.show_line(line, _current_page)
 
@@ -128,6 +140,8 @@ func _show_current_line() -> void:
 
 	if not line.choices.is_empty():
 		_ui.show_choices(line.choices)
+	if _ui.text_label and _ui.text_label is RichTextLabel:
+		_ui.text_label.scroll_to_line(0)
 
 # -------------------------------------------------------
 func _on_ui_request_continue(choice_text := "") -> void:
@@ -185,7 +199,7 @@ func force_close():
 func _dl(s: String, t: String, expr := "neutral") -> DialogueLine:
 	var l := DialogueLine.new()
 	l.speaker = s
-	l.text = t
+	l.text = t.strip_edges()  # ✅ trim spaces, keep BBCode clean
 	l.expression = expr
 	return l
 
