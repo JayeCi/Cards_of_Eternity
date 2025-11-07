@@ -182,7 +182,8 @@ var all_biomes = [
 	board.Biome.FOREST,
 	board.Biome.MEADOW,
 	board.Biome.MOUNTAIN,
-	board.Biome.TUNDRA
+	board.Biome.TUNDRA,
+	board.Biome.DEFAULT
 ]
 
 
@@ -227,14 +228,14 @@ func _ready():
 	#CardCollection.add_card(get_card(CARD_PATHS.NINJOAD))
 	#CardCollection.add_card(get_card(CARD_PATHS.BOOGLES))
 	#CardCollection.add_card(get_card(CARD_PATHS.FUNGOO))
-	#CardCollection.add_card(get_card(CARD_PATHS.ORB_OF_DARKNESS))
+	##CardCollection.add_card(get_card(CARD_PATHS.ORB_OF_DARKNESS))
 	#CardCollection.add_card(get_card(CARD_PATHS.SHADOW_CANDLES))
 	#CardCollection.add_card(get_card(CARD_PATHS.JESTER_OF_FLAMES))
 	#CardCollection.add_card(get_card(CARD_PATHS.VOIDLING_ERO))
 	#CardCollection.add_card(get_card(CARD_PATHS.MUSHMONK))
 	#CardCollection.add_card(get_card(CARD_PATHS.ZEI_PANDA))
 	#CardCollection.add_card(get_card(CARD_PATHS.YORG_ARCHER))
-	#CardCollection.add_card(get_card(CARD_PATHS.STONE_FAE))
+	CardCollection.add_card(get_card(CARD_PATHS.STONE_FAE))
 	#CardCollection.add_card(get_card(CARD_PATHS.CONFLAGURATION_BLADE))
 	#CardCollection.add_card(get_card(CARD_PATHS.TIDAL_WAVE))
 	#CardCollection.add_card(get_card(CARD_PATHS.AQUA_WHIP))
@@ -260,7 +261,7 @@ func _ready():
 func _deferred_startup():
 	randomize()
 	board.biome = all_biomes[randi() % all_biomes.size()]
-	#board.biome = board.Biome.OCEAN
+	#board.biome = board.Biome.DEFAULT
 	# Generate the map for that biome
 	board._generate_grid()
 
@@ -271,7 +272,8 @@ func _deferred_startup():
 		board.Biome.FOREST: "🌲 Forest",
 		board.Biome.MEADOW: "🌾 Meadow",
 		board.Biome.MOUNTAIN: "⛰️ Mountain",
-		board.Biome.TUNDRA: "❄️ Tundra"
+		board.Biome.TUNDRA: "❄️ Tundra",
+		board.Biome.DEFAULT: " DEFAULT "
 	}
 	_log("🌍 Battlefield biome: " + biome_names.get(board.biome, str(board.biome)))
 

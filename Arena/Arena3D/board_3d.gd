@@ -12,11 +12,20 @@ class_name Board3D
 # -------------------------------------------------------------
 # BIOMES
 # -------------------------------------------------------------
+# -------------------------------------------------------------
+# BIOMES
+# -------------------------------------------------------------
 enum Biome {
-	OCEAN, VOLCANO, FOREST, MEADOW, MOUNTAIN, TUNDRA
+	DEFAULT,
+	OCEAN,
+	VOLCANO,
+	FOREST,
+	MEADOW,
+	MOUNTAIN,
+	TUNDRA
 }
 
-@export var biome: Biome = Biome.MEADOW
+@export var biome: Biome = Biome.DEFAULT
 
 var tiles: Dictionary = {}
 
@@ -73,62 +82,91 @@ func _generate_grid() -> void:
 	var terrain_weights := {}
 
 	match biome:
+		Biome.DEFAULT:
+			base_terrain = "Default"
+			terrain_weights = {"Default": 1.0}
 		Biome.OCEAN:
 			base_terrain = "Water"
-			terrain_weights = {
-				"Water": 0.7,
-				"Stone": 0.1,
-				"Grass": 0.2
-			}
+			terrain_weights = {"Water": 0.7, "Stone": 0.2, "Grass": 0.1}
 		Biome.VOLCANO:
 			base_terrain = "Lava"
-			terrain_weights = {
-				"Lava": 0.7,
-				"Stone": 0.3
-			}
+			terrain_weights = {"Lava": 0.8, "Stone": 0.2}
 		Biome.FOREST:
 			base_terrain = "Forest"
-			terrain_weights = {
-				"Forest": 0.6,
-				"Grass": 0.3,
-				"Stone": 0.1
-			}
+			terrain_weights = {"Forest": 0.7, "Grass": 0.2, "Stone": 0.1}
 		Biome.MEADOW:
 			base_terrain = "Grass"
-			terrain_weights = {
-				"Grass": 0.7,
-				"Stone": 0.2,
-				"Forest": 0.1
-			}
+			terrain_weights = {"Grass": 0.7, "Stone": 0.2, "Forest": 0.1}
 		Biome.MOUNTAIN:
 			base_terrain = "Stone"
-			terrain_weights = {
-				"Stone": 0.6,
-				"Grass": 0.3,
-				"Forest": 0.1
-			}
+			terrain_weights = {"Stone": 0.7, "Grass": 0.2, "Forest": 0.1}
 		Biome.TUNDRA:
 			base_terrain = "Ice"
-			terrain_weights = {
-				"Ice": 0.6,
-				"Stone": 0.2,
-				"Water": 0.2
-			}
+			terrain_weights = {"Ice": 0.6, "Stone": 0.2, "Water": 0.2}
 
-	# --- STEP 1: Create a base map ---
+	# --- STEP 1: Create layered or patterned map ---
 	var map := []
 	for y in range(height):
 		map.append([])
 		for x in range(width):
-			map[y].append(base_terrain)
+			var t := base_terrain
 
-	# --- STEP 2: Generate clusters / blobs ---
-	var cluster_count = int(width * height * 0.2)
-	for i in range(cluster_count):
-		var cluster_terrain = _pick_weighted(terrain_weights)
-		if cluster_terrain == base_terrain:
-			continue
-		_seed_cluster(map, cluster_terrain, base_terrain)
+			# Create gradient or pattern bands by row
+			var row_ratio := float(y) / float(height - 1)
+			match biome:
+				Biome.OCEAN:
+					if row_ratio < 0.4:
+						t = "Water"
+					elif row_ratio < 0.7:
+						t = "Grass"
+					else:
+						t = "Stone"
+
+				Biome.VOLCANO:
+					if row_ratio < 0.3:
+						t = "Lava"
+					elif row_ratio < 0.6:
+						t = "Stone"
+					else:
+						t = "Lava"
+
+				Biome.FOREST:
+					if row_ratio < 0.4:
+						t = "Forest"
+					elif row_ratio < 0.7:
+						t = "Grass"
+					else:
+						t = "Stone"
+
+				Biome.MOUNTAIN:
+					if row_ratio < 0.3:
+						t = "Stone"
+					elif row_ratio < 0.6:
+						t = "Grass"
+					else:
+						t = "Forest"
+
+				Biome.TUNDRA:
+					if row_ratio < 0.3:
+						t = "Ice"
+					elif row_ratio < 0.6:
+						t = "Stone"
+					else:
+						t = "Water"
+
+				Biome.MEADOW:
+					if row_ratio < 0.5:
+						t = "Grass"
+					else:
+						t = "Forest"
+
+			map[y].append(t)
+
+	# --- STEP 2: Add small variation for natural feel ---
+	for y in range(height):
+		for x in range(width):
+			if randf() < 0.12:  # 12% chance to add minor terrain variation
+				map[y][x] = _pick_weighted(terrain_weights)
 
 	# --- STEP 3: Instantiate tiles ---
 	for y in range(height):
@@ -142,16 +180,19 @@ func _generate_grid() -> void:
 			if tile.has_method("_apply_terrain_visual"):
 				tile._apply_terrain_visual()
 
+			if tile.terrain_type == "Default" or tile.terrain_type == base_terrain:
+				if tile.has_method("set_default_visual"):
+					tile.set_default_visual()
+
 			var pos_x := (x - half_w) * spacing
 			var pos_z := -(y - half_h) * spacing
 			tile.position = Vector3(pos_x, 0, pos_z)
-			tile._apply_terrain_visual()
 			add_child(tile)
 			tiles[Vector2i(x, y)] = tile
 
 	position = Vector3.ZERO
-	print("Generated %d tiles." % tiles.size())
-	
+	print("Generated %d patterned tiles." % tiles.size())
+
 func get_tile_position_for_unit(unit: UnitData) -> Node3D:
 	for pos in tiles.keys():
 		var tile = tiles[pos]

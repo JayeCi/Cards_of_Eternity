@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="GroundSlamAbility" load_steps=2 format=3 uid="uid://drdsmay8xnsjy"]
+
+[ext_resource type="Script" uid="uid://bb48cearvl7oe" path="res://Cards/Abilities/GroundSlam.gd" id="1_6e54x"]
+
+[resource]
+script = ExtResource("1_6e54x")
+display_name = "Ground Slam"
+description = "Slam the board in front of the card, knocking back the first three cards 1 tile."
+metadata/_custom_type_script = "uid://bb48cearvl7oe"

@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://camg64m8fg43w"]
+[gd_scene load_steps=18 format=3 uid="uid://camg64m8fg43w"]
 
 [ext_resource type="Script" uid="uid://uk6se88h2jyj" path="res://Arena/Arena3D/ArenaScript/arena_core.gd" id="1_2nnof"]
 [ext_resource type="PackedScene" uid="uid://da27pnrvn5yna" path="res://Arena/Arena3D/Board3D.tscn" id="1_5ykft"]
@@ -7,6 +7,7 @@
 [ext_resource type="AudioStream" uid="uid://2mg2mygsyho6" path="res://Audio/ES_An Inconvenient Affair - Indigo Days.mp3" id="4_i7u7f"]
 [ext_resource type="Script" uid="uid://bqkc1hsxx6w73" path="res://Arena/Arena3D/ArenaScript/arena_camera.gd" id="5_2nnof"]
 [ext_resource type="Texture2D" uid="uid://dkes2i4j5tjot" path="res://Images/Textures/metall005-new-tileable.png" id="5_i5af3"]
+[ext_resource type="PackedScene" uid="uid://bjgntfsoqlhi5" path="res://Downloaded/Decor/Foliage/forest.glb" id="6_08t7x"]
 [ext_resource type="Script" uid="uid://c01bdnjyd3qmh" path="res://Arena/Arena3D/ArenaScript/arena_battle.gd" id="8_08t7x"]
 [ext_resource type="Script" uid="uid://bjt3wnmra8jjr" path="res://Arena/Arena3D/ArenaScript/arena_ai.gd" id="9_pkj7r"]
 [ext_resource type="PackedScene" uid="uid://d3k7rvjpylid4" path="res://UI/battle_ui.tscn" id="10_2nnof"]
@@ -59,7 +60,7 @@ uv1_scale = Vector3(1.765, 1.765, 1.765)
 script = ExtResource("1_2nnof")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(-0.866026, -0.499851, 0.0122161, 0, 0.0244322, 0.999701, -0.5, 0.865767, -0.0211589, 0, 0, 0)
+transform = Transform3D(-0.944063, -0.54489195, 0.013316881, 0, 0.026633775, 1.0897844, -0.5450547, 0.9437812, -0.02306553, -16.18901, 3.6758308, 0)
 shadow_enabled = true
 shadow_transmittance_bias = 16.0
 shadow_opacity = 0.79
@@ -78,11 +79,23 @@ autoplay = true
 bus = &"Music"
 parameters/looping = true
 
-[node name="UnderBoard" type="MeshInstance3D" parent="."]
-transform = Transform3D(50, 0, 0, 0, 50, 0, 0, 0, 50, 0, -27.8305, 0)
+[node name="EarthRealm_Forest" type="MeshInstance3D" parent="."]
+transform = Transform3D(54.505493, 0, 0, 0, 54.505493, 0, 0, 0, 54.505493, -16.18901, -85.26138, 0)
 material_override = SubResource("StandardMaterial3D_i42j4")
 transparency = 1.0
 mesh = SubResource("BoxMesh_pfipv")
+
+[node name="Sketchfab_Scene" parent="EarthRealm_Forest" instance=ExtResource("6_08t7x")]
+transform = Transform3D(0.13501164, 0, 0, 0, 0.13501164, 0, 0, 0, 0.13501164, 0.59261364, 0.8395553, 0.17105286)
+
+[node name="Sketchfab_Scene2" parent="EarthRealm_Forest" instance=ExtResource("6_08t7x")]
+transform = Transform3D(0.13501164, 0, 0, 0, 0.13501164, 0, 0, 0, 0.13501164, 0.05261364, 0.8395553, 0.17105286)
+
+[node name="Sketchfab_Scene3" parent="EarthRealm_Forest" instance=ExtResource("6_08t7x")]
+transform = Transform3D(0.13501164, 0, 0, 0, 0.13501164, 0, 0, 0, 0.13501164, 0.05261364, 0.8395553, -0.94894713)
+
+[node name="Sketchfab_Scene4" parent="EarthRealm_Forest" instance=ExtResource("6_08t7x")]
+transform = Transform3D(0.13501164, 0, 0, 0, 0.13501164, 0, 0, 0, 0.13501164, 0.57261366, 0.8395553, -0.94894713)
 
 [node name="CameraSystem" type="Camera3D" parent="."]
 transform = Transform3D(0.99639, 0.0414365, 0.0740986, -0.0798196, 0.159901, 0.983901, 0.0289209, -0.986263, 0.162631, 0.531002, 24.4791, 3.0595)

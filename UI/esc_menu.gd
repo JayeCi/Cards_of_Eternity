@@ -16,7 +16,7 @@ func toggle():
 	if visible:
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	else:
-		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
 func _on_exit_pressed() -> void:
 	get_tree().quit()

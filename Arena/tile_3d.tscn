@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3 uid="uid://dymngijkrptcc"]
+[gd_scene load_steps=35 format=3 uid="uid://dymngijkrptcc"]
 
 [ext_resource type="Script" uid="uid://dtfto6htrvfm5" path="res://Arena/tile_3d.gd" id="1_5v3qr"]
 [ext_resource type="PackedScene" uid="uid://cqxo8j6lh1au8" path="res://Downloaded/bricks_A.tscn" id="2_wh67p"]
@@ -12,6 +12,8 @@
 [ext_resource type="Texture2D" uid="uid://c07v4ijon03kv" path="res://UI/Terrains/Forest.png" id="8_2dc0q"]
 [ext_resource type="Texture2D" uid="uid://bq6fn5ar8y44d" path="res://Cards/Utilities/CardModel/Border_TP_Edge.png" id="11_3e2tw"]
 [ext_resource type="PackedScene" uid="uid://b226o8whi8uox" path="res://Arena/Terrain_Models/column_stylized_low-poly_3d_model.glb" id="12_3e2tw"]
+[ext_resource type="PackedScene" uid="uid://dfpatff4d5okj" path="res://addons/godot_3d_cursor/3d_cursor.tscn" id="13_ir6gf"]
+[ext_resource type="Script" uid="uid://dt04kfvdc21nb" path="res://addons/godot_3d_cursor/3d_cursor.gd" id="14_wy7sf"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_5v3qr"]
 
@@ -165,3 +167,7 @@ transform = Transform3D(1, 0, 0, 0, 0.242496, 0, 0, 0, 1, 0, 0, 0)
 visible = false
 mesh = SubResource("BoxMesh_2dc0q")
 surface_material_override/0 = SubResource("StandardMaterial3D_ir6gf")
+
+[node name="3DCursor" type="Marker3D" parent="." instance=ExtResource("13_ir6gf")]
+visible = false
+script = ExtResource("14_wy7sf")

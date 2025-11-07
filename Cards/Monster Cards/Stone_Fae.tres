@@ -1,7 +1,8 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://w3b8v6ona01s"]
+[gd_resource type="Resource" script_class="CardData" load_steps=5 format=3 uid="uid://w3b8v6ona01s"]
 
 [ext_resource type="Texture2D" uid="uid://m6yy2typ0bip" path="res://Images/Stone_fae.png" id="1_0luq1"]
 [ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_5xk6y"]
+[ext_resource type="Resource" uid="uid://drdsmay8xnsjy" path="res://Cards/Abilities/GroundSlam.tres" id="1_ajlmy"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_0luq1"]
 
 [resource]
@@ -14,6 +15,7 @@ name = "Stone Fae"
 description = "A steadfast guardian of caverns and crystalline groves. Her body is adorned with shards of living gem that shimmer with ancient magic. When she moves, mountains tremble — not from her weight, but from her will."
 art = ExtResource("1_0luq1")
 cost = 2
-atk = 22
-def = 22
+atk = 15
+def = 16
+ability = ExtResource("1_ajlmy")
 metadata/_custom_type_script = "uid://57up1u0etcmc"

@@ -114,6 +114,24 @@ func set_badge_text(text: String) -> void:
 		label.text = text
 		label.visible = text != ""
 
+func set_default_visual():
+	# Hide any biome props or special FX
+	if has_node("Visuals"):
+		for child in $Visuals.get_children():
+			child.visible = false
+
+	# Hide buff overlays
+	if has_node("BuffIcon"):
+		$BuffIcon.visible = false
+
+	# Reset material to plain
+	if has_node("MeshInstance3D"):
+		var mesh = $MeshInstance3D
+		if mesh.material_override:
+			var mat = mesh.material_override.duplicate()
+			mat.albedo_color = Color(0.8, 0.8, 0.8)
+			mesh.material_override = mat
+
 func refresh_card_art() -> void:
 	# 🧩 Ensures card art stays visible after terrain or mesh refresh
 	if occupant and occupant.card and card_mesh:
@@ -284,6 +302,11 @@ func _apply_terrain_visual(new_terrain_type: String = "") -> void:
 
 	# ✅ Selectively show correct mesh and apply materials
 	match terrain_type:
+		"Default":
+			if default_tile:
+				default_tile.visible = true
+
+
 		"Stone":
 			if stone_mesh:
 				stone_mesh.visible = true
