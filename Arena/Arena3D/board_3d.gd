@@ -248,3 +248,71 @@ func are_move_highlights_visible(selected_pos: Vector2i) -> bool:
 			if mh.visible:
 				return true
 	return false
+
+# -------------------------------------------------------------
+# ✨ TILE FLASH / HIGHLIGHT EFFECT
+# -------------------------------------------------------------
+func flash_tiles(positions: Array, color: Color = Color(1.0, 0.8, 0.3), duration: float = 0.25) -> void:
+	if positions.is_empty():
+		return
+
+	for pos in positions:
+		if not tiles.has(pos):
+			continue
+		var tile = tiles[pos]
+		if not tile:
+			continue
+
+		var mesh: MeshInstance3D = tile.get_node_or_null("MeshInstance3D")
+		if not mesh:
+			for child in tile.get_children():
+				if child is MeshInstance3D:
+					mesh = child
+					break
+		if not mesh:
+			continue
+
+		var mat := mesh.get_active_material(0)
+		if not mat:
+			continue
+
+		mat = mat.duplicate()
+		mesh.set_surface_override_material(0, mat)
+
+		# --- Handle StandardMaterial3D ---
+		if mat is StandardMaterial3D:
+			mat.emission_enabled = true
+			mat.emission = color
+
+			var tween := create_tween()
+			tween.tween_method(
+				func(v):
+					mat.emission = color * v
+			, 1.0, 0.0, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+			tween.tween_callback(func():
+				mat.emission_enabled = false
+			)
+
+		# --- Handle ShaderMaterial (if tile uses a custom shader) ---
+		elif mat is ShaderMaterial:
+			if mat.shader.has_param("emission"):
+				mat.set_shader_parameter("emission", color)
+			elif mat.shader.has_param("flash_strength"):
+				mat.set_shader_parameter("flash_strength", 1.0)
+
+			var tween := create_tween()
+			tween.tween_method(
+				func(v):
+					if mat.shader.has_param("emission"):
+						mat.set_shader_parameter("emission", color * v)
+					elif mat.shader.has_param("flash_strength"):
+						mat.set_shader_parameter("flash_strength", v)
+			, 1.0, 0.0, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+			tween.tween_callback(func():
+				if mat.shader.has_param("emission"):
+					mat.set_shader_parameter("emission", Color(0,0,0))
+				elif mat.shader.has_param("flash_strength"):
+					mat.set_shader_parameter("flash_strength", 0.0)
+)

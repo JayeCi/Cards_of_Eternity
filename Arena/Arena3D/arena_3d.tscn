@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://camg64m8fg43w"]
+[gd_scene load_steps=23 format=3 uid="uid://camg64m8fg43w"]
 
 [ext_resource type="Script" uid="uid://uk6se88h2jyj" path="res://Arena/Arena3D/ArenaScript/arena_core.gd" id="1_2nnof"]
 [ext_resource type="PackedScene" uid="uid://da27pnrvn5yna" path="res://Arena/Arena3D/Board3D.tscn" id="1_5ykft"]
@@ -8,10 +8,15 @@
 [ext_resource type="Script" uid="uid://bqkc1hsxx6w73" path="res://Arena/Arena3D/ArenaScript/arena_camera.gd" id="5_2nnof"]
 [ext_resource type="Texture2D" uid="uid://dkes2i4j5tjot" path="res://Images/Textures/metall005-new-tileable.png" id="5_i5af3"]
 [ext_resource type="PackedScene" uid="uid://bjgntfsoqlhi5" path="res://Downloaded/Decor/Foliage/forest.glb" id="6_08t7x"]
+[ext_resource type="PackedScene" uid="uid://cg6uukhyhlmet" path="res://Downloaded/Decor/vines.glb" id="7_cqg5v"]
 [ext_resource type="Script" uid="uid://c01bdnjyd3qmh" path="res://Arena/Arena3D/ArenaScript/arena_battle.gd" id="8_08t7x"]
 [ext_resource type="Script" uid="uid://bjt3wnmra8jjr" path="res://Arena/Arena3D/ArenaScript/arena_ai.gd" id="9_pkj7r"]
 [ext_resource type="PackedScene" uid="uid://d3k7rvjpylid4" path="res://UI/battle_ui.tscn" id="10_2nnof"]
 [ext_resource type="Script" uid="uid://khurkxh2646n" path="res://Arena/Arena3D/ArenaScript/arena_cutscene.gd" id="10_i7u7f"]
+[ext_resource type="PackedScene" uid="uid://cjfvpjd3vwe46" path="res://Downloaded/column.glb" id="13_pkj7r"]
+[ext_resource type="PackedScene" uid="uid://c3eodt0ag3y24" path="res://Downloaded/Decor/non-textured_burning_torch_2.glb" id="14_waxq2"]
+[ext_resource type="PackedScene" uid="uid://canrueyg0kv8m" path="res://Downloaded/Decor/burning_torch.tscn" id="15_2nlyu"]
+[ext_resource type="Script" uid="uid://bgwraf6cnfiip" path="res://Arena/Arena3D/arena_move.gd" id="15_py25k"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_08t7x"]
 shader = ExtResource("2_i7u7f")
@@ -70,8 +75,6 @@ directional_shadow_max_distance = 52.9
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_6q22w")
 
-[node name="Board3D" parent="." instance=ExtResource("1_5ykft")]
-
 [node name="BGMusic" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("4_i7u7f")
 volume_db = -37.155
@@ -81,22 +84,69 @@ parameters/looping = true
 
 [node name="EarthRealm_Forest" type="MeshInstance3D" parent="."]
 transform = Transform3D(54.505493, 0, 0, 0, 54.505493, 0, 0, 0, 54.505493, -16.18901, -85.26138, 0)
-visible = false
 material_override = SubResource("StandardMaterial3D_i42j4")
 transparency = 1.0
 mesh = SubResource("BoxMesh_pfipv")
 
-[node name="Sketchfab_Scene" parent="EarthRealm_Forest" instance=ExtResource("6_08t7x")]
+[node name="Column" parent="EarthRealm_Forest" instance=ExtResource("13_pkj7r")]
+transform = Transform3D(0.36660174, 0, 0, 0, 0.36660174, 0, 0, 0, 0.36660174, 0.29694816, 1.1932228, -0.003349824)
+
+[node name="Sketchfab_Scene" parent="EarthRealm_Forest/Column" instance=ExtResource("14_waxq2")]
+transform = Transform3D(0.0319965, 0, 0, 0, 0.0319965, 0, 0, 0, 0.0319965, -0.24796428, 0.7132707, 0.2514978)
+visible = false
+
+[node name="Sketchfab_Scene2" parent="EarthRealm_Forest/Column" instance=ExtResource("15_2nlyu")]
+transform = Transform3D(0.0319965, 0, 0, 0, 0.0319965, 0, 0, 0, 0.0319965, -0.24796428, 0.7132707, 0.2514978)
+
+[node name="Sketchfab_Scene3" parent="EarthRealm_Forest/Column" instance=ExtResource("15_2nlyu")]
+transform = Transform3D(0.0319965, 0, 0, 0, 0.0319965, 0, 0, 0, 0.0319965, 0.24845487, 0.7132707, 0.2514978)
+
+[node name="Sketchfab_Scene4" parent="EarthRealm_Forest/Column" instance=ExtResource("15_2nlyu")]
+transform = Transform3D(0.032100856, 0, 0, 0, 0.032100856, 0, 0, 0, 0.032100856, 0.24898137, 0.7127834, -0.24987303)
+
+[node name="Sketchfab_Scene5" parent="EarthRealm_Forest/Column" instance=ExtResource("15_2nlyu")]
+transform = Transform3D(0.0319965, 0, 0, 0, 0.0319965, 0, 0, 0, 0.0319965, -0.24890593, 0.7132707, -0.24792604)
+
+[node name="Torch1" parent="EarthRealm_Forest" instance=ExtResource("6_08t7x")]
 transform = Transform3D(0.13501164, 0, 0, 0, 0.13501164, 0, 0, 0, 0.13501164, 0.59261364, 0.8395553, 0.17105286)
 
-[node name="Sketchfab_Scene2" parent="EarthRealm_Forest" instance=ExtResource("6_08t7x")]
+[node name="Torch2" parent="EarthRealm_Forest" instance=ExtResource("6_08t7x")]
 transform = Transform3D(0.13501164, 0, 0, 0, 0.13501164, 0, 0, 0, 0.13501164, 0.05261364, 0.8395553, 0.17105286)
 
-[node name="Sketchfab_Scene3" parent="EarthRealm_Forest" instance=ExtResource("6_08t7x")]
+[node name="Torch3" parent="EarthRealm_Forest" instance=ExtResource("6_08t7x")]
 transform = Transform3D(0.13501164, 0, 0, 0, 0.13501164, 0, 0, 0, 0.13501164, 0.05261364, 0.8395553, -0.94894713)
 
-[node name="Sketchfab_Scene4" parent="EarthRealm_Forest" instance=ExtResource("6_08t7x")]
+[node name="Torch4" parent="EarthRealm_Forest" instance=ExtResource("6_08t7x")]
 transform = Transform3D(0.13501164, 0, 0, 0, 0.13501164, 0, 0, 0, 0.13501164, 0.57261366, 0.8395553, -0.94894713)
+
+[node name="Earth" type="Node3D" parent="EarthRealm_Forest"]
+
+[node name="Sketchfab_Scene" parent="EarthRealm_Forest/Earth" instance=ExtResource("7_cqg5v")]
+transform = Transform3D(0.00018160368, 0, 0, 0, 0.00018160368, 0, 0, 0, 0.00018160368, 0.26106298, 1.5149901, 0.102492705)
+
+[node name="Sketchfab_Scene2" parent="EarthRealm_Forest/Earth" instance=ExtResource("7_cqg5v")]
+transform = Transform3D(-7.938149e-12, -0.00018160367, 0, 0.00018160367, -7.938149e-12, 0, 0, 0, 0.00018160367, 0.25188965, 1.5248536, 0.102492705)
+
+[node name="Sketchfab_Scene3" parent="EarthRealm_Forest/Earth" instance=ExtResource("7_cqg5v")]
+transform = Transform3D(-0.00018160367, 1.5876299e-11, 0, -1.5876299e-11, -0.00018160367, 0, 0, 0, 0.00018160367, 0.28491387, 1.5382806, 0.102492705)
+
+[node name="Sketchfab_Scene4" parent="EarthRealm_Forest/Earth" instance=ExtResource("7_cqg5v")]
+transform = Transform3D(2.3814445e-11, 0.00018160367, 0, -0.00018160367, 2.3814445e-11, 0, 0, 0, 0.00018160367, 0.2954449, 1.528417, 0.102492705)
+
+[node name="Sketchfab_Scene5" parent="EarthRealm_Forest/Earth" instance=ExtResource("7_cqg5v")]
+transform = Transform3D(0.00018160367, -3.1752597e-11, 0, 3.1752597e-11, 0.00018160367, 0, 0, 0, 0.00018160367, 0.35138154, 1.5155196, 0.102492705)
+
+[node name="Sketchfab_Scene6" parent="EarthRealm_Forest/Earth" instance=ExtResource("7_cqg5v")]
+transform = Transform3D(-3.969074e-11, -0.00018160367, 0, 0.00018160367, -3.969074e-11, 0, 0, 0, 0.00018160367, 0.34060276, 1.5253832, 0.102492705)
+
+[node name="BoardGenerator" parent="." instance=ExtResource("1_5ykft")]
+
+[node name="UISystem" parent="." instance=ExtResource("2_opwpc")]
+
+[node name="BattleUI" parent="UISystem" instance=ExtResource("10_2nnof")]
+visible = false
+layout_mode = 1
+mouse_filter = 2
 
 [node name="CameraSystem" type="Camera3D" parent="."]
 transform = Transform3D(0.99639, 0.0414365, 0.0740986, -0.0798196, 0.159901, 0.983901, 0.0289209, -0.986263, 0.162631, 0.531002, 24.4791, 3.0595)
@@ -107,14 +157,11 @@ near = 0.01
 far = 101.25
 script = ExtResource("5_2nnof")
 
-[node name="UISystem" parent="." instance=ExtResource("2_opwpc")]
-
-[node name="BattleUI" parent="UISystem" instance=ExtResource("10_2nnof")]
-visible = false
-layout_mode = 1
-
 [node name="BattleSystem" type="Node3D" parent="."]
 script = ExtResource("8_08t7x")
+
+[node name="MoveSystem" type="Node3D" parent="."]
+script = ExtResource("15_py25k")
 
 [node name="AISystem" type="Node3D" parent="."]
 script = ExtResource("9_pkj7r")

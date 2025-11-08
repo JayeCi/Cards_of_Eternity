@@ -157,38 +157,39 @@ func _on_leader_checkbox_toggled(checked: bool) -> void:
 func _on_card_clicked(event: InputEvent, card_ui):
 	if event is InputEventMouseButton and event.pressed:
 
-		# LEFT CLICK: SELECT ONLY
+		# LEFT CLICK → Select
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			selected_card = card_ui.card_data
 			_update_left_panel(selected_card)
 			return
 
-		# RIGHT CLICK: MOVE
+		# RIGHT CLICK → Move
 		if event.button_index == MOUSE_BUTTON_RIGHT:
 			var parent_grid = card_ui.get_parent()
 
-			# deck → collection
-			if deck_grid.is_ancestor_of(card_ui) or parent_grid == deck_grid:
+			# 🔄 Deck → Collection
+			if parent_grid == deck_grid:
 				_move_card_to_collection(card_ui.card_data)
 				card_ui.queue_free()
 				return
 
-			# collection → deck
-			if deck_collection_grid.is_ancestor_of(card_ui) or parent_grid == deck_collection_grid:
+			# 🔄 Collection → Deck
+			if parent_grid == main_panel or parent_grid == deck_collection_grid:
 				if deck_grid.get_child_count() >= 10:
 					sfx_action_beep.play()
 					return
 				if _move_card_to_deck(card_ui.card_data):
 					card_ui.queue_free()
 					return
-
+					
 func _move_card_to_deck(card_data: CardData) -> bool:
 	if deck_grid.get_child_count() >= 10:
 		return false
 
-	if not DeckManager.add(card_data.id):
+	if not DeckManager.add(card_data):
 		return false
 
+	print("[DeckBuilder] ➕ Added ", card_data.name, " to deck.")
 	_refresh_deck_grid()
 	_refresh_collection_counts()
 	_update_deck_count()
@@ -196,25 +197,28 @@ func _move_card_to_deck(card_data: CardData) -> bool:
 
 
 func _on_card_count_changed(card_id: String, new_count: int) -> void:
-	# Loop over both main collection and deck collection grids
 	for grid in [main_panel, deck_collection_grid]:
 		for child in grid.get_children():
-			if "card_data" in child and child.card_data and child.card_data.id == card_id:
+			if child.has("card_data") and child.card_data and child.card_data.id == card_id:
 				if child.has_method("set_quantity"):
 					child.set_quantity(new_count)
-					print("[CollectionGUI] 🔄 Updated quantity for ", card_id, " → ", new_count, " Total")
+					print("[CollectionGUI] 🔄 Updated quantity for ", card_id, " → ", new_count)
 
 func _move_card_to_collection(card_data: CardData):
-	if not DeckManager.remove_one(card_data.id):
+	if not DeckManager.remove_one(card_data):
 		print("[DeckBuilder] ⚠️ Not in deck:", card_data.name)
 		return
 
-	if not displayed_cards.has(card_data.id):
-		_add_card_to_gui(card_data)
-	else:
-		_refresh_collection_counts()
-
+	print("[DeckBuilder] ↩️ Moved", card_data.name, "to collection.")
 	_refresh_deck_grid()
+	_refresh_collection_counts()
+	_update_deck_count()
+
+	if not displayed_cards.has(card_data):
+		_add_card_to_gui(card_data)
+
+
+
 
 	var card_ui_scene := preload("res://UI/CardUI.tscn")
 	var deck_card_ui: Control = card_ui_scene.instantiate()
@@ -234,7 +238,7 @@ func _move_card_to_collection(card_data: CardData):
 func _refresh_collection_counts():
 	for child in main_panel.get_children():
 		if "card_data" in child and child.card_data:
-			var left := DeckManager.remaining_available(child.card_data.id)
+			var left := DeckManager.remaining_available(child.card_data)
 			if child.has_method("set_quantity"):
 				child.set_quantity(left)  # show true remaining
 
@@ -264,6 +268,7 @@ func _refresh_deck_grid():
 	var card_ui_scene := preload("res://UI/CardUI.tscn")
 	for id in DeckManager.get_ids():
 		var data := CardCollection.get_card_data(id)
+
 		if not data:
 			continue
 		var ui: Control = card_ui_scene.instantiate()
@@ -279,10 +284,10 @@ func _refresh_deck_grid():
 # 🧩 ADD/REMOVE CARDS
 # ==========================================================
 func _populate_existing_cards():
-	for id in CardCollection.get_all_cardss():
-		var data = CardCollection.get_card_data(id)
-		if data:
-			_add_card_to_gui(data)
+	for card_data in CardCollection.get_all_cards():
+		if card_data:
+			_add_card_to_gui(card_data)
+
 
 func _add_card_to_gui(card_data: CardData):
 	if not card_data or displayed_cards.has(card_data.id):
@@ -297,7 +302,7 @@ func _add_card_to_gui(card_data: CardData):
 	
 		# show remaining copies available to add into deck
 	if card_ui.has_method("set_quantity"):
-		card_ui.set_quantity(DeckManager.remaining_available(card_data.id))
+		card_ui.set_quantity(DeckManager.remaining_available(card_data))
 		
 	main_panel.add_child(card_ui)
 
@@ -338,7 +343,7 @@ func _on_card_return_requested(card_data: CardData):
 	print("[DeckBuilder] ↩️ Returned", card_data.name, "to collection")
 
 	for child in deck_grid.get_children():
-		if child.card_data and child.card_data.id == card_data.id:
+		if child.card_data and child.card_data == card_data:
 			child.queue_free()
 			print("[DeckBuilder] ❌ Removed", card_data.name, "from deck grid")
 			break

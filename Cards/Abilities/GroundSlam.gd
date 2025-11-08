@@ -33,65 +33,54 @@ func execute(arena: Node, unit: UnitData) -> void:
 
 	var core: ArenaCore = arena
 	var board := core.board
-	var camera := core.camera_sys if core.has_node("CameraSystem") else null
+	var camera := core.get_node_or_null("CameraSystem")
 
-	
 	core._log("💥 %s slams the ground, shaking the battlefield!" % unit.card.name, Color(1.0, 0.8, 0.4))
 	if camera and camera.has_method("shake"):
 		camera.shake(0.25, 0.4)
 
-	# Get all tiles in front of unit
 	var tiles_in_front := _get_forward_positions(core, unit)
 	for pos in tiles_in_front:
 		if not board.tiles.has(pos):
 			continue
+
 		var tile = board.tiles[pos]
 		if tile.occupant:
 			var target = tile.occupant
 			core._log("⬅ %s is knocked back by the slam!" % target.card.name, Color(1.0, 0.6, 0.6))
 
-			# Optional: small damage
+			# Deal flat DEF damage
 			if slam_damage > 0:
 				target.current_def = max(target.current_def - slam_damage, 0)
 				core._float_text(tile.global_position + Vector3(0, 1, 0), "-%d DEF" % slam_damage, Color(1, 0.4, 0.4))
-				var tile3d = board.get_tile_position_for_unit(target)
+				var tile3d = board.get_tile(pos.x, pos.y)
 				if tile3d and tile3d.has_method("update_stat_labels"):
 					tile3d.update_stat_labels(target.current_atk, target.current_def)
-			
-			# Try to push them back 1 tile
+
+			# Calculate knockback direction
 			var dir := Vector2i(0, 1) if unit.owner == core.PLAYER else Vector2i(0, -1)
 			var new_pos := pos + dir
-			if board.is_in_bounds(new_pos) and not board.get_tile(new_pos.x, new_pos.y).occupant:
-				# Move the unit
-				var prev_tile := board.get_tile(pos.x, pos.y)
-				prev_tile.set_occupant(null)
+
+			if board.is_in_bounds(new_pos):
 				var new_tile := board.get_tile(new_pos.x, new_pos.y)
-				new_tile.set_occupant(target)
-				core.units.erase(pos)
-				core.units[new_pos] = target
-				# Animate
-				if new_tile and new_tile.has_node("CardModel"):
-					var model = new_tile.get_node("CardModel")
-					var tween = new_tile.create_tween()
-					tween.tween_property(model, "position:y", 0.3, 0.1).set_trans(Tween.TRANS_SINE)
-					tween.tween_property(model, "position:y", 0.0, 0.1).set_trans(Tween.TRANS_SINE)
-	#
-	#var tile3d := board.get_tile_position_for_unit(unit)
-	#if tile3d:
-		#var dust: GPUParticles3D = GPUParticles3D.new()
-		#dust.amount = 60
-		#dust.lifetime = 0.6
-		#dust.one_shot = true
-		#dust.emitting = true
-		#dust.scale = Vector3(0.6, 0.6, 0.6)
-#
-		## Optional: small upward offset so it’s visible
-		#dust.position = Vector3(0, 0.05, 0)
-#
-		## Optionally use a built-in material for quick dirt burst
-		#var mat := StandardMaterial3D.new()
-		#mat.albedo_color = Color(0.5, 0.4, 0.3)
-		#dust.draw_pass_1 = QuadMesh.new()
-		#dust.material_override = mat
-#
-		#tile3d.add_child(dust)
+				if new_tile and not new_tile.occupant:
+					# Move the unit in data
+					board.get_tile(pos.x, pos.y).set_occupant(null)
+					new_tile.set_occupant(target)
+					core.units.erase(pos)
+					core.units[new_pos] = target
+
+					# Animate model movement
+					if target.has_meta("model_instance"):
+						var model: Node3D = target.get_meta("model_instance")
+						if is_instance_valid(model):
+							var tw := model.create_tween()
+							var start_pos = model.global_position
+							var end_pos = new_tile.global_position + Vector3(0, 0.1, 0)
+							tw.tween_property(model, "global_position", end_pos, 0.3).set_trans(Tween.TRANS_SINE)
+
+					core._float_text(new_tile.global_position + Vector3(0, 0.5, 0), "💨", Color(1, 1, 1))
+					core._log("%s was pushed to %s!" % [target.card.name, str(new_pos)], Color(0.8, 0.9, 1.0))
+					if core.camera.has_method("shake"):
+						core.camera.shake(0.15, 0.25)
+					board.flash_tiles(tiles_in_front, Color(1.0, 0.8, 0.5), 0.2)

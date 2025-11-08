@@ -38,5 +38,5 @@ const PATH := {
 	"TUTORIAL_GOBLIN":    "res://Cards/Monster Cards/Tutorial_Goblin.tres",
 }
 
-func lookup(name: String) -> String:
+static func lookup(name: String) -> String:
 	return PATH.get(name, "")

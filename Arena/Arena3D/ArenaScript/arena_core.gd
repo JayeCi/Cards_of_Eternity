@@ -116,7 +116,7 @@ enum Phase { SUMMON_OR_MOVE, SELECT_SUMMON_TILE, SELECT_MOVE_TARGET, ENEMY_TURN 
 # -----------------------------
 # NODES
 # -----------------------------
-@onready var board: Board3D = $Board3D
+@onready var board: Board3D = $BoardGenerator
 
 @onready var ui_root: Control = $UISystem
 @onready var camera: Camera3D = $CameraSystem
@@ -128,6 +128,7 @@ enum Phase { SUMMON_OR_MOVE, SELECT_SUMMON_TILE, SELECT_MOVE_TARGET, ENEMY_TURN 
 @onready var battle_sys: Node = $BattleSystem
 @onready var ai_sys: Node = $AISystem
 @onready var cutscene_sys: Node = $CutsceneSystem
+@onready var move_sys: ArenaMove = $MoveSystem
 
 # UI children we still reference directly (for convenience)
 @onready var card_draw: AudioStreamPlayer = $UISystem/SFX/CardDraw
@@ -139,7 +140,7 @@ enum Phase { SUMMON_OR_MOVE, SELECT_SUMMON_TILE, SELECT_MOVE_TARGET, ENEMY_TURN 
 # -----------------------------
 var phase: int = Phase.SUMMON_OR_MOVE
 var summon_mode := UnitData.Mode.ATTACK
-
+var _is_transitioning := false
 
 # Decks & hands
 var player_deck: Array = []
@@ -207,38 +208,6 @@ func _ready():
 
 	# minimal registry of cards (your collection)
 
-	#CardCollection.add_card(get_card(CARD_PATHS.GOBLIN))
-	#CardCollection.add_card(get_card(CARD_PATHS.DIRT))
-	#CardCollection.add_card(get_card(CARD_PATHS.COLD_SLOTH))
-	#CardCollection.add_card(get_card(CARD_PATHS.FYSH))
-	#CardCollection.add_card(get_card(CARD_PATHS.FOREST_FAE))
-	#CardCollection.add_card(get_card(CARD_PATHS.IMP))
-	#CardCollection.add_card(get_card(CARD_PATHS.LAVA_HARE))
-	#CardCollection.add_card(get_card(CARD_PATHS.NAGA))
-	#CardCollection.add_card(get_card(CARD_PATHS.FIREBALL))
-	#CardCollection.add_card(get_card(CARD_PATHS.LYZARD))
-	#CardCollection.add_card(get_card(CARD_PATHS.ERUPTION))
-	#CardCollection.add_card(get_card(CARD_PATHS.DRAKE_OF_EMERALD))
-	#CardCollection.add_card(get_card(CARD_PATHS.FLAME_FAE))
-	#CardCollection.add_card(get_card(CARD_PATHS.AXO_THE_KNIGHT))
-	#CardCollection.add_card(get_card(CARD_PATHS.FINN))
-	#CardCollection.add_card(get_card(CARD_PATHS.FALCREEP))
-	#CardCollection.add_card(get_card(CARD_PATHS.SNAPTRAP))
-	#CardCollection.add_card(get_card(CARD_PATHS.MOLTEN_PIG))
-	#CardCollection.add_card(get_card(CARD_PATHS.NINJOAD))
-	#CardCollection.add_card(get_card(CARD_PATHS.BOOGLES))
-	#CardCollection.add_card(get_card(CARD_PATHS.FUNGOO))
-	#CardCollection.add_card(get_card(CARD_PATHS.ORB_OF_DARKNESS))
-	#CardCollection.add_card(get_card(CARD_PATHS.SHADOW_CANDLES))
-	#CardCollection.add_card(get_card(CARD_PATHS.JESTER_OF_FLAMES))
-	#CardCollection.add_card(get_card(CARD_PATHS.VOIDLING_ERO))
-	#CardCollection.add_card(get_card(CARD_PATHS.MUSHMONK))
-	#CardCollection.add_card(get_card(CARD_PATHS.ZEI_PANDA))
-	#CardCollection.add_card(get_card(CARD_PATHS.YORG_ARCHER))
-	#CardCollection.add_card(get_card(CARD_PATHS.STONE_FAE))
-	#CardCollection.add_card(get_card(CARD_PATHS.CONFLAGURATION_BLADE))
-	#CardCollection.add_card(get_card(CARD_PATHS.TIDAL_WAVE))
-	#CardCollection.add_card(get_card(CARD_PATHS.AQUA_WHIP))
 
 	# ✅ Connect essence UI
 	var orb_grid := ui_sys.get_node_or_null("OrbGrid")
@@ -273,7 +242,7 @@ func _deferred_startup():
 		board.Biome.MEADOW: "🌾 Meadow",
 		board.Biome.MOUNTAIN: "⛰️ Mountain",
 		board.Biome.TUNDRA: "❄️ Tundra",
-		board.Biome.DEFAULT: " DEFAULT "
+		#board.Biome.DEFAULT: " DEFAULT "
 	}
 	_log("🌍 Battlefield biome: " + biome_names.get(board.biome, str(board.biome)))
 
@@ -294,6 +263,12 @@ func _deferred_startup():
 #
 #
 #
+	# 🟡 Hide End Turn button before intro cutscene
+	var end_turn_btn := ui_sys.get_node_or_null("EndTurnButton")
+	if end_turn_btn:
+		end_turn_btn.visible = false
+
+	# 🎥 Play intro cutscene
 	cutscene_sys._intro()
 
 		# 🎥 Start fade-in BEFORE intro begins
@@ -304,6 +279,12 @@ func _deferred_startup():
 		await fade_tween.finished
 		fade_rect.visible = false
 	
+	# 🕒 Wait until cutscene ends and fade finishes before showing button
+	await get_tree().create_timer(4.0).timeout  # matches your intro + fade length
+
+	if end_turn_btn:
+		end_turn_btn.visible = true
+
 	
 	await get_tree().create_timer(4.0).timeout
 	
@@ -350,17 +331,22 @@ func refresh_tile_art_safe(pos: Vector2i):
 	var u: UnitData = units[pos]
 	var t = board.get_tile(pos.x, pos.y)
 	if not t: return
-	if u.is_facedown:
+
+	# 👇 Prevent accidental reveal
+	var is_enemy := u.owner == ENEMY
+	var is_facedown = u.is_facedown or (u.has_meta("is_facedown") and u.get_meta("is_facedown"))
+	if is_enemy and is_facedown:
 		t.set_art(CARD_BACK)
-	else:
-		t.set_art(u.card.art, u.owner == ENEMY)
+		return
+
+	t.set_art(u.card.art, u.owner == ENEMY)
 
 		
 func _apply_terrain_bonus(unit: UnitData, terrain: String) -> void:
 	if not unit or not unit.card:
 		return
 	if unit.is_leader:
-		return  # 🚫 Leaders ignore terrain bonuses and skip logs entirely
+		return
 	if not TERRAIN_BONUS.has(terrain):
 		return
 
@@ -377,65 +363,47 @@ func _apply_terrain_bonus(unit: UnitData, terrain: String) -> void:
 	var base_atk: float = float(unit.get_meta("base_atk"))
 	var base_def: float = float(unit.get_meta("base_def"))
 
-	# --- Retrieve old multiplier if known ---
-	var old_mult := 1.0
-	if unit.has_meta("last_terrain_mult"):
-		old_mult = float(unit.get_meta("last_terrain_mult"))
-
+	var old_mult = unit.get_meta("last_terrain_mult") if unit.has_meta("last_terrain_mult") else 1.0
 	var new_mult = TERRAIN_BONUS[terrain][element]
 	if abs(new_mult - old_mult) < 0.001:
-		return  # no effective change
+		return
 
-	# --- Preserve % HP ratio ---
-	var old_max_def := base_def * old_mult
-	var ratio := 1.0
-	if old_max_def > 0:
-		ratio = clamp(unit.current_def / old_max_def, 0.0, 1.0)
+	var old_max_def = base_def * old_mult
+	var ratio = clamp(unit.current_def / old_max_def, 0.0, 1.0)
 
-	# --- Apply new stats ---
 	unit.current_atk = int(round(base_atk * new_mult))
 	unit.current_def = int(round(base_def * new_mult * ratio))
 	unit.set_meta("last_terrain_mult", new_mult)
 
-	# --- Determine buff/debuff ---
 	var diff_percent = ((new_mult / old_mult) - 1.0) * 100.0
 	var is_buff = diff_percent > 0.0
 	var color := Color(0.6, 1.0, 0.6) if is_buff else Color(1.0, 0.5, 0.5)
-	var sign := "+" if is_buff else ""
-	# --- Prevent revealing facedown enemy units (but allow player facedowns)
-	var is_facedown = unit.is_facedown or (unit.has_meta("is_facedown") and unit.get_meta("is_facedown"))
-	var is_enemy := unit.owner == ENEMY
 
+	# 🚫 Skip revealing facedown enemies
+	var is_enemy := unit.owner == ENEMY
+	var is_facedown = unit.is_facedown or (unit.has_meta("is_facedown") and unit.get_meta("is_facedown"))
 	if is_enemy and is_facedown and not unit.is_leader:
 		return
-	# --- 🧩 Skip terrain logs for Spell or Event cards ---
+
 	if unit.card.card_type == CardData.CardType.SPELL or unit.card.card_type == CardData.CardType.EVENT:
 		return
-		
-	# --- Log improvement with percentage ---
-	_log("🌿 %s adapts to %s terrain\nATK %d → %d | DEF %d → %d (%s%.1f%% %s)" % [
-		unit.card.name,
-		terrain,
-		int(base_atk * old_mult),
-		unit.current_atk,
-		int(base_def * old_mult),
-		unit.current_def,
-		sign,
-		abs(diff_percent),
-		"buff" if is_buff else "debuff"
-	], color)
-	if is_tutorial_match and not TutorialManager.has_learned_terrain:
-		TutorialManager.on_standing_on_terrain(terrain)
 
-	# --- Safe refresh of visuals ---
+	var sign := "+" if is_buff else ""
+	_log("🌿 %s adapts to %s terrain (%s%.1f%% %s)" % [
+		unit.card.name, terrain, sign, abs(diff_percent), "buff" if is_buff else "debuff"
+	], color)
+
 	var pos = board.get_unit_position(unit)
 	if pos != Vector2i(-1, -1):
 		refresh_tile_art_safe(pos)
+
 	var tile := board.get_tile_position_for_unit(unit)
 	if tile and tile.has_method("update_stat_labels"):
 		tile.update_stat_labels(unit.current_atk, unit.current_def)
-		var pos3d = tile.global_position + Vector3(0, 1.2, 0)
-		_float_text(pos3d, "%s%.1f%% %s" % [sign, abs(diff_percent), ("buff" if is_buff else "debuff")], color)
+		_float_text(tile.global_position + Vector3(0, 1.2, 0), "%s%.1f%% %s" % [sign, abs(diff_percent), ("buff" if is_buff else "debuff")], color)
+
+	# ✅ Enforce correct visuals *after* all logic
+	battle_sys._enforce_visual_face_state()
 
 func _float_text(world_pos: Vector3, text: String, color: Color = Color.WHITE) -> void:
 	if ui_sys and ui_sys.has_method("_float_text"):
@@ -997,15 +965,6 @@ func _play_fusion_effect(result_card: CardData) -> void:
 	var art_b: Texture2D = fusion_selection[1].art
 	var fusion_name := result_card.name
 	
-# 🎧 Play fuse sound when fusion begins
-	#if FUSE_SOUND:
-		#var p := AudioStreamPlayer.new()
-		#add_child(p)
-		#p.stream = FUSE_SOUND
-		#p.volume_db = -6.0
-		#p.pitch_scale = randf_range(0.97, 1.03)
-		#p.play()
-		#p.connect("finished", Callable(p, "queue_free"))
 
 	effect.start(art_a, art_b, fusion_name)
 	# 🔇 Stop the Fusion Pending hum once fusion animation starts
@@ -1093,7 +1052,7 @@ func confirm_summon_in_mode(mode: int) -> void:
 		player_hand.erase(selected_card)
 		ui_sys.refresh_hand(player_hand, player_essence)
 
-		battle_sys.place_unit(selected_card, selected_pos, PLAYER, mode, true)
+		move_sys.place_unit(selected_card, selected_pos, PLAYER, mode, true)
 		_log("🎴 %s summoned in %s!" % [selected_card.name, mode_name], Color(0.7, 1.0, 0.7))
 
 	# --- ✅ Cleanup (common for both)
@@ -1127,6 +1086,7 @@ func _on_end_turn_button_pressed() -> void:
 	_log("📜 Player ends their turn.")
 	ui_sys.call("fade_hand_out")
 	battle_sys.call("_reset_hover_state")
+	
 	if is_tutorial_match and player_hand.size() > 0 and units.size() <= 2: # only leaders on board
 		DialogueManager.start_convo([
 			DialogueManager._dl("Guide", "Try placing a monster first!"),
@@ -1329,9 +1289,6 @@ func _gain_essence(owner: int, amount: int = 1) -> void:
 		ui_sys.call("refresh_hand", player_hand, player_essence, true)
 
 
-#func _log(text: String, color: Color = Color.WHITE) -> void:
-	#emit_signal("log_line", text, color)
-
 func on_leader_damaged(owner: int, new_hp: int) -> void:
 	emit_signal("hp_changed", owner, new_hp)
 
@@ -1407,6 +1364,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_LEFT:
+			print("left clicking")
 			if hovered_tile:
 				# 🧬 If two cards are selected, always do fusion
 				if fusion_selection.size() == 2:
@@ -1428,8 +1386,8 @@ func _unhandled_input(event: InputEvent) -> void:
 					return
 
 			# Otherwise, forward click to board
-			if battle_sys and battle_sys.has_method("on_board_click"):
-				battle_sys.call("on_board_click", event.position)
+			if move_sys and move_sys.has_method("on_board_click"):
+				move_sys.call("on_board_click", event.position)
 				return
 
 

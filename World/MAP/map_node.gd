@@ -41,7 +41,8 @@ func _ready():
 				description = "Trade cards and items for gold."
 			"fireevent":
 				description = "An elemental event tied to fire energy unfolds here."
-
+			"explore":
+				description = "Explore, see what you find."
 
 	self.pressed.connect(_on_pressed)
 	match encounter_type:

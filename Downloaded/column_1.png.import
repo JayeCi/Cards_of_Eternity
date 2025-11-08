@@ -2,20 +2,24 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cbcf7vs6k57y3"
-path="res://.godot/imported/Atlas_Texture_Card_Template.png-8905a55fcf77191c0791522d8856f642.ctex"
+uid="uid://clt1pjknkqe6d"
+path.s3tc="res://.godot/imported/column_1.png-a5b88e8287139f9a13e2315602b579e1.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
+}
+generator_parameters={
+"md5": "e7ced69dcbfba1bc273e01924a3cd167"
 }
 
 [deps]
 
-source_file="res://World/MAP/Card_UI/Atlas_Texture_Card_Template.png"
-dest_files=["res://.godot/imported/Atlas_Texture_Card_Template.png-8905a55fcf77191c0791522d8856f642.ctex"]
+source_file="res://Downloaded/column_1.png"
+dest_files=["res://.godot/imported/column_1.png-a5b88e8287139f9a13e2315602b579e1.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -23,10 +27,10 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
-roughness/mode=0
-roughness/src_normal=""
+roughness/mode=8
+roughness/src_normal="res://Downloaded/column_2.png"
 process/channel_remap/red=0
 process/channel_remap/green=1
 process/channel_remap/blue=2
@@ -37,4 +41,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

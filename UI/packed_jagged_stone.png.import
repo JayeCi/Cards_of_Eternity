@@ -2,28 +2,29 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cnf7ycviscd47"
-path="res://.godot/imported/acgicon.png-f0123e23abf7e7895914948c01a0e75c.ctex"
+uid="uid://3ukqci1t5888"
+path.s3tc="res://.godot/imported/packed_jagged_stone.png-d63579aae54a16556c2735357cba00aa.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
-source_file="res://acgicon.png"
-dest_files=["res://.godot/imported/acgicon.png-f0123e23abf7e7895914948c01a0e75c.ctex"]
+source_file="res://UI/packed_jagged_stone.png"
+dest_files=["res://.godot/imported/packed_jagged_stone.png-d63579aae54a16556c2735357cba00aa.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
-compress/normal_map=0
+compress/normal_map=2
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
