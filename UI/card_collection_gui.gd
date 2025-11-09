@@ -199,7 +199,7 @@ func _move_card_to_deck(card_data: CardData) -> bool:
 func _on_card_count_changed(card_id: String, new_count: int) -> void:
 	for grid in [main_panel, deck_collection_grid]:
 		for child in grid.get_children():
-			if child.has("card_data") and child.card_data and child.card_data.id == card_id:
+			if child.has_method("card_data") and child.card_data and child.card_data.id == card_id:
 				if child.has_method("set_quantity"):
 					child.set_quantity(new_count)
 					print("[CollectionGUI] 🔄 Updated quantity for ", card_id, " → ", new_count)

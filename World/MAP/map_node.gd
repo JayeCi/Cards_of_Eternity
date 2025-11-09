@@ -3,7 +3,7 @@ class_name MapNode
 
 signal clicked(node: MapNode)
 
-@export_enum("start", "fight", "elite", "boss", "shop", "fireevent", "waterevent", "windevent", "earthevent", "rest", "explore", "unknown")
+@export_enum("hub", "fight", "elite", "boss", "shop", "fireevent", "waterevent", "windevent", "earthevent", "rest", "explore", "unknown")
 var encounter_type := "fight"
 @export var enemy_name: String = "Tutorial Enemy"
 @export var enemy_deck: Array[CardData] = []
@@ -44,7 +44,7 @@ func _ready():
 			"explore":
 				description = "Explore, see what you find."
 
-	self.pressed.connect(_on_pressed)
+	#self.pressed.connect(_on_pressed)
 	match encounter_type:
 		
 		"shop":
@@ -57,8 +57,8 @@ func _ready():
 			texture_hover = preload("res://World/MAP/Fight_Encounter_Node_Hover.png")
 		"fireevent":
 			texture_normal = preload("res://World/MAP/Fire_Node.png")
-		"start":
-			texture_normal = preload("res://World/MAP/Knight_Node.png")
+		"hub":
+			texture_normal = preload("res://World/MAP/portal_hub.png")
 			
 func _on_pressed():
 	if is_reachable:

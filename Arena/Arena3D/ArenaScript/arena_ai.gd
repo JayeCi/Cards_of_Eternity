@@ -11,9 +11,10 @@ var caution := 0.35
 var face_down_chance := 0.75
 var terrain_synergy_bonus := 4.0
 var protect_leader_radius := 3
-var attack_radius := 2
+var attack_radius := 1
 var think_delay := 0.5
 var _did_action_this_turn := false
+var _unit_has_moved := {}
 
 
 # ---------------------------------------------------------
@@ -76,9 +77,11 @@ func configure_style(ai_style: String, difficulty: int) -> void:
 # MAIN TURN ENTRY
 # ---------------------------------------------------------
 func run_enemy_turn() -> void:
+	_unit_has_moved.clear()
 	battle.apply_all_passives()
 	await get_tree().create_timer(0.5).timeout
 	_draw_up_to_limit()
+
 
 	# 🔹 NEW: Smart flip before planning moves
 	await _smart_flip_faceup()
@@ -356,24 +359,38 @@ func _smart_move_and_attack() -> void:
 		if not unit:
 			continue
 
+		# Skip if already moved this turn
+		if _unit_has_moved.has(unit) and _unit_has_moved[unit]:
+			continue
+
 		# 🚫 Skip facedown units
 		if unit.is_facedown or (unit.has_meta("is_facedown") and unit.get_meta("is_facedown")):
 			continue
 
-		# 1️⃣ Try to attack any target in range
+		# 1️⃣ Try to attack if adjacent
 		if await _find_and_attack_target(from):
+			_unit_has_moved[unit] = true
 			continue
 
-		# 2️⃣ Try to move toward nearest viable attack position (using movement rules)
+		# 2️⃣ Try to move closer to enemy leader
 		var best_move = _find_best_move_toward(from, player_leader)
 		if best_move != from:
-			await move._move_or_battle(from, best_move, true)
-			await _find_and_attack_target(best_move)
+			var target_tile = core.board.get_tile(best_move.x, best_move.y)
+			if target_tile and target_tile.occupant and target_tile.occupant.owner == core.PLAYER:
+				# Move *onto* enemy → attack normally
+				await move._move_or_battle(from, best_move, true)
+				_did_action_this_turn = true
+			else:
+				# Move only — no follow-up attack allowed this turn
+				await move._move_or_battle(from, best_move, true)
+				_unit_has_moved[unit] = true
+				_did_action_this_turn = true
 			continue
 
-		# 3️⃣ Weak units retreat (same as player could move back)
+		# 3️⃣ Weak units retreat (same as player)
 		if unit.current_def < unit.max_def * caution:
 			await _tactical_retreat(from)
+			_unit_has_moved[unit] = true
 			continue
 
 func _proactive_reposition() -> void:
@@ -473,47 +490,41 @@ func _smart_flip_faceup() -> void:
 # ATTACK DECISION (same ATTACK_RADIUS logic)
 # ---------------------------------------------------------
 func _find_and_attack_target(from: Vector2i) -> bool:
-	var range := attack_radius
 	var attacker = core.units.get(from)
 	if not attacker:
+		return false
+
+	# Don’t allow attacking if already moved this turn
+	if _unit_has_moved.has(attacker) and _unit_has_moved[attacker]:
 		return false
 
 	var best_target: Vector2i = Vector2i(-1, -1)
 	var best_score := -INF
 
-	for dx in range(-range, range + 1):
-		for dy in range(-range, range + 1):
-			var dist = abs(dx) + abs(dy)
-			if dist == 0 or dist > range:
-				continue
+	for dir in [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]:
+		var target = from + dir
+		if not core.board.is_in_bounds(target):
+			continue
 
-			# ❌ Disallow diagonals: must be same row or same column
-			if abs(dx) > 0 and abs(dy) > 0:
-				continue
+		var t = core.board.get_tile(target.x, target.y)
+		if not t or not t.occupant or t.occupant.owner != core.PLAYER:
+			continue
 
-			var target = from + Vector2i(dx, dy)
-			if not core.board.is_in_bounds(target):
-				continue
+		var score = 10.0 - float(t.occupant.current_def)
+		if t.occupant.is_leader:
+			score += 10.0
 
-			var t = core.board.get_tile(target.x, target.y)
-			if not t or not t.occupant or t.occupant.owner != core.PLAYER:
-				continue
-
-			var score = (10.0 - float(t.occupant.current_def)) - dist
-			if t.occupant.is_leader:
-				score += 10.0
-
-			if score > best_score:
-				best_score = score
-				best_target = target
+		if score > best_score:
+			best_score = score
+			best_target = target
 
 	if best_target != Vector2i(-1, -1):
 		core._log("⚔ %s attacks %s!" %
 			[attacker.card.name, core.units[best_target].card.name], Color(1, 0.7, 0.7))
 		await move._move_or_battle(from, best_target, true)
 		_did_action_this_turn = true
+		_unit_has_moved[attacker] = true
 		return true
-
 
 	return false
 

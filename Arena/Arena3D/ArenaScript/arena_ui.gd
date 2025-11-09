@@ -159,6 +159,14 @@ func refresh_hand(player_hand: Array, player_essence: int, force_update := false
 		elif "cost" in c: cost = int(c.cost)
 		ui.set_playable(cost <= player_essence)
 
+		# 🩵 Immediately store correct base tint for first draw
+		if cost <= player_essence:
+			ui.modulate = Color(1, 1, 1, 1)
+			ui._base_modulate = Color(1, 1, 1, 1)
+		else:
+			ui.modulate = Color(0.4, 0.4, 0.4, 0.5)
+			ui._base_modulate = Color(0.4, 0.4, 0.4, 0.5)
+
 		# Hover + click
 		if not ui.is_connected("request_show_zoom", Callable(self, "_on_card_hovered_in_hand")):
 			ui.request_show_zoom.connect(Callable(self, "_on_card_hovered_in_hand"))
@@ -188,8 +196,7 @@ func refresh_hand(player_hand: Array, player_essence: int, force_update := false
 
 func get_last_hand_card_ui() -> Control:
 	return last_card_ui
-	
-# Smoothly animate card selection raise/lower
+
 # Smoothly animate card selection raise/lower + keep hover-like pose
 func _animate_card_selection(ui: Control, is_selected: bool) -> void:
 	if not ui:
@@ -411,8 +418,6 @@ func move_ghost_over(tile: Node3D) -> void:
 # HAND HOVER (smart update, no flicker)
 # ----------------------------------------
 var _hide_timer_task: SceneTreeTimer = null
-
-
 # ----------------------------------------
 # HAND HOVER (Pro system)
 # ----------------------------------------
@@ -420,52 +425,21 @@ var _hide_task: SceneTreeTimer
 var _hover_state := "idle"  # "idle", "showing", "visible", "hiding"
 
 func _on_card_hovered_in_hand(card: CardData) -> void:
-		# 🧬 If this card is part of fusion selection, keep it persistently visible
-	if core and core.fusion_selection.has(card):
-		card_details_ui.show_card(card)
-		card_details_ui.visible = true
-		_hover_state = "visible"
-		print("[ArenaUI] 🧬 Persistent hover for selected card:", card.name)
+	if not card:
 		return
 
-	# 1️⃣ Cancel any scheduled hide
-	if _hide_task:
-		_hide_task = null
-
-	# 2️⃣ If already showing this same card, ignore
-	if _current_hover_card == card and _hover_state == "visible":
-		return
-
-	_current_hover_card = card
-	_is_hovering_hand_card = true
-
-	# 🧩 NEW FIX — hide terrain when hovering a hand card
-	if has_node("ArenaTerrainDetails"):
-		if $ArenaTerrainDetails.has_method("hide_terrain"):
-			$ArenaTerrainDetails.hide_terrain()
-		else:
-			$ArenaTerrainDetails.visible = false
-
-	if not card_details_ui:
-		return
-
-	# 3️⃣ Stop ongoing animations
-	if _hover_tween and _hover_tween.is_running():
-		_hover_tween.kill()
-
-	match _hover_state:
-		"idle", "hiding":
-			card_details_ui.modulate.a = 0.0
-			card_details_ui.show_card(card)
-			card_details_ui.visible = true
-			_hover_tween = create_tween()
-			_hover_tween.tween_property(card_details_ui, "modulate:a", 1.0, 0.12).set_trans(Tween.TRANS_SINE)
-			_hover_state = "visible"
-			print("[ArenaUI] 🟢 Showing details for:", card.name)
-		"visible", "showing":
-			card_details_ui.show_card(card)
-			print("[ArenaUI] 🔁 Updating details for:", card.name)
-	
+	# 🔧 FIX — Re-evaluate playability when hovering (prevents auto-brightening)
+	for card_ui in hand_grid.get_children():
+		if card_ui.card_data == card and card_ui.has_method("set_playable"):
+			var cost := 1
+			if card.has_meta("cost"):
+				cost = int(card.get_meta("cost"))
+			elif card.has_method("get_cost"):
+				cost = card.get_cost()
+			elif "cost" in card:
+				cost = int(card.cost)
+			card_ui.set_playable(cost <= core.player_essence)
+			break
 
 func _on_card_hovered_in_hand_exit() -> void:
 	# 🧩 If any card is selected for fusion, disable hover exit
@@ -576,6 +550,16 @@ func _on_essence_changed(p: int, e: int) -> void:
 	# Optional visual feedback if capped
 	if p > 8:
 		core._log("⚠️ Essence capped at 8 (current: %d)" % p, Color(0.8, 0.8, 1.0))
+		
+	# Re-evaluate card playability tint each time essence changes
+	for card_ui in hand_grid.get_children():
+		if card_ui.has_method("get_card_data") and card_ui.has_method("set_playable"):
+			var c = card_ui.card_data
+			if c:
+				var cost := 1
+				if c.has_meta("cost"): cost = int(c.get_meta("cost"))
+				elif "cost" in c: cost = int(c.cost)
+				card_ui.set_playable(cost <= p) # p = player essence
 
 
 

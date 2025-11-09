@@ -1,0 +1,87 @@
+[gd_scene load_steps=6 format=3 uid="uid://cepdyg4ededgv"]
+
+[ext_resource type="Script" uid="uid://c5tqhxp7elweq" path="res://World/MAP/realm_selection.gd" id="1_mnwew"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_d0cwl"]
+bg_color = Color(0.94509804, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mnwew"]
+bg_color = Color(0.33556315, 0.17504442, 0.08180625, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hulhl"]
+bg_color = Color(0, 0.26593482, 0.5070329, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ph521"]
+bg_color = Color(0.1104329, 0.1104329, 0.1104329, 0.29803923)
+
+[node name="REALM_SELECTION" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_mnwew")
+
+[node name="GridContainer" type="GridContainer" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -97.5
+offset_top = -40.0
+offset_right = 97.5
+grow_horizontal = 2
+grow_vertical = 0
+columns = 4
+
+[node name="FIRE" type="Button" parent="GridContainer"]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_d0cwl")
+text = "FIRE"
+
+[node name="EARTH" type="Button" parent="GridContainer"]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_mnwew")
+text = "EARTH"
+
+[node name="WATER" type="Button" parent="GridContainer"]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_hulhl")
+text = "WATER"
+
+[node name="WIND" type="Button" parent="GridContainer"]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_ph521")
+text = "WIND"
+
+[node name="Not_unlocked" type="Panel" parent="."]
+visible = false
+custom_minimum_size = Vector2(400, 50)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="Not_unlocked"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "You have not unlocked this realm yet."
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[connection signal="pressed" from="GridContainer/FIRE" to="." method="_on_fire_pressed"]
+[connection signal="pressed" from="GridContainer/EARTH" to="." method="_on_earth_pressed"]
+[connection signal="pressed" from="GridContainer/WATER" to="." method="_on_water_pressed"]
+[connection signal="pressed" from="GridContainer/WIND" to="." method="_on_wind_pressed"]

@@ -135,13 +135,37 @@ func _start_hover_animation(entering: bool):
 	if _hover_tween:
 		_hover_tween.kill()
 	_hover_tween = create_tween()
-	if entering:
-		_hover_tween.tween_property(self, "scale", hover_scale, hover_duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		_hover_tween.parallel().tween_property(self, "modulate", hover_glow_modulate, hover_duration)
-	else:
-		_hover_tween.tween_property(self, "scale", Vector2.ONE, hover_duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-		_hover_tween.parallel().tween_property(self, "modulate", _base_modulate, hover_duration)
 
+	# 🧩 Determine if this card is playable before brightening
+	var cost := 1
+	if card_data:
+		if card_data.has_meta("cost"):
+			cost = int(card_data.get_meta("cost"))
+		elif card_data.has_method("get_cost"):
+			cost = card_data.get_cost()
+		elif "cost" in card_data:
+			cost = int(card_data.cost)
+
+	var player_essence := 0
+	var tree := get_tree()
+	if tree and tree.root:
+		var core := tree.root.get_node_or_null("Arena3D")
+		if core and "player_essence" in core:
+			player_essence = core.player_essence
+
+	var can_play := cost <= player_essence
+
+	# 🟢 Only brighten playable cards
+	if entering:
+		_hover_tween.tween_property(self, "scale", hover_scale, hover_duration)\
+			.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+		if can_play:
+			_hover_tween.parallel().tween_property(self, "modulate", hover_glow_modulate, hover_duration)
+	else:
+		_hover_tween.tween_property(self, "scale", Vector2.ONE, hover_duration)\
+			.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+		_hover_tween.parallel().tween_property(self, "modulate", _base_modulate, hover_duration)
 
 # -------------------------------
 # Mouse filter safety
@@ -247,8 +271,19 @@ func _resolve_element(cd: CardData) -> String:
 # State display
 # -------------------------------
 func set_playable(is_playable: bool):
-	print("[CardUI] Playable state for", card_data.name, "=", is_playable)
-	modulate = Color(1, 1, 1, 1) if is_playable else Color(0.4, 0.4, 0.4, 0.5)
+	if not card_data:
+		return
+	var cost := int(card_data.get_meta("cost")) if card_data.has_meta("cost") else int(card_data.cost)
+	var player_essence := 0
+	var tree := get_tree()
+	if tree and tree.root:
+		var core := tree.root.get_node_or_null("Arena3D")
+		if core and "player_essence" in core:
+			player_essence = core.player_essence
+
+	var can_play := is_playable and cost <= player_essence
+	_base_modulate = Color(1, 1, 1, 1) if can_play else Color(0.4, 0.4, 0.4, 0.5)
+	modulate = _base_modulate
 
 func show_fusion_glow(on: bool = true) -> void:
 	if not fusion_glow:

@@ -1,0 +1,27 @@
+[gd_scene load_steps=4 format=3 uid="uid://bagdrlscvtdav"]
+
+[ext_resource type="Shader" uid="uid://bbfxlxearren0" path="res://hqpostprocess.gdshader" id="1_4a1fd"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_x1o02"]
+render_priority = 0
+shader = ExtResource("1_4a1fd")
+shader_parameter/outlineColor = Color(0, 0, 0, 1)
+shader_parameter/depth_threshold = 0.025
+shader_parameter/normal_threshold = 0.0
+shader_parameter/normal_smoothing = 0.539
+shader_parameter/max_thickness = 0.2550000121125
+shader_parameter/min_thickness = 0.5
+shader_parameter/max_distance = 75.0
+shader_parameter/min_distance = 2.0
+shader_parameter/grazing_fresnel_power = 5.0
+shader_parameter/grazing_angle_mask_power = 1.0
+shader_parameter/grazing_angle_modulation_factor = 50.0
+
+[sub_resource type="QuadMesh" id="QuadMesh_4x6q3"]
+material = SubResource("ShaderMaterial_x1o02")
+flip_faces = true
+size = Vector2(2, 2)
+
+[node name="PostProc" type="MeshInstance3D"]
+extra_cull_margin = 16384.0
+mesh = SubResource("QuadMesh_4x6q3")
