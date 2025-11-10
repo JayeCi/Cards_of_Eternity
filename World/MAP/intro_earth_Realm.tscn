@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3 uid="uid://ga0vx2fo46g5"]
+
+[ext_resource type="Script" uid="uid://qol0mp3smss3" path="res://intro_earth_realm.gd" id="1_7rlvd"]
+[ext_resource type="Texture2D" uid="uid://dd3pnpmyt6edn" path="res://World/MAP/Earth_pixie.png" id="2_io3oc"]
+
+[node name="Intro_Earth_Realm" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_7rlvd")
+
+[node name="EarthPixie" type="Sprite2D" parent="."]
+z_index = 6
+position = Vector2(185, 579)
+texture = ExtResource("2_io3oc")
+flip_h = true

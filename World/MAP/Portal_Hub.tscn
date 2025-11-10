@@ -1,4 +1,4 @@
-[gd_scene load_steps=40 format=3 uid="uid://ips6u6huym1y"]
+[gd_scene load_steps=36 format=3 uid="uid://ips6u6huym1y"]
 
 [ext_resource type="Texture2D" uid="uid://cjw8qsb0thllt" path="res://Images/abstract-heavy-blue-haze-liquid (1).jpg" id="1_fwx6l"]
 [ext_resource type="PackedScene" uid="uid://b1lmaxf3wjdva" path="res://Downloaded/Structures/HUB/earthportal.tscn" id="2_8cuqh"]
@@ -16,8 +16,6 @@
 [ext_resource type="PackedScene" uid="uid://bxs4tblgjoogj" path="res://Downloaded/Decor/Rocks/Low_Poly_Rock_1.tscn" id="11_liugq"]
 [ext_resource type="PackedScene" uid="uid://coenpll27o4tc" path="res://Downloaded/Decor/Rocks/Low_Poly_Rock_2.tscn" id="12_y83d5"]
 [ext_resource type="PackedScene" uid="uid://bagdrlscvtdav" path="res://World/MAP/post_proc.tscn" id="15_ovje0"]
-[ext_resource type="Shader" uid="uid://dwpgf3bb5rcpv" path="res://World/MAP/Portal_Hub.gdshader" id="17_elq2a"]
-[ext_resource type="Texture2D" uid="uid://c1bncd8qiexd0" path="res://UI/wave2.png" id="18_eb306"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_bo05n"]
 panorama = ExtResource("1_fwx6l")
@@ -997,25 +995,6 @@ _data = {
 &"RESET": SubResource("Animation_qpm18")
 }
 
-[sub_resource type="PlaneMesh" id="PlaneMesh_eb306"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_f8bds"]
-shader = ExtResource("17_elq2a")
-shader_parameter/dimensions = Vector2(1152, 648)
-shader_parameter/rows = 20.0
-shader_parameter/columns = 5.0
-shader_parameter/vertical_scroll = 0.5
-shader_parameter/horizontal_scroll = 0.1
-shader_parameter/size_min = 0.3
-shader_parameter/size_max = 0.7
-shader_parameter/wave_min = 0.1
-shader_parameter/wave_max = 1.0
-shader_parameter/wave_speed = 0.5
-shader_parameter/wave_rotation = 1.0
-shader_parameter/far_color = Color(0.5, 0.5, 0.5, 1)
-shader_parameter/near_color = Color(1, 1, 1, 1)
-shader_parameter/particle_texture = ExtResource("18_eb306")
-
 [node name="Node3D" type="Node3D"]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
@@ -1037,7 +1016,7 @@ directional_shadow_blend_splits = true
 transform = Transform3D(0.004142359, 0, 0, 0, 0.004142359, 0, 0, 0, 0.004142359, 0.011799812, 0, 0)
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.96592575, -0.258819, 0, 0.258819, 0.9659257, 0.023682117, 0.5069159, 2.1553187)
+transform = Transform3D(1, 0, 0, 0, 0.9659257, -0.25881898, 0, 0.258819, 0.96592563, 0.023682117, 0.5069159, 2.1553187)
 
 [node name="Terrain3D" type="Terrain3D" parent="."]
 data_directory = "res://Terrain"
@@ -1109,8 +1088,3 @@ libraries = {
 &"": SubResource("AnimationLibrary_elq2a")
 }
 autoplay = "Idle"
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.00076779723, -0.99999976, 0, 0.99999976, 0.00076779723, 0, 1.004394, 0)
-mesh = SubResource("PlaneMesh_eb306")
-surface_material_override/0 = SubResource("ShaderMaterial_f8bds")

@@ -28,6 +28,9 @@ func _test_set():
 	var card_names := [
 		"STONE_FAE", 
 		"FIREBALL",
+		"JESTER_OF_FLAMES",
+		"FYSH",
+		"FINN"
 		
 		]
 	for name in card_names:

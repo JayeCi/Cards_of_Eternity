@@ -765,7 +765,7 @@ horizontal_scroll_mode = 0
 layout_mode = 2
 size_flags_horizontal = 6
 size_flags_vertical = 6
-columns = 6
+columns = 5
 
 [node name="LeaderPanel" type="Panel" parent="Card_Collection_GUI"]
 visible = false

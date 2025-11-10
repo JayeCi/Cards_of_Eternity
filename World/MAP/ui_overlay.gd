@@ -97,6 +97,31 @@ func show_rewards(rewards: Array[CardData]) -> void:
 	for child in card_grid.get_children():
 		child.queue_free()
 
+
+# -------------------------------------------------------------------------
+# CALLED BY MapCore during intro/tutorial phases
+# -------------------------------------------------------------------------
+
+func handle_collection_click(event: InputEventMouseButton) -> void:
+	# This lets only the Collection button work during intro
+	if not event.is_pressed() or event.button_index != MOUSE_BUTTON_LEFT:
+		return
+
+	# Adjust this path to match your actual Collection button node
+	var collection_button := $Taskbar/Panel/VBoxContainer/CollectionButton if has_node("Taskbar/Panel/VBoxContainer/CollectionButton") else null
+
+	if collection_button and collection_button.get_global_rect().has_point(event.position):
+		_on_collection_button_pressed()
+		print("✅ Collection button pressed during intro.")
+	else:
+		print("❌ Click ignored — only Collection button allowed right now.")
+
+
+func handle_collection_tutorial_input(event: InputEventMouseButton) -> void:
+	# While tutorial is active, pass input to the collection GUI if it's visible
+	if card_collection_gui and card_collection_gui.visible:
+		card_collection_gui.propagate_call("_gui_input", [event])
+
 	
 func _update_deck_count():
 	deck_count.text = str(CardCollection.count())

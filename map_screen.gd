@@ -24,11 +24,20 @@ var dragging := false
 var zoom_speed := 0.1
 var min_zoom := 0.5
 var max_zoom := 2.0
-var drag_button := MOUSE_BUTTON_RIGHT   # ✅ Use right-click instead of left
+var drag_button := MOUSE_BUTTON_RIGHT  
+
+var is_in_intro := false
+var intro_complete := false
+var is_in_collection_tutorial := false
+var collection_tutorial_complete := false
+var in_in_post_intro := false
+var post_intro_complete := false
+
 
 func _ready():
 	TransitionFade.fade_in()
 	GameSession.map_instance = self
+	
 	# Gather all MapNodes
 	for child in node_layer.get_children():
 		if child is MapNode:
@@ -62,9 +71,39 @@ func _ready():
 		if child is Sprite2D:
 			child.add_to_group("debug_pickables")
 			print("Tracking Sprite2D:", child.name)
+			
+			
+	var intro = get_node_or_null("../Intro_Earth_Realm")
+	if intro:
+		intro.intro_finished.connect(_on_intro_finished)
+		
+	var collection_gui = ui_overlay.get_node_or_null("../CanvasLayer/Card_Collection_GUI")
+	#
+	#if collection_gui:
+		#collection_gui.tutorial_finished.connect(_on_collection_tutorial_finished)
+
+	if intro:
+		intro.intro_finished.connect(_on_intro_finished)
+		intro.post_intro_finished.connect(_on_post_intro_finished)  # NEW
 
 func _unhandled_input(event):
+	# --- Lock logic ---
+	if is_in_intro and not intro_complete:
+		# Allow only Collection tab clicks
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+			ui_overlay.handle_collection_click(event)
+		return
 
+	if is_in_collection_tutorial and not collection_tutorial_complete:
+		# Still allow Collection UI interactions only
+		if event is InputEventMouseButton:
+			ui_overlay.handle_collection_tutorial_input(event)
+		return
+		
+	if in_in_post_intro and not post_intro_complete:
+		return 
+
+	# --- Normal map interaction ---
 	if event is InputEventMouseButton:
 		match event.button_index:
 			MOUSE_BUTTON_WHEEL_DOWN:
@@ -78,11 +117,9 @@ func _unhandled_input(event):
 
 	elif event is InputEventMouseMotion and dragging:
 		camera.position -= event.relative / camera.zoom
-		
-	# --- Handle clicks on empty map space ---
+
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		var clicked_any_node := false
-
 		for node in all_nodes:
 			if node.get_global_rect().has_point(event.position):
 				clicked_any_node = true
@@ -90,7 +127,22 @@ func _unhandled_input(event):
 
 		if not clicked_any_node:
 			click_invalid.play()
-			
+
+func _on_intro_finished():
+	is_in_intro = false
+	intro_complete = true
+	print("Intro finished — gameplay unlocked.")
+	
+#func _on_collection_tutorial_finished():
+	#is_in_collection_tutorial = false
+	#collection_tutorial_complete = true
+	#print("✅ Collection tutorial finished — gameplay fully unlocked.")
+	#
+func _on_post_intro_finished():
+	in_in_post_intro = false
+	post_intro_complete = true
+	print("🌍 Post intro complete — all gameplay unlocked.")
+	
 func _update_node_reachability():
 	for n in all_nodes:
 		n.is_reachable = false
@@ -112,6 +164,10 @@ func _update_node_reachability():
 	_update_node_visuals()
 
 func _on_node_clicked(node: MapNode):
+	if is_in_intro and not intro_complete:
+		click_invalid.play()
+		return
+
 	if not node.is_reachable:
 		click_invalid.play()
 		return

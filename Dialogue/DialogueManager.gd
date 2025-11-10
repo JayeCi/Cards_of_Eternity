@@ -3,7 +3,7 @@ extends Node
 
 signal started(convo_id)
 signal advanced(index)
-signal finished(convo_id)
+signal finished
 
 @export var default_portraits: DialoguePortraits
 
@@ -185,8 +185,8 @@ func _end_convo() -> void:
 	_lines.clear()
 	_i = 0
 	#_disable_player_inputs(false)
-	emit_signal("finished", ended_id)
-	
+	emit_signal("finished")
+	#, ended_id
 func force_close():
 	if not _is_running:
 		return

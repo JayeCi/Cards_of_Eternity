@@ -1,5 +1,8 @@
 extends Control
 
+signal tutorial_finished
+
+
 @onready var main_panel := $CollectionPanel/ScrollContainer/GridContainer
 @onready var deck_collection_grid: GridContainer = $DeckPanel/Panel/Collection/ScrollContainer/CollectionGrid
 @onready var deck_grid: GridContainer = $DeckPanel/Deck/ScrollContainer/DeckGrid
@@ -17,15 +20,23 @@ extends Control
 @onready var main_menu: Control = $"../MainMenu"
 @onready var taskbar: Control = $"../../UIOverlay/Taskbar"
 @onready var ui_overlay: Control = $"../../UIOverlay"
+@onready var tutorial_label: RichTextLabel = $Tutorial_Popups/Tutorial_Panel/Tutorial_VBox/MarginContainer/Tutorial_Text
+@onready var collection_panel: Panel = $CollectionPanel
+@onready var leader_panel: Panel = $LeaderPanel
+@onready var deck_panel: Panel = $DeckPanel
+@onready var main_panel_label: Label = $Toolbar/MainPanelLabel
 
+@onready var leader_button: Button = $Toolbar/ButtonRow1/Leader_button
+@onready var deck_button: Button = $Toolbar/ButtonRow1/Deck_button
+@onready var collection_button: Button = $Toolbar/ButtonRow1/Collection_button
+@onready var x: Button = $Toolbar/ButtonRow2/X
 
 
 
 var _sort_mode := "name"
 var _sort_ascending := true
-
 var tutorial_can_continue := false
-
+var _tutorial_playing := false
 var left_panel: Control
 var card_name_label: Label
 var rarity_label: Label
@@ -41,17 +52,13 @@ var art_border: TextureRect
 var displayed_cards := {}
 var player = null
 var _elem_to_ball := {}
-@onready var tutorial_label: RichTextLabel = $Tutorial_Popups/Tutorial_Panel/Tutorial_VBox/MarginContainer/Tutorial_Text
-
-	
-@onready var collection_panel: Panel = $CollectionPanel
-@onready var leader_panel: Panel = $LeaderPanel
-@onready var deck_panel: Panel = $DeckPanel
-@onready var main_panel_label: Label = $Toolbar/MainPanelLabel
-
 var selected_card: CardData = null
 
 func _ready():
+	Globals.tutorial_stage = 0
+
+	x.disabled = true
+	
 	if sort_button:
 		sort_button.pressed.connect(_on_sort_button_pressed)
 	leader_checkbox.toggled.connect(_on_leader_checkbox_toggled)
@@ -118,6 +125,7 @@ func _ready():
 	var tween = create_tween()
 	tween.tween_property(tutorial_label, "visible_characters", tutorial_label.get_total_character_count(), 1.75)
 
+
 # ==========================================================
 # 🖱️ CARD INTERACTION (Click + Hover)
 # ==========================================================
@@ -156,32 +164,57 @@ func _on_leader_checkbox_toggled(checked: bool) -> void:
 
 func _on_card_clicked(event: InputEvent, card_ui):
 	if event is InputEventMouseButton and event.pressed:
+		var parent_grid = card_ui.get_parent()
 
-		# LEFT CLICK → Select
+		# LEFT CLICK → Select / Move (context-sensitive)
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			selected_card = card_ui.card_data
 			_update_left_panel(selected_card)
-			return
 
-		# RIGHT CLICK → Move
-		if event.button_index == MOUSE_BUTTON_RIGHT:
-			var parent_grid = card_ui.get_parent()
+			# 🔒 If clicked inside CollectionPanel → View only, no move
+			if parent_grid == main_panel:
+				print("[CollectionGUI] ℹ️ Clicked in CollectionPanel — view only (no move).")
+				return
 
-			# 🔄 Deck → Collection
+			# 🟢 If clicked in Deck Builder’s collection grid → Move to deck
+			if parent_grid == deck_collection_grid:
+				if deck_grid.get_child_count() >= 10:
+					sfx_action_beep.play()
+					print("[DeckBuilder] ⚠️ Deck is full.")
+					return
+				if _move_card_to_deck(card_ui.card_data):
+					card_ui.queue_free()
+					return
+
+			# 🔴 If clicked in DeckGrid → Remove from deck
 			if parent_grid == deck_grid:
 				_move_card_to_collection(card_ui.card_data)
 				card_ui.queue_free()
 				return
 
-			# 🔄 Collection → Deck
-			if parent_grid == main_panel or parent_grid == deck_collection_grid:
+		# RIGHT CLICK → Disabled in CollectionPanel
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			# Ignore right clicks in CollectionPanel
+			if parent_grid == main_panel:
+				print("[CollectionGUI] ❌ Right-click disabled in CollectionPanel.")
+				return
+
+			# 🔴 DeckGrid → Move back to collection
+			if parent_grid == deck_grid:
+				_move_card_to_collection(card_ui.card_data)
+				card_ui.queue_free()
+				return
+
+			# 🟢 Deck Builder’s collection grid → Add to deck
+			if parent_grid == deck_collection_grid:
 				if deck_grid.get_child_count() >= 10:
 					sfx_action_beep.play()
+					print("[DeckBuilder] ⚠️ Deck is full.")
 					return
 				if _move_card_to_deck(card_ui.card_data):
 					card_ui.queue_free()
 					return
-					
+
 func _move_card_to_deck(card_data: CardData) -> bool:
 	if deck_grid.get_child_count() >= 10:
 		return false
@@ -216,8 +249,6 @@ func _move_card_to_collection(card_data: CardData):
 
 	if not displayed_cards.has(card_data):
 		_add_card_to_gui(card_data)
-
-
 
 
 	var card_ui_scene := preload("res://UI/CardUI.tscn")
@@ -310,7 +341,8 @@ func _add_card_to_gui(card_data: CardData):
 	card_ui.connect("request_show_zoom", Callable(self, "_on_card_hovered"))
 	card_ui.connect("request_hide_zoom", Callable(self, "_on_card_unhovered"))
 	card_ui.connect("gui_input", Callable(self, "_on_card_clicked").bind(card_ui))
-	card_ui.connect("request_return_to_collection", Callable(self, "_on_card_return_requested"))
+	card_ui.connect("request_return_to_collection", Callable(self, "_on_card_return_requested").bind(card_ui))
+
 
 	# Mirror in deck builder’s collection grid
 	var deck_card_ui: Control = card_ui_scene.instantiate()
@@ -330,9 +362,17 @@ func _on_card_added_signal(card: CardData, count: int):
 	print("[CollectionGUI] ➕ Card added:", card.name, " x ", count)
 	_add_card_to_gui(card)
 
-func _on_card_return_requested(card_data: CardData):
+func _on_card_return_requested(card_data: CardData, sender_ui: Control):
+
 	if not card_data:
 		return
+	
+
+	# 🚫 Prevent this from firing on cards inside the CollectionPanel
+	if sender_ui and sender_ui.get_parent() == main_panel:
+		print("[CollectionGUI] ❌ Ignored return request from CollectionPanel card.")
+		return
+
 
 	var card_ui_scene := preload("res://UI/CardUI.tscn")
 	var new_card_ui: Control = card_ui_scene.instantiate()
@@ -526,6 +566,17 @@ func _compare_cards(a: CardData, b: CardData) -> bool:
 
 	return result < 0 if _sort_ascending else result > 0
 
+func start_tutorial():
+	if _tutorial_playing:
+		return
+	_tutorial_playing = true
+	print("🧭 Starting collection tutorial...")
+	# your existing tutorial animation/steps
+	await get_tree().create_timer(3.0).timeout  # placeholder for steps
+	_tutorial_playing = false
+	print("✅ Tutorial complete.")
+	emit_signal("tutorial_finished")
+	
 # ==========================================================
 # 🧭 TUTORIAL_STAGE SWITCHING
 # ==========================================================
@@ -536,12 +587,22 @@ func _show_tutorial_stage_1():
 
 	tutorial_label.append_text("[center][b]Great![/b][/center]\n\n")
 	tutorial_label.append_text("Now that you know how to access the [b]Card Collection[/b], let's take the next step.\n\n")
-	tutorial_label.append_text("To build and modify your deck, navigate to the [b]Deck Builder[/b] panel.\n\n")
-	tutorial_label.append_text("Click on the [color=cyan][b]\"D\"[/b][/color] on the toolbar to continue!")
+	tutorial_label.append_text("Click on the [color=yellow][b]\"D\"[/b][/color] button on the toolbar to open your Deck Builder.\n\n")
+	tutorial_label.append_text("Only this button works for now!")
+
+	# 🔒 Disable all other toolbar buttons
+	if deck_button: deck_button.disabled = false
+	if leader_button: leader_button.disabled = true
+	if sort_button: sort_button.disabled = true
+	if x: sort_button.disabled = true
+	if deck_button:
+		deck_button.disabled = false
+		_start_button_pulse(deck_button)
+
 	tutorial_label.visible_characters = 0
 	tutorial_can_continue = false
 	_unlock_tutorial_continue()
-	
+
 	var tween = create_tween()
 	tween.tween_property(tutorial_label, "visible_characters", tutorial_label.get_total_character_count(), 1.75)
 
@@ -582,6 +643,31 @@ func _show_tutorial_stage_3():
 
 	var tween = create_tween()
 	tween.tween_property(tutorial_label, "visible_characters", tutorial_label.get_total_character_count(), 1.75)
+	if x:
+		x.disabled = false
+		_stop_button_pulse(deck_button)
+
+
+func _show_collection_overview_popup():
+	tutorial_popups.visible = true
+	tutorial_label.clear()
+	tutorial_label.bbcode_enabled = true
+
+	tutorial_label.append_text("[center][b]Card Collection Overview[/b][/center]\n\n")
+	tutorial_label.append_text("This panel shows every [b]Card of Eternity[/b] you've unlocked so far.\n\n")
+	tutorial_label.append_text("You can hover over any card to inspect its art, stats, and abilities on the left side.\n\n")
+
+	tutorial_label.visible_characters = 0
+	tutorial_can_continue = false
+	_unlock_tutorial_continue()
+
+	var tween := create_tween()
+	tween.tween_property(
+		tutorial_label,
+		"visible_characters",
+		tutorial_label.get_total_character_count(),
+		1.5
+	)
 
 func _unlock_tutorial_continue():
 	continue_btn.disabled = true
@@ -590,6 +676,28 @@ func _unlock_tutorial_continue():
 	tutorial_can_continue = true
 	continue_btn.visible = true
 	continue_btn.disabled = false
+
+var _pulse_tween: Tween
+
+func _start_button_pulse(button: Button) -> void:
+	if not button:
+		return
+	if _pulse_tween and _pulse_tween.is_valid():
+		_pulse_tween.kill()
+
+	# Create a pulsing tween effect on modulate or scale
+	_pulse_tween = create_tween().set_loops()
+	_pulse_tween.tween_property(button, "scale", Vector2(1.1, 1.1), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_pulse_tween.tween_property(button, "scale", Vector2(1.0, 1.0), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	button.modulate = Color(1, 1, 0.7, 1)  # Slight golden tint
+
+func _stop_button_pulse(button: Button) -> void:
+	if _pulse_tween and _pulse_tween.is_valid():
+		_pulse_tween.kill()
+	if button:
+		button.scale = Vector2.ONE
+		button.modulate = Color.WHITE
+
 # ==========================================================
 # 🧭 PANEL SWITCHING
 # ==========================================================
@@ -612,17 +720,22 @@ func _on_deck_button_pressed() -> void:
 		Globals.tutorial_stage = 2
 
 func _on_collection_button_pressed() -> void:
-	visible = true                     # ✅ Re-show the entire collection GUI root
-	taskbar.visible = false            # ✅ Hide taskbar while collection is open
 	collection_panel.visible = true
 	deck_panel.visible = false
 	leader_panel.visible = false
-	main_panel_label.text = "Card Collection"
 
-	# ✅ NEW tutorial page trigger
-	if Globals.tutorial_stage == 0:
-		_show_tutorial_stage_1()
-		Globals.tutorial_stage = 1
+	# Stop pulsing “C” when clicked
+	if _pulse_tween and _pulse_tween.is_valid():
+		_stop_button_pulse(collection_button)
+
+	# ✅ When C is pressed during Stage 1 → show quick collection overview
+	if Globals.tutorial_stage == 1:
+		if deck_button: deck_button.disabled = true
+		if leader_button: leader_button.disabled = true
+		if sort_button: sort_button.disabled = true
+
+		_show_collection_overview_popup()
+		Globals.tutorial_stage = 1.5  # marker so we know we're between stages
 
 func _on_x_pressed() -> void:
 	var root := get_parent()  # Card_Collection_GUI
@@ -633,8 +746,38 @@ func _on_x_pressed() -> void:
 	taskbar.visible = true
 	if main_menu:
 		main_menu.visible = true
+		
+	# 🔒 Only fire once
+	if not GameSession.map_instance.collection_tutorial_complete:
+		GameSession.map_instance.is_in_collection_tutorial = false
+		GameSession.map_instance.collection_tutorial_complete = true
+		emit_signal("tutorial_finished")
+		print("📘 Collection tutorial finished — triggering post intro dialogue.")
+		
+		# ✅ Trigger post-intro dialogue directly
+		var intro := get_tree().get_root().get_node_or_null("EarthMapScene/Intro_Earth_Realm")  # adjust path if needed
+		if intro and intro.has_method("play_post_intro_dialogue"):
+			intro.play_post_intro_dialogue()
+		else:
+			print("⚠️ Could not find Intro_Earth_Realm to trigger post intro dialogue.")
 
 func _on_tutorial_continue_button_pressed() -> void:
 	if not tutorial_can_continue:
-		return # too early!
+		return
+
 	tutorial_popups.visible = false
+
+	if Globals.tutorial_stage == 0:
+		if collection_button:
+			collection_button.disabled = false
+			_start_button_pulse(collection_button)
+		if deck_button: deck_button.disabled = true
+		if leader_button: leader_button.disabled = true
+		if sort_button: sort_button.disabled = true
+		
+		Globals.tutorial_stage = 1
+
+	elif Globals.tutorial_stage == 1.5:
+		# Player just finished the collection overview
+		_show_tutorial_stage_1()  # now guide them to press “D” (Deck)
+		Globals.tutorial_stage = 1
