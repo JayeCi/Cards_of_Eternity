@@ -40,21 +40,25 @@ columns = 4
 [node name="FIRE" type="Button" parent="GridContainer"]
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_d0cwl")
+theme_override_styles/hover = SubResource("StyleBoxFlat_d0cwl")
 text = "FIRE"
 
 [node name="EARTH" type="Button" parent="GridContainer"]
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_mnwew")
+theme_override_styles/hover = SubResource("StyleBoxFlat_d0cwl")
 text = "EARTH"
 
 [node name="WATER" type="Button" parent="GridContainer"]
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_hulhl")
+theme_override_styles/hover = SubResource("StyleBoxFlat_d0cwl")
 text = "WATER"
 
 [node name="WIND" type="Button" parent="GridContainer"]
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_ph521")
+theme_override_styles/hover = SubResource("StyleBoxFlat_d0cwl")
 text = "WIND"
 
 [node name="Not_unlocked" type="Panel" parent="."]
