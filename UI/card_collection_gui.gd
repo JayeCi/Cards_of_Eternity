@@ -162,6 +162,9 @@ func _on_leader_checkbox_toggled(checked: bool) -> void:
 				player.leader_card = null
 			print("[Leader] Cleared leader selection.")
 
+	# ✅ Force tutorial re-check after changing leader
+	_update_deck_count()
+
 func _on_card_clicked(event: InputEvent, card_ui):
 	if event is InputEventMouseButton and event.pressed:
 		var parent_grid = card_ui.get_parent()
@@ -282,15 +285,40 @@ func _update_deck_count() -> void:
 
 	if count >= 10:
 		deck_count.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
-	elif count >= 7:
+	elif count >= 5:
 		deck_count.add_theme_color_override("font_color", Color(1, 0.8, 0.3))
 	else:
 		deck_count.add_theme_color_override("font_color", Color(0.8, 1, 0.8))
 
-	# 👉 Trigger Tutorial Stage 3
-	if count == 5 and Globals.tutorial_stage == 2:
-		_show_tutorial_stage_3()
-		Globals.tutorial_stage = 3
+	# ✅ Tutorial Stage 3 gate
+	if count >= 5 and Globals.tutorial_stage == 2:
+		if Globals.selected_leader == null:
+			print("[Tutorial] ⚠️ Leader not selected yet — showing tutorial reminder.")
+
+			# 🟡 Show popup like the other tutorial messages
+			tutorial_popups.visible = true
+			tutorial_label.clear()
+			tutorial_label.bbcode_enabled = true
+			tutorial_label.append_text("[center][b]Don't Forget Your Leader![/b][/center]\n\n")
+			tutorial_label.append_text("Before your deck can be finalized, you must choose a [b]Leader Card[/b].\n\n")
+			tutorial_label.append_text("Select one of your cards, then check the box [color=yellow][b]‘Leader’[/b][/color] in the left panel to assign it.\n\n")
+
+			
+			tutorial_label.visible_characters = 0
+			tutorial_can_continue = false
+			_unlock_tutorial_continue()
+
+			var tween := create_tween()
+			tween.tween_property(
+				tutorial_label,
+				"visible_characters",
+				tutorial_label.get_total_character_count(),
+				1.75
+			)
+		else:
+			print("[Tutorial] 🎯 Leader selected and deck ready — advancing to stage 3.")
+			_show_tutorial_stage_3()
+			Globals.tutorial_stage = 3
 
 func _refresh_deck_grid():
 	for c in deck_grid.get_children():
@@ -616,7 +644,8 @@ func _show_tutorial_stage_2():
 	tutorial_label.append_text("You can bring in any amount of cards, the maximum right now is 10.\n\n")
 	tutorial_label.append_text("• Click a card to add it to your deck.\n")
 	tutorial_label.append_text("• Click again to remove it.\n\n")
-	tutorial_label.append_text("Try building your first deck now with your first 5 cards!")
+	tutorial_label.append_text("Try building your first deck now with your first 5 cards!\n")
+	tutorial_label.append_text("Don't forget to set one as your leader!\n\n")
 	tutorial_label.visible_characters = 0
 	tutorial_can_continue = false
 	_unlock_tutorial_continue()

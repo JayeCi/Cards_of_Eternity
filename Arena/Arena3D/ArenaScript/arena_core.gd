@@ -402,7 +402,7 @@ func _deferred_startup():
 	
 	emit_signal("essence_changed", player_essence, enemy_essence)
 	ui_sys.call("refresh_hand", player_hand, player_essence)
-	
+	_draw_starting_hand(5)
 	# --- Fade in the scene ---
 	if ui_sys.has_node("FadeRect"):
 		var fade_rect: ColorRect = ui_sys.get_node("FadeRect")
@@ -411,7 +411,7 @@ func _deferred_startup():
 		await tween.finished
 		fade_rect.visible = false
 
-	_draw_starting_hand(5)
+
 	if is_tutorial_match:
 		TutorialManager.start_arena_summon_tutorial()
 
@@ -424,16 +424,12 @@ func enable_tutorial_mode():
 		battle_sys.is_tutorial_match = true
 		
 func _on_battle_concluded(result: String) -> void:
-	# Small delay so the battle message can play
-	var tree := get_tree()  # keep a ref if you need the timer
-	await tree.create_timer(2.0).timeout
+	#await get_tree().create_timer(2.0).timeout
 	if DialogueManager and DialogueManager.has_method("force_close"):
 		DialogueManager.force_close()
 
-	# ✅ Hand off to GameSession; it will remove/free the arena and restore the hub safely.
-	Globals.pending_post_tutorial_dialogue = true
+	GameSession.last_battle_result = result
 	GameSession.switch_to_map()
-
 
 func set_player_deck(arr: Array) -> void:
 	player_deck = arr.duplicate()
@@ -813,7 +809,7 @@ func _draw_starting_hand(n: int) -> void:
 		if not card_ui:
 			return
 		await ui_sys.call("_animate_card_draw", card_ui)
-		await get_tree().create_timer(0.15).timeout
+		#await get_tree().create_timer(0.15).timeout
 
 func _draw_card() -> Control:
 	if player_deck.is_empty(): return null

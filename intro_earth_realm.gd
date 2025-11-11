@@ -5,6 +5,10 @@ signal post_intro_finished   # NEW
 @onready var card_collection_gui: MarginContainer = $"../CanvasLayer/Card_Collection_GUI"
 @onready var taskbar: Control = $"../CanvasLayer/UIOverlay/Taskbar"
 
+var tutorial_has_run := false
+var post_intro_has_run := false
+
+
 var intro_lines: Array[DialogueLine] = [
 	DialogueManager._dl("Earth Sprite", "…[i]Whoa! Welcome to the Earth Realm[/i]"),
 	DialogueManager._dl("Earth Sprite", "…[i]You must be here to help![/i]"),
@@ -20,10 +24,23 @@ var post_intro_lines: Array[DialogueLine] = [
 ]
 
 func _ready():
+	# ✅ Check if tutorial already finished globally
+	if GameSession.tutorial_started:
+		self.visible = false
+		return
+
+	# ✅ Otherwise run the intro normally
+	tutorial_has_run = true
+	GameSession.tutorial_started = true
+
 	await get_tree().process_frame
 	GameSession.map_instance.is_in_intro = true
-	DialogueManager.finished.connect(_on_convo_finished)
+
+	if not DialogueManager.finished.is_connected(_on_convo_finished):
+		DialogueManager.finished.connect(_on_convo_finished)
+
 	DialogueManager.start_convo(intro_lines)
+
 
 func _on_convo_finished():
 	GameSession.map_instance.intro_complete = true
@@ -34,13 +51,18 @@ func _on_convo_finished():
 	taskbar.visible = false
 	hide()
 
-# Called by MapCore after the collection tutorial closes
 func play_post_intro_dialogue():
-	show()
-	DialogueManager.finished.disconnect(_on_convo_finished)
-	DialogueManager.finished.connect(_on_post_intro_finished)
-	DialogueManager.start_convo(post_intro_lines)
+	if post_intro_has_run:
+		return
+	post_intro_has_run = true
 
+	show()
+	if DialogueManager.finished.is_connected(_on_convo_finished):
+		DialogueManager.finished.disconnect(_on_convo_finished)
+	if not DialogueManager.finished.is_connected(_on_post_intro_finished):
+		DialogueManager.finished.connect(_on_post_intro_finished)
+	DialogueManager.start_convo(post_intro_lines)
+	
 func _on_post_intro_finished():
 	hide()
 	GameSession.map_instance.in_in_post_intro = false

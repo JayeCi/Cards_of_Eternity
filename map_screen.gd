@@ -10,7 +10,7 @@ class_name MapCore
 
 @onready var node_layer := $MapRoot/NodeLayer
 @onready var player_icon := $MapRoot/NodeLayer/Player
-@onready var start_node := $MapRoot/NodeLayer/Start
+@onready var start_node := $MapRoot/NodeLayer/PortalHub
 @export var player_offset := Vector2(25, 0)
 
 @export var difficulty: int = 1
@@ -32,11 +32,12 @@ var is_in_collection_tutorial := false
 var collection_tutorial_complete := false
 var in_in_post_intro := false
 var post_intro_complete := false
-
+var tutorial_started := false
 
 func _ready():
 	TransitionFade.fade_in()
 	GameSession.map_instance = self
+
 	
 	# Gather all MapNodes
 	for child in node_layer.get_children():
@@ -64,6 +65,10 @@ func _ready():
 	
 	print("Camera current:", camera.is_current())
 
+	# ✅ Auto-refresh encounter info if a node was active before
+	if GameSession.last_selected_map_node and ui_overlay:
+		ui_overlay.show_encounter_info(GameSession.last_selected_map_node, false)
+		
 	for node in get_tree().get_nodes_in_group("debug_pickables"):
 		node.remove_from_group("debug_pickables")
 
@@ -74,17 +79,20 @@ func _ready():
 			
 			
 	var intro = get_node_or_null("../Intro_Earth_Realm")
-	if intro:
-		intro.intro_finished.connect(_on_intro_finished)
-		
-	var collection_gui = ui_overlay.get_node_or_null("../CanvasLayer/Card_Collection_GUI")
-	#
-	#if collection_gui:
-		#collection_gui.tutorial_finished.connect(_on_collection_tutorial_finished)
 
-	if intro:
+	if intro and not GameSession.tutorial_started:
 		intro.intro_finished.connect(_on_intro_finished)
-		intro.post_intro_finished.connect(_on_post_intro_finished)  # NEW
+		intro.post_intro_finished.connect(_on_post_intro_finished)
+		is_in_intro = true
+		GameSession.tutorial_started = true
+	else:
+		is_in_intro = false
+		intro_complete = true
+		in_in_post_intro = false
+		post_intro_complete = true
+
+
+	var collection_gui = ui_overlay.get_node_or_null("../CanvasLayer/Card_Collection_GUI")
 
 func _unhandled_input(event):
 	# --- Lock logic ---
@@ -219,23 +227,22 @@ func _set_zoom(new_zoom: Vector2):
 
 
 func on_battle_win():
-	current_node.battle_completed = true
-	current_node.is_completed = true
+	if current_node and not current_node.battle_completed:
+		current_node.battle_completed = true
+		current_node.is_completed = true
 
-	# ✅ Give rewards from the encounter
+	# ✅ Give rewards
 	if GameSession.encounter_data.has("rewards"):
 		var rewards = GameSession.encounter_data["rewards"]
 		for r in rewards:
 			_grant_reward(r)
-			
 		ui_overlay.show_rewards(rewards)
-		
-	# ✅ Update visuals
+
 	_update_node_reachability()
 	line_drawer.queue_redraw()
+	ui_overlay.show_encounter_info(current_node, false)
 
-	# ✅ Show the rewards UI (you can make this display what was earned)
-
+	print("✅ Battle won at:", current_node.name)
 
 
 func _grant_reward(card_data: CardData) -> void:
@@ -251,7 +258,7 @@ func on_battle_loss():
 	current_node.battle_completed = false
 	_update_node_reachability()
 	line_drawer.queue_redraw()
-	ui_overlay.show_retry_message()
+	#ui_overlay.show_retry_message()
 
 #ENCOUNTERS
 

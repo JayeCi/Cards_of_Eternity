@@ -14,6 +14,7 @@ script = ExtResource("1_7rlvd")
 
 [node name="EarthPixie" type="Sprite2D" parent="."]
 z_index = 6
-position = Vector2(185, 579)
+position = Vector2(145.00002, 620)
+scale = Vector2(0.45837426, 0.45837426)
 texture = ExtResource("2_io3oc")
 flip_h = true

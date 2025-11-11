@@ -60,6 +60,7 @@ tutorial_portal=""
 guide=""
 card_pickups=""
 taskbar=""
+Camera2D=""
 
 [input]
 

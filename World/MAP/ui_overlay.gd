@@ -8,11 +8,13 @@ extends Control
 @onready var info_panel: Control = $InfoPanel
 @onready var reward_animation_player: AnimationPlayer = $Reward/AnimationPlayer
 @onready var art: TextureRect = $InfoPanel/MainPanel/VBoxContainer/ArtPanel/Art
+@onready var reward: Control = $Reward
 
 
 var _info_panel_open := false
 
 func _ready():
+	#GameSession.map_ui = self
 	CardCollection.card_count_changed.connect(_update_deck_count)
 	_update_deck_count()
 
@@ -56,7 +58,6 @@ func show_encounter_info(node: MapNode, animate: bool = true) -> void:
 	# -----------------------------------------------------
 	description.text = node.description if node.description != "" else "No description available."
 
-	# ✅ If node has a custom override texture, use it first
 	if "custom_art" in node and node.custom_art:
 		art.texture = node.custom_art
 	else:
@@ -66,6 +67,33 @@ func show_encounter_info(node: MapNode, animate: bool = true) -> void:
 		animation_player.play("Slide_In")
 
 	_info_panel_open = true
+
+	# 🎮 Dynamic start button setup
+	var start_button := $InfoPanel/StartButton
+	for conn in start_button.pressed.get_connections():
+		start_button.pressed.disconnect(conn["callable"])
+	start_button.pressed.connect(_on_start_button_pressed.bind(node))
+
+	if node.name == "PortalHub":
+		start_button.text = "Return to Hub"
+	else:
+		start_button.text = "Start Encounter"
+	if node.is_completed:
+		start_button.tooltip_text = "This encounter has already been completed."
+	else:
+		start_button.tooltip_text = ""
+
+	# -----------------------------------------------------
+	# ✅ Disable start button if node is already completed
+	# -----------------------------------------------------
+	if node.is_completed:
+		start_button.disabled = true
+		start_button.modulate = Color(0.6, 0.6, 0.6, 0.7)  # slightly dimmed
+		start_button.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	else:
+		start_button.disabled = false
+		start_button.modulate = Color(1, 1, 1, 1)
+		start_button.mouse_filter = Control.MOUSE_FILTER_STOP
 
 # ---------------------------------------------------------
 # 🎨 Dynamic art setter
@@ -139,6 +167,7 @@ func _on_AnimationPlayer_animation_finished(anim_name: String) -> void:
 # ---------------------------------------------------------
 func show_rewards(rewards: Array[CardData]) -> void:
 	var card_grid: GridContainer = $Reward/CardGrid
+	reward.visible = true
 	
 	for child in card_grid.get_children():
 		child.queue_free()
@@ -148,15 +177,27 @@ func show_rewards(rewards: Array[CardData]) -> void:
 		card_grid.add_child(card_ui)
 		card_ui.card_data = card_data
 		card_ui.refresh()
+		
+		# ✅ Disable hover / input during reward animation
+		card_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		if card_ui.has_method("set_hover_enabled"):
+			card_ui.set_hover_enabled(false)
+			
+		# ✅ Make FusionGlow visible during reward presentation
+		var fusion_glow := card_ui.get_node_or_null("FusionGlow")
+		if fusion_glow:
+			fusion_glow.visible = true
+
 
 	reward_animation_player.play("Fade_In")
 	await reward_animation_player.animation_finished
-	await get_tree().create_timer(5.0).timeout
+	await get_tree().create_timer(3.0).timeout
 	reward_animation_player.play("Fade_Out")
 	await reward_animation_player.animation_finished
 	for child in card_grid.get_children():
 		child.queue_free()
-
+		
+	reward.visible = false
 # ---------------------------------------------------------
 # 🧩 Misc (tutorial / deck updates)
 # ---------------------------------------------------------
@@ -183,5 +224,8 @@ func _on_collection_button_pressed() -> void:
 	if Globals.tutorial_stage == 0:
 		Globals.tutorial_stage = 1
 
-func _on_start_button_pressed() -> void:
-	GameSession.switch_to_arena()
+func _on_start_button_pressed(node: MapNode) -> void:
+	if node.name == "PortalHub":
+		GameSession.switch_to_hub()
+	else:
+		GameSession.switch_to_arena()

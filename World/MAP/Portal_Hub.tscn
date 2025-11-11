@@ -1,5 +1,6 @@
-[gd_scene load_steps=36 format=3 uid="uid://ips6u6huym1y"]
+[gd_scene load_steps=37 format=3 uid="uid://ips6u6huym1y"]
 
+[ext_resource type="Script" uid="uid://csrtosghsbe40" path="res://World/MAP/portal_hub.gd" id="1_elq2a"]
 [ext_resource type="Texture2D" uid="uid://cjw8qsb0thllt" path="res://Images/abstract-heavy-blue-haze-liquid (1).jpg" id="1_fwx6l"]
 [ext_resource type="PackedScene" uid="uid://b1lmaxf3wjdva" path="res://Downloaded/Structures/HUB/earthportal.tscn" id="2_8cuqh"]
 [ext_resource type="PackedScene" uid="uid://cepdyg4ededgv" path="res://World/MAP/realm_selection.tscn" id="2_qpm18"]
@@ -996,6 +997,7 @@ _data = {
 }
 
 [node name="Node3D" type="Node3D"]
+script = ExtResource("1_elq2a")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_ab1rn")
@@ -1016,7 +1018,7 @@ directional_shadow_blend_splits = true
 transform = Transform3D(0.004142359, 0, 0, 0, 0.004142359, 0, 0, 0, 0.004142359, 0.011799812, 0, 0)
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.9659257, -0.25881898, 0, 0.258819, 0.96592563, 0.023682117, 0.5069159, 2.1553187)
+transform = Transform3D(1, 0, 0, 0, 0.9659255, -0.25881895, 0, 0.25881895, 0.9659255, 0.023682117, 0.5069159, 2.1553187)
 
 [node name="Terrain3D" type="Terrain3D" parent="."]
 data_directory = "res://Terrain"
@@ -1088,3 +1090,5 @@ libraries = {
 &"": SubResource("AnimationLibrary_elq2a")
 }
 autoplay = "Idle"
+
+[editable path="REALM_SELECTION"]
