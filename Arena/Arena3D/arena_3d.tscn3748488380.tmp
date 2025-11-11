@@ -160,6 +160,7 @@ script = ExtResource("5_2nnof")
 
 [node name="BattleSystem" type="Node3D" parent="."]
 script = ExtResource("8_08t7x")
+is_tutorial_match = null
 
 [node name="MoveSystem" type="Node3D" parent="."]
 script = ExtResource("15_py25k")

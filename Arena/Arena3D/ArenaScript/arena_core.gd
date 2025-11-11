@@ -1,4 +1,116 @@
+# =====================================================================
+# 📘 FUNCTION INDEX — ArenaCore.gd
+# =====================================================================
+
+# 🧩 CARD LOADING & FUSION CONFIG
+# ---------------------------------------------------------------------
+# get_card(path)                           → Lazy-loads card resources & caches them
+# _trigger_fusion_abilities(fused, srcs)   → Runs “on_fusion” triggers for component cards
+# _check_fusion_pair(a, b)                 → Returns result CardData if valid fusion exists
+# _play_fusion_effect(result_card)         → Plays fusion animation, camera shake, and logs fusion
+
+# 🔧 DECK & LEADER MANAGEMENT
+# ---------------------------------------------------------------------
+# _build_decks()                           → Builds player/enemy decks, tutorial override included
+# _spawn_leaders()                         → Spawns player/enemy leaders & initiates cutscene
+# _play_leader_spawn_sound(leader)         → Plays 3D sound when leader enters battlefield
+# _place_leader(unit, pos)                 → Places leader unit + model on board safely
+
+# ❤️ LEADER / HP HANDLING
+# ---------------------------------------------------------------------
+# damage_leader(target, amount)            → Applies damage to leader & triggers defeat check
+# on_leader_damaged(owner, new_hp)         → Emits hp_changed for UI
+# on_leader_defeated(owner)                → Handles win/lose sequence and emits battle_finished
+
+# 🌍 BIOME / TERRAIN SYSTEM
+# ---------------------------------------------------------------------
+# _apply_terrain_bonus(unit, terrain)      → Recalculates ATK/DEF based on terrain type
+# get_terrain_multiplier(unit, terrain)    → Returns numeric multiplier for terrain
+# get_terrain_for_unit(unit)               → Looks up terrain type of unit’s current tile
+
+# 🌿 UNIT STATE / STATS
+# ---------------------------------------------------------------------
+# regen_units_for_owner(owner, amount)     → Regenerates DEF for all units of given owner
+# refresh_tile_art_safe(pos)               → Updates tile art, safely hiding facedown enemies
+
+# 💧 ESSENCE / ECONOMY
+# ---------------------------------------------------------------------
+# _gain_essence(owner, amount)             → Increases essence & refreshes UI hand display
+# emit_signal("essence_changed")           → Notifies OrbGrid & UI about updated essence
+
+# 🃏 HAND / SUMMON SYSTEM
+# ---------------------------------------------------------------------
+# _draw_starting_hand(n)                   → Draws initial hand & animates card draws
+# _draw_card()                             → Pops card from deck → hand
+# _draw_up_to_hand_limit()                 → Fills player hand up to max hand size
+# on_hand_card_clicked(card)               → Handles fusion selection or summon readiness
+# try_place_dragged_card(tile)             → Handles both fusion and normal card placement
+# _try_place_regular_card(tile)            → Executes summon popup → confirm callback
+# confirm_summon_in_mode(mode)             → Finalizes card/fusion summon & deducts essence
+# cancel_summon_popup()                    → Cancels active summon and resets hand/phase
+# clear_card_placement_mode()              → Resets selection/drag and UI hand state
+# set_player_deck(arr)                     → Replace player deck from external source
+
+# 🧬 FUSION & ABILITY EXECUTION
+# ---------------------------------------------------------------------
+# _trigger_fusion_abilities(...)           → Executes any “on_fusion” card scripts
+# _execute_card_ability(unit, ability)     → Runs a single ability’s execute() safely
+
+# 🔊 SOUND & FX HELPERS
+# ---------------------------------------------------------------------
+# _play_card_flip_sound()                  → Plays card flip SFX
+# _play_card_place_sound(card, facedown)   → Plays card placement sound based on context
+# _play_heal_sound()                       → Plays heal SFX in 3D space
+# _float_text(world_pos, text, color)      → Displays floating combat text
+# shake(intensity, duration)               → Shakes camera (defined for ArenaCamera)
+# stop_fusion_pending_hum()                → Stops looping hum when fusion overlay ends
+
+# 🎯 TURN FLOW MANAGEMENT
+# ---------------------------------------------------------------------
+# _on_end_turn_button_pressed()            → Handles player end-turn input
+# _start_player_turn()                     → Handles player turn setup & regen
+# _start_enemy_turn()                      → Runs AI logic & enemy regen, then returns control
+# _reset_action_flags()                    → Clears unit action states
+# mark_unit_acted(u)                       → Marks a unit as acted & sets exhaustion visuals
+# can_unit_act(u)                          → Checks if unit can act this turn
+
+# ⚙️ LIFECYCLE / INIT
+# ---------------------------------------------------------------------
+# _ready()                                 → Initializes systems, connects signals, pre-fade setup
+# _deferred_startup()                      → Builds decks, spawns leaders, fades in, starts battle
+# enable_tutorial_mode()                   → Activates tutorial settings
+# _on_battle_concluded(result)             → Called after victory/defeat, returns to map/hub
+
+# 🔄 PHASE / LOGGING / SIGNALS
+# ---------------------------------------------------------------------
+# _set_phase(p)                            → Updates internal phase and emits signal
+# _update_phase_ui()                       → Updates phase label on UI
+# log_message(message, color)              → Sends colored text to UI log
+# _log(message, color)                     → Emits log_line signal + prints to console
+
+# 🧭 INPUT HANDLER (DELEGATION HUB)
+# ---------------------------------------------------------------------
+# _unhandled_input(event)                  → Main dispatcher for mouse, keyboard, fusion cancel, etc.
+#   ↳ Left click: summons, moves, or fuses cards
+#   ↳ Right click: cancels current action
+#   ↳ Shift / Mouse Motion: camera freelook toggle
+
+# 🪄 GENERAL HELPERS (EXPOSED TO OTHER SYSTEMS)
+# ---------------------------------------------------------------------
+# get_leader_pos(owner)                    → Returns current leader tile for owner
+# clear_card_placement_mode()              → Cancels current card drag or summon popup
+# get_terrain_for_unit(unit)               → Retrieves current terrain name
+# stop_fusion_pending_hum()                → Force stop lingering fusion SFX
+# =====================================================================
+
+
+
+
+
+
+
 extends Node3D
+
 class_name ArenaCore
 
 # ==========================================================
@@ -184,7 +296,7 @@ var all_biomes = [
 	board.Biome.MEADOW,
 	board.Biome.MOUNTAIN,
 	board.Biome.TUNDRA,
-	board.Biome.DEFAULT
+	#board.Biome.DEFAULT
 ]
 
 
@@ -229,8 +341,8 @@ func _ready():
 
 func _deferred_startup():
 	randomize()
-	board.biome = all_biomes[randi() % all_biomes.size()]
-	#board.biome = board.Biome.DEFAULT
+	#board.biome = all_biomes[randi() % all_biomes.size()]
+	board.biome = board.Biome.TUNDRA
 	# Generate the map for that biome
 	board._generate_grid()
 
@@ -1027,7 +1139,7 @@ func confirm_summon_in_mode(mode: int) -> void:
 			await ui_sys.hide_fusion_pending()
 
 		# ✅ Now safely place the fused card
-		battle_sys.place_unit(fused, selected_pos, PLAYER, mode, true)
+		move_sys.place_unit(fused, selected_pos, PLAYER, mode, true)
 
 
 		if _fusion_was_valid:

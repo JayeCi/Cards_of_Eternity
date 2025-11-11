@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://bx8mbd37psymu"]
+[gd_scene load_steps=21 format=3 uid="uid://bx8mbd37psymu"]
 
 [ext_resource type="Script" uid="uid://c7p6ht8pl08vn" path="res://map_screen.gd" id="1_txqf5"]
 [ext_resource type="PackedScene" uid="uid://bw2igg30xct5v" path="res://World/MAP/map_node.tscn" id="2_1rsxy"]
@@ -7,13 +7,15 @@
 [ext_resource type="PackedScene" uid="uid://ga0vx2fo46g5" path="res://World/MAP/intro_earth_Realm.tscn" id="2_px1qw"]
 [ext_resource type="Texture2D" uid="uid://b6eiv3fsfjl2k" path="res://World/MAP/EarthMap.png" id="2_q23gr"]
 [ext_resource type="Script" uid="uid://x5gllef2oogk" path="res://World/MAP/background.gd" id="3_q23gr"]
-[ext_resource type="Script" uid="uid://8bbkeqyshhmk" path="res://World/MAP/line_drawer.gd" id="4_jnlq2"]
+[ext_resource type="Script" path="res://World/MAP/line_drawer.gd" id="4_jnlq2"]
 [ext_resource type="Texture2D" uid="uid://bdh225tfiv5ri" path="res://World/MAP/PlayerLocation.png" id="6_haur7"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="8_haur7"]
 [ext_resource type="Resource" uid="uid://jne2skd0eidt" path="res://Cards/Monster Cards/Dirt.tres" id="9_jnlq2"]
+[ext_resource type="Texture2D" uid="uid://c7m48phmvq7f" path="res://World/MAP/portal_hub.png" id="9_lj5nr"]
 [ext_resource type="Texture2D" uid="uid://cg5stqo0o7fjj" path="res://World/MAP/Mystery.png" id="10_k3tqd"]
 [ext_resource type="Resource" uid="uid://bfwj21trvei3d" path="res://Cards/Monster Cards/Finn.tres" id="10_vf0ra"]
 [ext_resource type="Resource" uid="uid://l8hkcr570yry" path="res://Cards/Monster Cards/Fysh.tres" id="11_uhhbm"]
+[ext_resource type="Texture2D" uid="uid://csya7myvxxlhb" path="res://World/MAP/hooded_antagonist.png" id="16_sf5un"]
 [ext_resource type="AudioStream" uid="uid://cmmig4w5xvnlm" path="res://Audio/River_Forest.mp3" id="16_x5i6b"]
 [ext_resource type="AudioStream" uid="uid://c4ohnn6g7s2kj" path="res://Audio/Sound FX/UI_Click.mp3" id="17_1yy5y"]
 [ext_resource type="Resource" uid="uid://2etufmvoir0g" path="res://Cards/Monster Cards/Fungoo.tres" id="17_vdqfd"]
@@ -23,6 +25,7 @@
 script = ExtResource("1_txqf5")
 
 [node name="Intro_Earth_Realm" parent="." instance=ExtResource("2_px1qw")]
+visible = false
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 layer = 4
@@ -103,6 +106,8 @@ enemy_name = "Portal Hub"
 connected_nodes = Array[NodePath]([NodePath("../MapNode1")])
 battle_completed = true
 is_completed = true
+custom_art = ExtResource("9_lj5nr")
+description = "Portal Hub"
 
 [node name="MapNode1" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
 anchors_preset = 0
@@ -123,6 +128,7 @@ enemy_deck = Array[ExtResource("8_haur7")]([ExtResource("9_jnlq2"), ExtResource(
 rewards = Array[ExtResource("8_haur7")]([ExtResource("17_vdqfd")])
 connected_nodes = Array[NodePath]([NodePath("../MapNode2")])
 randomize_event = false
+custom_art = ExtResource("16_sf5un")
 description = "An unfamiliar presence stirs ahead… destiny calls for your first duel."
 
 [node name="MapNode2" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]

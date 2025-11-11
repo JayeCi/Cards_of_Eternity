@@ -3,7 +3,7 @@ extends Node
 
 signal started(convo_id)
 signal advanced(index)
-signal finished
+signal finished  # ✅ no convo_id argument anymore
 
 @export var default_portraits: DialoguePortraits
 
@@ -18,7 +18,6 @@ var _just_revealed := false
 
 func _ready() -> void:
 	add_to_group("dialogue_manager")
-	# Try linking immediately
 	_link_ui()
 
 func _process(_delta):
@@ -26,10 +25,9 @@ func _process(_delta):
 		_link_ui()
 		if _ui:
 			print("[DialogueManager] UI linked (late).")
-			set_process(false) # stop polling
+			set_process(false)
 
 func _link_ui() -> void:
-	# Because DialogueUI is an autoload singleton:
 	if DialogueUi:
 		_ui = DialogueUi
 		if default_portraits:
@@ -41,13 +39,9 @@ func _link_ui() -> void:
 		print("[DialogueManager] DialogueUI autoload missing!")
 
 func _unhandled_input(event: InputEvent) -> void:
-	#if InputState.mode != InputState.Mode.DIALOGUE:
-		#return
-
 	if event.is_action_pressed("interact") or event.is_action_pressed("ui_accept"):
 		on_player_continue_input()
 		get_viewport().set_input_as_handled()
-
 
 # -------------------------------------------------------
 # 🗣️ Start a conversation
@@ -77,11 +71,8 @@ func start_convo(lines: Array[DialogueLine], convo_id: StringName = &"", page: D
 		_ui.request_continue.connect(_on_ui_request_continue)
 
 	_ui.visible = true
-	#_disable_player_inputs(true)
-
 	emit_signal("started", _convo_id)
 	_show_current_line()
-
 
 # -------------------------------------------------------
 # 🎮 Player pressed continue (input or click)
@@ -100,13 +91,13 @@ func on_player_continue_input() -> void:
 		return
 
 	_advance_dialogue_line()
-	_just_revealed = false   # ✅ ensure we don't skip next line
+	_just_revealed = false
 
 # -------------------------------------------------------
 func _advance_dialogue_line() -> void:
 	_i += 1
 	if _i < _lines.size():
-		await get_tree().process_frame  # ✅ ensures process() resumes before showing next line
+		await get_tree().process_frame
 		_show_current_line()
 	else:
 		_end_convo()
@@ -123,9 +114,8 @@ func _show_current_line() -> void:
 		return
 
 	var line: DialogueLine = _lines[_i]
-
-	# ✅ Reset reveal tracking before showing new line
 	_just_revealed = false
+
 	if _ui:
 		_ui._is_revealing = true
 		if _ui.text_label:
@@ -135,7 +125,6 @@ func _show_current_line() -> void:
 
 	_ui.visible = true
 	_ui.show_line(line, _current_page)
-
 	emit_signal("advanced", _i)
 
 	if not line.choices.is_empty():
@@ -151,7 +140,6 @@ func _on_ui_request_continue(choice_text := "") -> void:
 
 	var line: DialogueLine = _lines[_i]
 
-	# Branching dialogue:
 	if not line.choices.is_empty():
 		var idx := line.choices.find(choice_text)
 		if idx != -1 and idx < line.next_indices.size():
@@ -168,6 +156,7 @@ func _on_ui_request_continue(choice_text := "") -> void:
 		return
 
 	_advance_dialogue_line()
+
 func _exit_tree():
 	force_close()
 
@@ -179,14 +168,12 @@ func _end_convo() -> void:
 		await get_tree().create_timer(0.15).timeout
 		_ui.visible = false
 
-	var ended_id := _convo_id
 	_is_running = false
 	_convo_id = &""
 	_lines.clear()
 	_i = 0
-	#_disable_player_inputs(false)
-	emit_signal("finished")
-	#, ended_id
+	emit_signal("finished")  # ✅ no args now
+
 func force_close():
 	if not _is_running:
 		return
@@ -199,11 +186,10 @@ func force_close():
 func _dl(s: String, t: String, expr := "neutral") -> DialogueLine:
 	var l := DialogueLine.new()
 	l.speaker = s
-	l.text = t.strip_edges()  # ✅ trim spaces, keep BBCode clean
+	l.text = t.strip_edges()
 	l.expression = expr
 	return l
 
-# -------------------------------------------------------
 func _disable_player_inputs(yes: bool) -> void:
 	InputState.set_mode(InputState.Mode.DIALOGUE if yes else InputState.Mode.FREE)
 

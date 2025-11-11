@@ -273,8 +273,16 @@ func _resolve_element(cd: CardData) -> String:
 func set_playable(is_playable: bool):
 	if not card_data:
 		return
+
+	# 🩹 Prevent early-call crash
+	if not is_inside_tree():
+		await ready
+		if not is_inside_tree():
+			return
+
 	var cost := int(card_data.get_meta("cost")) if card_data.has_meta("cost") else int(card_data.cost)
 	var player_essence := 0
+
 	var tree := get_tree()
 	if tree and tree.root:
 		var core := tree.root.get_node_or_null("Arena3D")

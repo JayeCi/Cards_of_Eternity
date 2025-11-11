@@ -65,7 +65,7 @@ func _on_dialogue_advanced(index: int) -> void:
 			animation_player.play("FadeIn")
 
 
-func _on_convo_finished(id: StringName) -> void:
+func _on_convo_finished() -> void:
 	print("Intro dialogue finished!")
 	_show_deck_select()
 

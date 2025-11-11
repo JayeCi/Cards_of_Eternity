@@ -8,7 +8,7 @@ class_name CardAbility
 @export var description: String = ""
 
 # Virtual function (override in child ability scripts)
-func execute(arena: Node, unit: UnitData) -> void:
+func execute(arena: Node, unit: UnitData):
 	pass
 
 func get_description_text() -> String:

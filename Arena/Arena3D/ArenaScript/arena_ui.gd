@@ -23,7 +23,10 @@ var _selected_card_ui_map: Dictionary = {}
 @onready var fade_rect: ColorRect = $FadeRect
 @onready var summon_mode_popup: PopupPanel = $SummonMode
 @onready var battle_log: RichTextLabel = $VBoxContainer/BattleLogLabel
+
 @onready var card_details_ui: ArenaCardDetails = $ArenaCardDetails
+@onready var leader_details_ui: ArenaLeaderDetails = $ArenaLeaderDetails
+
 @onready var orb_grid: Control = $BottomContainer/OrbGrid/OrbGrid
 @onready var battle_sys: ArenaBattle = $"../BattleSystem"
 @onready var hp_progress_bar: ProgressBar = $PlayerHP/TextureRect/HPProgressBar
@@ -41,6 +44,7 @@ var _hand_orb_tween: Tween = null
 var _is_fusion_pending_active: bool = false
 
 func _ready():
+	$ArenaLeaderDetails.visible = false
 	$ArenaCardDetails.visible = false
 	$ArenaTerrainDetails.visible = false
 	$BottomContainer/OrbGrid/OrbGrid.visible = false 
@@ -89,13 +93,61 @@ func init_ui(core_ref: ArenaCore) -> void:
 	_update_hp_labels()
 	
 func _input(event: InputEvent) -> void:
-	# 🖱️ Right-click cancels summon popup if it's open
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+		# 🟢 1. Cancel summon popup if open
 		if summon_mode_popup and summon_mode_popup.visible:
 			_cancel_summon_popup()
 			get_viewport().set_input_as_handled()
+			return
 
+		# 🟢 2. Hide fusion pending overlay if active
+		if core and core._is_fusion_pending_active:
+			core._is_fusion_pending_active = false
+			if fusion_pending and fusion_pending.visible:
+				await hide_fusion_pending()
+				core._log("❌ Fusion canceled.", Color(1, 0.6, 0.6))
+			if core.fusion_selection and core.fusion_selection.size() > 0:
+				core.fusion_selection.clear()
+				refresh_hand(core.player_hand, core.player_essence, true)
+			get_viewport().set_input_as_handled()
+			return
 
+		# 🟢 3. Clear move/summon highlights
+		if core and core.move_sys and core.move_sys.has_method("clear_highlights"):
+			core.move_sys.clear_highlights()
+
+		# 🟢 4. Deselect all cards in hand
+		for ui in hand_grid.get_children():
+			if ui and _selected_card_ui_map.has(ui):
+				_selected_card_ui_map.erase(ui)
+				var t := create_tween()
+				t.tween_property(ui, "position:y", 0.0, 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+				t.tween_property(ui, "scale", Vector2(1.0, 1.0), 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+				t.tween_property(ui, "modulate", Color(1, 1, 1, 1), 0.2)
+
+		# 🟢 5. Clear fusion selections if any remain
+		if core and core.fusion_selection and core.fusion_selection.size() > 0:
+			core.fusion_selection.clear()
+			core._log("🧬 Fusion selection canceled.", Color(0.8, 0.8, 1.0))
+			refresh_hand(core.player_hand, core.player_essence, true)
+
+		# 🟢 6. Reset phase & selection state
+		if core:
+			core.selected_pos = Vector2i(-1, -1)
+			core.dragging_card = null
+			core.selected_card = null
+			core._set_phase(core.Phase.SUMMON_OR_MOVE)
+			core._update_phase_ui()
+			core._log("🔄 Action canceled — highlights and selections cleared.", Color(0.8, 0.8, 1.0))
+
+		# 🟢 7. Hide hover & card details
+		if has_method("hide_hover"):
+			hide_hover()
+		if card_details_ui:
+			card_details_ui.hide_card()
+			card_details_ui.visible = false
+
+		get_viewport().set_input_as_handled()
 
 func _cancel_summon_popup() -> void:
 	summon_mode_popup.hide()
@@ -428,7 +480,13 @@ func _on_card_hovered_in_hand(card: CardData) -> void:
 	if not card:
 		return
 
-	# 🔧 FIX — Re-evaluate playability when hovering (prevents auto-brightening)
+	# 🧩 Prevent multiple refreshes on same card
+	if _current_hover_card == card:
+		return
+	_current_hover_card = card
+	_is_hovering_hand_card = true
+
+	# 🩵 Update playability tint dynamically
 	for card_ui in hand_grid.get_children():
 		if card_ui.card_data == card and card_ui.has_method("set_playable"):
 			var cost := 1
@@ -441,8 +499,12 @@ func _on_card_hovered_in_hand(card: CardData) -> void:
 			card_ui.set_playable(cost <= core.player_essence)
 			break
 
+	# 🟢 Show the card details
+	if card_details_ui:
+		card_details_ui.show_card(card)
+		card_details_ui.visible = true
+
 func _on_card_hovered_in_hand_exit() -> void:
-	# 🧩 If any card is selected for fusion, disable hover exit
 	if core and core.fusion_selection.size() > 0:
 		print("[ArenaUI] 🧬 Fusion selection active — hover exit ignored.")
 		return
@@ -452,27 +514,18 @@ func _on_card_hovered_in_hand_exit() -> void:
 
 	_is_hovering_hand_card = false
 
-	# Fade out or hide details
 	if card_details_ui:
 		card_details_ui.hide_card()
 		card_details_ui.visible = false
 
-	# 🔁 Reset hover state to allow re-hover of the same card
 	_current_hover_card = null
 	_hover_state = "idle"
 
-	print("[ArenaUI] 🔻 Hover ended — state reset.")
-
 func show_hover_for_tile(tile: Node3D) -> void:
-	# 🛑 Prevent terrain hover while hovering a hand card
-	if _is_hovering_hand_card:
+	# 🛑 Prevent hover if dragging or hovering hand card
+	if _is_hovering_hand_card or is_dragging_card:
 		return
-
 	if not tile or (core and core.is_cutscene_active):
-		return
-
-	# Block terrain hover ONLY if dragging a card
-	if is_dragging_card:
 		return
 
 	# --- TILE WITH UNIT ---
@@ -481,60 +534,67 @@ func show_hover_for_tile(tile: Node3D) -> void:
 		var is_enemy = unit.owner != core.PLAYER
 		var is_facedown = unit.has_meta("is_facedown") and unit.get_meta("is_facedown")
 
-		# 🧩 Hide terrain when hovering a unit card
+		# Hide terrain panel when hovering units
 		if has_node("ArenaTerrainDetails"):
 			if $ArenaTerrainDetails.has_method("hide_terrain"):
 				$ArenaTerrainDetails.hide_terrain()
 			else:
 				$ArenaTerrainDetails.visible = false
 
+		# 🟢 CASE 1: Enemy facedown card — show terrain only
 		if is_enemy and is_facedown:
 			if has_node("ArenaCardDetails"):
 				$ArenaCardDetails.hide_card()
-			# Show terrain only for facedown enemies
+			if has_node("ArenaLeaderDetails"):
+				$ArenaLeaderDetails.hide_card()
 			if has_node("ArenaTerrainDetails"):
 				$ArenaTerrainDetails.show_terrain(tile.terrain_type)
 				$ArenaTerrainDetails.visible = true
 			return
-		else:
+
+		# 🟢 CASE 2: Leader units — show ArenaLeaderDetails
+		if unit.is_leader:
+			if has_node("ArenaLeaderDetails"):
+				$ArenaLeaderDetails.show_unit(unit)
+				$ArenaLeaderDetails.visible = true
 			if has_node("ArenaCardDetails"):
-				$ArenaCardDetails.show_unit(unit)
-			# Terrain stays hidden while showing card details
+				$ArenaCardDetails.hide_card()
+			return
+
+
+		# 🟢 CASE 3: Normal units — show ArenaCardDetails
+		if has_node("ArenaCardDetails"):
+			$ArenaCardDetails.show_unit(unit)
+			$ArenaCardDetails.visible = true
+		if has_node("ArenaLeaderDetails"):
+			$ArenaLeaderDetails.hide_card()
 	else:
-		# --- EMPTY TILE: SHOW TERRAIN DETAILS ONLY ---
+		# --- EMPTY TILE: show terrain details only ---
 		if has_node("ArenaCardDetails"):
 			$ArenaCardDetails.hide_card()
+		if has_node("ArenaLeaderDetails"):
+			$ArenaLeaderDetails.hide_card()
 		if has_node("ArenaTerrainDetails"):
 			$ArenaTerrainDetails.show_terrain(tile.terrain_type)
 			$ArenaTerrainDetails.visible = true
 
 func hide_hover() -> void:
-
-	if _is_hovering_hand_card:
+	if _is_hovering_hand_card or is_dragging_card:
 		return
 	if core and core.is_cutscene_active:
 		return
-	if is_dragging_card:
-		return
-		
-	# 👇 only skip this during *active* hand hover
-	if _is_hovering_hand_card:
-		if card_details_ui:
-			card_details_ui.hide_card()
-			card_details_ui.visible = false
-		return
 
-	# Hide both info panels safely
+	# Hide all hover UIs
 	if has_node("ArenaCardDetails"):
 		$ArenaCardDetails.hide_card()
-
+	if has_node("ArenaLeaderDetails"):
+		$ArenaLeaderDetails.hide_card()
 	if has_node("ArenaTerrainDetails"):
 		if $ArenaTerrainDetails.has_method("hide_terrain"):
 			$ArenaTerrainDetails.hide_terrain()
 		else:
 			$ArenaTerrainDetails.visible = false
 
-	# Reset hover label too
 	if hover_label:
 		hover_label.visible = false
 		hover_label.modulate.a = 1.0

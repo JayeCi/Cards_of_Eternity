@@ -30,6 +30,7 @@ var core: ArenaCore
 @onready var lava_mesh: MeshInstance3D = $TileMesh/LavaMesh
 @onready var grass_mesh: MeshInstance3D = $TileMesh/GrassMesh
 @onready var forest_mesh: MeshInstance3D = $TileMesh/ForestMesh
+@onready var default_mesh: MeshInstance3D = $TileMesh/DefaultMesh
 
 signal hovered(tile)
 signal unhovered(tile)
@@ -271,6 +272,7 @@ func update_terrain_visual(terrain_type: String) -> void:
 		"Water": preload("res://UI/Terrains/Water.png"),
 		"Ice": preload("res://UI/Terrains/Ice.png"),
 		"Stone": preload("res://UI/Terrains/stone.png"),
+		"Default": preload("res://UI/Terrains/default_texture.jpg"),
 		#"Shadow": preload("res://ui/Terrain/Shadow.png"),
 	}
 
@@ -295,7 +297,7 @@ func _apply_terrain_visual(new_terrain_type: String = "") -> void:
 
 	# ✅ Hide all terrain meshes first
 	for mesh_variant in [
-		water_mesh, stone_mesh, ice_mesh, lava_mesh, grass_mesh, forest_mesh
+		water_mesh, stone_mesh, ice_mesh, lava_mesh, grass_mesh, forest_mesh, default_mesh
 	]:
 		if mesh_variant:
 			mesh_variant.visible = false
@@ -303,8 +305,8 @@ func _apply_terrain_visual(new_terrain_type: String = "") -> void:
 	# ✅ Selectively show correct mesh and apply materials
 	match terrain_type:
 		"Default":
-			if default_tile:
-				default_tile.visible = true
+			if default_mesh:
+				default_mesh.visible = true
 
 
 		"Stone":

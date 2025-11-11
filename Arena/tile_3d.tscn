@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3 uid="uid://dymngijkrptcc"]
+[gd_scene load_steps=37 format=3 uid="uid://dymngijkrptcc"]
 
 [ext_resource type="Script" uid="uid://dtfto6htrvfm5" path="res://Arena/tile_3d.gd" id="1_5v3qr"]
 [ext_resource type="PackedScene" uid="uid://cqxo8j6lh1au8" path="res://Downloaded/bricks_A.tscn" id="2_wh67p"]
@@ -10,10 +10,10 @@
 [ext_resource type="Texture2D" uid="uid://cmwi3xrb0nspr" path="res://UI/Terrains/Lava.png" id="6_sa6f8"]
 [ext_resource type="Texture2D" uid="uid://dkc013g0vjkfa" path="res://UI/Terrains/grass.png" id="7_haurc"]
 [ext_resource type="Texture2D" uid="uid://c07v4ijon03kv" path="res://UI/Terrains/Forest.png" id="8_2dc0q"]
+[ext_resource type="Texture2D" uid="uid://b4xertubfc6wv" path="res://UI/Terrains/default_texture.jpg" id="10_ir6gf"]
 [ext_resource type="Texture2D" uid="uid://bq6fn5ar8y44d" path="res://Cards/Utilities/CardModel/Border_TP_Edge.png" id="11_3e2tw"]
 [ext_resource type="PackedScene" uid="uid://b226o8whi8uox" path="res://Arena/Terrain_Models/column_stylized_low-poly_3d_model.glb" id="12_3e2tw"]
 [ext_resource type="PackedScene" uid="uid://dfpatff4d5okj" path="res://addons/godot_3d_cursor/3d_cursor.tscn" id="13_ir6gf"]
-[ext_resource type="Script" uid="uid://dt04kfvdc21nb" path="res://addons/godot_3d_cursor/3d_cursor.gd" id="14_wy7sf"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_5v3qr"]
 
@@ -59,6 +59,12 @@ albedo_texture = ExtResource("5_u8wge")
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_nvf5m"]
 material = SubResource("StandardMaterial3D_u8wge")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wy7sf"]
+albedo_texture = ExtResource("10_ir6gf")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_t3ml4"]
+material = SubResource("StandardMaterial3D_wy7sf")
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_mf1uq"]
 
@@ -125,6 +131,11 @@ transform = Transform3D(0.467104, 0, 0, 0, -2.04178e-08, -0.467104, 0, 0.467104,
 visible = false
 mesh = SubResource("PlaneMesh_nvf5m")
 
+[node name="DefaultMesh" type="MeshInstance3D" parent="TileMesh"]
+transform = Transform3D(0.467104, 0, 0, 0, -2.04178e-08, -0.467104, 0, 0.467104, -2.04178e-08, 0, -1.80143e-09, 0.041212)
+visible = false
+mesh = SubResource("PlaneMesh_t3ml4")
+
 [node name="CardMesh" type="MeshInstance3D" parent="."]
 transform = Transform3D(1.13, 0, 0, 0, 1.13, 0, 0, 0, 1.13, 0, 0.201595, -0.553633)
 visible = false
@@ -168,6 +179,5 @@ visible = false
 mesh = SubResource("BoxMesh_2dc0q")
 surface_material_override/0 = SubResource("StandardMaterial3D_ir6gf")
 
-[node name="3DCursor" type="Marker3D" parent="." instance=ExtResource("13_ir6gf")]
+[node name="3DCursor" parent="." instance=ExtResource("13_ir6gf")]
 visible = false
-script = ExtResource("14_wy7sf")

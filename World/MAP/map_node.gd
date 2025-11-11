@@ -16,6 +16,8 @@ var encounter_type := "fight"
 @export var randomize_event: bool = true
 @export var battle_completed := false
 @export var is_completed := false
+@export var custom_art: Texture = null
+
 @export_multiline var description: String = "A mysterious encounter awaits..."
 
 var is_reachable := false

@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://tifqojkddu4i"]
+[gd_resource type="Resource" script_class="CardData" load_steps=5 format=3 uid="uid://tifqojkddu4i"]
 
 [ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_h2sym"]
+[ext_resource type="Resource" uid="uid://dgud8td22goyk" path="res://Cards/Abilities/TripleStrikeAbility.tres" id="1_s12w0"]
 [ext_resource type="Texture2D" uid="uid://cw0wgayhd1ntm" path="res://Images/Boogles.jpeg" id="1_vmarj"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_vmarj"]
 
@@ -16,6 +17,7 @@ description = "A shadow jester who delights in fear as much as laughter. His bod
 art = ExtResource("1_vmarj")
 atk = 5
 def = 5
+ability = ExtResource("1_s12w0")
 model_path = "res://Cards/Models/BOOGLES_MODEL.tscn"
 model_scale = Vector3(0.4, 0.4, 0.4)
 metadata/_custom_type_script = "uid://57up1u0etcmc"

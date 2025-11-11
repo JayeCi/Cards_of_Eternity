@@ -1,3 +1,49 @@
+# =====================================================================
+# 📘 FUNCTION INDEX — ArenaMove.gd
+# =====================================================================
+
+# ⚙️ INITIALIZATION
+# ---------------------------------------------------------------------
+# init(core_ref, ui_ref, board_ref, battle_ref)     → Injects dependencies & sets references
+
+# 🟩 UNIT PLACEMENT
+# ---------------------------------------------------------------------
+# place_unit(card, pos, owner, mode, is_player=false)
+#    → Places a card/unit on the board. Handles spells, summons, visuals, models, and abilities.
+
+# 🟦 MOVEMENT & INPUT
+# ---------------------------------------------------------------------
+# on_board_click(screen_pos)
+#    → Main click handler for player board interactions (move, attack, place, or flip)
+# _move_or_battle(from, to, bypass_control_check=false)
+#    → Executes either a movement or a battle depending on tile occupancy and state
+# _is_within_move_range(from_pos, to_pos, unit)
+#    → Returns whether a move/attack target is within allowed movement range
+# _show_move_targets(from)
+#    → Highlights reachable tiles for selected unit based on terrain, mode, and facing
+
+# 🌀 FLIP / FACEUP CONFIRMATION
+# ---------------------------------------------------------------------
+# confirm_faceup(unit)
+#    → Confirms that a unit has been flipped face-up, activates pending abilities
+# _flip_faceup(tile, new_texture)
+#    → Plays visual flip animation for a card and reveals its 3D model
+
+# 🧭 TILE & UNIT HELPERS
+# ---------------------------------------------------------------------
+# _get_unit_tile(unit)
+#    → Returns the tile Node3D currently holding the given UnitData
+# clear_highlights()
+#    → Clears all movement / attack highlights from every tile
+
+# 🎵 AUDIO / FEEDBACK
+# ---------------------------------------------------------------------
+# _play_card_sound(sound, position=Vector3.ZERO)
+#    → Plays a positional 3D sound effect (for movement, attack, or summon actions)
+# =====================================================================
+
+
+
 extends Node
 class_name ArenaMove
 
@@ -14,6 +60,8 @@ class_name ArenaMove
 
 
 
+var current_from: Vector2i = Vector2i(-1, -1)
+var move_targets: Dictionary = {} # { Vector2i : { "kind": "move"|"attack" } }
 
 
 func init(core_ref: ArenaCore, ui_ref: ArenaUI, board_ref: Node3D, battle_ref: ArenaBattle) -> void:
@@ -122,102 +170,80 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, is_player:
 # ===============================
 
 func on_board_click(screen_pos: Vector2) -> void:
-	if core and core._is_transitioning:
-		return
-
-	# 🚫 Ignore clicks during cinematic/battle
+	# Ignore during battle / cutscene
 	if battle._is_battle_in_progress or (core and core.is_cutscene_active):
 		return
 
-	# --- Robust ray pick ---
 	var result = cam.ray_pick(screen_pos)
 	if not result:
-		# small vertical offset retry to catch near-misses
-		result = cam.ray_pick(screen_pos + Vector2(0, -2))
-	if not result:
 		return
 
-	var node: Node = result.collider
-	# If we hit a CardModel / Mesh / CollisionShape etc, walk up to the tile
-	while node and not node.has_meta("tile_marker"):
-		node = node.get_parent()
-	if not node:
-		return
-
-	var tile := node as Node3D
+	var tile := board.get_tile_from_collider(result.collider)
 	if tile == null:
 		return
 
-	## Keep hover in sync with clicked tile
-	#hovered_tile = tile
+	var pos := Vector2i(tile.x, tile.y)
 	core.hovered_tile = tile
 
-	# --- State flags ---
-	var is_moving := (core.phase == core.Phase.SELECT_MOVE_TARGET and core.selected_pos != Vector2i(-1, -1))
 	var is_placing := (core.dragging_card != null)
 
-	# ✅ Allow clicking empty tile ONLY if moving or placing
-	if tile.occupant == null and not is_moving and not is_placing:
-		core._log("💡 Click ignored — empty tile.", Color(0.7, 0.7, 0.7))
-		return
-
-	# 🚫 Prevent selecting already-exhausted/acted units
-	if tile.occupant and not core.can_unit_act(tile.occupant):
-		core._log("⏳ %s is exhausted and cannot act again this turn." % tile.occupant.card.name, Color(0.7, 0.7, 0.7))
-		return
-
-	# ✅ Handle pending ability trigger on clicked occupied tile
-	var pending_unit: UnitData = null
-	var pending_ability: CardAbility = null
-	if tile.occupant and tile.occupant.has_meta("pending_ability"):
-		pending_unit = tile.occupant
-		pending_ability = pending_unit.get_meta("pending_ability")
-
-	if pending_unit and pending_ability:
-		core._execute_card_ability(pending_unit, pending_ability)
-		pending_unit.set_meta("pending_ability", null)
-		core._log("✨ %s ability activated!" % pending_ability.display_name, Color(1.0, 1.0, 0.6))
-		return
-
-	# 🚫 If player is dragging a card, handle placement only
+	# 1️⃣ If we're in summon placement flow, let core handle it
 	if is_placing:
 		core.try_place_dragged_card(tile)
 		return
 
-	# ✅ Moving existing unit to empty or enemy tile
-	if is_moving:
-		var from_pos := core.selected_pos
-		var to_pos := Vector2i(tile.x, tile.y)
-		var movers = board.get_tile(from_pos.x, from_pos.y).occupant
-
-		if not _is_within_move_range(from_pos, to_pos, movers):
-			core._log("🚫 That target is out of range.", Color(1, 0.5, 0.5))
-			return
-
-		# 🚫 Prevent attacking own cards
+	# 2️⃣ SELECT UNIT PHASE: choose a unit to move
+	if core.phase == core.Phase.SUMMON_OR_MOVE:
 		if tile.occupant and tile.occupant.owner == core.PLAYER:
-			core._log("⚠️ You can’t attack your own unit.", Color(1, 0.6, 0.4))
-			return
+			if not core.can_unit_act(tile.occupant):
+				core._log("⏳ %s has already acted." % tile.occupant.card.name, Color(0.7, 0.7, 0.7))
+				return
 
-		# ✅ Otherwise: move or attack
-		await _move_or_battle(core.selected_pos, Vector2i(tile.x, tile.y))
+			_reset_selection()
+			current_from = pos
+			core.selected_pos = pos
+			core._log("🎯 Selected %s. Choose a highlighted tile to move or attack." % tile.occupant.card.name, Color(0.8, 1.0, 0.8))
+			_show_move_targets(pos)
+			core._set_phase(core.Phase.SELECT_MOVE_TARGET)
+			core._update_phase_ui()
+		else:
+			core._log("💡 Click one of your units to move.", Color(0.7, 0.7, 0.7))
 
-		clear_highlights()
-		core.selected_pos = Vector2i(-1, -1)
-		core._set_phase(core.Phase.SUMMON_OR_MOVE)
-		core._update_phase_ui()
 		return
 
-	# ✅ If player clicks their own face-up unit while in SUMMON_OR_MOVE phase, start move selection
-	if core.phase == core.Phase.SUMMON_OR_MOVE and tile.occupant and tile.occupant.owner == core.PLAYER:
-		core.selected_pos = Vector2i(tile.x, tile.y)
-		core._log("🎯 Selected %s. Choose a tile to move or attack." % tile.occupant.card.name, Color(0.8, 1.0, 0.8))
-		_show_move_targets(Vector2i(tile.x, tile.y))
-		core._is_transitioning = true
-		await get_tree().create_timer(0.15).timeout
-		core._is_transitioning = false
-		core._set_phase(core.Phase.SELECT_MOVE_TARGET)
-		core._update_phase_ui()
+	# 3️⃣ MOVE TARGET PHASE: we already have a source; click decides action
+	if core.phase == core.Phase.SELECT_MOVE_TARGET:
+		# Self-click = flip/ability/exhaust logic via _move_or_battle(from, from)
+		if pos == current_from:
+			await _move_or_battle(current_from, current_from)
+			_reset_selection()
+			if core.phase != core.Phase.ENEMY_TURN:
+				core._set_phase(core.Phase.SUMMON_OR_MOVE)
+				core._update_phase_ui()
+			return
+
+		# If clicked a highlighted tile → guaranteed valid
+		if move_targets.has(pos):
+			await _move_or_battle(current_from, pos)
+			_reset_selection()
+			# Phase might change inside _move_or_battle (e.g. battle → enemy turn),
+			# only reset if still player's action phase.
+			if core.phase != core.Phase.ENEMY_TURN:
+				core._set_phase(core.Phase.SUMMON_OR_MOVE)
+				core._update_phase_ui()
+			return
+
+		# If clicked another friendly unit → switch selection
+		if tile.occupant and tile.occupant.owner == core.PLAYER and core.can_unit_act(tile.occupant):
+			_reset_selection()
+			current_from = pos
+			core.selected_pos = pos
+			_show_move_targets(pos)
+			core._set_phase(core.Phase.SELECT_MOVE_TARGET)
+			core._update_phase_ui()
+			return
+
+		core._log("🚫 Not a valid move target.", Color(1, 0.5, 0.5))
 		return
 
 
@@ -225,6 +251,12 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 	if battle._is_battle_in_progress:
 		return
 	battle._is_battle_in_progress = true
+
+	# ✅ Only allow moves/attacks to known highlighted targets (unless bypassed or self-click)
+	if from != to and not bypass_control_check and not move_targets.has(to):
+		core._log("🚫 That tile is not a valid target.", Color(1, 0.5, 0.5))
+		battle._is_battle_in_progress = false
+		return
 
 	var src = board.get_tile(from.x, from.y)
 	var dst = board.get_tile(to.x, to.y)
@@ -370,12 +402,13 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 
 		battle._is_battle_in_progress = false
 		return
-
-	# 🚫 Leaders cannot attack
-	if attacker.is_leader:
-		core._log("🚫 Leaders cannot attack.", Color(1, 0.6, 0.4))
+		
+	# 🚫 Leaders cannot attack enemy units — but they CAN move
+	if attacker.is_leader and dst.occupant != null:
+		core._log("🚫 Leaders cannot attack enemy units.", Color(1, 0.6, 0.4))
 		battle._is_battle_in_progress = false
 		return
+
 
 	# -------------------------
 	# BATTLE
@@ -636,54 +669,72 @@ func _show_move_targets(from: Vector2i) -> void:
 		return
 
 	clear_highlights()
+
 	var src = board.get_tile(from.x, from.y)
 	if not src or not src.occupant:
 		return
-	if not core.can_unit_act(src.occupant):
+
+	var unit: UnitData = src.occupant
+	if not core.can_unit_act(unit):
 		return
+
+	current_from = from
+	core.selected_pos = from
 
 	var range := core.BASE_MOVE_RANGE
 
-	# 🟢 Preferred terrain doubles movement — only if face-up or previewed up
-	var tile = board.get_tile(from.x, from.y)
-	var unit = src.occupant
+	# Preferred terrain bonus (only if face-up or previewing up)
 	var is_down = unit.is_facedown or (unit.has_meta("is_facedown") and unit.get_meta("is_facedown"))
 	var previewed_up = unit.has_meta("is_previewing_flip") and unit.get_meta("is_previewing_flip")
-
-	if (not is_down or previewed_up) and tile and tile.terrain_type == unit.card.preferred_terrain:
+	if (not is_down or previewed_up) and src.terrain_type == unit.card.preferred_terrain:
 		range *= 2
-		if tile.has_method("pulse_move_highlight"):
-			tile.pulse_move_highlight()
+		if src.has_method("pulse_move_highlight"):
+			src.pulse_move_highlight()
 
-	var dirs = [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]
+	var dirs = [
+		Vector2i(1, 0),
+		Vector2i(-1, 0),
+		Vector2i(0, 1),
+		Vector2i(0, -1)
+	]
+
 	for dir in dirs:
 		for step in range(1, range + 1):
 			var p = from + dir * step
-			if p.x < 0 or p.y < 0 or p.x >= core.BOARD_W or p.y >= core.BOARD_H:
+
+			if not core.board.is_in_bounds(p):
 				break
+
 			var t = board.get_tile(p.x, p.y)
 			if not t:
 				break
-			if t.occupant and t.occupant.owner == core.PLAYER:
-				break  # stop at friendly blocker
-
-			t.set_highlight(true, "•" if t.occupant == null else "⚔")
-
-			var highlight_color := Color(0.3, 0.7, 1.0)
-			if t.occupant and t.occupant.owner != core.PLAYER:
-				highlight_color = Color(1.0, 0.3, 0.3)
-
-			if t.has_method("set_move_highlight_tint"):
-				t.set_move_highlight_tint(highlight_color)
-			elif t.has_node("MoveHighlight"):
-				var mh = t.get_node("MoveHighlight")
-				mh.visible = true
-
-			if t.has_method("pulse_move_highlight"):
-				t.pulse_move_highlight()
 
 			if t.occupant:
+				if t.occupant.owner != core.PLAYER:
+					# Enemy = last reachable tile, as attack
+					move_targets[p] = {"kind": "attack"}
+					_highlight_move_tile(t, true)
+				# Stop further scanning in this direction
 				break
+			else:
+				# Empty = movable
+				move_targets[p] = {"kind": "move"}
+				_highlight_move_tile(t, false)
+
+func _highlight_move_tile(tile: Node3D, is_attack: bool) -> void:
+	if tile.has_method("set_highlight"):
+		tile.set_highlight(true, "⚔" if is_attack else "•")
+
+	var tint := Color(1.0, 0.3, 0.3) if is_attack else Color(0.3, 0.7, 1.0)
+
+	if tile.has_method("set_move_highlight_tint"):
+		tile.set_move_highlight_tint(tint)
+	elif tile.has_node("MoveHighlight"):
+		var mh = tile.get_node("MoveHighlight")
+		mh.visible = true
+
+	if tile.has_method("pulse_move_highlight"):
+		tile.pulse_move_highlight()
 
 
 func confirm_faceup(unit: UnitData) -> void:
@@ -745,16 +796,22 @@ func _get_unit_tile(u: UnitData) -> Node3D:
 			return board.get_tile(pos.x, pos.y)
 	return null
 
+func _reset_selection() -> void:
+	current_from = Vector2i(-1, -1)
+	core.selected_pos = Vector2i(-1, -1)
+	move_targets.clear()
+	clear_highlights()
 
 func clear_highlights() -> void:
-	for y in core.BOARD_H:
-		for x in core.BOARD_W:
+	move_targets.clear()
+	for y in range(core.BOARD_H):
+		for x in range(core.BOARD_W):
 			var t = board.get_tile(x, y)
 			if t:
-				t.set_highlight(false)
+				if t.has_method("set_highlight"):
+					t.set_highlight(false)
 				if t.has_node("MoveHighlight"):
 					t.get_node("MoveHighlight").visible = false
-
 
 # =====================================================
 # 🎵 AUDIO

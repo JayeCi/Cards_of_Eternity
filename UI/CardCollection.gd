@@ -30,7 +30,7 @@ func _test_set():
 		"FIREBALL",
 		"JESTER_OF_FLAMES",
 		"FYSH",
-		"FINN"
+		"BOOGLES"
 		
 		]
 	for name in card_names:
@@ -74,7 +74,7 @@ func add_card(card: CardData, count: int = 1) -> void:
 		print("🆕 Added new card:", card.name)
 
 	emit_signal("card_added", card, count)
-	emit_signal("card_count_changed",) #key, collection[key].count)
+	emit_signal("card_count_changed", key, collection[key].count)
 	emit_signal("collection_changed")
 
 

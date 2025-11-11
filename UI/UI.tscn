@@ -1,10 +1,11 @@
-[gd_scene load_steps=16 format=3 uid="uid://dcus3e1lnkiqj"]
+[gd_scene load_steps=17 format=3 uid="uid://dcus3e1lnkiqj"]
 
 [ext_resource type="Texture2D" uid="uid://bof3211rwmtev" path="res://Images/Egyptian.png" id="1_6dd3c"]
 [ext_resource type="Script" uid="uid://b5ngergka1wik" path="res://Arena/Arena3D/ArenaScript/arena_ui.gd" id="1_e707p"]
 [ext_resource type="PackedScene" uid="uid://be24omkufdto6" path="res://UI/arena_card_details.tscn" id="1_q0uhn"]
 [ext_resource type="AudioStream" uid="uid://ba11gf23vyw2l" path="res://Audio/Sound FX/CardDraw.mp3" id="2_dhe1o"]
 [ext_resource type="PackedScene" uid="uid://hs2m5kkdydux" path="res://UI/arena_terrain_details.tscn" id="3_f1fl4"]
+[ext_resource type="PackedScene" uid="uid://b67do0jiedb8d" path="res://UI/arena_leader_details.tscn" id="3_qhxh2"]
 [ext_resource type="PackedScene" uid="uid://d1csyo8c677k5" path="res://UI/fusion_pending.tscn" id="4_qgmx8"]
 [ext_resource type="PackedScene" uid="uid://dpo8aa3x7hm2t" path="res://UI/orb_grid.tscn" id="5_byuxr"]
 [ext_resource type="LabelSettings" uid="uid://br0x7c0gu7782" path="res://UI/PhaseLabel.tres" id="6_d050y"]
@@ -53,6 +54,9 @@ mouse_filter = 2
 script = ExtResource("1_e707p")
 
 [node name="ArenaCardDetails" parent="." instance=ExtResource("1_q0uhn")]
+layout_mode = 1
+
+[node name="ArenaLeaderDetails" parent="." instance=ExtResource("3_qhxh2")]
 layout_mode = 1
 
 [node name="ArenaTerrainDetails" parent="." instance=ExtResource("3_f1fl4")]

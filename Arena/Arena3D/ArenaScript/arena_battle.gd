@@ -1,4 +1,83 @@
 # File: arena_battle.gd
+
+
+# =====================================================================
+# 📘 FUNCTION INDEX — arena_battle.gd
+# =====================================================================
+# 🧩 CORE SETUP & PROCESS
+# ---------------------------------------------------------------------
+# init_battle(core_ref)                 → Initialize core references (core, board, ui, camera, mover)
+# _process(_dt)                         → Update hover & ghost each frame
+
+# 🖱️ INPUT HANDLING
+# ---------------------------------------------------------------------
+# _unhandled_input(event)               → Handle global keybinds (cancel, toggle face)
+# _on_cancel_card_drag()                → Cancel card placement & reset visuals
+
+# 🧭 FACE / FLIP CONTROL
+# ---------------------------------------------------------------------
+# _try_toggle_face()                    → Toggle preview flip (face-down/up) for selected unit
+# confirm_flip(unit := null)            → Confirm preview flip and trigger ability if needed
+# _clear_toggle_session_flag()          → Clear flip session flag (safety reset)
+# reveal_card(pos)                      → Forcefully reveal a facedown unit (used by scripts/tutorial)
+
+# 🟩 MOVEMENT / RANGE / SUMMON HIGHLIGHTS
+# ---------------------------------------------------------------------
+# _is_within_move_range(from, to, unit) → Check if move is valid (range, terrain bonus, no diagonal)
+# show_valid_summon_tiles()             → Highlight valid summon tiles around player leader
+# clear_summon_highlights()             → Remove summon highlight indicators
+
+# 🐭 HOVER & GHOST UI
+# ---------------------------------------------------------------------
+# _update_hover()                       → Handle hover state & highlight hovered tiles
+# _reset_hover_state()                  → Reset all hover / drag flags
+# show_hover_for_tile(tile)             → Display hover info (unit stats or terrain)
+# _update_ghost_position()              → Update position of dragged “ghost card” in 3D
+
+# 🟨 UNIT PLACEMENT HELPERS
+# ---------------------------------------------------------------------
+# normalize_model(model, target_height) → Uniformly scale 3D model to target height
+
+# ⚔️ BATTLE RESOLUTION
+# ---------------------------------------------------------------------
+# resolve_battle(att, defn, silent)     → Simulate damage + return result dictionary
+# _play_2d_battle(att, defn)            → Run full battle animation + update units & UI
+# _focus_camera_on_battle(att_tile, def_tile, zoom_in) 
+#                                      → Zoom camera in/out to focus on active battle
+
+# 🌿 PASSIVES / STATE HELPERS
+# ---------------------------------------------------------------------
+# apply_all_passives()                  → Apply terrain/passive effects to all active units
+# _enforce_visual_face_state()          → Force visual consistency of facedown/faceup models
+# clear_exhausted_tiles()               → Reset exhausted indicators on all tiles
+# set_exhausted_for_unit(u, exhausted)  → Set exhausted visual state for one unit
+# get_leader_pos(owner)                 → Return current position of owner’s leader
+
+# ✨ ABILITIES & UNIT DEATH
+# ---------------------------------------------------------------------
+# _apply_attack_bonus(unit)             → Apply stored temporary ATK bonus (BoostAttack)
+# apply_passive_effect(unit, ability)   → Execute passive ability and mark active
+# _trigger_ability(unit, trigger)       → Execute ability matching trigger event
+# remove_passive_effect(unit, ability)  → Remove passive effects (on kill or removal)
+# _kill_unit(u, silent)                 → Destroy unit, play animation/sound, clear tile
+
+# 🎨 VISUAL FX HELPERS
+# ---------------------------------------------------------------------
+# _float_text(pos, text, color)         → Spawn 3D floating damage text
+# _camera_shake(intensity, duration)    → Shake camera for impact feedback
+# _add_card_highlight(sprite, color)    → Add glowing highlight mesh under a sprite
+# _card_explode(sprite, color)          → Particle explosion for destroyed card
+# _card_pulse(target, color)            → Flash/pulse color or light on a node
+# _fade(to_alpha, dur)                  → Fade UI overlay to given opacity
+
+# 🧰 MISC UTILS
+# ---------------------------------------------------------------------
+# _colorize_name(unit)                  → Return formatted color-coded name string for logs
+# =====================================================================
+
+
+
+
 extends Node
 class_name ArenaBattle
 
@@ -586,7 +665,11 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 
 	battle_ui.refresh_stats(att, defn)
 
-	_trigger_ability(att, "on_attack")
+	var ability_done = _trigger_ability(att, "on_attack")
+	if ability_done:
+		await ability_done
+
+
 	battle_ui.refresh_stats(att, defn)
 
 	var do_counter := (damage_to_att > 0)
@@ -604,7 +687,10 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 		battle_ui.refresh_stats(att, defn)
 
 		if att.current_def > 0:
-			_trigger_ability(defn, "on_attack")
+			var counter_ability_done = _trigger_ability(defn, "on_attack")
+			if counter_ability_done:
+				await counter_ability_done
+
 			battle_ui.refresh_stats(att, defn)
 
 	await get_tree().create_timer(0.25).timeout
@@ -784,17 +870,45 @@ func apply_passive_effect(unit: UnitData, ability: CardAbility) -> void:
 	unit.set_meta("passive_active", true)
 
 
-func _trigger_ability(unit: UnitData, trigger: String) -> void:
+# =====================================================
+# ✨ ABILITIES — SAFE ASYNC WRAPPER (Godot 4.5.1)
+# =====================================================
+# =====================================================
+# ✨ ABILITIES — Synchronous + Awaitable (No async)
+# =====================================================
+func _trigger_ability(unit: UnitData, trigger: String) -> Signal:
+	var finished := Signal()  # custom completion signal
+
 	if not unit or not unit.card or not unit.card.ability:
-		return
+		finished.emit()
+		return finished
 
 	var ab = unit.card.ability
-	if ab.trigger == trigger:
-		ab.execute(core, unit)
+	if ab.trigger != trigger:
+		finished.emit()
+		return finished
 
-		if core and core.card_details_ui and core.card_details_ui.visible:
-			core.card_details_ui.call("refresh_if_showing", unit)
+	core._log("✨ Triggering ability: %s" % ab.display_name, Color(0.9, 0.9, 0.6))
 
+	# Execute the ability and wait for it to finish if it has internal waits
+	_run_ability(ab, finished, unit)
+	return finished
+
+
+func _run_ability(ab: CardAbility, finished: Signal, unit: UnitData) -> void:
+	# Wrap the ability execution safely
+	var exec = await ab.execute(core, unit)
+
+	# If ability uses timers/yields inside, we rely on that to manage pacing
+	# but if not, we emit manually when it’s done.
+	if exec and exec.has_method("is_valid"):
+		# If it's a yield-like state (has finished signal)
+		if exec.has_signal("finished"):
+			exec.finished.connect(func(): finished.emit())
+		else:
+			finished.emit()
+	else:
+		finished.emit()
 
 func remove_passive_effect(unit: UnitData, ability: CardAbility) -> void:
 	if ability.has_method("remove"):

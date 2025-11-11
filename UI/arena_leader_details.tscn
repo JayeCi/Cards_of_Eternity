@@ -1,0 +1,226 @@
+[gd_scene load_steps=19 format=3 uid="uid://b67do0jiedb8d"]
+
+[ext_resource type="Script" uid="uid://daycniyqampn1" path="res://UI/arena_leader_details.gd" id="1_kjexy"]
+[ext_resource type="Texture2D" uid="uid://cqw22yb1awb6i" path="res://Images/Dark Sprite.jpg" id="4_gyfm1"]
+[ext_resource type="LabelSettings" uid="uid://c8mtid42im4y8" path="res://UI/RARITY.tres" id="5_rjj6a"]
+[ext_resource type="Texture2D" uid="uid://dop1q73y04xc0" path="res://Images/Border_TP.png" id="5_t6274"]
+[ext_resource type="LabelSettings" uid="uid://ddakyd5l2gxhs" path="res://UI/DescText.tres" id="7_u0041"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6jj6o"]
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+shadow_size = 4
+shadow_offset = Vector2(-1.075, 2.7)
+
+[sub_resource type="SystemFont" id="SystemFont_owp70"]
+font_names = PackedStringArray("Impact")
+subpixel_positioning = 0
+
+[sub_resource type="LabelSettings" id="LabelSettings_2w83o"]
+font = SubResource("SystemFont_owp70")
+font_size = 24
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 4
+shadow_color = Color(0, 0, 0, 0.752941)
+
+[sub_resource type="SystemFont" id="SystemFont_t6274"]
+font_names = PackedStringArray("Tahoma")
+
+[sub_resource type="LabelSettings" id="LabelSettings_wdn6j"]
+font = SubResource("SystemFont_t6274")
+font_size = 17
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 4
+shadow_color = Color(0, 0, 0, 0.752941)
+
+[sub_resource type="SystemFont" id="SystemFont_es5ck"]
+font_names = PackedStringArray("Tahoma")
+subpixel_positioning = 0
+
+[sub_resource type="LabelSettings" id="LabelSettings_83k8x"]
+font = SubResource("SystemFont_es5ck")
+font_size = 9
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 2
+shadow_color = Color(0, 0, 0, 0.78039217)
+
+[sub_resource type="SystemFont" id="SystemFont_te81p"]
+font_names = PackedStringArray("Tahoma")
+subpixel_positioning = 0
+
+[sub_resource type="LabelSettings" id="LabelSettings_owp70"]
+font = SubResource("SystemFont_te81p")
+font_size = 13
+font_color = Color(0, 0.866667, 0.768627, 1)
+outline_size = 1
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 4
+shadow_color = Color(0, 0, 0, 0.952941)
+
+[sub_resource type="SystemFont" id="SystemFont_lmswf"]
+font_names = PackedStringArray("Tahoma")
+subpixel_positioning = 0
+
+[sub_resource type="LabelSettings" id="LabelSettings_1oedn"]
+font = SubResource("SystemFont_lmswf")
+font_size = 15
+font_color = Color(1, 1, 0.317647, 1)
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 2
+shadow_color = Color(0, 0, 0, 0.623529)
+
+[sub_resource type="SystemFont" id="SystemFont_wiktu"]
+font_names = PackedStringArray("Tahoma")
+subpixel_positioning = 0
+
+[sub_resource type="LabelSettings" id="LabelSettings_te81p"]
+font = SubResource("SystemFont_wiktu")
+font_size = 12
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 4
+shadow_color = Color(0, 0, 0, 1)
+
+[node name="ArenaCardDetails" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("1_kjexy")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 6
+
+[node name="PanelContainer" type="PanelContainer" parent="MarginContainer"]
+custom_minimum_size = Vector2(361, 11)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_6jj6o")
+
+[node name="NameLabel" type="Label" parent="MarginContainer/PanelContainer"]
+z_index = 5
+custom_minimum_size = Vector2(172.66, 35)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 0
+text = "Jester of Flames"
+label_settings = SubResource("LabelSettings_2w83o")
+horizontal_alignment = 1
+vertical_alignment = 1
+text_overrun_behavior = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 3
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/PanelContainer/MarginContainer"]
+custom_minimum_size = Vector2(0, 250.005)
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(0, 250)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LeaderLabel" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+text = "LEADER"
+label_settings = SubResource("LabelSettings_wdn6j")
+horizontal_alignment = 1
+uppercase = true
+
+[node name="Rarity" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+text = "Rarity"
+label_settings = ExtResource("5_rjj6a")
+uppercase = true
+
+[node name="Type" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+text = "Type"
+label_settings = SubResource("LabelSettings_83k8x")
+
+[node name="Abilities" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 26.145)
+layout_mode = 2
+label_settings = SubResource("LabelSettings_owp70")
+vertical_alignment = 1
+
+[node name="AbilitiesName" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+text = "Leader Ability"
+label_settings = SubResource("LabelSettings_1oedn")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="AbilitiesDesc" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(173, 69)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Abiltiy text"
+label_settings = SubResource("LabelSettings_te81p")
+autowrap_mode = 3
+
+[node name="Spacer" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(173, 3.365)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+label_settings = SubResource("LabelSettings_te81p")
+autowrap_mode = 3
+
+[node name="Description" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(173, 69)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Desc text"
+label_settings = ExtResource("7_u0041")
+autowrap_mode = 3
+
+[node name="Art" type="TextureRect" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(166.48, 0)
+layout_mode = 2
+texture = ExtResource("4_gyfm1")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="BorderTp" type="Sprite2D" parent="."]
+position = Vector2(1057, 139)
+scale = Vector2(0.18876213, 0.18876213)
+texture = ExtResource("5_t6274")

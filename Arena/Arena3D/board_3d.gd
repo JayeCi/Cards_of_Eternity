@@ -16,7 +16,7 @@ class_name Board3D
 # BIOMES
 # -------------------------------------------------------------
 enum Biome {
-	DEFAULT,
+	#DEFAULT,
 	OCEAN,
 	VOLCANO,
 	FOREST,
@@ -25,7 +25,7 @@ enum Biome {
 	TUNDRA
 }
 
-@export var biome: Biome = Biome.DEFAULT
+@export var biome: Biome = Biome.TUNDRA
 
 var tiles: Dictionary = {}
 
@@ -57,6 +57,13 @@ func _on_tile_hover_exited(tile: Node3D) -> void:
 	if card_ui: card_ui.hide_card()
 	if terrain_ui: terrain_ui.hide_terrain()
 	
+func get_tile_from_collider(node: Node) -> Node3D:
+	while node and not node.has_meta("tile_marker"):
+		node = node.get_parent()
+	if node and node.has_meta("tile_marker"):
+		return node as Node3D
+	return null
+
 func get_unit_position(unit: UnitData) -> Vector2i:
 	for pos in tiles.keys():
 		var tile = tiles[pos]
@@ -82,9 +89,9 @@ func _generate_grid() -> void:
 	var terrain_weights := {}
 
 	match biome:
-		Biome.DEFAULT:
-			base_terrain = "Default"
-			terrain_weights = {"Default": 1.0}
+		#Biome.DEFAULT:
+			#base_terrain = "Default"
+			#terrain_weights = {"Default": 1.0}
 		Biome.OCEAN:
 			base_terrain = "Water"
 			terrain_weights = {"Water": 0.7, "Stone": 0.2, "Grass": 0.1}
@@ -165,8 +172,12 @@ func _generate_grid() -> void:
 	# --- STEP 2: Add small variation for natural feel ---
 	for y in range(height):
 		for x in range(width):
-			if randf() < 0.12:  # 12% chance to add minor terrain variation
+			if randf() < 0.12:
 				map[y][x] = _pick_weighted(terrain_weights)
+#
+			## ✅ Normalize Default to base_terrain (so it behaves consistently)
+			#if map[y][x] == "Default":
+				#map[y][x] = base_terrain
 
 	# --- STEP 3: Instantiate tiles ---
 	for y in range(height):
@@ -180,15 +191,18 @@ func _generate_grid() -> void:
 			if tile.has_method("_apply_terrain_visual"):
 				tile._apply_terrain_visual()
 
-			if tile.terrain_type == "Default" or tile.terrain_type == base_terrain:
-				if tile.has_method("set_default_visual"):
-					tile.set_default_visual()
+			#if tile.terrain_type == base_terrain and tile.has_method("set_default_visual"):
+				#tile.set_default_visual()
+
+			# ✅ Mark as tile so we can detect from any child collider
+			tile.set_meta("tile_marker", true)
 
 			var pos_x := (x - half_w) * spacing
 			var pos_z := -(y - half_h) * spacing
 			tile.position = Vector3(pos_x, 0, pos_z)
 			add_child(tile)
 			tiles[Vector2i(x, y)] = tile
+
 
 	position = Vector3.ZERO
 	print("Generated %d patterned tiles." % tiles.size())

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="TripleStrikeAbility" load_steps=2 format=3 uid="uid://dgud8td22goyk"]
+
+[ext_resource type="Script" uid="uid://8cxl27my2hnp" path="res://TripleStrikeAbility.gd" id="1_0ecsh"]
+
+[resource]
+script = ExtResource("1_0ecsh")
+trigger = "on_attack"
+display_name = "Tri-Strike"
+description = "Attacks three times in a row."
+metadata/_custom_type_script = "uid://8cxl27my2hnp"
