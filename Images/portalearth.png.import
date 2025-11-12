@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://oyptu6rnbww5"
-path="res://.godot/imported/Rock050.jpg-046103c66c6f40c3dab59db32f49a291.ctex"
+uid="uid://tbyqr05408u7"
+path="res://.godot/imported/portalearth.png-35783ddc2f0014ae20ec19af82b23d63.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://AmbientCG/Materials/Rock050.jpg"
-dest_files=["res://.godot/imported/Rock050.jpg-046103c66c6f40c3dab59db32f49a291.ctex"]
+source_file="res://Images/portalearth.png"
+dest_files=["res://.godot/imported/portalearth.png-35783ddc2f0014ae20ec19af82b23d63.ctex"]
 
 [params]
 

@@ -8,8 +8,8 @@ signal request_continue()
 @onready var portrait: TextureRect = %Portrait
 @onready var speaker_label: Label = %SpeakerLabel
 @onready var text_label: RichTextLabel = %TextLabel
-@onready var sfx_player: AudioStreamPlayer = $Sfx
-@onready var auto_timer: Timer = $AutoAdvanceTimer
+#@onready var sfx_player: AudioStreamPlayer = $Sfx
+#@onready var auto_timer: Timer = $AutoAdvanceTimer
 @onready var choices_container: VBoxContainer = %ChoicesContainer
 @onready var choice_button_a: Button = %ChoiceButtonA
 
@@ -72,9 +72,9 @@ func show_line(line: DialogueLine, page: DialoguePage = null) -> void:
 	_is_revealing = true
 
 	# SFX
-	if line.sfx:
-		sfx_player.stream = line.sfx
-		sfx_player.play()
+	#if line.sfx:
+		#sfx_player.stream = line.sfx
+		#sfx_player.play()
 
 	# ✅ IMPORTANT FIX — restart processing every new line
 	set_process(true)

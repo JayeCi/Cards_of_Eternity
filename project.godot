@@ -41,6 +41,9 @@ CardDb="*res://CardDB.gd"
 
 [display]
 
+window/size/initial_position_type=3
+window/size/initial_screen=1
+window/size/always_on_top=true
 window/stretch/mode="canvas_items"
 
 [editor_plugins]

@@ -1,0 +1,115 @@
+[gd_scene load_steps=13 format=3 uid="uid://dx8wdj3sfr67k"]
+
+[ext_resource type="Shader" uid="uid://co756lh7i8ttk" path="res://portal.gdshader" id="1_tyiwb"]
+[ext_resource type="Texture2D" uid="uid://bhlen8e0rmkqu" path="res://UI/wind.png" id="2_2s14i"]
+[ext_resource type="Texture2D" uid="uid://bchu7vwfk4sxm" path="res://Images/EarthRealmPortal.png" id="3_32bn6"]
+[ext_resource type="Texture2D" uid="uid://chapcvf2umfbh" path="res://Images/glowing-green-magic-rings-neon-realistic-energy-flare-halo-rings-abstract-light-effect.png" id="4_n503i"]
+[ext_resource type="Shader" uid="uid://bng421xtnmjny" path="res://paneleart.gdshader" id="5_32bn6"]
+[ext_resource type="Texture2D" uid="uid://dhmnhdn0imetp" path="res://World/MAP/freepik__adjust__40633.png" id="6_n503i"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_lkqwn"]
+shader = ExtResource("1_tyiwb")
+shader_parameter/dimensions = Vector2(1152, 648)
+shader_parameter/rows = 20.0
+shader_parameter/columns = 0.595
+shader_parameter/vertical_scroll = 0.5
+shader_parameter/horizontal_scroll = 0.1
+shader_parameter/size_min = 0.3
+shader_parameter/size_max = 0.40000000596048
+shader_parameter/wave_min = 0.1
+shader_parameter/wave_max = 1.0
+shader_parameter/wave_speed = 0.60000000894072
+shader_parameter/wave_rotation = 1.4901200051653518e-08
+shader_parameter/far_color = Color(0.5, 0.5, 0.5, 1)
+shader_parameter/near_color = Color(1, 1, 1, 1)
+shader_parameter/particle_texture = ExtResource("2_2s14i")
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_n8j77"]
+atlas = ExtResource("4_n503i")
+region = Rect2(0, 0, 666, 667)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_k65w2"]
+atlas = ExtResource("4_n503i")
+region = Rect2(666, 0, 666, 667)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_k4jiq"]
+atlas = ExtResource("4_n503i")
+region = Rect2(1332, 0, 666, 667)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_eagyy"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_n8j77")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_k65w2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_k4jiq")
+}],
+"loop": true,
+"name": &"default",
+"speed": 4.0
+}]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_n8j77"]
+shader = ExtResource("5_32bn6")
+shader_parameter/debug = false
+shader_parameter/border_scale = 0.675
+shader_parameter/shadow_offset = Vector2(-10.385, -11.98)
+shader_parameter/color = Color(0, 0, 0, 1)
+shader_parameter/blur_amount = 3.582000170145
+shader_parameter/shadow_scale = 1.475
+shader_parameter/disable_rotating = false
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Portalearth" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_lkqwn")
+position = Vector2(584, 360)
+scale = Vector2(0.76085865, 0.76085865)
+texture = ExtResource("3_32bn6")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+modulate = Color(1, 1, 1, 0.15294118)
+position = Vector2(575, 324)
+scale = Vector2(0.42554095, 0.42554095)
+sprite_frames = SubResource("SpriteFrames_eagyy")
+autoplay = "default"
+frame_progress = 0.86967975
+
+[node name="AnimatedSprite2D2" type="AnimatedSprite2D" parent="."]
+modulate = Color(1, 1, 1, 0.15294118)
+position = Vector2(579.00006, 324)
+scale = Vector2(0.2651314, 0.2651314)
+sprite_frames = SubResource("SpriteFrames_eagyy")
+autoplay = "default"
+frame_progress = 0.9860766
+
+[node name="AnimatedSprite2D3" type="AnimatedSprite2D" parent="."]
+modulate = Color(1, 1, 1, 0.15294118)
+position = Vector2(579.00006, 324)
+scale = Vector2(0.13616487, 0.13616487)
+sprite_frames = SubResource("SpriteFrames_eagyy")
+autoplay = "default"
+frame_progress = 0.93907785
+
+[node name="FreepikAdjust40633" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_n8j77")
+position = Vector2(994, 525)
+scale = Vector2(0.5141397, 0.5141397)
+texture = ExtResource("6_n503i")
+region_enabled = true
+region_rect = Rect2(84, 62, 502, 283)

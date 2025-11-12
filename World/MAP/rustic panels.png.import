@@ -2,16 +2,12 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dlor4ttby83dd"
-path="res://.godot/imported/Rock050.png-d57dbd7110aec70f8a4b3bca530a4a6f.ctex"
-metadata={
-"vram_texture": false
-}
+uid="uid://dxiajdqo6wm64"
+valid=false
 
 [deps]
 
-source_file="res://AmbientCG/Downloads/Rock0501K-JPG/Rock050.png"
-dest_files=["res://.godot/imported/Rock050.png-d57dbd7110aec70f8a4b3bca530a4a6f.ctex"]
+source_file="res://World/MAP/rustic panels.png"
 
 [params]
 
