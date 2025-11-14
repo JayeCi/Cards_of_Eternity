@@ -429,7 +429,7 @@ func _on_battle_concluded(result: String) -> void:
 		DialogueManager.force_close()
 
 	GameSession.last_battle_result = result
-	GameSession.switch_to_map()
+	GameSession.switch_to_earth_map()
 
 func set_player_deck(arr: Array) -> void:
 	player_deck = arr.duplicate()

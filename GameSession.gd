@@ -1,8 +1,8 @@
 extends Node
 
-var hub_scene_path := "res://World/MAP/Portal_Hub.tscn"
+var hub_scene_path := "res://EarthPortalScene.tscn"
 var arena_scene_path := "res://Arena/Arena3D/arena_3d.tscn"
-var map_scene_path := "res://World/MAP/map_screen.tscn"
+var map_scene_path := "res://World/MAP/earth_map_screen.tscn"
 
 var hub_instance: Node = null
 var arena_instance: Node = null
@@ -91,9 +91,7 @@ func switch_to_arena(tutorial := false) -> void:
 # =====================================================
 # 🗺️ Switch TO MAP
 # =====================================================
-func switch_to_map() -> void:
-	# 🟣 Fade out first
-	await TransitionFade.fade_out()
+func switch_to_earth_map() -> void:
 
 	# --- Clean arena/hub while screen is dark ---
 	if arena_instance and is_instance_valid(arena_instance):

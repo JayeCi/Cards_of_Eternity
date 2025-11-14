@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://d3vt7o3usmcs"
+path="res://.godot/imported/Surreal_Music.mp3-f6f52d78a9a4b74d130faa06de62c529.mp3str"
+
+[deps]
+
+source_file="res://Audio/Sound FX/Realms/Earth/Surreal_Music.mp3"
+dest_files=["res://.godot/imported/Surreal_Music.mp3-f6f52d78a9a4b74d130faa06de62c529.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

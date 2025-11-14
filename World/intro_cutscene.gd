@@ -92,6 +92,5 @@ func _on_deck_picked(i: int):
 
 # fade out → map
 func _start_game():
-	await TransitionFade.fade_out()
-	get_tree().change_scene_to_file("res://World/MAP/Portal_Hub.tscn")
+	GameSession.switch_to_hub()
 	queue_free()

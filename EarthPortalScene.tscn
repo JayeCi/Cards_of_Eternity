@@ -1,11 +1,18 @@
-[gd_scene load_steps=13 format=3 uid="uid://dx8wdj3sfr67k"]
+[gd_scene load_steps=23 format=3 uid="uid://dx8wdj3sfr67k"]
 
+[ext_resource type="Script" uid="uid://d3yvw03nn7jit" path="res://earth_portal_scene.gd" id="1_f158j"]
 [ext_resource type="Shader" uid="uid://co756lh7i8ttk" path="res://portal.gdshader" id="1_tyiwb"]
 [ext_resource type="Texture2D" uid="uid://bhlen8e0rmkqu" path="res://UI/wind.png" id="2_2s14i"]
 [ext_resource type="Texture2D" uid="uid://bchu7vwfk4sxm" path="res://Images/EarthRealmPortal.png" id="3_32bn6"]
-[ext_resource type="Texture2D" uid="uid://chapcvf2umfbh" path="res://Images/glowing-green-magic-rings-neon-realistic-energy-flare-halo-rings-abstract-light-effect.png" id="4_n503i"]
-[ext_resource type="Shader" uid="uid://bng421xtnmjny" path="res://paneleart.gdshader" id="5_32bn6"]
+[ext_resource type="Texture2D" uid="uid://c5ioqqv2dnadu" path="res://Images/FirePortal.PNG" id="4_lkqwn"]
+[ext_resource type="AudioStream" uid="uid://bisdwyvh2d0ot" path="res://Audio/Sound FX/Realms/Earth/FOREST_AMBIENCE.mp3" id="4_n8j77"]
+[ext_resource type="AudioStream" uid="uid://d3vt7o3usmcs" path="res://Audio/Sound FX/Realms/Earth/Surreal_Music.mp3" id="5_k65w2"]
+[ext_resource type="Texture2D" uid="uid://bj2sda6suoyna" path="res://Images/WaterPortal.PNG" id="5_n8j77"]
+[ext_resource type="Shader" uid="uid://c3h44i15bsywg" path="res://fireportal.gdshader" id="6_k4jiq"]
+[ext_resource type="Texture2D" uid="uid://cii1o542as7p3" path="res://Images/WindPortal.PNG" id="6_k65w2"]
 [ext_resource type="Texture2D" uid="uid://dhmnhdn0imetp" path="res://World/MAP/freepik__adjust__40633.png" id="6_n503i"]
+[ext_resource type="Texture2D" uid="uid://dsrnuejqxi4cn" path="res://World/MAP/glowing-green-magic-rings-neon-realistic-energy-flare-halo-rings-abstract-light-effect.png" id="9_k65w2"]
+[ext_resource type="Texture2D" uid="uid://b4qcerc1c62u8" path="res://World/MAP/lavapanel.png" id="10_eagyy"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_lkqwn"]
 shader = ExtResource("1_tyiwb")
@@ -24,44 +31,53 @@ shader_parameter/far_color = Color(0.5, 0.5, 0.5, 1)
 shader_parameter/near_color = Color(1, 1, 1, 1)
 shader_parameter/particle_texture = ExtResource("2_2s14i")
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_n8j77"]
-atlas = ExtResource("4_n503i")
+[sub_resource type="AtlasTexture" id="AtlasTexture_k4jiq"]
+atlas = ExtResource("9_k65w2")
 region = Rect2(0, 0, 666, 667)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_k65w2"]
-atlas = ExtResource("4_n503i")
+[sub_resource type="AtlasTexture" id="AtlasTexture_eagyy"]
+atlas = ExtResource("9_k65w2")
 region = Rect2(666, 0, 666, 667)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_k4jiq"]
-atlas = ExtResource("4_n503i")
+[sub_resource type="AtlasTexture" id="AtlasTexture_f158j"]
+atlas = ExtResource("9_k65w2")
 region = Rect2(1332, 0, 666, 667)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_eagyy"]
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_n8j77")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_k65w2")
-}, {
-"duration": 1.0,
 "texture": SubResource("AtlasTexture_k4jiq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_eagyy")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_f158j")
 }],
 "loop": true,
 "name": &"default",
 "speed": 4.0
 }]
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_n8j77"]
-shader = ExtResource("5_32bn6")
-shader_parameter/debug = false
-shader_parameter/border_scale = 0.675
-shader_parameter/shadow_offset = Vector2(-10.385, -11.98)
-shader_parameter/color = Color(0, 0, 0, 1)
-shader_parameter/blur_amount = 3.582000170145
-shader_parameter/shadow_scale = 1.475
-shader_parameter/disable_rotating = false
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_eagyy"]
+
+[sub_resource type="SystemFont" id="SystemFont_vewdp"]
+font_names = PackedStringArray("Tahoma")
+
+[sub_resource type="LabelSettings" id="LabelSettings_i1111"]
+font = SubResource("SystemFont_vewdp")
+font_size = 65
+outline_size = 25
+outline_color = Color(0.101960786, 0.101960786, 0.101960786, 0.81960785)
+shadow_color = Color(0.050980393, 0.039215688, 0.02745098, 0.5764706)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_f158j"]
+shader = ExtResource("6_k4jiq")
+shader_parameter/sway_speed = 1.0
+shader_parameter/sway_strength = 0.0010000000475
+shader_parameter/noise_scale = 5.0
+shader_parameter/time_offset = 0.0
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -70,46 +86,180 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_f158j")
 
-[node name="Portalearth" type="Sprite2D" parent="."]
+[node name="EarthPortal" type="Sprite2D" parent="."]
 material = SubResource("ShaderMaterial_lkqwn")
 position = Vector2(584, 360)
 scale = Vector2(0.76085865, 0.76085865)
 texture = ExtResource("3_32bn6")
+
+[node name="ForestAmbience" type="AudioStreamPlayer" parent="EarthPortal"]
+stream = ExtResource("4_n8j77")
+volume_db = -25.322
+autoplay = true
+bus = &"SFX"
+parameters/looping = true
+
+[node name="SurrealMusic" type="AudioStreamPlayer" parent="EarthPortal"]
+stream = ExtResource("5_k65w2")
+volume_db = -40.696
+autoplay = true
+bus = &"Music"
+parameters/looping = true
+
+[node name="EarthSwirl" type="Node2D" parent="EarthPortal"]
+
+[node name="Portal" type="AnimatedSprite2D" parent="EarthPortal/EarthSwirl"]
+modulate = Color(1, 1, 1, 0.15294118)
+position = Vector2(-11.828735, -47.314972)
+scale = Vector2(0.5592904, 0.5592904)
+sprite_frames = SubResource("SpriteFrames_eagyy")
+autoplay = "default"
+frame_progress = 0.3620855
+
+[node name="Portal2" type="AnimatedSprite2D" parent="EarthPortal/EarthSwirl"]
+modulate = Color(1, 1, 1, 0.15294118)
+position = Vector2(-6.571472, -47.314972)
+scale = Vector2(0.34846345, 0.34846345)
+sprite_frames = SubResource("SpriteFrames_eagyy")
+autoplay = "default"
+frame_progress = 0.36878034
+
+[node name="Portal3" type="AnimatedSprite2D" parent="EarthPortal/EarthSwirl"]
+modulate = Color(1, 1, 1, 0.15294118)
+position = Vector2(-6.571472, -47.314972)
+scale = Vector2(0.17896211, 0.17896211)
+sprite_frames = SubResource("SpriteFrames_eagyy")
+autoplay = "default"
+frame_progress = 0.19223441
+
+[node name="EarthPanel" type="Sprite2D" parent="EarthPortal"]
+position = Vector2(607.20874, 285.20404)
+scale = Vector2(0.4099453, 0.4099453)
+texture = ExtResource("6_n503i")
+region_enabled = true
+region_rect = Rect2(84, 62, 502, 283)
+
+[node name="EarthRealmButton" type="Button" parent="EarthPortal/EarthPanel"]
+anchors_preset = 13
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -439.66467
+offset_top = -56.404907
+offset_right = -62.335327
+offset_bottom = -226.5951
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+tooltip_text = "Click to Enter the Earth Realm"
+theme_override_styles/normal = SubResource("StyleBoxEmpty_eagyy")
+
+[node name="RealmLabel" type="Label" parent="EarthPortal/EarthPanel/EarthRealmButton"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -11.5
+offset_right = 20.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "Earth Realm"
+label_settings = SubResource("LabelSettings_i1111")
+horizontal_alignment = 1
+
+[node name="FirePortal" type="Sprite2D" parent="."]
+visible = false
+material = SubResource("ShaderMaterial_f158j")
+position = Vector2(584, 360)
+scale = Vector2(0.761, 0.761)
+texture = ExtResource("4_lkqwn")
+
+[node name="FireSwirl" type="Node2D" parent="FirePortal"]
+
+[node name="Portal4" type="AnimatedSprite2D" parent="FirePortal/FireSwirl"]
+modulate = Color(9.353141, 0, 0, 0.15294118)
+position = Vector2(-11.826538, -47.306183)
+scale = Vector2(0.5591865, 0.5591865)
+sprite_frames = SubResource("SpriteFrames_eagyy")
+autoplay = "default"
+frame_progress = 0.7726614
+
+[node name="Portal5" type="AnimatedSprite2D" parent="FirePortal/FireSwirl"]
+modulate = Color(9.353141, 0, 0, 0.15294118)
+position = Vector2(-6.5702515, -47.306183)
+scale = Vector2(0.34839872, 0.34839872)
+sprite_frames = SubResource("SpriteFrames_eagyy")
+autoplay = "default"
+frame_progress = 0.040083874
+
+[node name="Portal6" type="AnimatedSprite2D" parent="FirePortal/FireSwirl"]
+modulate = Color(9.353141, 0, 0, 0.15294118)
+position = Vector2(-6.5702515, -47.306183)
+scale = Vector2(0.17892888, 0.17892888)
+sprite_frames = SubResource("SpriteFrames_eagyy")
+autoplay = "default"
+frame_progress = 0.4290272
+
+[node name="FirePanel" type="Sprite2D" parent="FirePortal"]
+position = Vector2(538.76483, 215.50592)
+scale = Vector2(0.17996795, 0.17996795)
+texture = ExtResource("10_eagyy")
+region_enabled = true
+region_rect = Rect2(29, 52, 1908, 1092)
+
+[node name="RealmButton" type="Button" parent="FirePortal/FirePanel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -489.20947
+offset_top = -43.809845
+offset_right = -2111.8804
+offset_bottom = -1112.9998
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(3.6653109, 3.6653109)
+size_flags_horizontal = 4
+size_flags_vertical = 4
+tooltip_text = "Click to Enter the Earth Realm"
+theme_override_styles/normal = SubResource("StyleBoxEmpty_eagyy")
+
+[node name="RealmLabel" type="Label" parent="FirePortal/FirePanel/RealmButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -11.952592
+offset_top = -28.594955
+offset_right = 5.718292
+offset_bottom = 28.594955
+grow_horizontal = 2
+grow_vertical = 2
+text = "Fire Realm"
+label_settings = SubResource("LabelSettings_i1111")
+horizontal_alignment = 1
+
+[node name="WaterPortal" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(584, 360)
+scale = Vector2(0.761, 0.761)
+texture = ExtResource("5_n8j77")
+
+[node name="WindPortal" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(584, 360)
+scale = Vector2(0.761, 0.761)
+texture = ExtResource("6_k65w2")
 
 [node name="Panel" type="Panel" parent="."]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
-modulate = Color(1, 1, 1, 0.15294118)
-position = Vector2(575, 324)
-scale = Vector2(0.42554095, 0.42554095)
-sprite_frames = SubResource("SpriteFrames_eagyy")
-autoplay = "default"
-frame_progress = 0.86967975
-
-[node name="AnimatedSprite2D2" type="AnimatedSprite2D" parent="."]
-modulate = Color(1, 1, 1, 0.15294118)
-position = Vector2(579.00006, 324)
-scale = Vector2(0.2651314, 0.2651314)
-sprite_frames = SubResource("SpriteFrames_eagyy")
-autoplay = "default"
-frame_progress = 0.9860766
-
-[node name="AnimatedSprite2D3" type="AnimatedSprite2D" parent="."]
-modulate = Color(1, 1, 1, 0.15294118)
-position = Vector2(579.00006, 324)
-scale = Vector2(0.13616487, 0.13616487)
-sprite_frames = SubResource("SpriteFrames_eagyy")
-autoplay = "default"
-frame_progress = 0.93907785
-
-[node name="FreepikAdjust40633" type="Sprite2D" parent="."]
-material = SubResource("ShaderMaterial_n8j77")
-position = Vector2(994, 525)
-scale = Vector2(0.5141397, 0.5141397)
-texture = ExtResource("6_n503i")
-region_enabled = true
-region_rect = Rect2(84, 62, 502, 283)
+[connection signal="pressed" from="EarthPortal/EarthPanel/EarthRealmButton" to="." method="_on_earth_realm_button_pressed"]

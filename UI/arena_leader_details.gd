@@ -5,7 +5,7 @@ class_name ArenaLeaderDetails
 @onready var art: TextureRect = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/Art
 @onready var name_label: Label = $MarginContainer/PanelContainer/NameLabel
 @onready var rarity_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/Rarity
-@onready var cost_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/Cost
+#@onready var cost_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/Cost
 @onready var type_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/Type
 @onready var description_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/Description
 
@@ -58,7 +58,7 @@ func show_card(card: CardData) -> void:
 	name_label.text = card.name
 	rarity_label.text = str(card.rarity)
 	set_rarity_color(str(card.rarity))
-	cost_label.text = "Cost: %d" % int(card.cost) if "cost" in card else "Cost: —"
+	#cost_label.text = "Cost: %d" % int(card.cost) if "cost" in card else "Cost: —"
 	type_label.text = " / ".join(card.types) if card.types and card.types.size() > 0 else "Leader"
 
 	# Description (leader ability or passive)

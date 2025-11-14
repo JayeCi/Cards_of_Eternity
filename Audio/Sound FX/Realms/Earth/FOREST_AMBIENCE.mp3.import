@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bisdwyvh2d0ot"
+path="res://.godot/imported/FOREST_AMBIENCE.mp3-ed53172b99eca9967faf7a0674e48ef6.mp3str"
+
+[deps]
+
+source_file="res://Audio/Sound FX/Realms/Earth/FOREST_AMBIENCE.mp3"
+dest_files=["res://.godot/imported/FOREST_AMBIENCE.mp3-ed53172b99eca9967faf7a0674e48ef6.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
