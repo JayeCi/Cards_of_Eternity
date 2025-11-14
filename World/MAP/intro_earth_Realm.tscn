@@ -1,7 +1,46 @@
-[gd_scene load_steps=3 format=3 uid="uid://ga0vx2fo46g5"]
+[gd_scene load_steps=6 format=3 uid="uid://ga0vx2fo46g5"]
 
 [ext_resource type="Script" uid="uid://qol0mp3smss3" path="res://intro_earth_realm.gd" id="1_7rlvd"]
-[ext_resource type="Texture2D" uid="uid://dd3pnpmyt6edn" path="res://World/MAP/Earth_pixie.png" id="2_io3oc"]
+[ext_resource type="Texture2D" uid="uid://4gdiragq1u5h" path="res://World/MAP/EarthRealmFairy_1_Idle.png" id="2_io3oc"]
+
+[sub_resource type="Animation" id="Animation_io3oc"]
+resource_name = "Idle_Float"
+length = 3.0
+loop_mode = 1
+step = 0.0333333
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("EarthPixie:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1.5, 3),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(137, 733.00006), Vector2(138, 723.99994), Vector2(137, 733.00006)]
+}
+
+[sub_resource type="Animation" id="Animation_8vuwe"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("EarthPixie:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(137, 733.00006)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_4x31b"]
+_data = {
+&"Idle_Float": SubResource("Animation_io3oc"),
+&"RESET": SubResource("Animation_8vuwe")
+}
 
 [node name="Intro_Earth_Realm" type="Control"]
 layout_mode = 3
@@ -14,7 +53,13 @@ script = ExtResource("1_7rlvd")
 
 [node name="EarthPixie" type="Sprite2D" parent="."]
 z_index = 6
-position = Vector2(145.00002, 620)
-scale = Vector2(0.45837426, 0.45837426)
+position = Vector2(137, 733.00006)
+scale = Vector2(1.0944959, 1.0944959)
 texture = ExtResource("2_io3oc")
 flip_h = true
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_4x31b")
+}
+autoplay = "Idle_Float"

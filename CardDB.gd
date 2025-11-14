@@ -35,6 +35,7 @@ const PATH := {
 	"CONFLAGURATION_BLADE": "res://Cards/Spell Cards/Conflaguration_Blade.tres",
 	"TIDAL_WAVE":         "res://Cards/Spell Cards/Tidal_Wave.tres",
 	"AQUA_WHIP":          "res://Cards/Spell Cards/Aqua_whip.tres",
+	"PLAGUE_SENTINEL":    "res://Cards/Monster Cards/Plague_Sentinel.tres",
 	"TUTORIAL_GOBLIN":    "res://Cards/Monster Cards/Tutorial_Goblin.tres",
 }
 

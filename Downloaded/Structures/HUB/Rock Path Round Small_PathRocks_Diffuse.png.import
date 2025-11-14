@@ -2,14 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d2fckb7rxsljp"
+uid="uid://co8i5y3fkxy0k"
 path.s3tc="res://.godot/imported/Rock Path Round Small_PathRocks_Diffuse.png-b66f70279d1d742db0264d36dc99d25d.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
-}
-generator_parameters={
-"md5": "caf9f6ef2a902c6a1a20803d7f67d1f1"
 }
 
 [deps]

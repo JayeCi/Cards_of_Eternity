@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://coek70aiv0wge"]
+
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_ued2g"]
+[ext_resource type="Texture2D" uid="uid://b0fxfakxy7en" path="res://Images/Plague Sentinel.jpeg" id="1_wix2b"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_wix2b"]
+
+[resource]
+script = ExtResource("2_wix2b")
+id = "00039"
+name = "Plague Sentinel"
+description = "A lone plague sentinel."
+art = ExtResource("1_wix2b")
+atk = 12
+def = 10
+model_path = "res://Cards/Models/PLAGUE_SENTINEL_MODEL.tscn"
+model_scale = Vector3(0.3, 0.3, 0.3)
+metadata/_custom_type_script = "uid://57up1u0etcmc"
