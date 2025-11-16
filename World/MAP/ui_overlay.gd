@@ -9,6 +9,7 @@ extends Control
 @onready var reward_animation_player: AnimationPlayer = $Reward/AnimationPlayer
 @onready var art: TextureRect = $InfoPanel/MainPanel/VBoxContainer/ArtPanel/Art
 @onready var reward: Control = $Reward
+@onready var art_panel: Panel = $InfoPanel/MainPanel/VBoxContainer/ArtPanel
 
 
 var _info_panel_open := false
@@ -51,18 +52,22 @@ func show_encounter_info(node: MapNode, animate: bool = true) -> void:
 
 		# ✅ Dynamic art for portal
 		_set_dynamic_art("portal")
-		return
 
-	# -----------------------------------------------------
 	# 🧩 Regular encounter node
 	# -----------------------------------------------------
-	description.text = node.description if node.description != "" else "No description available."
+	# ✅ Show defeat message if completed, otherwise show description
+	if node.is_completed and node.defeat_message != "":
+		description.text = node.defeat_message
+	else:
+		description.text = node.description if node.description != "" else "No description available."
 
-	if "custom_art" in node and node.custom_art:
+	# ✅ Check for defeated/completed state first
+	if node.is_completed and "custom_art_defeated" in node and node.custom_art_defeated:
+		art.texture = node.custom_art_defeated
+	elif "custom_art" in node and node.custom_art:
 		art.texture = node.custom_art
 	else:
 		_set_dynamic_art(node.encounter_type)
-
 	if animate and not _info_panel_open:
 		animation_player.play("Slide_In")
 

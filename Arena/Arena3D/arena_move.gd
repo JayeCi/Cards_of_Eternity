@@ -63,6 +63,11 @@ class_name ArenaMove
 var current_from: Vector2i = Vector2i(-1, -1)
 var move_targets: Dictionary = {} # { Vector2i : { "kind": "move"|"attack" } }
 
+func _ready():
+	if $MoveHighlight:
+		var mh = $MoveHighlight
+		if mh.material:
+			mh.material = mh.material.duplicate()
 
 func init(core_ref: ArenaCore, ui_ref: ArenaUI, board_ref: Node3D, battle_ref: ArenaBattle) -> void:
 	core = core_ref
@@ -76,6 +81,8 @@ func init(core_ref: ArenaCore, ui_ref: ArenaUI, board_ref: Node3D, battle_ref: A
 # ===============================
 
 func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, is_player: bool = false) -> void:
+	var is_real_summon := true   # this is a *real summon*, not a movement
+
 	var tile = board.get_tile(pos.x, pos.y)
 	if not tile:
 		core._log("⚠️ Tried to place unit on invalid tile: %s" % str(pos))
@@ -155,8 +162,9 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, is_player:
 
 	await get_tree().process_frame
 
-	if not is_facedown and card.ability and card.ability.trigger == "on_summon":
+	if is_real_summon and not is_facedown and card.ability and card.ability.trigger == "on_summon":
 		core._execute_card_ability(unit, card.ability)
+
 
 	core._play_card_place_sound()
 
@@ -268,25 +276,23 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 	if not attacker:
 		battle._is_battle_in_progress = false
 		return
-
+	
+	# ✅ Check universal frozen status
+	if FrozenStatusEffect.is_frozen(attacker):
+		core._log("❄️ %s is frozen and cannot act!" % attacker.card.name, Color(0.5, 0.5, 0.9))
+		battle._is_battle_in_progress = false
+		return
+		
 	# 🟢 If this command is a move/attack to ANOTHER tile, confirm flip now.
-	# (We don't handle from == to here; that path has its own logic below.)
 	if from != to and attacker.has_meta("is_previewing_flip") and attacker.get_meta("is_previewing_flip"):
 		core._log("✅ Confirming %s's flip before movement/attack." % attacker.card.name, Color(0.8, 1.0, 0.8))
 		battle.confirm_flip()
 
 	# 🚫 Prevent controlling enemy (unless AI)
 	if not bypass_control_check and attacker.owner != core.PLAYER:
-		core._log("🚫 You can’t control enemy cards!", Color(1, 0.5, 0.5))
+		core._log("🚫 You can't control enemy cards!", Color(1, 0.5, 0.5))
 		battle._is_battle_in_progress = false
 		return
-
-	# 🚫 Ensure in-range (player side)
-	if not bypass_control_check and attacker.owner == core.PLAYER:
-		if not _is_within_move_range(from, to, attacker):
-			core._log("🚫 That attack target is out of range!", Color(1, 0.5, 0.5))
-			battle._is_battle_in_progress = false
-			return
 
 	# 🟢 Self-click = ability / exhaust / confirm flip
 	if from == to:
@@ -366,7 +372,9 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		if src.has_node(model_path):
 			model = src.get_node(model_path)
 
-		dst.set_occupant(attacker)
+		dst.set_occupant_no_summon(attacker)
+		dst.refresh_card_art()
+
 		_play_card_sound(core.CARD_MOVE_SOUND, dst.global_position)
 		dst.set_art(
 			attacker.card.art if attacker.mode != UnitData.Mode.FACEDOWN else core.CARD_BACK,
@@ -375,7 +383,7 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		dst.set_badge_text("P" if attacker.owner == core.PLAYER else "E")
 		core._apply_terrain_bonus(attacker, dst.terrain_type)
 
-		# --- 🔹 NEW: Visual Sync for AI or Player movement ---
+		# --- 🔹 Visual Sync for AI or Player movement ---
 		if model and is_instance_valid(model):
 			var offset = Vector3(0, 0.1, 0)
 			if attacker.card and attacker.card.model_position != Vector3.ZERO:
@@ -409,7 +417,6 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		battle._is_battle_in_progress = false
 		return
 
-
 	# -------------------------
 	# BATTLE
 	# -------------------------
@@ -433,9 +440,9 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 
 		if attacker.card and attacker.card.ability:
 			var ab_a = attacker.card.ability
-			if ab_a.trigger in ["on_summon", "on_flip", "passive"]:
+			if ab_a.trigger in ["on_summon", "passive"]:
 				core._log(
-					"✨ %s’s %s ability activates on reveal!"
+					"✨ %s's %s ability activates on reveal!"
 					% [attacker.card.name, ab_a.display_name],
 					Color(1.0, 0.9, 0.6)
 				)
@@ -466,9 +473,9 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 
 		if defender.card and defender.card.ability:
 			var ab_d = defender.card.ability
-			if ab_d.trigger in ["on_summon", "on_flip", "passive"]:
+			if ab_d.trigger in ["on_summon", "passive"]:
 				core._log(
-					"✨ %s’s %s ability activates on reveal!"
+					"✨ %s's %s ability activates on reveal!"
 					% [defender.card.name, ab_d.display_name],
 					Color(1.0, 0.9, 0.6)
 				)
@@ -497,9 +504,6 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 
 	core.mark_unit_acted(attacker)
 
-	core._set_phase(core.Phase.ENEMY_TURN)
-	core._update_phase_ui()
-
 	if core and "is_cutscene_active" in core:
 		core.is_cutscene_active = prev_cutscene_state
 
@@ -508,7 +512,9 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 	# 🧩 Auto-advance AI attacker
 	if attacker.owner == core.ENEMY and result == "attacker_wins":
 		if not dst.occupant and attacker.current_def > 0:
-			dst.set_occupant(attacker)
+			dst.set_occupant_no_summon(attacker)
+			dst.refresh_card_art()
+
 			dst.set_art(attacker.card.art, true)
 			dst.set_badge_text("E")
 
@@ -541,7 +547,9 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 	match result:
 		"attacker_wins":
 			if attacker.current_def > 0:
-				dst.set_occupant(attacker)
+				dst.set_occupant_no_summon(attacker)
+				dst.refresh_card_art()
+
 				dst.set_art(attacker.card.art, attacker.owner == core.ENEMY)
 				dst.set_badge_text("P" if attacker.owner == core.PLAYER else "E")
 
@@ -641,9 +649,7 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 			core._set_phase(core.Phase.ENEMY_TURN)
 
 		core._update_phase_ui()
-
-
-
+		
 func _is_within_move_range(from_pos: Vector2i, to_pos: Vector2i, unit: UnitData) -> bool:
 	# Block diagonal moves entirely
 	var dx := to_pos.x - from_pos.x
@@ -683,7 +689,7 @@ func _show_move_targets(from: Vector2i) -> void:
 
 	var range := core.BASE_MOVE_RANGE
 
-	# Preferred terrain bonus (only if face-up or previewing up)
+	# Preferred terrain bonus
 	var is_down = unit.is_facedown or (unit.has_meta("is_facedown") and unit.get_meta("is_facedown"))
 	var previewed_up = unit.has_meta("is_previewing_flip") and unit.get_meta("is_previewing_flip")
 	if (not is_down or previewed_up) and src.terrain_type == unit.card.preferred_terrain:
@@ -701,7 +707,6 @@ func _show_move_targets(from: Vector2i) -> void:
 	for dir in dirs:
 		for step in range(1, range + 1):
 			var p = from + dir * step
-
 			if not core.board.is_in_bounds(p):
 				break
 
@@ -711,31 +716,36 @@ func _show_move_targets(from: Vector2i) -> void:
 
 			if t.occupant:
 				if t.occupant.owner != core.PLAYER:
-					# Enemy = last reachable tile, as attack
 					move_targets[p] = {"kind": "attack"}
 					_highlight_move_tile(t, true)
-				# Stop further scanning in this direction
 				break
 			else:
-				# Empty = movable
 				move_targets[p] = {"kind": "move"}
 				_highlight_move_tile(t, false)
 
 func _highlight_move_tile(tile: Node3D, is_attack: bool) -> void:
+	# Badge symbol
 	if tile.has_method("set_highlight"):
-		tile.set_highlight(true, "⚔" if is_attack else "•")
+		var symbol := "⚔" if is_attack else "•"
+		tile.set_highlight(true, symbol)
 
+	# Tint color
 	var tint := Color(1.0, 0.3, 0.3) if is_attack else Color(0.3, 0.7, 1.0)
 
-	if tile.has_method("set_move_highlight_tint"):
+	# Animated highlight intro
+	if tile.has_method("play_move_highlight_intro"):
+		tile.play_move_highlight_intro(tint)
+	elif tile.has_method("set_move_highlight_tint"):
 		tile.set_move_highlight_tint(tint)
-	elif tile.has_node("MoveHighlight"):
-		var mh = tile.get_node("MoveHighlight")
-		mh.visible = true
+	else:
+		# Absolute fallback
+		if tile.has_node("MoveHighlight"):
+			var mh = tile.get_node("MoveHighlight")
+			mh.visible = true
 
+	# Continue pulse animation
 	if tile.has_method("pulse_move_highlight"):
 		tile.pulse_move_highlight()
-
 
 func confirm_faceup(unit: UnitData) -> void:
 	if not unit:

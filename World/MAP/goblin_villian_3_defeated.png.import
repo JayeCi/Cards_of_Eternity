@@ -2,12 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c8eoiquaj564d"
-valid=false
+uid="uid://mn7yv1dpoob3"
+path="res://.godot/imported/goblin_villian_3_defeated.png-7b3ab137f57d91457dd3801764d33e23.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
-source_file="res://World/MAP/freepik__background__40632.png"
+source_file="res://World/MAP/goblin_villian_3_defeated.png"
+dest_files=["res://.godot/imported/goblin_villian_3_defeated.png-7b3ab137f57d91457dd3801764d33e23.ctex"]
 
 [params]
 

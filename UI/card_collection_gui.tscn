@@ -627,6 +627,14 @@ layout_mode = 2
 size_flags_horizontal = 8
 tooltip_text = "Checking this box sets this card as your current Leader!"
 
+[node name="Label2" type="Label" parent="Card_Collection_GUI/LeftPanel/ScrollContainer/VBoxContainer/LeaderHbox"]
+layout_mode = 2
+text = "                                          "
+
+[node name="3D_Button" type="Button" parent="Card_Collection_GUI/LeftPanel/ScrollContainer/VBoxContainer/LeaderHbox"]
+layout_mode = 2
+text = "3D"
+
 [node name="Abilities" type="Label" parent="Card_Collection_GUI/LeftPanel/ScrollContainer/VBoxContainer"]
 custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
@@ -1052,6 +1060,7 @@ label_settings = SubResource("LabelSettings_plkv2")
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[connection signal="pressed" from="Card_Collection_GUI/LeftPanel/ScrollContainer/VBoxContainer/LeaderHbox/3D_Button" to="Card_Collection_GUI" method="_on_3d_button_pressed"]
 [connection signal="pressed" from="Card_Collection_GUI/Toolbar/ButtonRow1/Leader_button" to="Card_Collection_GUI" method="_on_leader_button_pressed"]
 [connection signal="pressed" from="Card_Collection_GUI/Toolbar/ButtonRow1/Deck_button" to="Card_Collection_GUI" method="_on_deck_button_pressed"]
 [connection signal="pressed" from="Card_Collection_GUI/Toolbar/ButtonRow1/Collection_button" to="Card_Collection_GUI" method="_on_collection_button_pressed"]

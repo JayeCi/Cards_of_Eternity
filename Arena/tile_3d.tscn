@@ -1,4 +1,4 @@
-[gd_scene load_steps=37 format=3 uid="uid://dymngijkrptcc"]
+[gd_scene load_steps=52 format=3 uid="uid://dymngijkrptcc"]
 
 [ext_resource type="Script" uid="uid://dtfto6htrvfm5" path="res://Arena/tile_3d.gd" id="1_5v3qr"]
 [ext_resource type="PackedScene" uid="uid://cqxo8j6lh1au8" path="res://Downloaded/bricks_A.tscn" id="2_wh67p"]
@@ -9,11 +9,14 @@
 [ext_resource type="Texture2D" uid="uid://dp1ew5edt28ly" path="res://UI/Terrains/stone.png" id="5_u8wge"]
 [ext_resource type="Texture2D" uid="uid://cmwi3xrb0nspr" path="res://UI/Terrains/Lava.png" id="6_sa6f8"]
 [ext_resource type="Texture2D" uid="uid://dkc013g0vjkfa" path="res://UI/Terrains/grass.png" id="7_haurc"]
+[ext_resource type="Shader" uid="uid://cpe6qgq8ywmob" path="res://Arena/iceshader.gdshader" id="7_iqoe2"]
 [ext_resource type="Texture2D" uid="uid://c07v4ijon03kv" path="res://UI/Terrains/Forest.png" id="8_2dc0q"]
+[ext_resource type="Shader" uid="uid://gqlmo7lg3k4d" path="res://Arena/firetile.gdshader" id="8_t3ml4"]
 [ext_resource type="Texture2D" uid="uid://b4xertubfc6wv" path="res://UI/Terrains/default_texture.jpg" id="10_ir6gf"]
 [ext_resource type="Texture2D" uid="uid://bq6fn5ar8y44d" path="res://Cards/Utilities/CardModel/Border_TP_Edge.png" id="11_3e2tw"]
 [ext_resource type="PackedScene" uid="uid://b226o8whi8uox" path="res://Arena/Terrain_Models/column_stylized_low-poly_3d_model.glb" id="12_3e2tw"]
 [ext_resource type="PackedScene" uid="uid://dfpatff4d5okj" path="res://addons/godot_3d_cursor/3d_cursor.tscn" id="13_ir6gf"]
+[ext_resource type="Shader" uid="uid://c5atsr487tksr" path="res://Arena/ImmovableTile.gdshader" id="15_wy7sf"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_5v3qr"]
 
@@ -29,17 +32,69 @@ albedo_texture = ExtResource("4_27ivk")
 [sub_resource type="PlaneMesh" id="PlaneMesh_sa6f8"]
 material = SubResource("StandardMaterial3D_nvf5m")
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wy7sf"]
+render_priority = 0
+shader = ExtResource("15_wy7sf")
+shader_parameter/frequency = 4.99999988824
+shader_parameter/amplitude = 2.10000003129252
+shader_parameter/ripple_rate = 0.0
+shader_parameter/blending = 0.21999999508256
+shader_parameter/wave_amplitude = 0.10000000149012
+shader_parameter/wave_frequency = 14.99999966472
+
+[sub_resource type="BoxMesh" id="BoxMesh_t3ml4"]
+lightmap_size_hint = Vector2i(14, 21)
+material = SubResource("ShaderMaterial_wy7sf")
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sa6f8"]
 albedo_texture = ExtResource("5_nvf5m")
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_haurc"]
 material = SubResource("StandardMaterial3D_sa6f8")
 
+[sub_resource type="PlaneMesh" id="PlaneMesh_glohs"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jvghx"]
+render_priority = 0
+shader = ExtResource("7_iqoe2")
+shader_parameter/shine_color = Color(1, 1, 1, 1)
+shader_parameter/shine_speed = 6.530000310175
+shader_parameter/shine_width = 0.1150000054625
+shader_parameter/cycle_interval = 21.1930010066675
+shader_parameter/angle_fade = 1.0
+shader_parameter/x_direction = -0.6729999844675
+shader_parameter/y_direction = 0.0
+shader_parameter/z_direction = 1.0
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_haurc"]
 albedo_texture = ExtResource("6_sa6f8")
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_2dc0q"]
 material = SubResource("StandardMaterial3D_haurc")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_iqoe2"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_t3ml4"]
+noise_type = 5
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_iqoe2"]
+height = 2182
+noise = SubResource("FastNoiseLite_t3ml4")
+seamless = true
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_glohs"]
+render_priority = 0
+shader = ExtResource("8_t3ml4")
+shader_parameter/noise_tex = SubResource("NoiseTexture2D_iqoe2")
+shader_parameter/root_color = Color(1, 0.75, 0.3, 1)
+shader_parameter/tip_color = Color(1, 0.03, 0.001, 1)
+shader_parameter/poster_color = 6.0
+shader_parameter/fire_alpha = 1.0
+shader_parameter/fire_speed = Vector2(0.05, -0.005)
+shader_parameter/fire_aperture = 0.22
+shader_parameter/vignette_radius = 0.25
+shader_parameter/vignette_falloff = 0.22400001064
+shader_parameter/noise_influence = 1.0
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2dc0q"]
 albedo_color = Color(0.513233, 0.513233, 0.513233, 1)
@@ -74,11 +129,51 @@ material = SubResource("StandardMaterial3D_wy7sf")
 material = SubResource("StandardMaterial3D_l2kch")
 inner_radius = 1.055
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_t3ml4"]
+
 [sub_resource type="BoxMesh" id="BoxMesh_2dc0q"]
+material = SubResource("StandardMaterial3D_t3ml4")
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ir6gf"]
 transparency = 1
 albedo_color = Color(0, 0.286275, 1, 0.392157)
+
+[sub_resource type="Animation" id="Animation_iqoe2"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("MoveHighlight:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(0, -0.14294553, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_t3ml4"]
+resource_name = "move_highlight"
+loop_mode = 2
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("MoveHighlight:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(0, -0.14294553, 0), Vector3(0, -0.016212225, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_glohs"]
+_data = {
+&"RESET": SubResource("Animation_iqoe2"),
+&"move_highlight": SubResource("Animation_t3ml4")
+}
 
 [node name="Tile3D" type="Node3D"]
 script = ExtResource("1_5v3qr")
@@ -106,15 +201,30 @@ transform = Transform3D(0.467104, 0, 0, 0, -2.04178e-08, -0.467104, 0, 0.467104,
 visible = false
 mesh = SubResource("PlaneMesh_sa6f8")
 
+[node name="ripple" type="MeshInstance3D" parent="TileMesh/WaterMesh"]
+transform = Transform3D(-2.140851, -2.7559452e-09, 1.9014578e-14, -1.5950584e-07, 0.033673555, -1.9140712e-07, 1.091857e-20, -3.6745957e-09, -2.1408513, 0, -0.004482962, 9.338794e-15)
+mesh = SubResource("BoxMesh_t3ml4")
+skeleton = NodePath("../../..")
+
 [node name="IceMesh" type="MeshInstance3D" parent="TileMesh"]
 transform = Transform3D(0.467104, 0, 0, 0, -2.04178e-08, -0.467104, 0, 0.467104, -2.04178e-08, 0, -1.80143e-09, 0.041212)
 visible = false
 mesh = SubResource("PlaneMesh_haurc")
 
+[node name="iceshine" type="MeshInstance3D" parent="TileMesh/IceMesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 6.7762636e-21, 0, -6.7762636e-21, 1, 0, 0.015186481, -1.0395517e-15)
+mesh = SubResource("PlaneMesh_glohs")
+surface_material_override/0 = SubResource("ShaderMaterial_jvghx")
+
 [node name="LavaMesh" type="MeshInstance3D" parent="TileMesh"]
 transform = Transform3D(0.467104, 0, 0, 0, -2.04178e-08, -0.467104, 0, 0.467104, -2.04178e-08, 0, -1.80143e-09, 0.041212)
 visible = false
 mesh = SubResource("PlaneMesh_2dc0q")
+
+[node name="flames" type="MeshInstance3D" parent="TileMesh/LavaMesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 4.065758e-20, 0, -4.065758e-20, 1, 0, 0.010667667, -7.302322e-16)
+mesh = SubResource("PlaneMesh_iqoe2")
+surface_material_override/0 = SubResource("ShaderMaterial_glohs")
 
 [node name="GrassMesh" type="MeshInstance3D" parent="TileMesh"]
 transform = Transform3D(0.467104, 0, 0, 0, -2.04178e-08, -0.467104, 0, 0.467104, -2.04178e-08, 0, -1.80143e-09, 0.041212)
@@ -137,7 +247,7 @@ visible = false
 mesh = SubResource("PlaneMesh_t3ml4")
 
 [node name="CardMesh" type="MeshInstance3D" parent="."]
-transform = Transform3D(1.13, 0, 0, 0, 1.13, 0, 0, 0, 1.13, 0, 0.201595, -0.553633)
+transform = Transform3D(1.13, 0, 0, 0, 1.13, 0, 0, 0, 1.13, 0, 0.12, -0.554)
 visible = false
 mesh = ExtResource("3_mf1uq")
 
@@ -162,22 +272,28 @@ visible = false
 mesh = SubResource("TorusMesh_2dc0q")
 
 [node name="Sketchfab_Scene" parent="." instance=ExtResource("12_3e2tw")]
-transform = Transform3D(0.154267, 0, 0, 0, 0.201087, 0, 0, 0, 0.154267, -0.420953, -0.919722, 0.406036)
+transform = Transform3D(0.154267, 0, 0, 0, 0.201087, 0, 0, 0, 0.154267, -0.420953, -0.87496895, 0.406036)
 
 [node name="Sketchfab_Scene2" parent="." instance=ExtResource("12_3e2tw")]
-transform = Transform3D(0.154267, 0, 0, 0, 0.201087, 0, 0, 0, 0.154267, 0.403019, -0.919722, 0.406036)
+transform = Transform3D(0.154267, 0, 0, 0, 0.201087, 0, 0, 0, 0.154267, 0.403019, -0.87496895, 0.406036)
 
 [node name="Sketchfab_Scene3" parent="." instance=ExtResource("12_3e2tw")]
-transform = Transform3D(0.154267, 0, 0, 0, 0.201087, 0, 0, 0, 0.154267, -0.420953, -0.919722, -0.4377)
+transform = Transform3D(0.154267, 0, 0, 0, 0.201087, 0, 0, 0, 0.154267, -0.420953, -0.87496895, -0.4377)
 
 [node name="Sketchfab_Scene4" parent="." instance=ExtResource("12_3e2tw")]
-transform = Transform3D(0.154267, 0, 0, 0, 0.201087, 0, 0, 0, 0.154267, 0.403019, -0.919722, -0.4377)
+transform = Transform3D(0.154267, 0, 0, 0, 0.201087, 0, 0, 0, 0.154267, 0.403019, -0.87496895, -0.4377)
 
 [node name="MoveHighlight" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.242496, 0, 0, 0, 1, 0, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 0.242496, 0, 0, 0, 1, 0, -0.14294553, 0)
 visible = false
 mesh = SubResource("BoxMesh_2dc0q")
 surface_material_override/0 = SubResource("StandardMaterial3D_ir6gf")
 
 [node name="3DCursor" parent="." instance=ExtResource("13_ir6gf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.41770178, 0.05, 0.20585918)
 visible = false
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_glohs")
+}

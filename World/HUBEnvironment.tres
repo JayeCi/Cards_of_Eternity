@@ -1,13 +1,17 @@
-[gd_resource type="Environment" load_steps=3 format=3 uid="uid://cyy4acf0geavg"]
+[gd_resource type="Environment" load_steps=4 format=3 uid="uid://cyy4acf0geavg"]
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_i7fa6"]
+[ext_resource type="Texture2D" uid="uid://bmssao2ghcojj" path="res://Images/qwantani_noon_puresky_2k.exr" id="1_w0d26"]
 
-[sub_resource type="Sky" id="Sky_pjshm"]
-sky_material = SubResource("ProceduralSkyMaterial_i7fa6")
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_cbxb5"]
+panorama = ExtResource("1_w0d26")
+
+[sub_resource type="Sky" id="Sky_xl6hx"]
+sky_material = SubResource("PanoramaSkyMaterial_cbxb5")
 
 [resource]
 background_mode = 2
-sky = SubResource("Sky_pjshm")
+background_energy_multiplier = 0.1
+sky = SubResource("Sky_xl6hx")
 sky_rotation = Vector3(0.44854963, 0, 0)
 ambient_light_sky_contribution = 0.0
 tonemap_mode = 2

@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="CardAbility" load_steps=2 format=3 uid="uid://edqrfp1iuylw"]
+
+[ext_resource type="Script" uid="uid://d2to4368imoiw" path="res://Cards/Utilities/CardAbility.gd" id="1_52l77"]
+
+[resource]
+script = ExtResource("1_52l77")
+display_name = "Shadow Candles"
+description = "When flipped: Shadowlock all adjacent enemies for 2 turns. They cannot move, attack, or counter-attack."
+metadata/_custom_type_script = "uid://d2to4368imoiw"

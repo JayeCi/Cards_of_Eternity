@@ -1,0 +1,106 @@
+[gd_scene load_steps=3 format=3 uid="uid://cxnjdj5or0boy"]
+
+[ext_resource type="PackedScene" uid="uid://ctfsyvbt1n20t" path="res://UI/CardUICutscene.tscn" id="1_kj1ps"]
+[ext_resource type="LabelSettings" uid="uid://b2i0kf1b6wirm" path="res://UI/card_collection_gui.tres" id="2_dvgn6"]
+
+[node name="Model_Display_UI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_left = 15.0
+offset_top = 260.0
+offset_right = 354.0
+offset_bottom = 135.0
+grow_vertical = 2
+
+[node name="CardContainer" parent="VBoxContainer" instance=ExtResource("1_kj1ps")]
+layout_mode = 2
+
+[node name="Panel" type="Panel" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 200)
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/Panel/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Name" type="Label" parent="VBoxContainer/Panel/ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(175, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 6
+text = "Jester of Flames"
+label_settings = ExtResource("2_dvgn6")
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Rarity" type="Label" parent="VBoxContainer/Panel/ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(175, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 6
+text = "RARE"
+label_settings = ExtResource("2_dvgn6")
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Element" type="Label" parent="VBoxContainer/Panel/ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(175, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 6
+text = "FIRE"
+label_settings = ExtResource("2_dvgn6")
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Ability" type="Label" parent="VBoxContainer/Panel/ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(175, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 6
+text = "ABILITY"
+label_settings = ExtResource("2_dvgn6")
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Description" type="Label" parent="VBoxContainer/Panel/ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(175, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 6
+text = "DESCRIPTION"
+label_settings = ExtResource("2_dvgn6")
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="BACK" type="Button" parent="."]
+custom_minimum_size = Vector2(50, 25)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -8.0
+offset_top = -8.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "BACK"

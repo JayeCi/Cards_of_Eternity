@@ -247,7 +247,7 @@ func _try_toggle_face() -> void:
 		# 💡 Ability previews
 		if unit.card and unit.card.ability:
 			var ab = unit.card.ability
-			if ab.trigger in ["on_summon", "on_flip"]:
+			if ab.trigger in ["on_summon"]:
 				unit.set_meta("pending_on_flip_ability", ab)
 				core._log(
 					"💡 %s ability will activate once confirmed."
@@ -346,7 +346,7 @@ func reveal_card(pos: Vector2i) -> void:
 
 	core._log("⚡ %s was flipped face-up!" % unit.card.name, Color(1, 1, 0.7))
 
-	if unit.card.ability and unit.card.ability.trigger in ["on_flip", "on_summon"]:
+	if unit.card.ability and unit.card.ability.trigger in ["on_summon"]:
 		core._execute_card_ability(unit, unit.card.ability)
 
 
@@ -672,7 +672,10 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 
 	battle_ui.refresh_stats(att, defn)
 
-	var do_counter := (damage_to_att > 0)
+	# ✅ Check universal frozen status
+	var is_defender_frozen := FrozenStatusEffect.is_frozen(defn)
+	var do_counter := (damage_to_att > 0) and not is_defender_frozen
+	
 	if do_counter:
 		battle_ui.refresh_stats(att, defn)
 		await battle_ui.play_counter_phase(defn, att, damage_to_att)
@@ -692,6 +695,9 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 				await counter_ability_done
 
 			battle_ui.refresh_stats(att, defn)
+			
+	elif is_defender_frozen and damage_to_att > 0:
+		core._log("❄️ %s is frozen and cannot counter-attack!" % defn.card.name, Color(0.5, 0.5, 0.9))
 
 	await get_tree().create_timer(0.25).timeout
 	await get_tree().process_frame

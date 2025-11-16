@@ -219,7 +219,7 @@ func _leader_behavior() -> void:
 			var t = core.board.get_tile(summon_tile.x, summon_tile.y)
 			if t and t.occupant == null:
 				_did_action_this_turn = true
-				battle.place_unit(card, summon_tile, core.ENEMY, UnitData.Mode.ATTACK, true)
+				move.place_unit(card, summon_tile, core.ENEMY, UnitData.Mode.ATTACK, true)
 				core.enemy_hand.pop_front()
 				core.enemy_essence -= int(card.cost)
 				core.emit_signal("essence_changed", core.player_essence, core.enemy_essence)
@@ -345,6 +345,9 @@ func _smart_move_and_attack() -> void:
 	for pos in core.units:
 		var u = core.units[pos]
 		if u.owner == core.ENEMY and not u.is_leader and core.can_unit_act(u):
+			# ✅ Skip frozen units (universal system)
+			if FrozenStatusEffect.is_frozen(u):
+				continue
 			movable.append(pos)
 
 	if movable.is_empty():
@@ -404,6 +407,11 @@ func _proactive_reposition() -> void:
 		var u = core.units[pos]
 		if u.owner != core.ENEMY or u.is_leader:
 			continue
+		
+		# ✅ Skip frozen units (universal system)
+		if FrozenStatusEffect.is_frozen(u):
+			continue
+		
 		if u.is_facedown:
 			# Optionally skip spells or events
 			if u.card and u.card.card_type in ["Spell", "Event"]:
@@ -466,7 +474,7 @@ func _smart_flip_faceup() -> void:
 		var should_flip := false
 		if has_adjacent_enemy:
 			should_flip = true
-		elif unit.card and unit.card.ability and unit.card.ability.trigger in ["on_flip", "passive"]:
+		elif unit.card and unit.card.ability and unit.card.ability.trigger in ["on_summon", "passive"]:
 			should_flip = true
 		elif randf() < aggression * 0.4:
 			should_flip = true

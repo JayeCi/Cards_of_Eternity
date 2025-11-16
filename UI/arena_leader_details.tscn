@@ -32,6 +32,7 @@ shadow_color = Color(0, 0, 0, 0.752941)
 
 [sub_resource type="SystemFont" id="SystemFont_t6274"]
 font_names = PackedStringArray("Tahoma")
+subpixel_positioning = 0
 
 [sub_resource type="LabelSettings" id="LabelSettings_wdn6j"]
 font = SubResource("SystemFont_t6274")
@@ -221,6 +222,7 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="BorderTp" type="Sprite2D" parent="."]
+visible = false
 position = Vector2(1057, 139)
 scale = Vector2(0.18876213, 0.18876213)
 texture = ExtResource("5_t6274")

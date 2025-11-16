@@ -38,10 +38,11 @@ GameSettings="*res://GameSettings.gd"
 TransitionFade="*res://TransitionFade.tscn"
 TransitionFadeScript="*res://transition_fade.gd"
 CardDb="*res://CardDB.gd"
+FrozenStatusEffect="*res://Cards/Abilities/FrozenStatusEffect.gd"
 
 [display]
 
-window/size/initial_position_type=3
+window/size/mode=3
 window/size/initial_screen=1
 window/size/always_on_top=true
 window/stretch/mode="canvas_items"

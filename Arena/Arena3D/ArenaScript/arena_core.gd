@@ -1205,7 +1205,10 @@ func _on_end_turn_button_pressed() -> void:
 	await _start_enemy_turn()
 
 func _start_player_turn() -> void:
-	await get_tree().process_frame  # ensures last turn cleanup fully done
+	await get_tree().process_frame
+
+	# ✅ Process frozen units using universal system
+	FrozenStatusEffect.process_frozen_units_turn_start(self, PLAYER)
 
 	_gain_essence(PLAYER, essence_gain_per_turn)
 	print("✅ AFTER GAIN essence:", player_essence)
@@ -1254,8 +1257,12 @@ func _start_player_turn() -> void:
 func _start_enemy_turn() -> void:
 	battle_sys.call("_reset_hover_state")
 
+	# ✅ Process frozen units using universal system
+	FrozenStatusEffect.process_frozen_units_turn_start(self, ENEMY)
+
 	_reset_action_flags()
 	_set_phase(Phase.ENEMY_TURN)
+	
 	if camera_sys and camera_sys.has_method("focus_on_leader"):
 		camera_sys.call_deferred("focus_on_leader", ENEMY)
 
@@ -1589,8 +1596,12 @@ func get_leader_pos(owner: int) -> Vector2i:
 	return battle_sys.call("get_leader_pos", owner)
 
 func can_unit_act(u: UnitData) -> bool:
+	# ✅ Check universal frozen status
+	if FrozenStatusEffect.is_frozen(u):
+		return false
+	
 	return not acted_this_turn.has(u)
-
+	
 func mark_unit_acted(u: UnitData) -> void:
 	acted_this_turn[u] = true
 	battle_sys.call("set_exhausted_for_unit", u, true)
@@ -1598,19 +1609,40 @@ func mark_unit_acted(u: UnitData) -> void:
 # -----------------------------
 # CARD ABILITY EXECUTION HELPER
 # -----------------------------
+
+
 func _execute_card_ability(unit: UnitData, ability: CardAbility) -> void:
 	if ability == null:
 		_log("⚠️ Tried to execute null ability on %s" % unit.card.name)
 		return
 
-	if not ability.has_method("execute"):
-		_log("⚠️ Ability %s has no execute() method!" % ability.display_name)
+	_log("🔍 DEBUG: Executing ability for %s" % unit.card.name, Color(0.9, 0.9, 0.6))
+	_log("🔍 DEBUG: Ability type: %s" % str(type_string(typeof(ability))), Color(0.9, 0.9, 0.6))
+	_log("🔍 DEBUG: Ability class: %s" % ability.get_class(), Color(0.9, 0.9, 0.6))
+	_log("🔍 DEBUG: Has script: %s" % str(ability.get_script() != null), Color(0.9, 0.9, 0.6))
+
+	# 🔧 FIXED: Always instantiate from the script, never use the resource directly
+	var inst = null
+	
+	# Get the script from the resource
+	var script_ref = ability.get_script()
+	if script_ref:
+		_log("🔍 DEBUG: Creating new instance from script...", Color(0.9, 0.9, 0.6))
+		inst = script_ref.new()
+	else:
+		_log("⚠️ Ability has no script for %s" % unit.card.name)
 		return
 
-	# Try to safely run the ability's effect
-	_log("✨ Activating ability: %s (Trigger: %s)" % [ability.display_name, ability.trigger], Color(0.7, 1.0, 0.9))
-	ability.execute(self, unit)
+	if not inst:
+		_log("⚠️ Failed to instantiate ability for %s" % unit.card.name)
+		return
+		
+	if not inst.has_method("execute"):
+		_log("⚠️ Ability %s missing execute()!" % (inst.display_name if "display_name" in inst else "Unknown"))
+		return
 
+	_log("✨ Ability Activated: %s (%s)" % [inst.display_name, inst.trigger], Color(0.7, 1.0, 0.9))
+	inst.execute(self, unit)
 # -----------------------------
 # LOGGING SYSTEM
 # -----------------------------

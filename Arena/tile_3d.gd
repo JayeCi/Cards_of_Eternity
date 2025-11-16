@@ -31,11 +31,14 @@ var core: ArenaCore
 @onready var grass_mesh: MeshInstance3D = $TileMesh/GrassMesh
 @onready var forest_mesh: MeshInstance3D = $TileMesh/ForestMesh
 @onready var default_mesh: MeshInstance3D = $TileMesh/DefaultMesh
+@onready var animation_player: AnimationPlayer = $AnimationPlayer
 
 signal hovered(tile)
 signal unhovered(tile)
 
 func _ready():
+	make_unique_highlight()
+
 	if card_mesh:
 		card_mesh.visible = false  # invisible until art is set
 	#await get_tree().create_timer(1.0).timeout
@@ -106,9 +109,27 @@ func set_highlight(state: bool, symbol: String = "") -> void:
 	#if highlight_mesh:
 		#highlight_mesh.visible = state
 		#
-func set_move_highlight(state: bool) -> void:
-	move_highlight.visible = state if move_highlight else false
+func set_move_highlight_tint(color: Color) -> void:
+	play_move_highlight_intro(color)
 
+func make_unique_highlight():
+	var h: MeshInstance3D = $MoveHighlight
+	if h == null:
+		return
+
+	# Try surface override first
+	var mat := h.get_surface_override_material(0)
+
+	if mat == null:
+		# If surface override is empty, duplicate the base surface material
+		var base_mat := h.mesh.surface_get_material(0)
+		if base_mat:
+			mat = base_mat.duplicate(true)
+			h.set_surface_override_material(0, mat)
+	else:
+		# Already has override → duplicate it so each tile is unique
+		mat = mat.duplicate(true)
+		h.set_surface_override_material(0, mat)
 
 func set_badge_text(text: String) -> void:
 	if label:
@@ -175,6 +196,12 @@ func clear() -> void:
 
 	# --- restore terrain visuals ---
 	_apply_terrain_visual()
+	
+func set_occupant_no_summon(unit: UnitData):
+	occupant = unit
+	refresh_card_art()   # just updates art, no summon logic
+	_update_card_border_color(unit.card.element)
+	_update_leader_badge()
 
 func set_occupant(unit: UnitData) -> void:
 	occupant = unit
@@ -369,24 +396,37 @@ func pulse_move_highlight() -> void:
 		tw.tween_property(mat, "albedo_color:a", 0.8, 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 		tw.set_loops()
 	
-func set_move_highlight_tint(color: Color) -> void:
+
+func set_core(core_ref: ArenaCore) -> void:
+	core = core_ref
+func play_move_highlight_intro(color: Color) -> void:
 	if not move_highlight:
 		return
 
+	# Ensure material exists
 	var mat := move_highlight.get_surface_override_material(0)
 	if not mat:
 		var base := move_highlight.mesh.surface_get_material(0)
 		mat = base.duplicate() if base else StandardMaterial3D.new()
 		move_highlight.set_surface_override_material(0, mat)
 
-	mat.albedo_color = color
+	# Set initial invisible state
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.albedo_color.a = 0.7
+	mat.albedo_color = color
+	mat.albedo_color.a = 0.0  # fully hidden
+
+	move_highlight.scale = Vector3(0.6, 0.6, 0.6)
 	move_highlight.visible = true
-	
-func set_core(core_ref: ArenaCore) -> void:
-	core = core_ref
-	
+
+	var tw := create_tween()
+
+	# Pop & fade-in
+	tw.tween_property(mat, "albedo_color:a", 0.8, 0.22).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(move_highlight, "scale", Vector3(1.15, 1.15, 1.15), 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+	# Settle back down
+	tw.tween_property(move_highlight, "scale", Vector3(1, 1, 1), 0.18).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
 # 🆕 HOVER BEHAVIOR ---
 func _on_mouse_entered() -> void:
 	hover_highlight = true

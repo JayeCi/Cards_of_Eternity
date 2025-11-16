@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3 uid="uid://dx8wdj3sfr67k"]
+[gd_scene load_steps=31 format=3 uid="uid://dx8wdj3sfr67k"]
 
 [ext_resource type="Script" uid="uid://d3yvw03nn7jit" path="res://earth_portal_scene.gd" id="1_f158j"]
 [ext_resource type="Shader" uid="uid://co756lh7i8ttk" path="res://portal.gdshader" id="1_tyiwb"]
@@ -13,6 +13,8 @@
 [ext_resource type="Texture2D" uid="uid://dhmnhdn0imetp" path="res://World/MAP/freepik__adjust__40633.png" id="6_n503i"]
 [ext_resource type="Texture2D" uid="uid://dsrnuejqxi4cn" path="res://World/MAP/glowing-green-magic-rings-neon-realistic-energy-flare-halo-rings-abstract-light-effect.png" id="9_k65w2"]
 [ext_resource type="Texture2D" uid="uid://b4qcerc1c62u8" path="res://World/MAP/lavapanel.png" id="10_eagyy"]
+[ext_resource type="Texture2D" uid="uid://m6xxdk8evr8s" path="res://UI/infographic-arrows-pack.png" id="14_i1111"]
+[ext_resource type="Texture2D" uid="uid://cpqckw4qpa4hp" path="res://UI/hoverarrow.png" id="15_lb3qy"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_lkqwn"]
 shader = ExtResource("1_tyiwb")
@@ -64,6 +66,7 @@ animations = [{
 
 [sub_resource type="SystemFont" id="SystemFont_vewdp"]
 font_names = PackedStringArray("Tahoma")
+subpixel_positioning = 0
 
 [sub_resource type="LabelSettings" id="LabelSettings_i1111"]
 font = SubResource("SystemFont_vewdp")
@@ -71,6 +74,74 @@ font_size = 65
 outline_size = 25
 outline_color = Color(0.101960786, 0.101960786, 0.101960786, 0.81960785)
 shadow_color = Color(0.050980393, 0.039215688, 0.02745098, 0.5764706)
+
+[sub_resource type="Animation" id="Animation_30dmc"]
+resource_name = "Earth>Fire"
+length = 0.25
+step = 0.0333333
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.25),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(584, 360), Vector2(1742, 360)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../FirePortal:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.25),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(-586, 360), Vector2(570, 360)]
+}
+
+[sub_resource type="Animation" id="Animation_lb3qy"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Pulse:color")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 0.49803922)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(584, 360)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("../FirePortal:position")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(-586, 360)]
+}
 
 [sub_resource type="Animation" id="Animation_i1111"]
 resource_name = "RuneGlow"
@@ -90,23 +161,39 @@ tracks/0/keys = {
 "values": [Color(1, 1, 1, 0.49803922), Color(1, 1, 1, 1), Color(1, 1, 1, 0.49803922)]
 }
 
-[sub_resource type="Animation" id="Animation_lb3qy"]
-length = 0.001
+[sub_resource type="Animation" id="Animation_axe8h"]
+resource_name = "Fire>Earth"
+length = 0.25
+step = 0.0333333
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("Pulse:color")
+tracks/0/path = NodePath(".:position")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
+"times": PackedFloat32Array(0, 0.25),
+"transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [Color(1, 1, 1, 0.49803922)]
+"values": [Vector2(1742, 360), Vector2(584, 360)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../FirePortal:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.25),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(570, 360), Vector2(-586, 360)]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_30dmc"]
 _data = {
+&"Earth>Fire": SubResource("Animation_30dmc"),
+&"Fire>Earth": SubResource("Animation_axe8h"),
 &"RESET": SubResource("Animation_lb3qy"),
 &"RuneGlow": SubResource("Animation_i1111")
 }
@@ -117,6 +204,14 @@ shader_parameter/sway_speed = 1.0
 shader_parameter/sway_strength = 0.0010000000475
 shader_parameter/noise_scale = 5.0
 shader_parameter/time_offset = 0.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_i1111"]
+bg_color = Color(0.16565639, 0.16565642, 0.1656563, 0.4117647)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_size = 5
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -220,16 +315,25 @@ color = Color(1, 1, 1, 0.49803922)
 shadow_enabled = true
 texture = ExtResource("3_32bn6")
 
-[node name="EarthAnimPlayer" type="AnimationPlayer" parent="EarthPortal"]
+[node name="AnimPlayer" type="AnimationPlayer" parent="EarthPortal"]
 libraries = {
 &"": SubResource("AnimationLibrary_30dmc")
 }
 autoplay = "RuneGlow"
 
+[node name="EarthRightNextArrow" type="TextureButton" parent="EarthPortal"]
+offset_left = -754.41077
+offset_top = -92.00131
+offset_right = -588.41077
+offset_bottom = 265.9987
+scale = Vector2(0.116828024, 0.116828024)
+texture_normal = ExtResource("14_i1111")
+texture_hover = ExtResource("15_lb3qy")
+flip_h = true
+
 [node name="FirePortal" type="Sprite2D" parent="."]
-visible = false
 material = SubResource("ShaderMaterial_f158j")
-position = Vector2(584, 360)
+position = Vector2(-586, 360)
 scale = Vector2(0.761, 0.761)
 texture = ExtResource("4_lkqwn")
 
@@ -260,13 +364,13 @@ autoplay = "default"
 frame_progress = 0.4290272
 
 [node name="FirePanel" type="Sprite2D" parent="FirePortal"]
-position = Vector2(538.76483, 215.50592)
-scale = Vector2(0.17996795, 0.17996795)
+position = Vector2(603.15375, 290.40738)
+scale = Vector2(0.102293834, 0.102293834)
 texture = ExtResource("10_eagyy")
 region_enabled = true
 region_rect = Rect2(29, 52, 1908, 1092)
 
-[node name="RealmButton" type="Button" parent="FirePortal/FirePanel"]
+[node name="FireRealmButton" type="Button" parent="FirePortal/FirePanel"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -282,7 +386,7 @@ size_flags_vertical = 4
 tooltip_text = "Click to Enter the Earth Realm"
 theme_override_styles/normal = SubResource("StyleBoxEmpty_eagyy")
 
-[node name="RealmLabel" type="Label" parent="FirePortal/FirePanel/RealmButton"]
+[node name="RealmLabel" type="Label" parent="FirePortal/FirePanel/FireRealmButton"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -296,6 +400,37 @@ grow_vertical = 2
 text = "Fire Realm"
 label_settings = SubResource("LabelSettings_i1111")
 horizontal_alignment = 1
+
+[node name="FireRightNextArrow" type="TextureButton" parent="FirePortal"]
+offset_left = 733.24567
+offset_top = -91.98422
+offset_right = 899.24567
+offset_bottom = 266.01578
+scale = Vector2(0.116828024, 0.116828024)
+texture_normal = ExtResource("14_i1111")
+texture_hover = ExtResource("15_lb3qy")
+
+[node name="FireNotUnlocked" type="Panel" parent="FirePortal"]
+visible = false
+offset_left = -224.70432
+offset_top = -99.86859
+offset_right = 103.232574
+offset_bottom = -59.86859
+scale = Vector2(1.280581, 1.280581)
+size_flags_horizontal = 6
+size_flags_vertical = 6
+theme_override_styles/panel = SubResource("StyleBoxFlat_i1111")
+
+[node name="Label" type="Label" parent="FirePortal/FireNotUnlocked"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "This realm has not been unlocked yet."
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="WaterPortal" type="Sprite2D" parent="."]
 visible = false
@@ -315,3 +450,6 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [connection signal="pressed" from="EarthPortal/EarthPanel/EarthRealmButton" to="." method="_on_earth_realm_button_pressed"]
+[connection signal="pressed" from="EarthPortal/EarthRightNextArrow" to="." method="_on_earth_right_next_arrow_pressed"]
+[connection signal="pressed" from="FirePortal/FirePanel/FireRealmButton" to="." method="_on_fire_realm_button_pressed"]
+[connection signal="pressed" from="FirePortal/FireRightNextArrow" to="." method="_on_fire_right_next_arrow_pressed"]

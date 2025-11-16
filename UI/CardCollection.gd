@@ -27,9 +27,9 @@ func _test_set():
 	clear_collection()
 	var card_names := [
 		"PLAGUE_SENTINEL", 
-		"FIREBALL",
+		"CONFLAGURATION_BLADE",
 		"JESTER_OF_FLAMES",
-		"FYSH",
+		"SHADOW_CANDLES",
 		"BOOGLES"
 		
 		]

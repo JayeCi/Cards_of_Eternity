@@ -17,19 +17,16 @@ signal tutorial_finished
 @onready var tutorial_popups: Panel = $Tutorial_Popups
 @onready var continue_btn: Button = $Tutorial_Popups/Tutorial_Panel/Tutorial_VBox/Tutorial_Continue_Button
 @onready var leader_checkbox: CheckBox = $LeftPanel/ScrollContainer/VBoxContainer/LeaderHbox/Leader_Checkbox
-@onready var main_menu: Control = $"../MainMenu"
-@onready var taskbar: Control = $"../../UIOverlay/Taskbar"
-@onready var ui_overlay: Control = $"../../UIOverlay"
 @onready var tutorial_label: RichTextLabel = $Tutorial_Popups/Tutorial_Panel/Tutorial_VBox/MarginContainer/Tutorial_Text
 @onready var collection_panel: Panel = $CollectionPanel
 @onready var leader_panel: Panel = $LeaderPanel
 @onready var deck_panel: Panel = $DeckPanel
 @onready var main_panel_label: Label = $Toolbar/MainPanelLabel
-
 @onready var leader_button: Button = $Toolbar/ButtonRow1/Leader_button
 @onready var deck_button: Button = $Toolbar/ButtonRow1/Deck_button
 @onready var collection_button: Button = $Toolbar/ButtonRow1/Collection_button
 @onready var x: Button = $Toolbar/ButtonRow2/X
+
 
 
 
@@ -53,6 +50,10 @@ var displayed_cards := {}
 var player = null
 var _elem_to_ball := {}
 var selected_card: CardData = null
+var main_menu: Control = null
+var taskbar: Control = null
+var ui_overlay: Control = null
+var earth_map_scene: MapCore = null
 
 func _ready():
 	Globals.tutorial_stage = 0
@@ -771,10 +772,16 @@ func _on_x_pressed() -> void:
 	if root:
 		root.visible = false   # hide the whole container
 	selected_card = null
-	ui_overlay.visible = true
-	taskbar.visible = true
-	if main_menu:
-		main_menu.visible = true
+	
+	var ui := get_ui_overlay()
+	if ui: ui.visible = true
+
+	var t := get_taskbar()
+	if t: t.visible = true
+
+	var mm := get_main_menu()
+	if mm: mm.visible = true
+
 		
 	# 🔒 Only fire once
 	if not GameSession.map_instance.collection_tutorial_complete:
@@ -810,3 +817,48 @@ func _on_tutorial_continue_button_pressed() -> void:
 		# Player just finished the collection overview
 		_show_tutorial_stage_1()  # now guide them to press “D” (Deck)
 		Globals.tutorial_stage = 1
+
+
+func _on_3d_button_pressed() -> void:
+	await TransitionFade.fade_out()
+	var scene_path := "res://Cards/Models/MODEL_DISPLAY_SCREEN.tscn"
+	var packed_scene: PackedScene = load(scene_path)
+
+	if packed_scene == null:
+		push_error("[3DButton] ❌ Could not load MODEL_DISPLAY_SCREEN.tscn at: " + scene_path)
+		return
+
+	var display_screen := packed_scene.instantiate()
+
+	# Add it to the same parent as the Collection UI (or use get_tree().root if you prefer fullscreen)
+	get_tree().get_root().add_child(display_screen)
+	visible = false
+	
+	var em := get_earth_map_scene()
+	if em: em.visible = false
+
+	await TransitionFade.fade_in()
+
+
+	print("[3DButton] 📦 MODEL_DISPLAY_SCREEN instantiated.")
+
+
+func get_main_menu() -> Control:
+	if main_menu == null:
+		main_menu = get_node_or_null("../MainMenu")
+	return main_menu
+
+func get_taskbar() -> Control:
+	if taskbar == null:
+		taskbar = get_node_or_null("../../UIOverlay/Taskbar")
+	return taskbar
+
+func get_ui_overlay() -> Control:
+	if ui_overlay == null:
+		ui_overlay = get_node_or_null("../../UIOverlay")
+	return ui_overlay
+
+func get_earth_map_scene() -> MapCore:
+	if earth_map_scene == null:
+		earth_map_scene = get_node_or_null("../../..")
+	return earth_map_scene
