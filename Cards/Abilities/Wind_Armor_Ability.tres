@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="Wind_Armor_Ability" load_steps=2 format=3 uid="uid://c7q3m8pvx4n2k"]
+
+[ext_resource type="Script" uid="uid://b3rkvsnqkikua" path="res://Cards/Abilities/Wind_Armor_Ability.gd" id="1_wind"]
+
+[resource]
+script = ExtResource("1_wind")
+trigger = "on_fusion"
+display_name = "Wind Armor"
+value = 8
+description = "When fused with a WIND monster, permanently increases its DEF by 8."

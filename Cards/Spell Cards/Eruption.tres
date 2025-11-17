@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://d7dl4wk8jcyr" path="res://Cards/Abilities/ChangeTerrain.gd" id="1_vgk8i"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_l182c"]
-[ext_resource type="Texture2D" uid="uid://bw4bqtbm54eof" path="res://Cards/Spell Cards/LAVA_CARD_ART.png" id="2_vgk8i"]
+[ext_resource type="Texture2D" uid="uid://b44pgexysnmlm" path="res://Images/Eruption_Spell.jpg" id="3_b23iv"]
 [ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="3_vgk8i"]
 [ext_resource type="AudioStream" uid="uid://cj7dv1bxn2us8" path="res://Audio/FIRE.mp3" id="4_b23iv"]
 
@@ -22,7 +22,7 @@ card_type = 1
 id = "00101"
 name = "Eruption"
 description = "Lava erupts and transforms the surrounding tiles to lava."
-art = ExtResource("2_vgk8i")
+art = ExtResource("3_b23iv")
 cost = 3
 ability = SubResource("Resource_b23iv")
 place_sound = ExtResource("4_b23iv")

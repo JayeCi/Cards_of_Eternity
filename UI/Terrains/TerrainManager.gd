@@ -7,6 +7,6 @@ var TERRAIN_TEXTURES := {
 	"Grass": preload("res://UI/Terrains/grass.png"),
 	"Lava": preload("res://UI/Terrains/lava.png"),
 	"Water": preload("res://UI/Terrains/water.png"),
-	"Forest": preload("res://UI/Terrains/forest.png"),
+	"Forest": preload("res://Downloaded/Decor/Foliage/forest_0.jpg"),
 	"Ice": preload("res://UI/Terrains/ice.png"),
 }

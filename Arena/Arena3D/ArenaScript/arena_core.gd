@@ -342,7 +342,7 @@ func _ready():
 func _deferred_startup():
 	randomize()
 	#board.biome = all_biomes[randi() % all_biomes.size()]
-	board.biome = board.Biome.TUNDRA
+	board.biome = board.Biome.MEADOW
 	# Generate the map for that biome
 	board._generate_grid()
 
@@ -520,13 +520,22 @@ func _float_text(world_pos: Vector3, text: String, color: Color = Color.WHITE) -
 # ==========================================================
 # 🧬 Fusion Ability Trigger System
 # ==========================================================
-func _trigger_fusion_abilities(fused_card: CardData, source_cards: Array[CardData]) -> void:
-	if not fused_card:
+func _trigger_fusion_abilities(fused_unit: UnitData, source_cards: Array[CardData]) -> void:
+	if not fused_unit:
 		return
 
 	for c in source_cards:
 		if c == null:
 			continue
+
+		# 🆕 Check for ability property (new system)
+		if c.has_method("ability") and c.ability != null:
+			var ab: CardAbility = c.ability
+			if ab and "on_fusion" in ab.trigger:
+				_log("🧬 Triggering fusion ability: %s" % ab.display_name, Color(1.0, 0.8, 0.4))
+				await _execute_card_ability(fused_unit, ab)
+
+		# 🔧 Legacy: Check for script property (old system)
 		if not ("script" in c) or c.script == null:
 			continue
 		if not (c.script is Script):
@@ -546,7 +555,7 @@ func _trigger_fusion_abilities(fused_card: CardData, source_cards: Array[CardDat
 				trigger_val = str(temp_inst.trigger).to_lower()
 
 			if trigger_val == "on_fusion":
-				temp_inst.execute(self, fused_card)
+				temp_inst.execute(self, fused_unit)
 
 # In ArenaCamera.gd
 func shake(intensity: float = 0.1, duration: float = 0.2) -> void:
@@ -1042,7 +1051,7 @@ func _check_fusion_pair(a: CardData, b: CardData) -> CardData:
 			if CARD_PATHS.has(result_name):
 				return get_card(CARD_PATHS[result_name])
 
-	# --- 2️⃣ Dynamic Conflaguration Blade fusion ---
+	# --- 2️⃣ Dynamic elemental weapon fusion ---
 	var a_name := str(a.name).to_lower().replace(" ", "_")
 	var b_name := str(b.name).to_lower().replace(" ", "_")
 	var a_elem := str(a.element if a.element != null else "").to_lower()
@@ -1050,6 +1059,7 @@ func _check_fusion_pair(a: CardData, b: CardData) -> CardData:
 
 	print("🔥 FUSION DEBUG:", a.name, "(", a_elem, ")", b.name, "(", b_elem, ")")
 
+	# Conflaguration Blade + Fire type
 	var is_blade_a := a_name.find("conflaguration_blade") != -1
 	var is_blade_b := b_name.find("conflaguration_blade") != -1
 	var is_fire_a := a_elem == "fire"
@@ -1066,7 +1076,41 @@ func _check_fusion_pair(a: CardData, b: CardData) -> CardData:
 		fused.description += "\n🔥 Empowered by the Conflaguration Blade (+8 ATK)."
 		return fused
 
-	print("❌ Fusion failed: no valid Conflaguration Blade + Fire-type combo found.")
+	# Aqua Whip + Water type
+	var is_whip_a := a_name.find("aqua_whip") != -1
+	var is_whip_b := b_name.find("aqua_whip") != -1
+	var is_water_a := a_elem == "water"
+	var is_water_b := b_elem == "water"
+
+	if (is_whip_a and is_water_b):
+		var fused := b.duplicate()
+		fused.atk += 6
+		fused.description += "\n💧 Empowered by the Aqua Whip (+6 ATK)."
+		return fused
+	elif (is_whip_b and is_water_a):
+		var fused := a.duplicate()
+		fused.atk += 6
+		fused.description += "\n💧 Empowered by the Aqua Whip (+6 ATK)."
+		return fused
+
+	# Wind Armor + Wind type
+	var is_armor_a := a_name.find("wind_armor") != -1
+	var is_armor_b := b_name.find("wind_armor") != -1
+	var is_wind_a := a_elem == "wind"
+	var is_wind_b := b_elem == "wind"
+
+	if (is_armor_a and is_wind_b):
+		var fused := b.duplicate()
+		fused.def += 8
+		fused.description += "\n🌪️ Fortified by the Wind Armor (+8 DEF)."
+		return fused
+	elif (is_armor_b and is_wind_a):
+		var fused := a.duplicate()
+		fused.def += 8
+		fused.description += "\n🌪️ Fortified by the Wind Armor (+8 DEF)."
+		return fused
+
+	print("❌ Fusion failed: no valid elemental weapon + matching type combo found.")
 	return null
 
 func _play_fusion_effect(result_card: CardData) -> void:
@@ -1142,6 +1186,10 @@ func confirm_summon_in_mode(mode: int) -> void:
 		# ✅ Now safely place the fused card
 		move_sys.place_unit(fused, selected_pos, PLAYER, mode, true)
 
+		# 🧬 Trigger fusion abilities from source cards
+		var fused_unit = units.get(selected_pos)
+		if fused_unit:
+			_trigger_fusion_abilities(fused_unit, [a, b])
 
 		if _fusion_was_valid:
 			_log("🧬 %s + %s fused into %s (%s)!" %

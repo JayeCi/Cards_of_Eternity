@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=10 format=3 uid="uid://pwf2kvai3iy7"]
+
+[ext_resource type="AudioStream" uid="uid://cj7dv1bxn2us8" path="res://Audio/FIRE.mp3" id="1_af7kn"]
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_fnl18"]
+[ext_resource type="AudioStream" uid="uid://c6venr73hly0t" path="res://Audio/Dirt_Grass.mp3" id="2_hd7bi"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_nomb4"]
+[ext_resource type="Script" uid="uid://5puuvoqpdhal" path="res://Cards/Abilities/Terrain_5x3_Spell.gd" id="3_720u7"]
+[ext_resource type="AudioStream" uid="uid://dl0at0b012bxp" path="res://Audio/Rocks.mp3" id="4_iok25"]
+[ext_resource type="AudioStream" uid="uid://cvc044ku2ltcs" path="res://Audio/Water.mp3" id="5_3n42r"]
+[ext_resource type="Texture2D" uid="uid://be47vown0hiwu" path="res://Images/Water_spell.jpg" id="6_awymu"]
+
+[sub_resource type="Resource" id="Resource_357bg"]
+script = ExtResource("3_720u7")
+metadata/_custom_type_script = "uid://5puuvoqpdhal"
+
+[resource]
+script = ExtResource("2_nomb4")
+types = Array[String]([])
+element = "Water"
+preferred_terrain = "Water"
+card_type = 1
+id = "00045"
+name = "Tsunami"
+description = "Converts a 3×3 zone around into Water terrain. All Water-aligned creatures are empowered by the waves."
+art = ExtResource("6_awymu")
+ability = SubResource("Resource_357bg")
+metadata/_custom_type_script = "uid://57up1u0etcmc"

@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=10 format=3 uid="uid://c2dkjm10ojwbb"]
+
+[ext_resource type="AudioStream" uid="uid://cj7dv1bxn2us8" path="res://Audio/FIRE.mp3" id="1_cq54x"]
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_y5fpm"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_2qx4p"]
+[ext_resource type="AudioStream" uid="uid://c6venr73hly0t" path="res://Audio/Dirt_Grass.mp3" id="2_hmg3k"]
+[ext_resource type="Script" uid="uid://5puuvoqpdhal" path="res://Cards/Abilities/Terrain_5x3_Spell.gd" id="3_3uqap"]
+[ext_resource type="AudioStream" uid="uid://dl0at0b012bxp" path="res://Audio/Rocks.mp3" id="4_d1sk4"]
+[ext_resource type="AudioStream" uid="uid://cvc044ku2ltcs" path="res://Audio/Water.mp3" id="5_88tdn"]
+[ext_resource type="Texture2D" uid="uid://dlenr2kj68p2m" path="res://Images/Enraging_Forest.jpg" id="6_hg6a1"]
+
+[sub_resource type="Resource" id="Resource_aujqo"]
+script = ExtResource("3_3uqap")
+metadata/_custom_type_script = "uid://5puuvoqpdhal"
+
+[resource]
+script = ExtResource("2_2qx4p")
+types = Array[String]([])
+rarity = "uncommon"
+element = "Earth"
+preferred_terrain = "Forest"
+card_type = 1
+id = "00046"
+name = "Enraging Forest"
+description = "Converts a 3×3 zone around into Forest terrain. All Forest-aligned creatures are empowered by the trees."
+art = ExtResource("6_hg6a1")
+ability = SubResource("Resource_aujqo")
+metadata/_custom_type_script = "uid://57up1u0etcmc"

@@ -6,7 +6,7 @@ class_name CardData
 @export var types: Array[String] = ["Beast"]
 
 # Optional: you can define the allowed set for safety
-const TYPE_OPTIONS := ["Beast", "Demon", "Machine", "Elemental", "Spirit", "Flying"]
+const TYPE_OPTIONS := ["Beast", "Demon", "Machine", "Elemental", "Spirit", "Flying", "Humanoid"]
 
 @export_enum("common", "uncommon", "rare", "epic", "legendary", "mythic")
 var rarity := "common"
@@ -14,8 +14,8 @@ var rarity := "common"
 @export_enum("Fire", "Water", "Earth", "Wind", "Shadow", "Neutral")
 var element: String = "Neutral"
 
-@export_enum("Water", "Lava", "FOREST", "Grass", "Stone", "ICE")
-var preferred_terrain: String = "GRASS"
+@export_enum("None", "Water", "Lava", "Forest", "Grass", "Stone", "Ice")
+var preferred_terrain: String = "Grass"
 
 # --- CARD CATEGORY ---
 enum CardType { MONSTER, SPELL, EVENT }

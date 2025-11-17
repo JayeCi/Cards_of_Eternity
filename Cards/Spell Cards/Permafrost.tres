@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=10 format=3 uid="uid://bpaihy00arl4t"]
+
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_ir55q"]
+[ext_resource type="AudioStream" uid="uid://cj7dv1bxn2us8" path="res://Audio/FIRE.mp3" id="1_ucy7f"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_nnqh3"]
+[ext_resource type="AudioStream" uid="uid://c6venr73hly0t" path="res://Audio/Dirt_Grass.mp3" id="2_ux4ux"]
+[ext_resource type="Texture2D" uid="uid://bvcdbajmc0u0q" path="res://Images/Permafrost_Spell.jpg" id="2_ynftv"]
+[ext_resource type="Script" uid="uid://5puuvoqpdhal" path="res://Cards/Abilities/Terrain_5x3_Spell.gd" id="3_vhfnj"]
+[ext_resource type="AudioStream" uid="uid://dl0at0b012bxp" path="res://Audio/Rocks.mp3" id="4_knxfv"]
+[ext_resource type="AudioStream" uid="uid://cvc044ku2ltcs" path="res://Audio/Water.mp3" id="5_w56vc"]
+
+[sub_resource type="Resource" id="Resource_pdgac"]
+script = ExtResource("3_vhfnj")
+metadata/_custom_type_script = "uid://5puuvoqpdhal"
+
+[resource]
+script = ExtResource("2_nnqh3")
+types = Array[String]([])
+element = "Water"
+preferred_terrain = "Ice"
+card_type = 1
+id = "00044"
+name = "Permafrost"
+description = "Converts a 3×3 zone around into Ice terrain. All Ice-aligned creatures are empowered by the frost."
+art = ExtResource("2_ynftv")
+ability = SubResource("Resource_pdgac")
+metadata/_custom_type_script = "uid://57up1u0etcmc"

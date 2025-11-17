@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="Aqua_Whip_Ability" load_steps=2 format=3 uid="uid://bq4h8xyv2w7k5"]
+
+[ext_resource type="Script" path="res://Cards/Abilities/Aqua_Whip_Ability.gd" id="1_aqua"]
+
+[resource]
+script = ExtResource("1_aqua")
+trigger = "on_fusion"
+display_name = "Aqua Whip"
+description = "When fused with a WATER monster, permanently increases its ATK by 6."
+value = 6

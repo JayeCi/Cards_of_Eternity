@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=5 format=3 uid="uid://c2c1bmj4rdmvu"]
+
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_5gm6a"]
+[ext_resource type="Texture2D" uid="uid://bqolpy4e08aqh" path="res://Images/WIND_ARMOR.png" id="2_l6aey"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_yn5dr"]
+[ext_resource type="Resource" uid="uid://c7q3m8pvx4n2k" path="res://Cards/Abilities/Wind_Armor_Ability.tres" id="3_wind"]
+
+[resource]
+script = ExtResource("2_yn5dr")
+types = Array[String]([])
+rarity = "rare"
+element = "Wind"
+preferred_terrain = "None"
+card_type = 1
+id = "00113"
+name = "Wind Armor"
+description = "Armor forged from compressed wind. When fused with a WIND monster, increases DEF by 8."
+art = ExtResource("2_l6aey")
+ability = ExtResource("3_wind")
+metadata/_custom_type_script = "uid://57up1u0etcmc"

@@ -306,7 +306,7 @@ func update_terrain_visual(terrain_type: String) -> void:
 	var textures := {
 		"Grass": preload("res://UI/Terrains/grass.png"),
 		"Lava": preload("res://UI/Terrains/Lava.png"),
-		"Forest": preload("res://UI/Terrains/Forest.png"),
+		"Forest": preload("res://Downloaded/Decor/Foliage/forest_0.jpg"),
 		"Water": preload("res://UI/Terrains/Water.png"),
 		"Ice": preload("res://UI/Terrains/Ice.png"),
 		"Stone": preload("res://UI/Terrains/stone.png"),

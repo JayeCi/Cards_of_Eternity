@@ -8,10 +8,10 @@
 [ext_resource type="Texture2D" uid="uid://j0dkcfmp3g3d" path="res://UI/Terrains/Ice.png" id="5_nvf5m"]
 [ext_resource type="Texture2D" uid="uid://dp1ew5edt28ly" path="res://UI/Terrains/stone.png" id="5_u8wge"]
 [ext_resource type="Texture2D" uid="uid://cmwi3xrb0nspr" path="res://UI/Terrains/Lava.png" id="6_sa6f8"]
-[ext_resource type="Texture2D" uid="uid://dkc013g0vjkfa" path="res://UI/Terrains/grass.png" id="7_haurc"]
 [ext_resource type="Shader" uid="uid://cpe6qgq8ywmob" path="res://Arena/iceshader.gdshader" id="7_iqoe2"]
 [ext_resource type="Texture2D" uid="uid://c07v4ijon03kv" path="res://UI/Terrains/Forest.png" id="8_2dc0q"]
 [ext_resource type="Shader" uid="uid://gqlmo7lg3k4d" path="res://Arena/firetile.gdshader" id="8_t3ml4"]
+[ext_resource type="Texture2D" uid="uid://bp244jvw7pcc3" path="res://UI/Terrains/Grass.jpg" id="10_iqoe2"]
 [ext_resource type="Texture2D" uid="uid://b4xertubfc6wv" path="res://UI/Terrains/default_texture.jpg" id="10_ir6gf"]
 [ext_resource type="Texture2D" uid="uid://bq6fn5ar8y44d" path="res://Cards/Utilities/CardModel/Border_TP_Edge.png" id="11_3e2tw"]
 [ext_resource type="PackedScene" uid="uid://b226o8whi8uox" path="res://Arena/Terrain_Models/column_stylized_low-poly_3d_model.glb" id="12_3e2tw"]
@@ -98,7 +98,7 @@ shader_parameter/noise_influence = 1.0
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2dc0q"]
 albedo_color = Color(0.513233, 0.513233, 0.513233, 1)
-albedo_texture = ExtResource("7_haurc")
+albedo_texture = ExtResource("10_iqoe2")
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_3e2tw"]
 material = SubResource("StandardMaterial3D_2dc0q")
