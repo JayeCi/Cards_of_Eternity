@@ -272,7 +272,9 @@ func _smart_summon() -> void:
 	var player_leader_pos = battle.get_leader_pos(core.PLAYER)
 
 	var spaces: Array[Vector2i] = []
-	for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+	# ✅ Check all 8 surrounding tiles (including diagonals)
+	for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1),
+			  Vector2i(1, 1), Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1)]:
 		var p = leader_pos + d
 		if core.board.is_in_bounds(p):
 			var t = core.board.get_tile(p.x, p.y)
@@ -718,7 +720,9 @@ func _draw_up_to_limit() -> void:
 
 func _has_summon_space() -> bool:
 	var l = battle.get_leader_pos(core.ENEMY)
-	for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+	# ✅ Check all 8 surrounding tiles (including diagonals)
+	for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1),
+			  Vector2i(1, 1), Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1)]:
 		var p = l + d
 		if core.board.is_in_bounds(p):
 			var t = core.board.get_tile(p.x, p.y)

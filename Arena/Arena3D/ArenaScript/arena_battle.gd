@@ -599,8 +599,10 @@ func show_valid_summon_tiles() -> void:
 			if not tile:
 				continue
 
-			var dist = Vector2i(x, y).distance_to(leader_pos)
-			if dist == 1 and tile.occupant == null:
+			# ✅ Allow all 8 surrounding tiles (including diagonals)
+			var dx = abs(x - leader_pos.x)
+			var dy = abs(y - leader_pos.y)
+			if dx <= 1 and dy <= 1 and (dx + dy > 0) and tile.occupant == null:
 				tiles_to_highlight.append(tile)
 
 	# Animate summon highlights with staggered intro
@@ -972,13 +974,24 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 	if ui:
 		ui._lock_hp_updates = false
 
+	# 🎯 Get BattleUI reference for overflow damage display
+	var overflow_ui: BattleUI = core.get_node_or_null("UISystem/BattleUI")
+
 	if of_def > 0 and not defn.is_leader and defn.current_def <= 0:
 		core._log("💥 Overflow to defender leader: %d" % of_def, Color(1, 0.6, 0.3))
 		core.damage_leader(defn.owner, of_def)
 
+		# 🎯 Show overflow damage on BattleUI canvas
+		if overflow_ui:
+			await overflow_ui.show_overflow_damage(of_def, "defender")
+
 	if of_att > 0 and not att.is_leader and att.current_def <= 0:
 		core._log("💥 Counter overflow to Attacker's Leader: %d" % of_att, Color(1, 0.6, 0.3))
 		core.damage_leader(att.owner, of_att)
+
+		# 🎯 Show overflow damage on BattleUI canvas
+		if overflow_ui:
+			await overflow_ui.show_overflow_damage(of_att, "attacker")
 
 	if ui:
 		ui._lock_hp_updates = true

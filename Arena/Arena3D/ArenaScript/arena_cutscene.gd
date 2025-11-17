@@ -243,6 +243,94 @@ func get_leader_pos(owner: int) -> Vector2i:
 	return Vector2i(-1, -1)
 
 
+# 🏆 Victory cutscene with rotating camera and fading enemy cards
+func play_victory_cutscene() -> void:
+	_is_cutscene_running = true
+	core.is_cutscene_active = true
+	_disable_input(true)
+
+	# 🕐 Pause before starting cutscene to let the moment sink in
+	await get_tree().create_timer(2.5).timeout
+
+	# Calculate board center by using the actual middle tile position
+	var center_x := int(core.BOARD_W / 2)  # For 7x7 board, this is 3
+	var center_y := int(core.BOARD_H / 2)  # For 7x7 board, this is 3
+	var center_tile = board.get_tile(center_x, center_y)
+
+	var board_center := Vector3.ZERO
+	if center_tile:
+		board_center = center_tile.global_position
+	else:
+		# Fallback if tile not found
+		var spacing = board.spacing
+		board_center.x = center_x * spacing
+		board_center.z = center_y * spacing
+
+	# Camera setup for rotation around board (slower, more cinematic)
+	var rotation_radius := 8.0
+	var camera_height := 6.0
+	var rotation_duration := 6.0  # Increased from 4.0 for slower, more dramatic rotation
+
+	# Start fading out all enemy cards
+	var enemy_fade_tweens: Array[Tween] = []
+	for pos in core.units.keys():
+		var unit: UnitData = core.units[pos]
+		if unit and unit.owner == core.ENEMY:
+			var tile = board.get_tile(pos.x, pos.y)
+			if tile:
+				# Fade tile mesh
+				if tile.has_node("CardMesh"):
+					var mesh = tile.get_node("CardMesh")
+					if is_instance_valid(mesh):
+						var fade_tw = create_tween()
+						fade_tw.tween_property(mesh, "modulate:a", 0.0, rotation_duration)
+						enemy_fade_tweens.append(fade_tw)
+
+				# Fade card model
+				if tile.has_node("CardModel"):
+					var model = tile.get_node("CardModel")
+					if is_instance_valid(model):
+						var fade_tw = create_tween()
+						fade_tw.tween_property(model, "modulate:a", 0.0, rotation_duration)
+						enemy_fade_tweens.append(fade_tw)
+
+	# Rotate camera around the board
+	var angle_start := 0.0
+	var angle_end := TAU  # Full 360 degree rotation
+
+	var rotation_tween := create_tween()
+	rotation_tween.tween_method(func(angle: float):
+		var cam_x = board_center.x + cos(angle) * rotation_radius
+		var cam_z = board_center.z + sin(angle) * rotation_radius
+		camera.global_position = Vector3(cam_x, camera_height, cam_z)
+		camera.look_at(board_center, Vector3.UP),
+		angle_start,
+		angle_end,
+		rotation_duration
+	).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+	# Wait halfway through rotation, then show Victory text
+	await get_tree().create_timer(rotation_duration * 0.5).timeout
+
+	# Show Victory message
+	var ui_sys = core.ui_sys
+	if ui_sys and ui_sys.has_method("show_victory_message"):
+		ui_sys.show_victory_message()
+	else:
+		# Fallback to battle message
+		ui_sys.call("show_battle_message", "🏆 VICTORY! 🏆", 2.0)
+
+	# Wait for rotation to complete
+	await rotation_tween.finished
+
+	# Brief pause before fade out
+	await get_tree().create_timer(0.5).timeout
+
+	_is_cutscene_running = false
+	core.is_cutscene_active = false
+	_disable_input(false)
+
+
 func _focus_camera_on(target_pos: Vector3, zoom_mult: float, duration: float):
 	var angle = deg_to_rad(45)
 	var distance = 20.0 * zoom_mult

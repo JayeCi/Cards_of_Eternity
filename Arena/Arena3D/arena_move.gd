@@ -242,7 +242,7 @@ func on_board_click(screen_pos: Vector2) -> void:
 	if not result:
 		return
 
-	var tile := board.get_tile_from_collider(result.collider)
+	var tile = board.get_tile_from_collider(result.collider)
 	if tile == null:
 		return
 

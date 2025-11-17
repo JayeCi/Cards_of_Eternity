@@ -865,12 +865,24 @@ func _return_audio_player(player: AudioStreamPlayer3D) -> void:
 		player.queue_free()
 
 func _draw_starting_hand(n: int) -> void:
-	for i in range(n):                     # ✅ fix loop
-		var card_ui: Control = _draw_card()
-		if not card_ui:
-			return
-		await ui_sys.call("_animate_card_draw", card_ui)
-		#await get_tree().create_timer(0.15).timeout
+	# ✅ Draw all cards into hand FIRST without rebuilding UI each time
+	var cards_to_draw: Array[CardData] = []
+	for i in range(n):
+		if player_deck.is_empty():
+			break
+		var card: CardData = player_deck.pop_back()
+		cards_to_draw.append(card)
+		player_hand.append(card)
+
+	# ✅ Now build the UI once for all cards (skip auto-fade, we'll animate manually)
+	ui_sys.call("refresh_hand", player_hand, player_essence, false, true)
+	card_draw.play()
+
+	# ✅ Animate each card one by one
+	var hand_uis = ui_sys.hand_grid.get_children()
+	for i in range(cards_to_draw.size()):
+		if i < hand_uis.size():
+			await ui_sys.call("_animate_card_draw", hand_uis[i])
 
 func _draw_card() -> Control:
 	if player_deck.is_empty(): return null
@@ -1517,8 +1529,11 @@ func on_leader_defeated(owner: int) -> void:
 		emit_signal("battle_finished", "player_lost")
 	else:
 		_log("🏆 Enemy Leader defeated! You win!", Color(0.3,1,0.3))
-		ui_sys.call("show_battle_message", "Enemy Leader defeated! You win!", 2.5)
-		await get_tree().create_timer(2.5).timeout
+
+		# 🎬 Play victory cutscene with rotating camera
+		if cutscene_sys and cutscene_sys.has_method("play_victory_cutscene"):
+			await cutscene_sys.play_victory_cutscene()
+
 		emit_signal("battle_finished", "player_won")
 
 # -----------------------------

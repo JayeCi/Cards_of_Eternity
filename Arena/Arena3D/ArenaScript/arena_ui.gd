@@ -166,7 +166,7 @@ func _cancel_summon_popup() -> void:
 	cancel_drag()
 	show_battle_message("Summon canceled", 1.0)
 
-func refresh_hand(player_hand: Array, player_essence: int, force_update := false) -> void:
+func refresh_hand(player_hand: Array, player_essence: int, force_update := false, skip_fade := false) -> void:
 	# --- 🧩 Avoid redundant rebuilds unless forced
 	var skip_rebuild := false
 	if not force_update:
@@ -240,9 +240,15 @@ func refresh_hand(player_hand: Array, player_essence: int, force_update := false
 				if is_instance_valid(ui):
 					_animate_card_selection(ui, core.fusion_selection.has(c))
 		)
-		ui.modulate.a = 0.0
-		var t := create_tween()
-		t.tween_property(ui, "modulate:a", 1.0, 0.25)
+
+		# ✅ Only auto-fade if not skipping (for initial draw animation)
+		if not skip_fade:
+			ui.modulate.a = 0.0
+			var t := create_tween()
+			t.tween_property(ui, "modulate:a", 1.0, 0.25)
+		else:
+			ui.modulate.a = 0.0  # Start invisible, _animate_card_draw will handle fade
+			ui.visible = false  # Keep completely hidden until animation starts
 		hand_grid.add_child(ui)
 		last_card_ui = ui
 
@@ -379,13 +385,46 @@ func force_hide_hand(on: bool) -> void:
 
 func _animate_card_draw(card_ui: Control) -> void:
 	if not card_ui: return
+
+	# Keep the real card completely hidden until animation finishes
 	card_ui.modulate.a = 0.0
-	card_ui.scale = Vector2(0.8, 0.8)
-	card_ui.visible = true
+	card_ui.visible = false
+
+	# Wait for layout to update so we get the correct final position
+	await get_tree().process_frame
+
+	# Create a duplicate for animation
+	var anim_card: Control = card_ui.duplicate(0)  # Shallow copy
+	anim_card.top_level = true
+	add_child(anim_card)
+
+	# Store final global position (where card should end up)
+	var final_global_pos := card_ui.global_position
+
+	# Start from off-screen (bottom-center of viewport)
+	var viewport_size := get_viewport().get_visible_rect().size
+	anim_card.global_position = Vector2(viewport_size.x * 0.5 - anim_card.size.x * 0.5, viewport_size.y + 100)
+	anim_card.rotation = deg_to_rad(randf_range(-15, 15))
+	anim_card.scale = Vector2(0.7, 0.7)
+	anim_card.modulate.a = 1.0
+	anim_card.visible = true
+
+	# Animate flying into hand with smooth curve
 	var t = create_tween()
-	t.tween_property(card_ui, "modulate:a", 1.0, 0.25)
-	t.tween_property(card_ui, "scale", Vector2(1,1), 0.25)
+	t.set_parallel(true)
+	t.set_trans(Tween.TRANS_CUBIC)
+	t.set_ease(Tween.EASE_OUT)
+
+	t.tween_property(anim_card, "global_position", final_global_pos, 0.4)
+	t.tween_property(anim_card, "rotation", 0.0, 0.4)
+	t.tween_property(anim_card, "scale", Vector2(1.0, 1.0), 0.3)
+
 	await t.finished
+
+	# Remove animated duplicate and show real card
+	anim_card.queue_free()
+	card_ui.visible = true
+	card_ui.modulate.a = 1.0
 
 func update_phase_label(phase: int) -> void:
 	match phase:
@@ -745,6 +784,41 @@ func show_battle_message(text: String, duration := 2.0) -> void:
 	await get_tree().create_timer(duration).timeout
 	var t2 = create_tween()
 	t2.tween_property(label, "modulate:a", 0.0, 0.5)
+
+
+# 🏆 Show prominent Victory message
+func show_victory_message() -> void:
+	# Create victory label dynamically
+	var victory_label := Label.new()
+	victory_label.text = "🏆 VICTORY! 🏆"
+	victory_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	victory_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+
+	# Style the label prominently
+	victory_label.add_theme_font_size_override("font_size", 96)
+	victory_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.2))
+	victory_label.add_theme_color_override("font_outline_color", Color(0.8, 0.4, 0.0, 1))
+	victory_label.add_theme_constant_override("outline_size", 12)
+
+	# Position it prominently in the center
+	victory_label.anchor_left = 0.0
+	victory_label.anchor_top = 0.0
+	victory_label.anchor_right = 1.0
+	victory_label.anchor_bottom = 1.0
+	victory_label.modulate.a = 0.0
+	victory_label.scale = Vector2(0.5, 0.5)
+
+	add_child(victory_label)
+
+	# Animate the victory label
+	var tw = create_tween()
+	tw.tween_property(victory_label, "modulate:a", 1.0, 0.3)
+	tw.parallel().tween_property(victory_label, "scale", Vector2(1.0, 1.0), 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(1.5)  # Stay visible
+	tw.tween_property(victory_label, "modulate:a", 0.0, 0.5)
+	await tw.finished
+
+	victory_label.queue_free()
 
 func _set_label_outline(label: Label, color: Color) -> void:
 	if not label:
