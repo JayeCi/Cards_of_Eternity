@@ -12,6 +12,9 @@ var _current_hover_card: CardData = null
 var _last_hand_snapshot: Array = []
 var _selected_card_ui_map: Dictionary = {}
 
+# 🎯 Performance: Preload CardUI scene once
+const CARD_UI_SCENE := preload("res://UI/CardUI.tscn")
+
 @onready var fusion_pending := $FusionPending
 @onready var fusion_label := $FusionPending/FusionLabel
 
@@ -197,7 +200,7 @@ func refresh_hand(player_hand: Array, player_essence: int, force_update := false
 	last_card_ui = null
 
 	for c: CardData in player_hand:
-		var ui = preload("res://UI/CardUI.tscn").instantiate()
+		var ui = CARD_UI_SCENE.instantiate()
 		ui.card_data = c
 		ui.refresh()
 		ui.set_meta("base_y", ui.position.y)  # remember its original Y

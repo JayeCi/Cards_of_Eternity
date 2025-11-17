@@ -1016,10 +1016,9 @@ func clear_highlights() -> void:
 # =====================================================
 
 func _play_card_sound(sound: AudioStream, position := Vector3.ZERO) -> void:
-	if not sound:
+	if not sound or not core:
 		return
-	var p := AudioStreamPlayer3D.new()
-	core.add_child(p)
+	var p := core._get_audio_player()
 	p.stream = sound
 	p.global_position = position
 	p.unit_size = 5.0
@@ -1027,4 +1026,4 @@ func _play_card_sound(sound: AudioStream, position := Vector3.ZERO) -> void:
 	p.volume_db = -10.0
 	p.pitch_scale = randf_range(0.95, 1.05)
 	p.play()
-	p.connect("finished", Callable(p, "queue_free"))
+	p.connect("finished", Callable(core, "_return_audio_player").bind(p), CONNECT_ONE_SHOT)

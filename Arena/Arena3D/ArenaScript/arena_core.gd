@@ -246,6 +246,23 @@ enum Phase { SUMMON_OR_MOVE, SELECT_SUMMON_TILE, SELECT_MOVE_TARGET, ENEMY_TURN 
 @onready var card_draw: AudioStreamPlayer = $UISystem/SFX/CardDraw
 @onready var card_details_ui: Control = $UISystem/ArenaCardDetails
 
+# 🎯 Performance: Cached node references for hot paths
+var _fade_rect: ColorRect = null
+var _end_turn_btn: TextureButton = null
+var _orb_grid: Node = null
+var _hand_container: GridContainer = null
+
+# 🎯 Performance: Track last emitted essence values to avoid duplicate signals
+var _last_emitted_player_essence: int = -1
+var _last_emitted_enemy_essence: int = -1
+
+# 🎯 Performance: Store active tween references to prevent overlaps
+var _fade_tween: Tween = null
+
+# 🎯 Performance: Audio player pool to avoid repeated instantiation
+var _audio_player_pool: Array[AudioStreamPlayer3D] = []
+const MAX_AUDIO_POOL_SIZE: int = 10
+
 
 # -----------------------------
 # GAME DATA
@@ -309,11 +326,16 @@ func _ready():
 	# After other connects:
 	connect("battle_finished", Callable(self, "_on_battle_concluded"))
 
+	# 🎯 Performance: Cache frequently accessed node references
+	_fade_rect = ui_sys.get_node_or_null("FadeRect")
+	_end_turn_btn = ui_sys.get_node_or_null("EndTurnButton")
+	_orb_grid = ui_sys.get_node_or_null("OrbGrid")
+	_hand_container = ui_sys.get_node_or_null("BottomContainer/Hand")
+
 	# 🕶 Immediately cover screen with black before anything loads
-	if ui_sys.has_node("FadeRect"):
-		var fade_rect: ColorRect = ui_sys.get_node("FadeRect")
-		fade_rect.modulate.a = 1.0  # fully black
-		fade_rect.visible = true
+	if _fade_rect:
+		_fade_rect.modulate.a = 1.0  # fully black
+		_fade_rect.visible = true
 
 	call_deferred("_deferred_startup")
 
@@ -322,9 +344,8 @@ func _ready():
 
 
 	# ✅ Connect essence UI
-	var orb_grid := ui_sys.get_node_or_null("OrbGrid")
-	if orb_grid and orb_grid.has_method("set_essence"):
-		connect("essence_changed", Callable(orb_grid, "set_essence"))
+	if _orb_grid and _orb_grid.has_method("set_essence"):
+		connect("essence_changed", Callable(_orb_grid, "set_essence"))
 	else:
 		push_warning("⚠️ OrbGrid not found or missing set_essence() in UISystem")
 		
@@ -376,40 +397,41 @@ func _deferred_startup():
 #
 #
 	# 🟡 Hide End Turn button before intro cutscene
-	var end_turn_btn := ui_sys.get_node_or_null("EndTurnButton")
-	if end_turn_btn:
-		end_turn_btn.visible = false
+	if _end_turn_btn:
+		_end_turn_btn.visible = false
 
 	# 🎥 Play intro cutscene
 	cutscene_sys._intro()
 
 		# 🎥 Start fade-in BEFORE intro begins
-	if ui_sys.has_node("FadeRect"):
-		var fade_rect: ColorRect = ui_sys.get_node("FadeRect")
-		var fade_tween := create_tween()
-		fade_tween.tween_property(fade_rect, "modulate:a", 0.0, 1.5)
-		await fade_tween.finished
-		fade_rect.visible = false
-	
+	if _fade_rect:
+		if _fade_tween and _fade_tween.is_running():
+			_fade_tween.kill()
+		_fade_tween = create_tween()
+		_fade_tween.tween_property(_fade_rect, "modulate:a", 0.0, 1.5)
+		await _fade_tween.finished
+		_fade_rect.visible = false
+
 	# 🕒 Wait until cutscene ends and fade finishes before showing button
 	await get_tree().create_timer(4.0).timeout  # matches your intro + fade length
 
-	if end_turn_btn:
-		end_turn_btn.visible = true
+	if _end_turn_btn:
+		_end_turn_btn.visible = true
 
 	
 	await get_tree().create_timer(4.0).timeout
-	
-	emit_signal("essence_changed", player_essence, enemy_essence)
+
+	_emit_essence_changed()
 	ui_sys.call("refresh_hand", player_hand, player_essence)
 	_draw_starting_hand(5)
 	# --- Fade in the scene ---
-	if ui_sys.has_node("FadeRect"):
-		var fade_rect: ColorRect = ui_sys.get_node("FadeRect")
-		var tween := create_tween()
-		tween.tween_property(fade_rect, "modulate:a", 0.0, 1.5)
-		await tween.finished
-		fade_rect.visible = false
+	if _fade_rect:
+		if _fade_tween and _fade_tween.is_running():
+			_fade_tween.kill()
+		_fade_tween = create_tween()
+		_fade_tween.tween_property(_fade_rect, "modulate:a", 0.0, 1.5)
+		await _fade_tween.finished
+		_fade_rect.visible = false
 
 
 	if is_tutorial_match:
@@ -461,6 +483,10 @@ func _apply_terrain_bonus(unit: UnitData, terrain: String) -> void:
 	if not TERRAIN_BONUS[terrain].has(element):
 		return
 
+	# 🎯 Performance: Check if terrain hasn't changed first (fastest check)
+	if unit.has_meta("last_terrain") and unit.get_meta("last_terrain") == terrain:
+		return  # No change, skip all calculations
+
 	# 🧩 Cache base stats once
 	if not unit.has_meta("base_atk"):
 		unit.set_meta("base_atk", unit.card.atk)
@@ -473,6 +499,7 @@ func _apply_terrain_bonus(unit: UnitData, terrain: String) -> void:
 	var old_mult = unit.get_meta("last_terrain_mult") if unit.has_meta("last_terrain_mult") else 1.0
 	var new_mult = TERRAIN_BONUS[terrain][element]
 	if abs(new_mult - old_mult) < 0.001:
+		unit.set_meta("last_terrain", terrain)  # Update terrain cache even if mult same
 		return
 
 	var old_max_def = base_def * old_mult
@@ -481,6 +508,7 @@ func _apply_terrain_bonus(unit: UnitData, terrain: String) -> void:
 	unit.current_atk = int(round(base_atk * new_mult))
 	unit.current_def = int(round(base_def * new_mult * ratio))
 	unit.set_meta("last_terrain_mult", new_mult)
+	unit.set_meta("last_terrain", terrain)  # 🎯 Cache terrain for future checks
 
 	var diff_percent = ((new_mult / old_mult) - 1.0) * 100.0
 	var is_buff = diff_percent > 0.0
@@ -719,8 +747,7 @@ func _play_leader_spawn_sound(leader: UnitData) -> void:
 		return
 	var pos = tile.global_position if tile else Vector3.ZERO
 
-	var p := AudioStreamPlayer3D.new()
-	add_child(p)
+	var p := _get_audio_player()
 	p.stream = LEADER_IN_SOUND
 	p.global_position = pos
 	p.volume_db = -12.0
@@ -728,7 +755,7 @@ func _play_leader_spawn_sound(leader: UnitData) -> void:
 	p.unit_size = 6.0
 	p.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
 	p.play()
-	p.connect("finished", Callable(p, "queue_free"))
+	p.connect("finished", Callable(self, "_return_audio_player").bind(p), CONNECT_ONE_SHOT)
 
 func _place_leader(unit: UnitData, pos: Vector2i) -> void:
 	# ✅ Safety: clear any prior occupant from this tile first
@@ -811,6 +838,32 @@ func clear_card_placement_mode() -> void:
 # -----------------------------
 # DRAW / HAND / ESSENCE
 # -----------------------------
+
+# 🎯 Performance: Only emit essence_changed signal if values actually changed
+func _emit_essence_changed() -> void:
+	if player_essence != _last_emitted_player_essence or enemy_essence != _last_emitted_enemy_essence:
+		_last_emitted_player_essence = player_essence
+		_last_emitted_enemy_essence = enemy_essence
+		emit_signal("essence_changed", player_essence, enemy_essence)
+
+# 🎯 Performance: Audio player pooling to avoid repeated instantiation/freeing
+func _get_audio_player() -> AudioStreamPlayer3D:
+	if _audio_player_pool.size() > 0:
+		return _audio_player_pool.pop_back()
+	var p := AudioStreamPlayer3D.new()
+	add_child(p)
+	return p
+
+func _return_audio_player(player: AudioStreamPlayer3D) -> void:
+	if not is_instance_valid(player):
+		return
+	player.stop()
+	player.stream = null
+	if _audio_player_pool.size() < MAX_AUDIO_POOL_SIZE:
+		_audio_player_pool.append(player)
+	else:
+		player.queue_free()
+
 func _draw_starting_hand(n: int) -> void:
 	for i in range(n):                     # ✅ fix loop
 		var card_ui: Control = _draw_card()
@@ -1032,7 +1085,7 @@ func _try_place_regular_card(hover_tile: Node3D) -> void:
 			return
 
 		player_essence = clamp(player_essence - live_cost, 0, 8)
-		emit_signal("essence_changed", player_essence, enemy_essence)
+		_emit_essence_changed()
 		ui_sys.call("refresh_hand", player_hand, player_essence)
 		player_hand.erase(selected_card)
 		battle_sys.call("place_unit", selected_card, selected_pos, PLAYER, mode, true)
@@ -1173,7 +1226,7 @@ func confirm_summon_in_mode(mode: int) -> void:
 		var cost := int(fused.cost) if "cost" in fused else 1
 
 		player_essence -= cost
-		emit_signal("essence_changed", player_essence, enemy_essence)
+		_emit_essence_changed()
 
 		player_hand = player_hand.filter(func(c): return c != a and c != b)
 		ui_sys.refresh_hand(player_hand, player_essence)
@@ -1208,7 +1261,7 @@ func confirm_summon_in_mode(mode: int) -> void:
 		# --- 🟢 Handle Normal Summon
 		var cost := int(selected_card.cost) if "cost" in selected_card else 1
 		player_essence -= cost
-		emit_signal("essence_changed", player_essence, enemy_essence)
+		_emit_essence_changed()
 
 		player_hand.erase(selected_card)
 		ui_sys.refresh_hand(player_hand, player_essence)
@@ -1292,16 +1345,13 @@ func _start_player_turn() -> void:
 	battle_sys.core = self
 	ui_sys.call("refresh_hand", player_hand, player_essence)
 
+	# 🎯 Performance: Combined facedown unit processing
 	for pos in units.keys():
 		var u: UnitData = units[pos]
 		if u and u.is_facedown:
 			var tile = board.get_tile(pos.x, pos.y)
 			if tile:
 				tile.set_art(CARD_BACK)
-
-	for pos in units.keys():
-		var u: UnitData = units[pos]
-		if u and u.is_facedown:
 			refresh_tile_art_safe(pos)
 
 	battle_sys._enforce_visual_face_state()
@@ -1329,7 +1379,7 @@ func _start_enemy_turn() -> void:
 
 
 	_gain_essence(ENEMY, essence_gain_per_turn)
-	emit_signal("essence_changed", player_essence, enemy_essence)
+	_emit_essence_changed()
 
 	# ❤️ Sound + regen for enemy side
 	_play_heal_sound()
@@ -1353,7 +1403,7 @@ func _start_enemy_turn() -> void:
 	await get_tree().process_frame
 
 	# ✅ Explicitly re-sync player essence before next turn starts
-	emit_signal("essence_changed", player_essence, enemy_essence)
+	_emit_essence_changed()
 	_start_player_turn()
 
 
@@ -1423,15 +1473,14 @@ func _play_card_place_sound(card_data: CardData = null, is_facedown: bool = fals
 func _play_heal_sound() -> void:
 	if not HEAL_SOUND:
 		return
-	var p := AudioStreamPlayer3D.new()
-	add_child(p)
+	var p := _get_audio_player()
 	p.stream = HEAL_SOUND
 	p.volume_db = -10.0
 	p.pitch_scale = randf_range(0.95, 1.05)
 	p.unit_size = 5.0
 	p.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
 	p.play()
-	p.connect("finished", Callable(p, "queue_free"))
+	p.connect("finished", Callable(self, "_return_audio_player").bind(p), CONNECT_ONE_SHOT)
 
 # -----------------------------
 # PHASE / LOG / HP
@@ -1450,7 +1499,7 @@ func _gain_essence(owner: int, amount: int = 1) -> void:
 		enemy_essence = clamp(enemy_essence + amount, 0, 8)
 
 	print("💧 Essence updated: Player =", player_essence, "Enemy =", enemy_essence)
-	emit_signal("essence_changed", player_essence, enemy_essence)
+	_emit_essence_changed()
 
 		# 🩵 Force UI + hand sync every time essence changes
 	if owner == PLAYER and ui_sys and ui_sys.has_method("refresh_hand"):
@@ -1512,9 +1561,8 @@ func _unhandled_input(event: InputEvent) -> void:
 						ui_sys._is_hovering_hand_card = false
 
 					# Reset card visuals
-					if ui_sys.has_node("BottomContainer/Hand"):
-						var hand: GridContainer = ui_sys.get_node("BottomContainer/Hand")
-						for card_ui in hand.get_children():
+					if _hand_container:
+						for card_ui in _hand_container.get_children():
 							if card_ui is Control:
 								card_ui.position.y = 0
 								card_ui.scale = Vector2.ONE
@@ -1584,9 +1632,8 @@ func _unhandled_input(event: InputEvent) -> void:
 					get_viewport().set_input_as_handled()
 					return
 
-			if ui_sys and ui_sys.has_node("BottomContainer/Hand"):
-				var hand: GridContainer = ui_sys.get_node("BottomContainer/Hand")
-				for card_ui in hand.get_children():
+			if _hand_container:
+				for card_ui in _hand_container.get_children():
 					if card_ui is Control:
 						# Reset hover/selection tweens ONLY
 						card_ui.position.y = 0
@@ -1622,9 +1669,8 @@ func _unhandled_input(event: InputEvent) -> void:
 					ui_sys._hover_card_tween_map.clear()
 
 				# Reset card positions visually
-				if ui_sys.has_node("BottomContainer/Hand"):
-					var hand: GridContainer = ui_sys.get_node("BottomContainer/Hand")
-					for card_ui in hand.get_children():
+				if _hand_container:
+					for card_ui in _hand_container.get_children():
 						if card_ui is Control:
 							card_ui.position.y = 0
 							card_ui.scale = Vector2.ONE

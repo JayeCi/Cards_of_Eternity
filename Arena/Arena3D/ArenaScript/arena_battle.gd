@@ -98,6 +98,10 @@ var _battle_cam_default_pos: Vector3
 var _battle_cam_default_fov: float
 var _last_click_time: float = 0.0
 
+# 🎯 Performance: Cache mouse position to detect movement
+var _last_mouse_pos: Vector2 = Vector2(-1, -1)
+var _mouse_moved: bool = false
+
 @onready var hand: GridContainer = $"../UISystem/BottomContainer/Hand"
 @export var is_tutorial_match: bool = false
 
@@ -116,8 +120,18 @@ func init_battle(core_ref: ArenaCore) -> void:
 func _process(_dt: float) -> void:
 	if not core or not cam:
 		return
-	_update_hover()
-	_update_ghost_position()
+
+	# 🎯 Performance: Only update hover when mouse moves or when dragging
+	var current_mouse_pos = get_viewport().get_mouse_position()
+	if current_mouse_pos != _last_mouse_pos:
+		_last_mouse_pos = current_mouse_pos
+		_mouse_moved = true
+
+	# Update hover only if mouse moved or if dragging a card
+	if _mouse_moved or core.dragging_card:
+		_update_hover()
+		_update_ghost_position()
+		_mouse_moved = false
 
 
 # =====================================================
