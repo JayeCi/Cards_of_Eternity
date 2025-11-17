@@ -43,6 +43,8 @@ const PATH := {
 	"STONEHAMMER_GUARDIAN":"res://Cards/Monster Cards/Stonehammer_Guardian.tres",
 	"BONE_WARRIOR_RACOON": "res://Cards/Monster Cards/Bone_Warrior_Raccoon.tres",
 	"MINOTAUR_WARLORD":    "res://Cards/Monster Cards/Minotaur_Warlord.tres",
+	"BONEHORN":            "res://Cards/Monster Cards/Bonehorn.tres",
+
 	"TUTORIAL_GOBLIN":     "res://Cards/Monster Cards/Tutorial_Goblin.tres",
 }
 

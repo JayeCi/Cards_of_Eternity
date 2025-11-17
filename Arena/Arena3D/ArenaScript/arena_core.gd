@@ -827,8 +827,14 @@ func on_hand_card_clicked(card: CardData) -> void:
 		fusion_selection.erase(card)
 		_log("❎ Deselected %s" % card.name)
 		# 🔹 Clear highlights when deselecting all
-		if fusion_selection.is_empty() and battle_sys and battle_sys.has_method("clear_summon_highlights"):
-			battle_sys.call("clear_summon_highlights")
+		if fusion_selection.is_empty():
+			if battle_sys and battle_sys.has_method("clear_summon_highlights"):
+				battle_sys.call("clear_summon_highlights")
+			# Reset hover state so leader/tiles can be selected again
+			if ui_sys and ui_sys.has("_is_hovering_hand_card"):
+				ui_sys._is_hovering_hand_card = false
+			# Reset selected card
+			selected_card = null
 	else:
 		fusion_selection.append(card)
 		_log("✅ Selected %s (%d/2)" % [card.name, fusion_selection.size()])
@@ -1453,6 +1459,9 @@ func _unhandled_input(event: InputEvent) -> void:
 							if tw and tw.is_running():
 								tw.kill()
 						ui_sys._hover_card_tween_map.clear()
+					# Reset hover state so leader/tiles can be selected again
+					if "_is_hovering_hand_card" in ui_sys:
+						ui_sys._is_hovering_hand_card = false
 
 					# Reset card visuals
 					if ui_sys.has_node("BottomContainer/Hand"):
@@ -1470,6 +1479,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 				if ui_sys and ui_sys.has_method("fade_hand_in"):
 					ui_sys.fade_hand_in()
+
+				# Clear summon highlights
+				if battle_sys and battle_sys.has_method("clear_summon_highlights"):
+					battle_sys.call("clear_summon_highlights")
 
 				_set_phase(Phase.SUMMON_OR_MOVE)
 				_update_phase_ui()
@@ -1551,6 +1564,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			if ui_sys:
 				if "_selected_card_ui_map" in ui_sys:
 					ui_sys._selected_card_ui_map.clear()
+				# Reset hover state so leader/tiles can be selected again
+				if "_is_hovering_hand_card" in ui_sys:
+					ui_sys._is_hovering_hand_card = false
 				if "_hover_card_tween_map" in ui_sys:
 					for tw in ui_sys._hover_card_tween_map.values():
 						if tw and tw.is_running():

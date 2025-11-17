@@ -147,7 +147,7 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, is_player:
 		# Wait a moment for visual
 		await get_tree().create_timer(0.3).timeout
 
-		if card.ability and card.ability.trigger == "on_summon":
+		if card.ability and "on_summon" in card.ability.trigger:
 			await core._execute_card_ability(unit, card.ability)
 
 		# Remove spell from board
@@ -218,7 +218,7 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, is_player:
 
 	await get_tree().process_frame
 
-	if is_real_summon and not is_facedown and card.ability and card.ability.trigger == "on_summon":
+	if is_real_summon and not is_facedown and card.ability and "on_summon" in card.ability.trigger:
 		await core._execute_card_ability(unit, card.ability)
 
 
@@ -366,7 +366,7 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		# ✅ Confirm flip if previewing
 		if unit.has_meta("is_previewing_flip") and unit.get_meta("is_previewing_flip"):
 			core._log("✅ Confirming flip for %s..." % unit.card.name, Color(0.8, 1.0, 0.8))
-			battle.confirm_flip()
+			await battle.confirm_flip()
 			core.mark_unit_acted(unit)
 			if tile.has_method("set_exhausted"):
 				tile.set_exhausted(true)
@@ -562,6 +562,80 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		return
 	else:
 		core._log("🔍 NOT A TRAP - continuing to normal battle", Color(1.0, 1.0, 0.0))
+
+	# 🛡️ DEFENSIVE ABILITY: Check if defender has "on_attacked" trigger (like Ground Slam)
+	if defender.card and defender.card.ability:
+		var ab = defender.card.ability
+		if "on_attacked" in ab.trigger:
+			core._log("🛡️ %s activates a defensive ability!" % defender.card.name, Color(1.0, 0.8, 0.4))
+
+			# Store attacker position for the ability to use
+			defender.set_meta("slam_attacker_pos", from)
+
+			# Reveal defender if facedown
+			if defender.mode == UnitData.Mode.FACEDOWN:
+				defender.mode = UnitData.Mode.ATTACK
+				await _flip_faceup(dst, defender.card.art)
+				defender.current_atk = defender.card.atk
+				defender.current_def = defender.card.def
+				core._apply_terrain_bonus(defender, dst.terrain_type)
+				defender.is_facedown = false
+				defender.set_meta("is_facedown", false)
+				core._log("⚡ %s was revealed defensively!" % defender.card.name, Color(1, 1, 0.6))
+
+				# Make model visible
+				if dst and dst.has_node("CardModel"):
+					var m_d = dst.get_node("CardModel")
+					if is_instance_valid(m_d):
+						m_d.visible = true
+
+			# Execute the defensive ability
+			await core._execute_card_ability(defender, ab)
+
+			# Clean up meta
+			defender.set_meta("slam_attacker_pos", null)
+
+			# Check if attacker was pushed back
+			var attacker_new_pos = core.board.get_unit_position(attacker)
+			if attacker_new_pos != from:
+				# Attacker was successfully knocked back - cancel battle
+				core._log("💨 The attacker was repelled! Battle canceled.", Color(0.7, 1.0, 0.7))
+				battle._is_battle_in_progress = false
+				clear_highlights()
+				core.mark_unit_acted(attacker)
+				return
+			else:
+				# Attacker wasn't pushed (blocked or edge) - battle continues
+				core._log("⚔️ The attacker holds their ground! Battle proceeds.", Color(1.0, 0.9, 0.6))
+
+	# 🛡️ ATTACKER DEFENSIVE ABILITY: Check if attacker has "on_attacked" trigger (like Ground Slam)
+	# This triggers when the attacker initiates combat
+	if attacker.card and attacker.card.ability:
+		var ab_attacker = attacker.card.ability
+		if "on_attacked" in ab_attacker.trigger:
+			core._log("🛡️ %s activates a defensive ability while attacking!" % attacker.card.name, Color(1.0, 0.8, 0.4))
+
+			# Store defender position for the ability to use
+			attacker.set_meta("slam_attacker_pos", to)
+
+			# Execute the attacker's defensive ability
+			await core._execute_card_ability(attacker, ab_attacker)
+
+			# Clean up meta
+			attacker.set_meta("slam_attacker_pos", null)
+
+			# Check if defender was pushed back
+			var defender_new_pos = core.board.get_unit_position(defender)
+			if defender_new_pos != to:
+				# Defender was successfully knocked back - cancel battle
+				core._log("💨 The defender was repelled! Battle canceled.", Color(0.7, 1.0, 0.7))
+				battle._is_battle_in_progress = false
+				clear_highlights()
+				core.mark_unit_acted(attacker)
+				return
+			else:
+				# Defender wasn't pushed (blocked or edge) - battle continues
+				core._log("⚔️ The defender holds their ground! Battle proceeds.", Color(1.0, 0.9, 0.6))
 
 	if defender.mode == UnitData.Mode.FACEDOWN:
 		defender.mode = UnitData.Mode.ATTACK

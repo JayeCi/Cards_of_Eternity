@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_6e54x")
+trigger = "on_summon|on_attacked"
 display_name = "Ground Slam"
-description = "Slam the board in front of the card, knocking back the first three cards 1 tile."
+description = "When revealed face-up OR attacked: Slam the ground, creating stone debris and knocking back all enemies (or the attacker) 1 tile backward."
 metadata/_custom_type_script = "uid://bb48cearvl7oe"

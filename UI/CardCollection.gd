@@ -28,9 +28,9 @@ func _test_set():
 	var card_names := [
 		"BONE_WARRIOR_RACOON", 
 		"MINOTAUR_WARLORD",
-		"JESTER_OF_FLAMES",
+		"STONE_FAE",
 		"ORB_OF_FROST",
-		"FYRA"
+		"FIREBALL"
 		
 		]
 	for name in card_names:

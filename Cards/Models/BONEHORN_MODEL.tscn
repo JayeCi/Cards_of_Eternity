@@ -52,7 +52,7 @@ blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_6s36i")
 
 [node name="Bonehorn" type="Node3D"]
-transform = Transform3D(-0.49506032, 0, 4.327955e-08, 0, 0.49506032, 0, -4.327955e-08, 0, -0.49506032, 0, 0.4408512, 0)
+transform = Transform3D(-0.49506032, 0, 4.327955e-08, 0, 0.49506032, 0, -4.327955e-08, 0, -0.49506032, 0, 0.8374891, 0)
 
 [node name="Mesh" type="MeshInstance3D" parent="."]
 mesh = SubResource("ArrayMesh_df5qe")

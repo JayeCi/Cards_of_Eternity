@@ -252,7 +252,7 @@ func _try_toggle_face() -> void:
 		# 💡 Ability previews
 		if unit.card and unit.card.ability:
 			var ab = unit.card.ability
-			if ab.trigger in ["on_summon"]:
+			if "on_summon" in ab.trigger:
 				unit.set_meta("pending_on_flip_ability", ab)
 				core._log(
 					"💡 %s ability will activate once confirmed."
@@ -319,7 +319,7 @@ func confirm_flip(unit: UnitData = null) -> void:
 			unit.set_meta("pending_on_flip_ability", null)
 			if ab:
 				await core._execute_card_ability(unit, ab)
-		elif unit.card.ability and unit.card.ability.trigger in ["on_summon"]:
+		elif unit.card.ability and "on_summon" in unit.card.ability.trigger:
 			await core._execute_card_ability(unit, unit.card.ability)
 
 		# Remove spell from board
@@ -332,6 +332,12 @@ func confirm_flip(unit: UnitData = null) -> void:
 				tile.set_occupant(null)
 				tile.set_art(null)
 				tile.set_badge_text("")
+
+				# 🧹 Ensure CardMesh is hidden/cleared
+				if tile.has_node("CardMesh"):
+					var card_mesh = tile.get_node("CardMesh")
+					if card_mesh:
+						card_mesh.visible = false
 		return
 
 	# 🪤 If this is an EVENT card, trigger it and remove it
@@ -365,7 +371,7 @@ func confirm_flip(unit: UnitData = null) -> void:
 			unit.set_meta("pending_on_flip_ability", null)
 			if ab:
 				await core._execute_card_ability(unit, ab)
-		elif unit.card.ability and unit.card.ability.trigger in ["on_summon"]:
+		elif unit.card.ability and "on_summon" in unit.card.ability.trigger:
 			await core._execute_card_ability(unit, unit.card.ability)
 
 		# Remove EVENT from board
@@ -378,6 +384,12 @@ func confirm_flip(unit: UnitData = null) -> void:
 				tile.set_occupant(null)
 				tile.set_art(null)
 				tile.set_badge_text("")
+
+				# 🧹 Ensure CardMesh is hidden/cleared
+				if tile.has_node("CardMesh"):
+					var card_mesh = tile.get_node("CardMesh")
+					if card_mesh:
+						card_mesh.visible = false
 
 		# 🎥 Return camera to normal position
 		if cam:
@@ -454,7 +466,7 @@ func reveal_card(pos: Vector2i) -> void:
 		# Wait a moment for visual
 		await get_tree().create_timer(0.3).timeout
 
-		if unit.card.ability and unit.card.ability.trigger in ["on_summon"]:
+		if unit.card.ability and "on_summon" in unit.card.ability.trigger:
 			await core._execute_card_ability(unit, unit.card.ability)
 
 		# Remove spell from board
@@ -466,6 +478,12 @@ func reveal_card(pos: Vector2i) -> void:
 			tile.set_occupant(null)
 			tile.set_art(null)
 			tile.set_badge_text("")
+
+			# 🧹 Ensure CardMesh is hidden/cleared
+			if tile.has_node("CardMesh"):
+				var card_mesh = tile.get_node("CardMesh")
+				if card_mesh:
+					card_mesh.visible = false
 		return
 
 	# 🪤 Handle EVENT cards differently
@@ -488,7 +506,7 @@ func reveal_card(pos: Vector2i) -> void:
 		# Wait a moment for visual
 		await get_tree().create_timer(0.3).timeout
 
-		if unit.card.ability and unit.card.ability.trigger in ["on_summon"]:
+		if unit.card.ability and "on_summon" in unit.card.ability.trigger:
 			await core._execute_card_ability(unit, unit.card.ability)
 
 		# Remove EVENT from board
@@ -500,6 +518,12 @@ func reveal_card(pos: Vector2i) -> void:
 			tile.set_occupant(null)
 			tile.set_art(null)
 			tile.set_badge_text("")
+
+			# 🧹 Ensure CardMesh is hidden/cleared
+			if tile.has_node("CardMesh"):
+				var card_mesh = tile.get_node("CardMesh")
+				if card_mesh:
+					card_mesh.visible = false
 
 		# 🎥 Return camera to normal position
 		if cam:
@@ -521,7 +545,7 @@ func reveal_card(pos: Vector2i) -> void:
 
 	core._log("⚡ %s was flipped face-up!" % unit.card.name, Color(1, 1, 0.7))
 
-	if unit.card.ability and unit.card.ability.trigger in ["on_summon"]:
+	if unit.card.ability and "on_summon" in unit.card.ability.trigger:
 		await core._execute_card_ability(unit, unit.card.ability)
 
 
@@ -890,10 +914,10 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 
 	battle_ui.refresh_stats(att, defn)
 
-	# ✅ Check universal frozen status
+	# ✅ Check universal frozen status and if defender is still alive
 	var is_defender_frozen := FrozenStatusEffect.is_frozen(defn)
-	var do_counter := (damage_to_att > 0) and not is_defender_frozen
-	
+	var do_counter := (damage_to_att > 0) and not is_defender_frozen and defn.current_def > 0
+
 	if do_counter:
 		battle_ui.refresh_stats(att, defn)
 		await battle_ui.play_counter_phase(defn, att, damage_to_att)
@@ -913,9 +937,11 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 				await counter_ability_done
 
 			battle_ui.refresh_stats(att, defn)
-			
+
 	elif is_defender_frozen and damage_to_att > 0:
 		core._log("❄️ %s is frozen and cannot counter-attack!" % defn.card.name, Color(0.5, 0.5, 0.9))
+	elif defn.current_def <= 0 and damage_to_att > 0:
+		core._log("💀 %s was destroyed before it could counter-attack!" % defn.card.name, Color(1.0, 0.4, 0.4))
 
 	await get_tree().create_timer(0.25).timeout
 	await get_tree().process_frame

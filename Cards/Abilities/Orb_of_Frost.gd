@@ -13,12 +13,8 @@ func execute(arena: Node, unit: UnitData):
 	if not arena or not unit:
 		return
 
-	# Get position - check spell cast position first, then board position
-	var pos: Vector2i
-	if unit.has_meta("spell_cast_position"):
-		pos = unit.get_meta("spell_cast_position")
-	else:
-		pos = arena.board.get_unit_position(unit)
+	# Get current position from the board (always use actual position, not cached)
+	var pos: Vector2i = arena.board.get_unit_position(unit)
 
 	if pos == Vector2i(-1, -1):
 		return
