@@ -205,6 +205,11 @@ func _try_toggle_face() -> void:
 	# ✅ Flip Logic
 	# =====================================================
 
+	# ❄️ Check if unit is frozen - block flip if frozen and facedown
+	if FrozenStatusEffect.is_frozen(unit) and is_down:
+		core._log("❄️ %s is frozen and cannot be flipped face-up!" % unit.card.name, Color(0.5, 0.7, 1.0))
+		return
+
 	# 🚫 If face-up and NOT previewing → fully revealed, block flip down
 	if not is_down and not is_preview:
 		core._log("⛔ %s is revealed — cannot flip facedown again." % unit.card.name, Color(1, 0.6, 0.6))
@@ -286,6 +291,102 @@ func confirm_flip(unit: UnitData = null) -> void:
 	# --- Clear preview flag
 	unit.set_meta("is_previewing_flip", false)
 
+	# Get position for spell handling
+	var pos := core.board.get_unit_position(unit)
+
+	# 🧙‍♂️ If this is a SPELL card, cast it and remove it
+	if unit.card.card_type == CardData.CardType.SPELL:
+		var tile = board.get_tile(pos.x, pos.y)
+
+		# ✅ First, make the spell visually face-up
+		unit.is_facedown = false
+		unit.mode = UnitData.Mode.ATTACK
+		if tile:
+			tile.set_art(unit.card.art)
+			tile.set_badge_text("S")
+
+		# Store cast position
+		unit.set_meta("spell_cast_position", pos)
+
+		core._log("✨ %s spell revealed - casting now!" % unit.card.name, Color(1.0, 0.9, 0.6))
+
+		# Wait for visual
+		await get_tree().create_timer(0.3).timeout
+
+		# Trigger ability
+		if unit.has_meta("pending_on_flip_ability"):
+			var ab: CardAbility = unit.get_meta("pending_on_flip_ability")
+			unit.set_meta("pending_on_flip_ability", null)
+			if ab:
+				await core._execute_card_ability(unit, ab)
+		elif unit.card.ability and unit.card.ability.trigger in ["on_summon"]:
+			await core._execute_card_ability(unit, unit.card.ability)
+
+		# Remove spell from board
+		await get_tree().create_timer(0.5).timeout
+		core._log("💨 %s vanishes after casting." % unit.card.name, Color(0.7, 0.7, 1.0))
+
+		if pos != Vector2i(-1, -1):
+			core.units.erase(pos)
+			if tile:
+				tile.set_occupant(null)
+				tile.set_art(null)
+				tile.set_badge_text("")
+		return
+
+	# 🪤 If this is an EVENT card, trigger it and remove it
+	if unit.card.card_type == CardData.CardType.EVENT:
+		var tile = board.get_tile(pos.x, pos.y)
+
+		# 🎥 Move camera to EVENT location
+		if tile and cam:
+			var event_pos = tile.global_position
+			cam.focus_on_battle(event_pos, event_pos, true)
+			await get_tree().create_timer(0.4).timeout
+
+		# ✅ First, make the EVENT card visually face-up
+		unit.is_facedown = false
+		unit.mode = UnitData.Mode.ATTACK
+		if tile:
+			tile.set_art(unit.card.art)
+			tile.set_badge_text("E")
+
+		# Store cast position
+		unit.set_meta("spell_cast_position", pos)
+
+		core._log("🪤 %s EVENT revealed - activating now!" % unit.card.name, Color(1.0, 0.8, 0.6))
+
+		# Wait for visual
+		await get_tree().create_timer(0.3).timeout
+
+		# Trigger ability
+		if unit.has_meta("pending_on_flip_ability"):
+			var ab: CardAbility = unit.get_meta("pending_on_flip_ability")
+			unit.set_meta("pending_on_flip_ability", null)
+			if ab:
+				await core._execute_card_ability(unit, ab)
+		elif unit.card.ability and unit.card.ability.trigger in ["on_summon"]:
+			await core._execute_card_ability(unit, unit.card.ability)
+
+		# Remove EVENT from board
+		await get_tree().create_timer(0.5).timeout
+		core._log("💨 %s vanishes after activation." % unit.card.name, Color(0.7, 0.7, 1.0))
+
+		if pos != Vector2i(-1, -1):
+			core.units.erase(pos)
+			if tile:
+				tile.set_occupant(null)
+				tile.set_art(null)
+				tile.set_badge_text("")
+
+		# 🎥 Return camera to normal position
+		if cam:
+			cam.focus_on_battle(Vector3.ZERO, Vector3.ZERO, false)
+			await get_tree().create_timer(0.3).timeout
+
+		return
+
+	# --- Normal card flip handling ---
 	# --- Trigger pending ability if stored
 	if unit.has_meta("pending_on_flip_ability"):
 		var ab: CardAbility = unit.get_meta("pending_on_flip_ability")
@@ -298,14 +399,13 @@ func confirm_flip(unit: UnitData = null) -> void:
 				% [unit.card.name, ab.display_name],
 				Color(1.0, 0.9, 0.6)
 			)
-			core._execute_card_ability(unit, ab)
+			await core._execute_card_ability(unit, ab)
 
 	# --- Mark as permanently revealed (cannot flip back via R)
 	unit.set_meta("flipped_permanent", true)
 	unit.set_meta("is_facedown", unit.is_facedown)
 
 	# --- Sync visuals using current unit position (in case it already moved)
-	var pos := core.board.get_unit_position(unit)
 	if pos != Vector2i(-1, -1):
 		var t = board.get_tile(pos.x, pos.y)
 		if t:
@@ -333,8 +433,83 @@ func reveal_card(pos: Vector2i) -> void:
 	if not unit or unit.mode != UnitData.Mode.FACEDOWN:
 		return
 
-	unit.mode = UnitData.Mode.ATTACK
+	# ❄️ Frozen units cannot be revealed
+	if FrozenStatusEffect.is_frozen(unit):
+		core._log("❄️ %s is frozen and cannot be revealed!" % unit.card.name, Color(0.5, 0.7, 1.0))
+		return
+
 	var tile = board.get_tile(pos.x, pos.y)
+
+	# 🧙‍♂️ Handle SPELL cards differently
+	if unit.card.card_type == CardData.CardType.SPELL:
+		core._log("⚡ %s spell revealed - casting now!" % unit.card.name, Color(1, 1, 0.7))
+
+		if tile:
+			tile.set_art(unit.card.art)
+			tile.set_badge_text("S")
+
+		# Store cast position for abilities that need it
+		unit.set_meta("spell_cast_position", pos)
+
+		# Wait a moment for visual
+		await get_tree().create_timer(0.3).timeout
+
+		if unit.card.ability and unit.card.ability.trigger in ["on_summon"]:
+			await core._execute_card_ability(unit, unit.card.ability)
+
+		# Remove spell from board
+		await get_tree().create_timer(0.5).timeout
+		core._log("💨 %s vanishes after casting." % unit.card.name, Color(0.7, 0.7, 1.0))
+
+		core.units.erase(pos)
+		if tile:
+			tile.set_occupant(null)
+			tile.set_art(null)
+			tile.set_badge_text("")
+		return
+
+	# 🪤 Handle EVENT cards differently
+	if unit.card.card_type == CardData.CardType.EVENT:
+		core._log("⚡ %s EVENT revealed - activating now!" % unit.card.name, Color(1.0, 0.8, 0.6))
+
+		# 🎥 Move camera to EVENT location
+		if tile and cam:
+			var event_pos = tile.global_position
+			cam.focus_on_battle(event_pos, event_pos, true)
+			await get_tree().create_timer(0.4).timeout
+
+		if tile:
+			tile.set_art(unit.card.art)
+			tile.set_badge_text("E")
+
+		# Store cast position for abilities that need it
+		unit.set_meta("spell_cast_position", pos)
+
+		# Wait a moment for visual
+		await get_tree().create_timer(0.3).timeout
+
+		if unit.card.ability and unit.card.ability.trigger in ["on_summon"]:
+			await core._execute_card_ability(unit, unit.card.ability)
+
+		# Remove EVENT from board
+		await get_tree().create_timer(0.5).timeout
+		core._log("💨 %s vanishes after activation." % unit.card.name, Color(0.7, 0.7, 1.0))
+
+		core.units.erase(pos)
+		if tile:
+			tile.set_occupant(null)
+			tile.set_art(null)
+			tile.set_badge_text("")
+
+		# 🎥 Return camera to normal position
+		if cam:
+			cam.focus_on_battle(Vector3.ZERO, Vector3.ZERO, false)
+			await get_tree().create_timer(0.3).timeout
+
+		return
+
+	# Normal card reveal
+	unit.mode = UnitData.Mode.ATTACK
 	if tile:
 		tile.set_art(unit.card.art)
 		tile.set_badge_text("A")
@@ -347,7 +522,7 @@ func reveal_card(pos: Vector2i) -> void:
 	core._log("⚡ %s was flipped face-up!" % unit.card.name, Color(1, 1, 0.7))
 
 	if unit.card.ability and unit.card.ability.trigger in ["on_summon"]:
-		core._execute_card_ability(unit, unit.card.ability)
+		await core._execute_card_ability(unit, unit.card.ability)
 
 
 
@@ -390,10 +565,30 @@ func show_valid_summon_tiles() -> void:
 			if dist == 1 and tile.occupant == null:
 				tiles_to_highlight.append(tile)
 
-	for tile in tiles_to_highlight:
+	# Animate summon highlights with staggered intro
+	for i in range(tiles_to_highlight.size()):
+		var tile = tiles_to_highlight[i]
 		tile.summon_highlight = true
-		tile.set_highlight(true)
-		tile.set_badge_text("⬆")
+
+		# Set badge symbol
+		if tile.has_method("set_highlight"):
+			tile.set_highlight(true, "⬆")
+		else:
+			tile.set_highlight(true)
+			tile.set_badge_text("⬆")
+
+		# Summon highlight tint (green/yellow for friendly summon)
+		var tint := Color(0.3, 1.0, 0.5)
+
+		# Play animated intro
+		if tile.has_method("play_move_highlight_intro"):
+			tile.play_move_highlight_intro(tint)
+		elif tile.has_method("set_move_highlight_tint"):
+			tile.set_move_highlight_tint(tint)
+
+		# Add pulse animation
+		if tile.has_method("pulse_move_highlight"):
+			tile.pulse_move_highlight()
 
 		if tile.has_node("MoveHighlight"):
 			var mh = tile.get_node("MoveHighlight")
@@ -656,14 +851,37 @@ func _play_2d_battle(att: UnitData, defn: UnitData) -> Dictionary:
 	_apply_attack_bonus(att)
 	_apply_attack_bonus(defn)
 
-	await battle_ui.play_attack_phase(att, defn, damage_to_def)
+	# 🔥 Check for multi-hit abilities (like Tri-Strike)
+	var hit_count = 1
+	var multi_hit_name = ""
+	if att.has_meta("multi_hit_count"):
+		hit_count = att.get_meta("multi_hit_count")
+		multi_hit_name = att.get_meta("multi_hit_ability_name", "Multi-Strike")
+		core._log("⚡ %s activates %s!" % [att.card.name, multi_hit_name], Color(1.0, 0.8, 0.3))
 
-	if defn.is_leader:
-		core.damage_leader(defn.owner, damage_to_def)
-	else:
-		defn.current_def = max(defn.current_def - damage_to_def, 0)
+	# 🔁 Execute multiple hits
+	for hit_num in range(hit_count):
+		# Show which hit this is (for multi-hit attacks)
+		if hit_count > 1:
+			core._log("💥 Hit %d of %d!" % [hit_num + 1, hit_count], Color(1.0, 0.9, 0.6))
 
-	battle_ui.refresh_stats(att, defn)
+		await battle_ui.play_attack_phase(att, defn, damage_to_def, hit_num + 1, hit_count)
+
+		if defn.is_leader:
+			core.damage_leader(defn.owner, damage_to_def)
+		else:
+			defn.current_def = max(defn.current_def - damage_to_def, 0)
+
+		battle_ui.refresh_stats(att, defn)
+
+		# Check if defender died during this hit
+		if defn.current_def <= 0:
+			core._log("💀 %s was defeated!" % defn.card.name, Color(1.0, 0.4, 0.4))
+			break
+
+		# Small delay between hits for multi-hit attacks
+		if hit_count > 1 and hit_num < hit_count - 1:
+			await get_tree().create_timer(0.3).timeout
 
 	var ability_done = _trigger_ability(att, "on_attack")
 	if ability_done:

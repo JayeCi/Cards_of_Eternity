@@ -163,7 +163,13 @@ func refresh_card_art() -> void:
 			mat = base.duplicate() if base else StandardMaterial3D.new()
 			card_mesh.set_surface_override_material(0, mat)
 
-		mat.albedo_texture = occupant.card.art
+		# 👇 Check if card is facedown - NEVER show face-up art unless properly flipped
+		var is_facedown = occupant.is_facedown or (occupant.has_meta("is_facedown") and occupant.get_meta("is_facedown"))
+		if is_facedown and core:
+			mat.albedo_texture = core.CARD_BACK
+		else:
+			mat.albedo_texture = occupant.card.art
+
 		mat.albedo_color = Color(1, 1, 1, 1)
 		mat.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
 		card_mesh.visible = true
@@ -282,7 +288,12 @@ func set_terrain_type(new_type: String) -> void:
 	if card_mesh and card_mesh.visible and occupant:
 		var mat := card_mesh.get_surface_override_material(0)
 		if mat:
-			mat.albedo_texture = occupant.card.art
+			# 👇 Check if card is facedown - NEVER show face-up art unless properly flipped
+			var is_facedown = occupant.is_facedown or (occupant.has_meta("is_facedown") and occupant.get_meta("is_facedown"))
+			if is_facedown and core:
+				mat.albedo_texture = core.CARD_BACK
+			else:
+				mat.albedo_texture = occupant.card.art
 
 	_apply_terrain_visual()
 

@@ -26,11 +26,11 @@ func _ready():
 func _test_set():
 	clear_collection()
 	var card_names := [
-		"PLAGUE_SENTINEL", 
-		"CONFLAGURATION_BLADE",
+		"BONE_WARRIOR_RACOON", 
+		"MINOTAUR_WARLORD",
 		"JESTER_OF_FLAMES",
-		"SHADOW_CANDLES",
-		"BOOGLES"
+		"ORB_OF_FROST",
+		"FYRA"
 		
 		]
 	for name in card_names:

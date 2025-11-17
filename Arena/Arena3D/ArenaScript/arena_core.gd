@@ -440,10 +440,9 @@ func refresh_tile_art_safe(pos: Vector2i):
 	var t = board.get_tile(pos.x, pos.y)
 	if not t: return
 
-	# 👇 Prevent accidental reveal
-	var is_enemy := u.owner == ENEMY
+	# 👇 Prevent accidental reveal - check ALL facedown cards, not just enemies
 	var is_facedown = u.is_facedown or (u.has_meta("is_facedown") and u.get_meta("is_facedown"))
-	if is_enemy and is_facedown:
+	if is_facedown:
 		t.set_art(CARD_BACK)
 		return
 
@@ -1642,7 +1641,7 @@ func _execute_card_ability(unit: UnitData, ability: CardAbility) -> void:
 		return
 
 	_log("✨ Ability Activated: %s (%s)" % [inst.display_name, inst.trigger], Color(0.7, 1.0, 0.9))
-	inst.execute(self, unit)
+	await inst.execute(self, unit)
 # -----------------------------
 # LOGGING SYSTEM
 # -----------------------------

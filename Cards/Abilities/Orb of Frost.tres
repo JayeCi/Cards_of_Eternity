@@ -1,0 +1,7 @@
+[gd_resource type="Resource" load_steps=2 format=3 uid="uid://edqrfp1iuylw"]
+
+[ext_resource type="Script" uid="uid://cnn6osdjt0f58" path="res://Cards/Abilities/Orb_of_Frost.gd" id="1_shadow"]
+
+[resource]
+script = ExtResource("1_shadow")
+metadata/_custom_type_script = "uid://d2to4368imoiw"

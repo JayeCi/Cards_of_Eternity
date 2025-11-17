@@ -4,7 +4,6 @@
 
 [resource]
 script = ExtResource("1_0ecsh")
-trigger = "on_attack"
 display_name = "Tri-Strike"
-description = "Attacks three times in a row."
+description = "If the attacker: Attacks three times in a row, dealing full ATK damage with each hit."
 metadata/_custom_type_script = "uid://8cxl27my2hnp"

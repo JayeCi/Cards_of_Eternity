@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://cajx71fbmr5pj"]
+
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_8gdsy"]
+[ext_resource type="Texture2D" uid="uid://ddem5yqcu201a" path="res://Images/Fyra.png" id="1_p2qe6"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_p2qe6"]
+
+[resource]
+script = ExtResource("2_p2qe6")
+types = Array[String](["Beast", "Elemental"])
+rarity = "legendary"
+element = "Fire"
+preferred_terrain = "Lava"
+id = "00031"
+name = "Fyra"
+description = "Fused by fusing Forest Fae and Flame Fae"
+art = ExtResource("1_p2qe6")
+atk = 30
+def = 28
+model_path = "res://Cards/Models/FYRA_MODEL.tscn"
+model_scale = Vector3(0.7, 0.7, 0.7)
+metadata/_custom_type_script = "uid://57up1u0etcmc"

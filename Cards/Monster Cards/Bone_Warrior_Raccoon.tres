@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://cayd771hovqxs"]
+
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_n6auo"]
+[ext_resource type="Texture2D" uid="uid://cf223rtpc1ecv" path="res://Cards/Models/bone_racoon_warrior.jpg" id="1_ui26b"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_ui26b"]
+
+[resource]
+script = ExtResource("2_ui26b")
+rarity = "rare"
+element = "Shadow"
+preferred_terrain = "Stone"
+id = "00041"
+name = "Bone Warrior Racoon"
+description = "A racoon that thrives in the barren wastelands of the dead."
+art = ExtResource("1_ui26b")
+atk = 18
+def = 10
+model_path = "res://Cards/Models/BONE_WARRIOR_RACOON.tscn"
+metadata/_custom_type_script = "uid://57up1u0etcmc"

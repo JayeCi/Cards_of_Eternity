@@ -182,7 +182,7 @@ layout_mode = 2
 text = "Type"
 label_settings = SubResource("LabelSettings_83k8x")
 
-[node name="Abilities" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
+[node name="StatusEffects" type="Label" parent="MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 26.145)
 layout_mode = 2
 label_settings = SubResource("LabelSettings_owp70")

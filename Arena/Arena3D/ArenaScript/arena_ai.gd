@@ -204,7 +204,7 @@ func _leader_behavior() -> void:
 			var t = core.board.get_tile(alt.x, alt.y)
 			if t and t.occupant and t.occupant.owner == core.ENEMY and not t.occupant.is_leader:
 				_did_action_this_turn = true
-				await battle._move_or_battle(lpos, alt, true)
+				await move._move_or_battle(lpos, alt, true)
 				core._log("↩️ Leader swaps with ally to protect itself!", Color(1, 0.8, 0.6))
 				return
 
@@ -254,7 +254,7 @@ func _assist_leader_defense(leader_pos: Vector2i, threats: Array[Vector2i]) -> v
 			if ally_unit and not ally_unit.is_facedown:
 				var path = _find_path_toward(best_ally, threat)
 				if not path.is_empty():
-					await battle._move_or_battle(best_ally, path.front(), true)
+					await move._move_or_battle(best_ally, path.front(), true)
 				await _find_and_attack_target(best_ally)
 				core._log("💥 %s attacks to protect the leader!" % ally_unit.card.name, Color(1, 0.8, 0.8))
 				await get_tree().create_timer(0.3).timeout

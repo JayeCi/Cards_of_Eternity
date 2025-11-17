@@ -94,16 +94,72 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, is_player:
 
 	var unit := UnitData.new().init_from_card(card, owner)
 
-	# 🧙‍♂️ Spells: cast & vanish
-	if card.is_spell:
+	# 🪤 EVENT cards (Trap cards): ALWAYS placed facedown, trigger when attacked
+	if card.card_type == CardData.CardType.EVENT:
+		unit.mode = UnitData.Mode.FACEDOWN
+		core.units[pos] = unit
+		tile.set_occupant(unit)
+		tile.set_art(core.CARD_BACK)
+		unit.set_meta("is_facedown", true)
+		unit.is_facedown = true
+		unit.set_meta("is_previewing_flip", false)
+
+		# Store cast position for when it's revealed
+		unit.set_meta("spell_cast_position", pos)
+
+		core._log("🪤 EVENT card placed facedown as trap.", Color(1.0, 0.8, 0.6))
+		core._play_card_place_sound()
+		return
+
+	# 🧙‍♂️ SPELL cards: cast immediately if face-up, or place facedown
+	if card.card_type == CardData.CardType.SPELL:
+		var is_facedown := (mode == UnitData.Mode.FACEDOWN)
+
+		# If placed facedown, treat like a normal facedown card
+		if is_facedown:
+			unit.mode = mode
+			core.units[pos] = unit
+			tile.set_occupant(unit)
+			tile.set_art(core.CARD_BACK)
+			unit.set_meta("is_facedown", true)
+			unit.is_facedown = true
+			unit.set_meta("is_previewing_flip", false)
+
+			# Store cast position for when it's revealed
+			unit.set_meta("spell_cast_position", pos)
+
+			core._log("🎴 Spell card placed facedown.", Color(0.7, 0.7, 0.8))
+			core._play_card_place_sound()
+			return
+
+		# Otherwise, cast immediately and vanish
 		core._log("✨ Casting spell: %s" % card.name, Color(0.9, 0.8, 1.0))
 
-		if card.ability and card.ability.trigger == "on_summon":
-			core._execute_card_ability(unit, card.ability)
+		# ✅ Temporarily place spell on tile for visual feedback
+		core.units[pos] = unit
+		tile.set_occupant(unit)
+		tile.set_art(card.art)
+		tile.set_badge_text("S")  # S for Spell
 
-		await get_tree().create_timer(0.4).timeout
+		# Store cast position for abilities that need it
+		unit.set_meta("spell_cast_position", pos)
+
+		# Wait a moment for visual
+		await get_tree().create_timer(0.3).timeout
+
+		if card.ability and card.ability.trigger == "on_summon":
+			await core._execute_card_ability(unit, card.ability)
+
+		# Remove spell from board
+		await get_tree().create_timer(0.5).timeout
 		core._play_card_place_sound()
 		core._log("💨 %s vanishes after casting." % card.name, Color(0.7, 0.7, 1.0))
+
+		# Clean up
+		core.units.erase(pos)
+		tile.set_occupant(null)
+		tile.set_art(null)
+		tile.set_badge_text("")
 		return
 
 	unit.mode = mode
@@ -163,7 +219,7 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, is_player:
 	await get_tree().process_frame
 
 	if is_real_summon and not is_facedown and card.ability and card.ability.trigger == "on_summon":
-		core._execute_card_ability(unit, card.ability)
+		await core._execute_card_ability(unit, card.ability)
 
 
 	core._play_card_place_sound()
@@ -417,6 +473,12 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		battle._is_battle_in_progress = false
 		return
 
+	# 🚫 EVENT cards cannot attack enemy units — but they CAN move
+	if attacker.card and attacker.card.card_type == CardData.CardType.EVENT and dst.occupant != null:
+		core._log("🚫 EVENT cards cannot attack enemy units.", Color(1, 0.6, 0.4))
+		battle._is_battle_in_progress = false
+		return
+
 	# -------------------------
 	# BATTLE
 	# -------------------------
@@ -456,6 +518,51 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 				if is_instance_valid(m_a):
 					m_a.visible = true
 
+	# 🪤 TRAP CARD: Check if defender is a facedown EVENT card
+	core._log("🔍 TRAP CHECK: defender.mode=%s, card_type=%s, card_name=%s" % [defender.mode, defender.card.card_type if defender.card else "NO CARD", defender.card.name if defender.card else "NO CARD"], Color(1.0, 1.0, 0.0))
+
+	if defender.mode == UnitData.Mode.FACEDOWN and defender.card and defender.card.card_type == CardData.CardType.EVENT:
+		core._log("🪤 %s was a trap! It activates on the attacker!" % defender.card.name, Color(1.0, 0.6, 1.0))
+
+		# 🎥 Move camera to trap location
+		var trap_tile = board.get_tile(to.x, to.y)
+		if trap_tile and cam:
+			var trap_pos = trap_tile.global_position
+			cam.focus_on_battle(trap_pos, trap_pos, true)
+			await get_tree().create_timer(0.4).timeout
+
+		# Reveal the EVENT card visually
+		await _flip_faceup(dst, defender.card.art)
+		dst.set_badge_text("E")
+		await get_tree().create_timer(0.3).timeout
+
+		# Store the TRAP's position as the event cast position (freezes adjacent to trap, not attacker)
+		defender.set_meta("spell_cast_position", to)  # to = trap/defender position
+
+		# Execute the event ability
+		if defender.card.ability and defender.card.ability.trigger in ["on_summon"]:
+			await core._execute_card_ability(defender, defender.card.ability)
+
+		# Remove the EVENT card from the board
+		await get_tree().create_timer(0.5).timeout
+		core._log("💨 %s vanishes after activation." % defender.card.name, Color(0.7, 0.7, 1.0))
+		core.units.erase(to)
+		dst.set_occupant(null)
+		dst.set_art(null)
+		dst.set_badge_text("")
+
+		# 🎥 Return camera to normal position
+		if cam:
+			cam.focus_on_battle(Vector3.ZERO, Vector3.ZERO, false)
+			await get_tree().create_timer(0.3).timeout
+
+		# Cancel the battle
+		battle._is_battle_in_progress = false
+		clear_highlights()
+		return
+	else:
+		core._log("🔍 NOT A TRAP - continuing to normal battle", Color(1.0, 1.0, 0.0))
+
 	if defender.mode == UnitData.Mode.FACEDOWN:
 		defender.mode = UnitData.Mode.ATTACK
 		await _flip_faceup(dst, defender.card.art)
@@ -479,7 +586,7 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 					% [defender.card.name, ab_d.display_name],
 					Color(1.0, 0.9, 0.6)
 				)
-				core._execute_card_ability(defender, ab_d)
+				await core._execute_card_ability(defender, ab_d)
 
 	var def_tile = board.get_tile(to.x, to.y)
 	if def_tile:
@@ -704,6 +811,9 @@ func _show_move_targets(from: Vector2i) -> void:
 		Vector2i(0, -1)
 	]
 
+	# Check if this is an EVENT card (cannot attack)
+	var is_event_card = unit.card and unit.card.card_type == CardData.CardType.EVENT
+
 	for dir in dirs:
 		for step in range(1, range + 1):
 			var p = from + dir * step
@@ -715,6 +825,10 @@ func _show_move_targets(from: Vector2i) -> void:
 				break
 
 			if t.occupant:
+				# EVENT cards cannot attack - just stop when encountering enemies
+				if is_event_card:
+					break
+				# Normal cards can attack enemies
 				if t.occupant.owner != core.PLAYER:
 					move_targets[p] = {"kind": "attack"}
 					_highlight_move_tile(t, true)

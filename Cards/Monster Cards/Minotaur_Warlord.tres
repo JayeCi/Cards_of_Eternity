@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://big1xr38n6pnr"]
+
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_veorc"]
+[ext_resource type="Texture2D" uid="uid://54m3goojg2wa" path="res://Images/Minotaur Warlord.jpg" id="1_wstnq"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_wstnq"]
+
+[resource]
+script = ExtResource("2_wstnq")
+types = Array[String](["Beast", "Humanoid"])
+rarity = "epic"
+element = "Earth"
+preferred_terrain = "Grass"
+id = "00042"
+name = "Minotaur Warlord"
+description = "A minotaur who nomadically wanders and takes out any thing in its path."
+art = ExtResource("1_wstnq")
+atk = 28
+def = 25
+model_path = "res://Cards/Models/MINOTAUR_WARLORD.tscn"
+metadata/_custom_type_script = "uid://57up1u0etcmc"

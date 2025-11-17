@@ -33,7 +33,7 @@ func show_battle(att: UnitData, defn: UnitData) -> void:
 	enemy_dmg.visible = false
 
 
-func play_attack_phase(att: UnitData, defn: UnitData, damage_to_def: int) -> void:
+func play_attack_phase(att: UnitData, defn: UnitData, damage_to_def: int, hit_number: int = 0, total_hits: int = 1) -> void:
 	refresh_stats(att, defn)
 	show_battle(att, defn)
 
@@ -46,7 +46,7 @@ func play_attack_phase(att: UnitData, defn: UnitData, damage_to_def: int) -> voi
 
 	_play_sound(sound_to_play)
 
-	await _animate_hit("attacker", "defender", damage_to_def)
+	await _animate_hit("attacker", "defender", damage_to_def, hit_number, total_hits)
 
 	refresh_stats(att, defn)
 	await get_tree().process_frame
@@ -110,7 +110,7 @@ func refresh_stats(att: UnitData, defn: UnitData) -> void:
 	defender_def.text = "%d" % defn.current_def
 
 
-func _animate_hit(from_side: String, to_side: String, damage: int) -> void:
+func _animate_hit(from_side: String, to_side: String, damage: int, hit_number: int = 0, total_hits: int = 1) -> void:
 	var attacker_node: TextureRect
 	var defender_node: TextureRect
 	var dmg_label: Label
@@ -124,20 +124,30 @@ func _animate_hit(from_side: String, to_side: String, damage: int) -> void:
 		defender_node = attacker_art
 		dmg_label = player_dmg
 
-	dmg_label.text = "-%d" % damage
+	# Show damage with hit number for multi-hit attacks
+	if total_hits > 1 and hit_number > 0:
+		dmg_label.text = "-%d (Hit %d)" % [damage, hit_number]
+	else:
+		dmg_label.text = "-%d" % damage
 	dmg_label.visible = true
 	dmg_label.modulate.a = 1.0
 
-	var offset = Vector2(40, 0) if from_side == "attacker" else Vector2(-40, 0)
+	# ⚔️ Smooth attack lunge forward
+	var offset = Vector2(50, 0) if from_side == "attacker" else Vector2(-50, 0)
+	var original_pos = attacker_node.position
+
 	var tw = create_tween()
-	tw.tween_property(attacker_node, "position", attacker_node.position + offset, 0.2)
+	tw.tween_property(attacker_node, "position", original_pos + offset, 0.15)\
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	await tw.finished
 
 	await _flash_hit(defender_node, Color(1, 0.3, 0.3))
-	await get_tree().create_timer(0.2).timeout
+	await get_tree().create_timer(0.1).timeout
 
+	# ⚔️ Smooth return to original position
 	var tw2 = create_tween()
-	tw2.tween_property(attacker_node, "position", attacker_node.position - offset, 0.2)
+	tw2.tween_property(attacker_node, "position", original_pos, 0.2)\
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	tw2.parallel().tween_property(dmg_label, "modulate:a", 0.0, 0.3)
 	await tw2.finished
 	dmg_label.visible = false

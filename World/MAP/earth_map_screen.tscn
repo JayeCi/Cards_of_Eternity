@@ -7,7 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://ga0vx2fo46g5" path="res://World/MAP/intro_earth_Realm.tscn" id="2_px1qw"]
 [ext_resource type="Texture2D" uid="uid://b6eiv3fsfjl2k" path="res://World/MAP/EarthMap.png" id="2_q23gr"]
 [ext_resource type="Script" uid="uid://x5gllef2oogk" path="res://World/MAP/background.gd" id="3_q23gr"]
-[ext_resource type="Script" path="res://World/MAP/line_drawer.gd" id="4_jnlq2"]
+[ext_resource type="Script" uid="uid://8bbkeqyshhmk" path="res://World/MAP/line_drawer.gd" id="4_jnlq2"]
 [ext_resource type="Texture2D" uid="uid://bdh225tfiv5ri" path="res://World/MAP/PlayerLocation.png" id="6_haur7"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="8_haur7"]
 [ext_resource type="Resource" uid="uid://jne2skd0eidt" path="res://Cards/Monster Cards/Dirt.tres" id="9_jnlq2"]

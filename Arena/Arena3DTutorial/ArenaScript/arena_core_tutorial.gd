@@ -1442,7 +1442,7 @@ func _execute_card_ability(unit: UnitData, ability: CardAbility) -> void:
 
 	# Try to safely run the ability's effect
 	_log("✨ Activating ability: %s (Trigger: %s)" % [ability.display_name, ability.trigger], Color(0.7, 1.0, 0.9))
-	ability.execute(self, unit)
+	await ability.execute(self, unit)
 
 # -----------------------------
 # LOGGING SYSTEM

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://bks2yjjj3iuxm"]
+
+[ext_resource type="Texture2D" uid="uid://ebrbk3nfkboh" path="res://Images/Stonehammer Guardian.jpg" id="1_puud7"]
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="2_4a5xh"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="3_8y2fv"]
+
+[resource]
+script = ExtResource("3_8y2fv")
+rarity = "rare"
+element = "Earth"
+preferred_terrain = "Stone"
+id = "00043"
+name = "Stonehammer Guardian"
+description = "A lizard that has taken up the expertise of the great hammer."
+art = ExtResource("1_puud7")
+cost = 2
+atk = 18
+def = 18
+model_path = "res://Cards/Models/STONEHAMMER_GUARDIAN_MODEL.tscn"
+metadata/_custom_type_script = "uid://57up1u0etcmc"

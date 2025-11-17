@@ -6,7 +6,7 @@ class_name ArenaCardDetails
 @onready var name_label: Label = $MarginContainer/PanelContainer/NameLabel
 @onready var rarity_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/Rarity
 @onready var cost_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/Cost
-@onready var abilities_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/Abilities
+#@onready var abilities_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/Abilities
 @onready var abilities_name: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/AbilitiesName
 @onready var abilities_desc: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/AbilitiesDesc
 @onready var description: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/Description
@@ -26,6 +26,7 @@ class_name ArenaCardDetails
 @onready var original_def: Label = $VBoxContainer2/HBoxContainer2/Original_Def
 
 @onready var type_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/Type
+@onready var status_effects_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/StatusEffects
 @onready var panel_container: PanelContainer = $MarginContainer/PanelContainer
 
 # --- Data tracking ---
@@ -72,6 +73,35 @@ func set_rarity_color(rarity: String) -> void:
 	if rarity_label.label_settings == null:
 		rarity_label.label_settings = LabelSettings.new()
 	rarity_label.label_settings.font_color = color
+
+# -------------------------------------------------------------
+# STATUS EFFECTS
+# -------------------------------------------------------------
+func update_status_effects(unit: UnitData) -> void:
+	if not status_effects_label or not unit:
+		return
+
+	var status_texts: Array[String] = []
+
+	# ❄️ Check for Frozen status
+	if FrozenStatusEffect.is_frozen(unit):
+		var turns_left = unit.get_meta("frozen_turns_remaining", 0)
+		var frozen_text = "❄️ Frozen (%d turn%s)" % [turns_left, "s" if turns_left != 1 else ""]
+		status_texts.append(frozen_text)
+
+	# 🔮 Add more status effects here in the future
+	# Example:
+	# if unit.has_meta("poisoned"):
+	#     var poison_text = "[color=#44FF44]☠️ Poisoned[/color]"
+	#     status_texts.append(poison_text)
+
+	# Display status effects or hide if none
+	if status_texts.size() > 0:
+		status_effects_label.text = " • ".join(status_texts)
+		status_effects_label.visible = true
+	else:
+		status_effects_label.text = ""
+		status_effects_label.visible = false
 
 func show_card(card: CardData) -> void:
 	if not card:
@@ -131,6 +161,11 @@ func show_card(card: CardData) -> void:
 		terrain.visible = false
 	if terrain_label:
 		terrain_label.text = ""
+
+	# Hide status effects for non-unit cards
+	if status_effects_label:
+		status_effects_label.text = ""
+		status_effects_label.visible = false
 
 	_apply_card_background(Color(0.2, 0.2, 0.2))
 
@@ -206,6 +241,9 @@ func show_unit(unit: UnitData) -> void:
 	else:
 		_apply_card_background(Color(0.9, 0.1, 0.1, 0.6))
 
+	# Update status effects display
+	update_status_effects(unit)
+
 # -------------------------------------------------------------
 func _apply_card_background(color: Color) -> void:
 	if not panel_container:
@@ -251,6 +289,9 @@ func refresh_if_showing(unit: UnitData) -> void:
 				unit = arena_core.units[pos]
 				break
 	show_unit(unit)
+	# Ensure status effects are updated when refreshing
+	if current_unit == unit:
+		update_status_effects(unit)
 
 func show_terrain(terrain_type: String) -> void:
 	if not terrain:

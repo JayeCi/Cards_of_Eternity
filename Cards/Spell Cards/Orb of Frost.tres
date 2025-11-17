@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=5 format=3 uid="uid://yc1hp8vqjhtc"]
+
+[ext_resource type="Resource" uid="uid://edqrfp1iuylw" path="res://Cards/Abilities/Orb of Frost.tres" id="1_g88ps"]
+[ext_resource type="Texture2D" uid="uid://cynyqixn12pb6" path="res://Images/orb_of_frost.jpg" id="2_g88ps"]
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="3_8ablc"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="4_ykoso"]
+
+[resource]
+script = ExtResource("4_ykoso")
+types = Array[String](["Magic"])
+card_type = 2
+id = "00104"
+name = "Orb of Frost"
+description = "Freeze all adjacent enemies for 2 turns. They cannot move, attack, or counter-attack."
+art = ExtResource("2_g88ps")
+ability = ExtResource("1_g88ps")
+metadata/_custom_type_script = "uid://57up1u0etcmc"

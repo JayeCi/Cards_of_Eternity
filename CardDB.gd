@@ -26,7 +26,7 @@ const PATH := {
 	"BOOGLES":            "res://Cards/Monster Cards/Boogles.tres",
 	"FUNGOO":             "res://Cards/Monster Cards/Fungoo.tres",
 	"ORB_OF_DARKNESS":    "res://Cards/Spell Cards/Orb_Of_Darkness.tres",
-	"SHADOW_CANDLES":     "res://Cards/Spell Cards/Shadow_Candles.tres",
+	"ORB_OF_FROST":       "res://Cards/Spell Cards/Orb of Frost.tres",
 	"JESTER_OF_FLAMES":   "res://Cards/Monster Cards/Jester_of_Flames.tres",
 	"VOIDLING_ERO":       "res://Cards/Monster Cards/Voidling_Ero.tres",
 	"MUSHMONK":           "res://Cards/Monster Cards/Mushmonk.tres",
@@ -36,7 +36,14 @@ const PATH := {
 	"TIDAL_WAVE":         "res://Cards/Spell Cards/Tidal_Wave.tres",
 	"AQUA_WHIP":          "res://Cards/Spell Cards/Aqua_whip.tres",
 	"PLAGUE_SENTINEL":    "res://Cards/Monster Cards/Plague_Sentinel.tres",
-	"TUTORIAL_GOBLIN":    "res://Cards/Monster Cards/Tutorial_Goblin.tres",
+	"STONE_GUARD":        "res://Cards/Monster Cards/Stone_Guard.tres",
+	"CLOUD_MONKEY":       "res://Cards/Monster Cards/Cloud_Monkey.tres",
+	"FYRA":               "res://Cards/Monster Cards/Fyra.tres",
+	"EARTHREALM_MACHINIST":"res://Cards/Monster Cards/Earthrealm_Machinist.tres",
+	"STONEHAMMER_GUARDIAN":"res://Cards/Monster Cards/Stonehammer_Guardian.tres",
+	"BONE_WARRIOR_RACOON": "res://Cards/Monster Cards/Bone_Warrior_Raccoon.tres",
+	"MINOTAUR_WARLORD":    "res://Cards/Monster Cards/Minotaur_Warlord.tres",
+	"TUTORIAL_GOBLIN":     "res://Cards/Monster Cards/Tutorial_Goblin.tres",
 }
 
 static func lookup(name: String) -> String:
