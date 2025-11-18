@@ -254,7 +254,7 @@ func _pulse_border(border: MeshInstance3D):
 	var tw = create_tween()
 	tw.tween_property(border, "scale", border.scale * 1.05, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tw.tween_property(border, "scale", border.scale, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	tw.set_loops()  # loop forever
+	tw.set_loops(0)  # loop forever
 
 func _update_leader_badge() -> void:
 	if not leader_badge:
@@ -405,7 +405,7 @@ func pulse_move_highlight() -> void:
 		var tw = create_tween()
 		tw.tween_property(mat, "albedo_color:a", 0.4, 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 		tw.tween_property(mat, "albedo_color:a", 0.8, 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-		tw.set_loops()
+		tw.set_loops(0)
 	
 
 func set_core(core_ref: ArenaCore) -> void:

@@ -1,6 +1,6 @@
 extends TextureRect
 
-@onready var tween := create_tween().set_loops() # 🔁 infinite looping animation
+@onready var tween := create_tween().set_loops(0) # 🔁 infinite looping animation
 
 
 #func _ready():

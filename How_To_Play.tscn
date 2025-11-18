@@ -1,0 +1,206 @@
+[gd_scene load_steps=3 format=3 uid="uid://3iejdk8sqagp"]
+
+[ext_resource type="Script" uid="uid://dj4qau7tpywdk" path="res://how_to_play.gd" id="1_5gut5"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vmhqr"]
+bg_color = Color(0.06879826, 0.06879829, 0.06879823, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[node name="How_To_Play" type="Control"]
+z_index = 5
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_5gut5")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer"]
+layout_mode = 2
+mouse_filter = 0
+
+[node name="Panel" type="Panel" parent="MarginContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_vmhqr")
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/ScrollContainer/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+
+[node name="RichTextLabel" type="RichTextLabel" parent="MarginContainer/ScrollContainer/Panel/MarginContainer"]
+layout_mode = 2
+bbcode_enabled = true
+text = "[center][b]HOW TO PLAY[/b][/center]
+[hr]
+
+[b]OBJECTIVE[/b]
+Defeat the enemy [b]Leader[/b] by reducing their HP to 0.  
+Summon units, control the 7×7 arena board, and use abilities, terrain, and smart positioning to win.
+
+[hr]
+
+[b]GAME FLOW[/b]
+
+[b]1. DRAW PHASE[/b]
+• Draw 1 card at the start of your turn.  
+• If your hand is full, extra cards are discarded.
+
+[b]2. SUMMON PHASE[/b]
+• Select a card in your hand and place it on a valid tile.  
+• Some cards must be summoned near your Leader.  
+• Summon Abilities trigger immediately after placement.
+
+[b]3. ACTION PHASE[/b]
+Each unit may perform [i]one[/i] action:  
+• Move  
+• Attack  
+• Use an Ability  
+Multiple units may act each turn.
+
+[b]4. END PHASE[/b]
+• Regeneration, Poison, Terrain, and other effects trigger.  
+• Turn passes to the opponent.
+
+[hr]
+
+[b]COMBAT RULES[/b]
+
+[b]ATK & DEF[/b]  
+• Attacking reduces the enemy’s DEF.  
+• Survivors counterattack.  
+• Units with 0 DEF are destroyed.
+
+[b]Overflow Damage[/b]  
+If a unit takes more damage than it can survive, the excess hits the [b]enemy Leader[/b].  
+This makes high-ATK units and finishing blows extremely valuable.
+
+[hr]
+
+[b]MOVEMENT & POSITIONING[/b]
+
+[b]Movement Types[/b]  
+• Standard (1 tile)  
+• Diagonal  
+• Flying (can move over allies)  
+• Unique patterns depending on the card
+
+[b]Flying Units[/b]  
+• Can pass over allies.  
+• Landing on an enemy triggers combat.
+
+[b]Terrain Tiles[/b]  
+• Earth – Increased DEF  
+• Wind – Increased movement  
+• Shadow – Debuffs enemies  
+• Void/Hole – Instantly kills non-flying units  
+
+Terrain control often decides the match.
+
+[hr]
+
+[b]LEADER ABILITIES[/b]
+Your Leader is a powerful unit with unique effects.  
+Abilities unlock across 3 levels based on your Leader’s progression.
+
+Examples:  
+• Aura buffs  
+• Movement boosts  
+• Regeneration aura  
+• Enemy debuff aura  
+
+Position your Leader wisely — losing them ends the battle.
+
+[hr]
+
+[b]FUSION SYSTEM[/b]
+
+Some cards combine into stronger units.
+
+[b]How Fusion Works:[/b]  
+1. Place a fusion-eligible unit on the board.  
+2. Move or summon the second card onto it.  
+3. The fusion triggers and the new unit appears.
+
+Fusion types include:  
+• Specific recipes  
+• Element + Type combinations  
+• Elemental synergies
+
+[hr]
+
+[b]ABILITY TYPES[/b]
+
+Cards may trigger abilities:  
+• On Summon  
+• On Attack  
+• On Take Damage  
+• Turn Start / Turn End  
+• Boardwide Passives  
+
+Some require specific terrain or elemental synergies.
+
+[hr]
+
+[b]REWARDS & PROGRESSION[/b]
+
+Winning battles earns:  
+• New cards  
+• Currency  
+• New Map Nodes  
+• Realm Boss progress  
+
+Defeating Realm Bosses unlocks new realms and deck options.
+
+[hr]
+
+[b]CONTROLS[/b]
+
+• Left Click – Select, move, attack, summon  
+• Right Click / Cancel – Undo selection  
+• Hover – View card details  
+• UI Buttons – End Turn, Log, Settings
+
+[hr]
+
+[b]TIPS[/b]
+
+• Establish board presence early.  
+• Protect your Leader at all costs.  
+• Use terrain advantages.  
+• Overflow damage wins games — plan for it.  
+• Fusion can swing battles; set it up intentionally.
+"
+
+[node name="x" type="Button" parent="MarginContainer"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+text = "X"
+
+[connection signal="pressed" from="MarginContainer/x" to="." method="_on_x_pressed"]

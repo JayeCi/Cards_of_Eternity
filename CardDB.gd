@@ -19,6 +19,7 @@ const PATH := {
 	"STONE_GUARD":              "res://Cards/Monster Cards/Stone_Guard.tres",
 	"STONEHAMMER_GUARDIAN":     "res://Cards/Monster Cards/Stonehammer_Guardian.tres",
 	"EARTHREALM_MACHINIST":     "res://Cards/Monster Cards/Earthrealm_Machinist.tres",
+	"PORCU-BEAST":              "res://Cards/Monster Cards/Porcu-Beast.tres",
 
 	# ================================================================
 	# 🔥 MONSTER CARDS — FIRE REALM
@@ -35,12 +36,15 @@ const PATH := {
 	"LYZARD":                   "res://Cards/Monster Cards/Aqua Lyzard.tres",
 	"FYSH":                     "res://Cards/Monster Cards/Fysh.tres",
 	"DRAKE_OF_EMERALD":         "res://Cards/Monster Cards/Drake of Emerald.tres",
+	"ICE_CRAB":                 "res://Cards/Monster Cards/Ice_Crab.tres",
+	"COLD_SLOTH":               "res://Cards/Monster Cards/Cold_Sloth.tres",
 
 	# ================================================================
 	# 🌬️ MONSTER CARDS — WIND REALM
 	# ================================================================
 	"CLOUD_MONKEY":             "res://Cards/Monster Cards/Cloud_Monkey.tres",
 	"FALCREEP":                 "res://Cards/Monster Cards/Falcreep.tres",
+	"GALE_SPIRIT":              "res://Cards/Monster Cards/Gale_Spirit.tres",
 
 	# ================================================================
 	# ☠️ MONSTER CARDS — SHADOW / DARK

@@ -8,6 +8,8 @@
 [resource]
 script = ExtResource("4_ykoso")
 types = Array[String](["Magic"])
+element = "Water"
+preferred_terrain = "Ice"
 card_type = 2
 id = "00104"
 name = "Orb of Frost"

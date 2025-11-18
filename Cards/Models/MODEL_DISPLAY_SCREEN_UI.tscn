@@ -1,34 +1,115 @@
-[gd_scene load_steps=3 format=3 uid="uid://cxnjdj5or0boy"]
+[gd_scene load_steps=9 format=3 uid="uid://cxnjdj5or0boy"]
 
 [ext_resource type="PackedScene" uid="uid://ctfsyvbt1n20t" path="res://UI/CardUICutscene.tscn" id="1_kj1ps"]
 [ext_resource type="LabelSettings" uid="uid://b2i0kf1b6wirm" path="res://UI/card_collection_gui.tres" id="2_dvgn6"]
 
-[node name="Model_Display_UI" type="Control"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.08, 0.08, 0.12, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.6, 0.9, 0.8)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="LabelSettings" id="LabelSettings_title"]
+font_size = 28
+font_color = Color(1, 0.95, 0.7, 1)
+outline_size = 3
+outline_color = Color(0, 0, 0, 0.8)
+shadow_size = 2
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_offset = Vector2(2, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_info_panel"]
+bg_color = Color(0.05, 0.05, 0.08, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.5, 0.8, 0.6)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0.15, 0.2, 0.35, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.7, 1, 0.8)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_pressed"]
+bg_color = Color(0.1, 0.15, 0.25, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.6, 0.9, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
+bg_color = Color(0.2, 0.3, 0.5, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.6, 0.8, 1, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="Model_Display_UI" type="CanvasLayer"]
+
+[node name="UIContainer" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="UIContainer"]
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
-offset_left = 15.0
-offset_top = 260.0
-offset_right = 354.0
-offset_bottom = 135.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 400.0
+offset_bottom = -20.0
 grow_vertical = 2
+theme_override_constants/separation = 2
 
-[node name="CardContainer" parent="VBoxContainer" instance=ExtResource("1_kj1ps")]
+[node name="CardUIDisplay" parent="UIContainer/VBoxContainer" instance=ExtResource("1_kj1ps")]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="VBoxContainer#Spacer" type="Control" parent="UIContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
 
-[node name="Panel" type="Panel" parent="VBoxContainer"]
-custom_minimum_size = Vector2(0, 200)
+[node name="VBoxContainer#Panel" type="Panel" parent="UIContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 399.19)
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
-[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer/Panel"]
+[node name="VBoxContainer_Panel#ScrollContainer" type="ScrollContainer" parent="UIContainer/VBoxContainer/VBoxContainer#Panel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -36,71 +117,129 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/Panel/ScrollContainer"]
+[node name="VBoxContainer_Panel_ScrollContainer#VBoxContainer" type="VBoxContainer" parent="UIContainer/VBoxContainer/VBoxContainer#Panel/VBoxContainer_Panel#ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
+theme_override_constants/separation = 12
 
-[node name="Name" type="Label" parent="VBoxContainer/Panel/ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(175, 0)
+[node name="VBoxContainer_Panel_ScrollContainer_VBoxContainer#TitleSeparator" type="HSeparator" parent="UIContainer/VBoxContainer/VBoxContainer#Panel/VBoxContainer_Panel#ScrollContainer/VBoxContainer_Panel_ScrollContainer#VBoxContainer"]
+modulate = Color(0.5, 0.7, 1, 0.5)
 layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 6
-text = "Jester of Flames"
+
+[node name="VBoxContainer_Panel_ScrollContainer_VBoxContainer#Name" type="Label" parent="UIContainer/VBoxContainer/VBoxContainer#Panel/VBoxContainer_Panel#ScrollContainer/VBoxContainer_Panel_ScrollContainer#VBoxContainer"]
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+size_flags_vertical = 0
+text = "JESTER OF FLAMES"
+label_settings = SubResource("LabelSettings_title")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="VBoxContainer_Panel_ScrollContainer_VBoxContainer#Separator1" type="HSeparator" parent="UIContainer/VBoxContainer/VBoxContainer#Panel/VBoxContainer_Panel#ScrollContainer/VBoxContainer_Panel_ScrollContainer#VBoxContainer"]
+modulate = Color(0.5, 0.7, 1, 0.3)
+layout_mode = 2
+
+[node name="VBoxContainer_Panel_ScrollContainer_VBoxContainer#InfoPanel1" type="PanelContainer" parent="UIContainer/VBoxContainer/VBoxContainer#Panel/VBoxContainer_Panel#ScrollContainer/VBoxContainer_Panel_ScrollContainer#VBoxContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_info_panel")
+
+[node name="VBoxContainer_Panel_ScrollContainer_VBoxContainer_InfoPanel1#Rarity" type="Label" parent="UIContainer/VBoxContainer/VBoxContainer#Panel/VBoxContainer_Panel#ScrollContainer/VBoxContainer_Panel_ScrollContainer#VBoxContainer/VBoxContainer_Panel_ScrollContainer_VBoxContainer#InfoPanel1"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+text = "✦ RARE ✦"
+label_settings = ExtResource("2_dvgn6")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="VBoxContainer_Panel_ScrollContainer_VBoxContainer#InfoPanel2" type="PanelContainer" parent="UIContainer/VBoxContainer/VBoxContainer#Panel/VBoxContainer_Panel#ScrollContainer/VBoxContainer_Panel_ScrollContainer#VBoxContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_info_panel")
+
+[node name="VBoxContainer_Panel_ScrollContainer_VBoxContainer_InfoPanel2#Element" type="Label" parent="UIContainer/VBoxContainer/VBoxContainer#Panel/VBoxContainer_Panel#ScrollContainer/VBoxContainer_Panel_ScrollContainer#VBoxContainer/VBoxContainer_Panel_ScrollContainer_VBoxContainer#InfoPanel2"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+text = "◆ FIRE ◆"
+label_settings = ExtResource("2_dvgn6")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="VBoxContainer_Panel_ScrollContainer_VBoxContainer#Separator2" type="HSeparator" parent="UIContainer/VBoxContainer/VBoxContainer#Panel/VBoxContainer_Panel#ScrollContainer/VBoxContainer_Panel_ScrollContainer#VBoxContainer"]
+modulate = Color(0.5, 0.7, 1, 0.3)
+layout_mode = 2
+
+[node name="VBoxContainer_Panel_ScrollContainer_VBoxContainer#InfoPanel3" type="PanelContainer" parent="UIContainer/VBoxContainer/VBoxContainer#Panel/VBoxContainer_Panel#ScrollContainer/VBoxContainer_Panel_ScrollContainer#VBoxContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_info_panel")
+
+[node name="VBoxContainer_Panel_ScrollContainer_VBoxContainer#AbilityLabel" type="Label" parent="UIContainer/VBoxContainer/VBoxContainer#Panel/VBoxContainer_Panel#ScrollContainer/VBoxContainer_Panel_ScrollContainer#VBoxContainer/VBoxContainer_Panel_ScrollContainer_VBoxContainer#InfoPanel3"]
+custom_minimum_size = Vector2(0, 25)
+layout_mode = 2
+text = "⚔ ABILITIES"
+label_settings = ExtResource("2_dvgn6")
+horizontal_alignment = 1
+
+[node name="VBoxContainer_Panel_ScrollContainer_VBoxContainer_InfoPanel3#MarginContainer" type="MarginContainer" parent="UIContainer/VBoxContainer/VBoxContainer#Panel/VBoxContainer_Panel#ScrollContainer/VBoxContainer_Panel_ScrollContainer#VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer_Panel_ScrollContainer_VBoxContainer_InfoPanel3_MarginContainer#Ability" type="Label" parent="UIContainer/VBoxContainer/VBoxContainer#Panel/VBoxContainer_Panel#ScrollContainer/VBoxContainer_Panel_ScrollContainer#VBoxContainer/VBoxContainer_Panel_ScrollContainer_VBoxContainer_InfoPanel3#MarginContainer"]
+layout_mode = 2
+text = "Flame Burst"
 label_settings = ExtResource("2_dvgn6")
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="Rarity" type="Label" parent="VBoxContainer/Panel/ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(175, 0)
+[node name="VBoxContainer_Panel_ScrollContainer_VBoxContainer#Separator3" type="HSeparator" parent="UIContainer/VBoxContainer/VBoxContainer#Panel/VBoxContainer_Panel#ScrollContainer/VBoxContainer_Panel_ScrollContainer#VBoxContainer"]
+modulate = Color(0.5, 0.7, 1, 0.3)
 layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 6
-text = "RARE"
+
+[node name="VBoxContainer_Panel_ScrollContainer_VBoxContainer#InfoPanel4" type="PanelContainer" parent="UIContainer/VBoxContainer/VBoxContainer#Panel/VBoxContainer_Panel#ScrollContainer/VBoxContainer_Panel_ScrollContainer#VBoxContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_info_panel")
+
+[node name="VBoxContainer_Panel_ScrollContainer_VBoxContainer#DescriptionLabel" type="Label" parent="UIContainer/VBoxContainer/VBoxContainer#Panel/VBoxContainer_Panel#ScrollContainer/VBoxContainer_Panel_ScrollContainer#VBoxContainer/VBoxContainer_Panel_ScrollContainer_VBoxContainer#InfoPanel4"]
+custom_minimum_size = Vector2(0, 25)
+layout_mode = 2
+text = "📜 DESCRIPTION"
+label_settings = ExtResource("2_dvgn6")
+horizontal_alignment = 1
+
+[node name="VBoxContainer_Panel_ScrollContainer_VBoxContainer_InfoPanel4#MarginContainer" type="MarginContainer" parent="UIContainer/VBoxContainer/VBoxContainer#Panel/VBoxContainer_Panel#ScrollContainer/VBoxContainer_Panel_ScrollContainer#VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer_Panel_ScrollContainer_VBoxContainer_InfoPanel4_MarginContainer#Description" type="Label" parent="UIContainer/VBoxContainer/VBoxContainer#Panel/VBoxContainer_Panel#ScrollContainer/VBoxContainer_Panel_ScrollContainer#VBoxContainer/VBoxContainer_Panel_ScrollContainer_VBoxContainer_InfoPanel4#MarginContainer"]
+layout_mode = 2
+text = "A mysterious jester who commands the power of flames. His laughter echoes across the battlefield as he dances between fire and shadow."
 label_settings = ExtResource("2_dvgn6")
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="Element" type="Label" parent="VBoxContainer/Panel/ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(175, 0)
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 6
-text = "FIRE"
-label_settings = ExtResource("2_dvgn6")
-horizontal_alignment = 1
-autowrap_mode = 3
-
-[node name="Ability" type="Label" parent="VBoxContainer/Panel/ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(175, 0)
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 6
-text = "ABILITY"
-label_settings = ExtResource("2_dvgn6")
-horizontal_alignment = 1
-autowrap_mode = 3
-
-[node name="Description" type="Label" parent="VBoxContainer/Panel/ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(175, 0)
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 6
-text = "DESCRIPTION"
-label_settings = ExtResource("2_dvgn6")
-horizontal_alignment = 1
-autowrap_mode = 3
-
-[node name="BACK" type="Button" parent="."]
-custom_minimum_size = Vector2(50, 25)
+[node name="BACK" type="Button" parent="UIContainer"]
+custom_minimum_size = Vector2(120, 50)
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -8.0
-offset_top = -8.0
+offset_left = -140.0
+offset_top = -70.0
+offset_right = -20.0
+offset_bottom = -20.0
 grow_horizontal = 0
 grow_vertical = 0
-text = "BACK"
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+text = "← BACK"

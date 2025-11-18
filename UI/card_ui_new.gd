@@ -3,7 +3,8 @@ extends Control
 @export var card_data: CardData
 
 @onready var art = $MarginContainer/Art
-@onready var name_label = $MarginContainer/Name
+@onready var name_label = $MarginContainer/VBoxContainer2/Name
+@onready var border: TextureRect = $Border
 
 @onready var atk: Label = $MarginContainer/ATK
 @onready var def: Label = $MarginContainer/DEF
@@ -11,6 +12,7 @@ extends Control
 @onready var cost: Label = $MarginContainer/VBoxContainer/Cost
 @onready var fusion_glow: TextureRect = $FusionGlow
 @onready var quantity_label: Label = $QuantityLabel
+@onready var ability_indicator = $Border/AbilityIndicator
 
 @onready var fire_ball: AnimatedSprite2D = $FireBall
 @onready var water_ball: AnimatedSprite2D = $WaterBall
@@ -165,7 +167,9 @@ func _start_hover_animation(entering: bool):
 	else:
 		_hover_tween.tween_property(self, "scale", Vector2.ONE, hover_duration)\
 			.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-		_hover_tween.parallel().tween_property(self, "modulate", _base_modulate, hover_duration)
+		# Only tween modulate back if the card is playable (was brightened on hover)
+		if can_play:
+			_hover_tween.parallel().tween_property(self, "modulate", _base_modulate, hover_duration)
 
 # -------------------------------
 # Mouse filter safety
@@ -198,7 +202,11 @@ func refresh():
 		atk.visible = true
 		def.visible = true
 	#print("[CardUI] Refreshing card:", card_data.name)
-	if name_label: name_label.text = card_data.name
+	if name_label:
+		name_label.text = card_data.name
+		# 🎨 Set shadow color based on rarity
+		if name_label.label_settings:
+			name_label.label_settings.shadow_color = _get_rarity_shadow_color(card_data.rarity)
 	if art: art.texture = card_data.art
 	if cost: cost.text = str(card_data.cost)
 	_update_element_ball()
@@ -213,6 +221,24 @@ func refresh():
 			def.visible = false
 		# 🛑 Skip setting ATK/DEF for non-monsters
 		pass
+
+	# 🎨 Tint border based on card type
+	if border:
+		match card_data.card_type:
+			CardData.CardType.SPELL:
+				border.modulate = Color(0.003, 0.0, 0.588, 1.0)  # Light blue for magic/spell cards
+			CardData.CardType.EVENT:
+				border.modulate = Color(0.447, 0.0, 1.0, 1.0)  # Light purple for event cards
+			_:
+				border.modulate = Color(1.0, 1.0, 1.0, 1.0)  # Default white for monsters
+
+	# 🔮 Show AbilityIndicator only if card has abilities
+	if ability_indicator:
+		var has_ability := _card_has_ability(card_data)
+		print("[CardUI] Card:", card_data.name, "has_ability:", has_ability, "ability:", card_data.ability, "ability_name:", card_data.ability_name if "ability_name" in card_data else "N/A")
+		ability_indicator.visible = has_ability
+	else:
+		print("[CardUI] ⚠️ AbilityIndicator node not found!")
 
 # --- Helpers ---
 func _hide_all_element_balls() -> void:
@@ -267,6 +293,53 @@ func _resolve_element(cd: CardData) -> String:
 		return enum_map.get(e, "")
 	else:
 		return str(e).to_lower()
+
+# -------------------------------
+# Card Ability Check Helper
+# -------------------------------
+func _card_has_ability(card: CardData) -> bool:
+	"""Check if a card has any abilities"""
+	if not card:
+		return false
+
+	# Check if ability object exists
+	if card.ability != null:
+		return true
+
+	# Check if ability name is defined
+	if card.has_method("get_ability_name"):
+		var ability_name := card.get_ability_name()
+		if ability_name and not ability_name.is_empty():
+			return true
+
+	# Check if ability description is defined
+	if card.has_method("get_ability_description"):
+		var ability_desc := card.get_ability_description()
+		if ability_desc and not ability_desc.is_empty():
+			return true
+
+	return false
+
+# -------------------------------
+# Rarity Shadow Color Helper
+# -------------------------------
+func _get_rarity_shadow_color(rarity: String) -> Color:
+	"""Return shadow color based on rarity tier"""
+	match rarity.to_lower():
+		"common":
+			return Color(0.5, 0.5, 0.5, 1.0)  # Grey
+		"uncommon":
+			return Color(1.0, 1.0, 1.0, 1.0)  # White
+		"rare":
+			return Color(0.3, 0.6, 1.0, 1.0)  # Blue
+		"epic":
+			return Color(0.8, 0.3, 1.0, 1.0)  # Purple
+		"legendary":
+			return Color(1.0, 0.6, 0.1, 1.0)  # Orange
+		"mythic":
+			return Color(1.0, 0.2, 0.2, 1.0)  # Red
+		_:
+			return Color(1.0, 1.0, 1.0, 1.0)  # Default white
 
 # State display
 # -------------------------------

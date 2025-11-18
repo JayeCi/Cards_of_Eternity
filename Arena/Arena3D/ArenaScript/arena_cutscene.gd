@@ -278,21 +278,28 @@ func play_victory_cutscene() -> void:
 		if unit and unit.owner == core.ENEMY:
 			var tile = board.get_tile(pos.x, pos.y)
 			if tile:
-				# Fade tile mesh
+				# Fade tile mesh - for 3D nodes we need to modify the material
 				if tile.has_node("CardMesh"):
-					var mesh = tile.get_node("CardMesh")
-					if is_instance_valid(mesh):
-						var fade_tw = create_tween()
-						fade_tw.tween_property(mesh, "modulate:a", 0.0, rotation_duration)
-						enemy_fade_tweens.append(fade_tw)
+					var mesh = tile.get_node("CardMesh") as MeshInstance3D
+					if is_instance_valid(mesh) and mesh.get_surface_override_material_count() > 0:
+						var mat = mesh.get_surface_override_material(0)
+						if mat and mat is StandardMaterial3D:
+							var fade_tw = create_tween()
+							fade_tw.tween_property(mat, "albedo_color:a", 0.0, rotation_duration)
+							enemy_fade_tweens.append(fade_tw)
 
-				# Fade card model
+				# Fade card model - for 3D nodes we need to modify the material
 				if tile.has_node("CardModel"):
-					var model = tile.get_node("CardModel")
+					var model = tile.get_node("CardModel") as Node3D
 					if is_instance_valid(model):
-						var fade_tw = create_tween()
-						fade_tw.tween_property(model, "modulate:a", 0.0, rotation_duration)
-						enemy_fade_tweens.append(fade_tw)
+						# CardModel might be a container with child meshes
+						for child in model.get_children():
+							if child is MeshInstance3D:
+								var mat = child.get_surface_override_material(0)
+								if mat and mat is StandardMaterial3D:
+									var fade_tw = create_tween()
+									fade_tw.tween_property(mat, "albedo_color:a", 0.0, rotation_duration)
+									enemy_fade_tweens.append(fade_tw)
 
 	# Rotate camera around the board
 	var angle_start := 0.0

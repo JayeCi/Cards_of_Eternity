@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://ca7lbb4xnlxah"]
+
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_sxwpd"]
+[ext_resource type="Texture2D" uid="uid://ikw7m4f0qkmi" path="res://Images/Ice_crab.jpg" id="1_umxsn"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_umxsn"]
+
+[resource]
+script = ExtResource("2_umxsn")
+element = "Water"
+preferred_terrain = "Ice"
+id = "00037"
+name = "Ice Crab"
+description = "A creature shaped from shimmering mineral and hardened tidewater. Its crystalline talons slice cleanly through armor, leaving only glittering dust behind."
+art = ExtResource("1_umxsn")
+atk = 8
+def = 20
+model_path = "res://Cards/Models/ICE_CRAB_MODEL.tscn"
+metadata/_custom_type_script = "uid://57up1u0etcmc"

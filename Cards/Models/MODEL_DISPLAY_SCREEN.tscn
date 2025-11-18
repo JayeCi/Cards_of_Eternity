@@ -1,11 +1,9 @@
-[gd_scene load_steps=17 format=3 uid="uid://b37goee1tn57s"]
+[gd_scene load_steps=10 format=3 uid="uid://b37goee1tn57s"]
 
 [ext_resource type="PackedScene" uid="uid://cmhhu62jklebl" path="res://Downloaded/Structures/HUB/pedestal.tscn" id="1_8fj7b"]
 [ext_resource type="Script" uid="uid://b3u5mijay8y7s" path="res://Cards/Models/model_display_screen.gd" id="1_l0jop"]
-[ext_resource type="PackedScene" uid="uid://6hfub60yb6kd" path="res://Cards/Models/JESTER_OF_FLAMES_MODEL.tscn" id="2_jbedo"]
 [ext_resource type="Environment" uid="uid://cyy4acf0geavg" path="res://World/HUBEnvironment.tres" id="3_nr4yk"]
 [ext_resource type="Texture2D" uid="uid://b4xertubfc6wv" path="res://UI/Terrains/default_texture.jpg" id="4_jbedo"]
-[ext_resource type="Texture2D" uid="uid://bxhicwooq4oal" path="res://Cards/Models/spark.png" id="5_nr4yk"]
 [ext_resource type="PackedScene" uid="uid://cxnjdj5or0boy" path="res://Cards/Models/MODEL_DISPLAY_SCREEN_UI.tscn" id="6_blp2c"]
 
 [sub_resource type="Animation" id="Animation_blp2c"]
@@ -50,6 +48,7 @@ tracks/2/keys = {
 [sub_resource type="Animation" id="Animation_nr4yk"]
 resource_name = "cam"
 length = 10.0
+loop_mode = 1
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -93,62 +92,17 @@ _data = {
 &"cam": SubResource("Animation_nr4yk")
 }
 
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_nr4yk"]
-load_path = "res://.godot/imported/default_texture.jpg-4dce7ca6528550e127c711a9e1a542cb.s3tc.ctex"
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_l0jop"]
-albedo_color = Color(0.16206557, 0.1620656, 0.16206554, 1)
-albedo_texture = SubResource("CompressedTexture2D_nr4yk")
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_blp2c"]
-albedo_color = Color(0.39308554, 0.3930855, 0.39308548, 1)
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_display_floor"]
+albedo_color = Color(0.12, 0.12, 0.15, 1)
 albedo_texture = ExtResource("4_jbedo")
-
-[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_blp2c"]
-lifetime_randomness = 0.08
-initial_velocity_min = 1.5
-initial_velocity_max = 1.5
-gravity = Vector3(0, -0.5, 0)
-scale_min = 0.79999995
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_su3kb"]
-transparency = 1
-albedo_texture = ExtResource("5_nr4yk")
-
-[sub_resource type="QuadMesh" id="QuadMesh_1cau5"]
-material = SubResource("StandardMaterial3D_su3kb")
+metallic = 0.3
+roughness = 0.7
 
 [node name="Node3D" type="Node3D"]
 script = ExtResource("1_l0jop")
 
 [node name="Pedestal" parent="." instance=ExtResource("1_8fj7b")]
 transform = Transform3D(1.4755654, 0, 0, 0, 1.4755654, 0, 0, 0, 1.4755654, -0.06128007, 5.9604645e-08, -2.166658)
-
-[node name="Jester_Of_Flames" parent="Pedestal" instance=ExtResource("2_jbedo")]
-transform = Transform3D(0.6091393, 0, -1.0650529e-07, 0, 0.6091393, 0, 1.0650529e-07, 0, 0.6091393, 0, 0.3175751, 0)
-
-[node name="Skeleton3D" parent="Pedestal/Jester_Of_Flames/Armature" index="0"]
-bones/0/position = Vector3(-8.638377, 69.91369, 10.740764)
-bones/0/rotation = Quaternion(0.5112599, -0.5666362, 0.20127329, 0.61402434)
-bones/1/rotation = Quaternion(-0.30013782, 0.5862528, -0.30052578, 0.6898618)
-bones/2/rotation = Quaternion(0.5272288, 0.11050618, -0.0065725218, 0.8424815)
-bones/3/rotation = Quaternion(-0.50469255, -0.20661707, -0.007578677, 0.83817506)
-bones/6/rotation = Quaternion(-0.18448058, -0.10453538, 0.12007115, 0.9698568)
-bones/7/rotation = Quaternion(0.59653056, -0.078631714, -0.058709186, 0.7965687)
-bones/8/rotation = Quaternion(-0.6021277, 0.1651366, 0.24806008, 0.7407014)
-bones/11/rotation = Quaternion(0.94447553, -0.17139278, -0.16972044, -0.22312671)
-bones/12/rotation = Quaternion(0.025118986, -0.028669685, 0.0048203217, 0.99926174)
-bones/13/rotation = Quaternion(-0.028323341, -0.015024174, -0.011470608, 0.9994201)
-bones/14/rotation = Quaternion(0.4400903, 0.35409993, 0.6232351, 0.5408436)
-bones/15/rotation = Quaternion(0.6269992, 0.07787915, -0.13103588, 0.7639611)
-bones/16/rotation = Quaternion(-0.15435922, -0.555946, -0.2075342, 0.7899537)
-bones/17/rotation = Quaternion(0.046203844, -0.11150756, -0.026266754, 0.99234134)
-bones/19/rotation = Quaternion(-0.45928448, 0.2908792, 0.5762607, -0.61022186)
-bones/20/rotation = Quaternion(0.56539565, 0.22226043, -0.14572601, 0.7808278)
-bones/21/rotation = Quaternion(-0.1578744, 0.48394194, 0.19752629, 0.8377705)
-bones/22/rotation = Quaternion(-0.16453537, 0.26073888, -0.21220952, 0.9273136)
-bones/24/rotation = Quaternion(0.19583689, -0.032942597, 0.008395499, 0.9800471)
-bones/25/rotation = Quaternion(0.20664425, 0.20100972, 0.26991314, 0.9187166)
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(0.99999994, 0, 0, 0, 1, 0, 0, 0, 1, -0.07579404, 1.0241389, 0.26846838)
@@ -159,61 +113,70 @@ libraries = {
 }
 autoplay = "cam"
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
-shadow_enabled = true
-
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = ExtResource("3_nr4yk")
 
-[node name="SpotLight3D" type="SpotLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0202663, 1.1198947)
+[node name="KeyLight" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 3.5, 0)
+light_color = Color(1, 0.95, 0.85, 1)
+light_energy = 1.2
+shadow_enabled = true
+directional_shadow_mode = 0
 
-[node name="SpotLight3D2" type="SpotLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.8660254, 0.5, 0, -0.5, 0.8660254, 0, 3.3554149, 0.8127991)
+[node name="RimLight" type="SpotLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.5, 0.866025, 0, -0.866025, 0.5, 1.5, 2.5, -0.5)
+light_color = Color(0.7, 0.8, 1, 1)
+light_energy = 2.0
+spot_range = 6.0
+
+[node name="FillLight" type="SpotLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.5, 0.866025, 0, -0.866025, 0.5, -1.5, 2, -0.5)
+light_color = Color(1, 0.9, 0.8, 1)
+light_energy = 1.5
+spot_range = 6.0
+spot_angle = 50.0
+
+[node name="BackLight" type="SpotLight3D" parent="."]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 2.5, -4)
+light_color = Color(0.8, 0.85, 1, 1)
+light_energy = 1.8
+spot_range = 8.0
+spot_angle = 60.0
+
+[node name="AccentLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -2)
+light_color = Color(1, 0.9, 0.6, 1)
+light_energy = 0.8
+omni_range = 4.0
 
 [node name="CSGCombiner3D" type="CSGCombiner3D" parent="."]
 
-[node name="CSGBox3D" type="CSGBox3D" parent="CSGCombiner3D"]
-unique_name_in_owner = true
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.8989258)
-size = Vector3(3.435791, 0.27368164, 4.7978516)
-material = SubResource("StandardMaterial3D_l0jop")
+[node name="Floor" type="CSGBox3D" parent="CSGCombiner3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.15, -2)
+size = Vector3(5, 0.3, 6)
+material = SubResource("StandardMaterial3D_display_floor")
 
-[node name="CSGBox3D5" type="CSGBox3D" parent="CSGCombiner3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.17150927, 4, -1.5)
-size = Vector3(3.435791, 0.27368164, 4)
-material = SubResource("StandardMaterial3D_blp2c")
-
-[node name="CSGBox3D2" type="CSGBox3D" parent="CSGCombiner3D"]
-transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0.007659912, 2, -3.5)
-size = Vector3(4.45282, 0.27368164, 4)
-material = SubResource("StandardMaterial3D_blp2c")
-
-[node name="CSGBox3D3" type="CSGBox3D" parent="CSGCombiner3D"]
-transform = Transform3D(-4.371139e-08, -1, 4.371139e-08, 0, -4.371139e-08, -1, 1, -4.371139e-08, 1.9106855e-15, 1.5352931, 2.0392356, -1.7148073)
-size = Vector3(3.5406494, 0.27368164, 4)
-material = SubResource("StandardMaterial3D_blp2c")
-
-[node name="CSGBox3D4" type="CSGBox3D" parent="CSGCombiner3D"]
-transform = Transform3D(-4.371139e-08, -1, 4.371139e-08, 0, -4.371139e-08, -1, 1, -4.371139e-08, 1.9106855e-15, -1.8, 2, -1.7583104)
-size = Vector3(3.791626, 0.27368164, 4)
-material = SubResource("StandardMaterial3D_blp2c")
-
-[node name="SmokeBurst" type="GPUParticles3D" parent="."]
-transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, -0.072907746, 0.699371, -1.7672837)
+[node name="SmokeBurst" type="CPUParticles3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -2)
 emitting = false
-amount = 60
-lifetime = 3.71
+amount = 30
+lifetime = 2.0
 one_shot = true
-explosiveness = 1.0
-randomness = 0.8
-process_material = SubResource("ParticleProcessMaterial_blp2c")
-draw_pass_1 = SubResource("QuadMesh_1cau5")
+explosiveness = 0.8
+randomness = 0.5
+emission_shape = 1
+emission_sphere_radius = 0.3
+direction = Vector3(0, 1, 0)
+spread = 30.0
+gravity = Vector3(0, -2, 0)
+initial_velocity_min = 1.5
+initial_velocity_max = 3.0
+scale_amount_min = 0.5
+scale_amount_max = 1.2
+color = Color(0.8, 0.8, 0.9, 0.6)
 
 [node name="Model_Display_UI" parent="." instance=ExtResource("6_blp2c")]
 
-[connection signal="pressed" from="Model_Display_UI/BACK" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="Model_Display_UI/UIContainer/BACK" to="." method="_on_back_pressed"]
 
-[editable path="Pedestal/Jester_Of_Flames"]
 [editable path="Model_Display_UI"]

@@ -309,7 +309,7 @@ func _animate_card_hover_enter(card_ui: Control) -> void:
 
 	# Continuous pulse effect while hovered
 	var pulse_tween := create_tween()
-	pulse_tween.set_loops()
+	pulse_tween.set_loops(0)
 	pulse_tween.tween_property(card_ui, "scale", Vector2(1.1, 1.1), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	pulse_tween.tween_property(card_ui, "scale", Vector2(1.08, 1.08), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
@@ -955,12 +955,12 @@ func show_fusion_pending(cards: Array, result_card: CardData = null) -> void:
 	# 🔄 Rotation swing
 	if fusion_enable_rotation:
 		var tw_a := create_tween()
-		tw_a.set_loops()
+		tw_a.set_loops(0)
 		tw_a.tween_property(card_ui_a, "rotation_degrees", fusion_rotate_amplitude, fusion_rotate_speed).as_relative()
 		tw_a.tween_property(card_ui_a, "rotation_degrees", -fusion_rotate_amplitude, fusion_rotate_speed).as_relative()
 
 		var tw_b := create_tween()
-		tw_b.set_loops()
+		tw_b.set_loops(0)
 		tw_b.tween_property(card_ui_b, "rotation_degrees", -fusion_rotate_amplitude, fusion_rotate_speed).as_relative()
 		tw_b.tween_property(card_ui_b, "rotation_degrees", fusion_rotate_amplitude, fusion_rotate_speed).as_relative()
 		

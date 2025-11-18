@@ -215,13 +215,13 @@ static func _create_frozen_orb(tile: Node3D):
 
 	# Add floating animation
 	var tween = tile.create_tween()
-	tween.set_loops()
+	tween.set_loops(0)
 	tween.tween_property(orb_container, "position:y", 2.3, 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tween.tween_property(orb_container, "position:y", 2.0, 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 	# Add rotation animation
 	var rotate_tween = tile.create_tween()
-	rotate_tween.set_loops()
+	rotate_tween.set_loops(0)
 	rotate_tween.tween_property(mesh_instance, "rotation:y", TAU, 3.0).set_trans(Tween.TRANS_LINEAR)
 
 

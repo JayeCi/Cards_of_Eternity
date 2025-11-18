@@ -17,12 +17,13 @@ signal tutorial_finished
 @onready var tutorial_popups: Panel = $Tutorial_Popups
 @onready var continue_btn: Button = $Tutorial_Popups/Tutorial_Panel/Tutorial_VBox/Tutorial_Continue_Button
 @onready var leader_checkbox: CheckBox = $LeftPanel/ScrollContainer/VBoxContainer/LeaderHbox/Leader_Checkbox
+@onready var leader_label: Label = $LeftPanel/ScrollContainer/VBoxContainer/LeaderHbox/Label
 @onready var tutorial_label: RichTextLabel = $Tutorial_Popups/Tutorial_Panel/Tutorial_VBox/MarginContainer/Tutorial_Text
 @onready var collection_panel: Panel = $CollectionPanel
-@onready var leader_panel: Panel = $LeaderPanel
+@onready var achievement_panel: Panel = $AchievementPanel
 @onready var deck_panel: Panel = $DeckPanel
 @onready var main_panel_label: Label = $Toolbar/MainPanelLabel
-@onready var leader_button: Button = $Toolbar/ButtonRow1/Leader_button
+@onready var achievement_button: Button = $Toolbar/ButtonRow1/Achievement_button
 @onready var deck_button: Button = $Toolbar/ButtonRow1/Deck_button
 @onready var collection_button: Button = $Toolbar/ButtonRow1/Collection_button
 @onready var x: Button = $Toolbar/ButtonRow2/X
@@ -59,10 +60,13 @@ func _ready():
 	Globals.tutorial_stage = 0
 
 	x.disabled = true
-	
+
 	if sort_button:
 		sort_button.pressed.connect(_on_sort_button_pressed)
 	leader_checkbox.toggled.connect(_on_leader_checkbox_toggled)
+
+	# 🎮 TESTING: Press Shift+A to add all cards to collection
+	print("💡 [CollectionGUI] Press Shift+A to add all cards to collection for testing")
 
 	# 🧩 Setup layout references
 	left_panel = get_node_or_null("LeftPanel")
@@ -123,8 +127,74 @@ func _ready():
 	tutorial_can_continue = false
 	_unlock_tutorial_continue()
 
-	var tween = create_tween()
-	tween.tween_property(tutorial_label, "visible_characters", tutorial_label.get_total_character_count(), 1.75)
+# ==========================================================
+# 🎮 TESTING: Input Handler for Shift+A Key
+# ==========================================================
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and event.keycode == KEY_A and event.shift_pressed:
+		add_all_cards_for_testing()
+
+# ==========================================================
+# 🎮 TESTING: Add All Cards to Collection
+# ==========================================================
+func add_all_cards_for_testing() -> void:
+	"""🎮 TESTING: Add all cards from CardDB to collection"""
+	print("🎮 [Testing] Adding all cards to collection...")
+
+	# Clear ALL existing GUI cards first
+	for child in main_panel.get_children():
+		child.queue_free()
+	displayed_cards.clear()
+
+	# Temporarily disconnect signals to prevent UI spam
+	if CardCollection.is_connected("card_added", Callable(self, "_on_card_added_signal")):
+		CardCollection.disconnect("card_added", Callable(self, "_on_card_added_signal"))
+	if CardCollection.is_connected("card_count_changed", Callable(self, "_on_card_count_changed")):
+		CardCollection.disconnect("card_count_changed", Callable(self, "_on_card_count_changed"))
+
+	# Clear collection and add all cards
+	CardCollection.clear_collection()
+
+	var cards_added := 0
+	for card_name in CardDB.PATH.keys():
+		CardCollection.add_card_by_name(card_name, 1)  # Add 3 of each card
+		cards_added += 1
+
+	print("✅ [Testing] Added %d unique cards (3 of each) to collection!" % cards_added)
+
+	# Reconnect signals
+	if not CardCollection.is_connected("card_added", Callable(self, "_on_card_added_signal")):
+		CardCollection.connect("card_added", Callable(self, "_on_card_added_signal"))
+	if not CardCollection.is_connected("card_count_changed", Callable(self, "_on_card_count_changed")):
+		CardCollection.connect("card_count_changed", Callable(self, "_on_card_count_changed"))
+
+	# Refresh the display asynchronously to prevent freeze
+	_populate_existing_cards_async()
+
+# ==========================================================
+# 🎮 TESTING: Async Population to Prevent Freeze
+# ==========================================================
+func _populate_existing_cards_async() -> void:
+	"""Populate cards across multiple frames to prevent freezing"""
+	print("🔄 [Testing] Refreshing collection display asynchronously...")
+
+	await get_tree().process_frame
+
+	var cards := CardCollection.get_all_cards()
+	var batch_size := 5  # Process 5 cards per frame
+	var total := cards.size()
+
+	for i in range(0, total, batch_size):
+		var end_idx := mini(i + batch_size, total)
+
+		for j in range(i, end_idx):
+			if j < cards.size():
+				_add_card_to_gui(cards[j])
+
+		# Wait one frame before next batch
+		await get_tree().process_frame
+
+	print("✅ [Testing] Collection display refreshed! Total cards: %d" % total)
 
 
 # ==========================================================
@@ -147,6 +217,12 @@ func _on_card_unhovered(card_data: CardData = null):
 func _on_leader_checkbox_toggled(checked: bool) -> void:
 	if selected_card == null:
 		leader_checkbox.button_pressed = false
+		return
+
+	# Only allow MONSTER cards to be set as leader
+	if selected_card.card_type != CardData.CardType.MONSTER:
+		leader_checkbox.button_pressed = false
+		print("[Leader] ❌ Cannot set non-monster card as leader:", selected_card.name)
 		return
 
 	if checked:
@@ -420,11 +496,37 @@ func _on_card_return_requested(card_data: CardData, sender_ui: Control):
 # ==========================================================
 # 🧾 LEFT PANEL UPDATES
 # ==========================================================
+
+# -------------------------------
+# Rarity Shadow Color Helper
+# -------------------------------
+func _get_rarity_shadow_color(rarity: String) -> Color:
+	"""Return shadow color based on rarity tier"""
+	match rarity.to_lower():
+		"common":
+			return Color(0.5, 0.5, 0.5, 1.0)  # Grey
+		"uncommon":
+			return Color(1.0, 1.0, 1.0, 1.0)  # White
+		"rare":
+			return Color(0.3, 0.6, 1.0, 1.0)  # Blue
+		"epic":
+			return Color(0.8, 0.3, 1.0, 1.0)  # Purple
+		"legendary":
+			return Color(1.0, 0.6, 0.1, 1.0)  # Orange
+		"mythic":
+			return Color(1.0, 0.2, 0.2, 1.0)  # Red
+		_:
+			return Color(1.0, 1.0, 1.0, 1.0)  # Default white
+
 func _update_left_panel(card_data: CardData, temporary := false):
 	if not card_data:
 		return
 	if card_name_label: card_name_label.text = card_data.name
-	if rarity_label: rarity_label.text = str(card_data.rarity).capitalize()
+	if rarity_label:
+		rarity_label.text = str(card_data.rarity).capitalize()
+		# 🎨 Set rarity color
+		if rarity_label.label_settings:
+			rarity_label.label_settings.shadow_color = _get_rarity_shadow_color(card_data.rarity)
 	if cost_label: cost_label.text = str(card_data.cost)
 	if atk_label: atk_label.text = str(card_data.atk)
 	if def_label: def_label.text = str(card_data.def)
@@ -437,11 +539,29 @@ func _update_left_panel(card_data: CardData, temporary := false):
 		art_texture_rect.texture = card_data.art
 	if art_border: art_border.visible = true
 	_update_left_panel_element(card_data)   # <- add this
-		# --- Leader checkbox reflects state ---
-	if Globals.selected_leader == card_data:
-		leader_checkbox.button_pressed = true
-	else:
-		leader_checkbox.button_pressed = false
+
+	# --- Leader checkbox reflects state ---
+	# Only allow leader selection for MONSTER cards
+	var is_monster := card_data.card_type == CardData.CardType.MONSTER
+
+	if leader_checkbox:
+		leader_checkbox.disabled = not is_monster
+		if is_monster:
+			# Monster card - enable and reflect current leader state
+			if Globals.selected_leader == card_data:
+				leader_checkbox.button_pressed = true
+			else:
+				leader_checkbox.button_pressed = false
+		else:
+			# Non-monster card - disable and uncheck
+			leader_checkbox.button_pressed = false
+
+	# Grey out the "Leader" label for non-monster cards
+	if leader_label:
+		if is_monster:
+			leader_label.modulate = Color(1, 1, 1, 1)  # Normal color
+		else:
+			leader_label.modulate = Color(0.5, 0.5, 0.5, 0.5)  # Greyed out
 
 func _clear_left_panel():
 	for label in [card_name_label, rarity_label, cost_label, atk_label, def_label, subtype_label, abilities_label, ability_desc_label, description_label]:
@@ -450,7 +570,14 @@ func _clear_left_panel():
 	if art_texture_rect:
 		art_texture_rect.texture = null
 	art_border.visible = false
-	_hide_all_element_balls()   
+	_hide_all_element_balls()
+
+	# Reset leader checkbox and label
+	if leader_checkbox:
+		leader_checkbox.disabled = false
+		leader_checkbox.button_pressed = false
+	if leader_label:
+		leader_label.modulate = Color(1, 1, 1, 1)  # Reset to normal color   
 
 
 func _hide_all_element_balls() -> void:
@@ -621,7 +748,7 @@ func _show_tutorial_stage_1():
 
 	# 🔒 Disable all other toolbar buttons
 	if deck_button: deck_button.disabled = false
-	if leader_button: leader_button.disabled = true
+	if achievement_button: achievement_button.disabled = true
 	if sort_button: sort_button.disabled = true
 	if x: sort_button.disabled = true
 	if deck_button:
@@ -716,7 +843,7 @@ func _start_button_pulse(button: Button) -> void:
 		_pulse_tween.kill()
 
 	# Create a pulsing tween effect on modulate or scale
-	_pulse_tween = create_tween().set_loops()
+	_pulse_tween = create_tween().set_loops(0)
 	_pulse_tween.tween_property(button, "scale", Vector2(1.1, 1.1), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	_pulse_tween.tween_property(button, "scale", Vector2(1.0, 1.0), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	button.modulate = Color(1, 1, 0.7, 1)  # Slight golden tint
@@ -734,14 +861,14 @@ func _stop_button_pulse(button: Button) -> void:
 func _on_leader_button_pressed() -> void:
 	collection_panel.visible = false
 	deck_panel.visible = false
-	leader_panel.visible = true
+	achievement_button.visible = true
 	main_panel_label.text = "Leader Selection"
 
 func _on_deck_button_pressed() -> void:
 	collection_panel.visible = false
 	sort_button.visible = false
 	deck_panel.visible = true
-	leader_panel.visible = false
+	achievement_panel.visible = false
 	main_panel_label.text = "Deck Builder"
 
 	# ✅ Stage 2 tutorial (if you want continuation later)
@@ -752,7 +879,7 @@ func _on_deck_button_pressed() -> void:
 func _on_collection_button_pressed() -> void:
 	collection_panel.visible = true
 	deck_panel.visible = false
-	leader_panel.visible = false
+	achievement_panel.visible = false
 
 	# Stop pulsing “C” when clicked
 	if _pulse_tween and _pulse_tween.is_valid():
@@ -761,7 +888,7 @@ func _on_collection_button_pressed() -> void:
 	# ✅ When C is pressed during Stage 1 → show quick collection overview
 	if Globals.tutorial_stage == 1:
 		if deck_button: deck_button.disabled = true
-		if leader_button: leader_button.disabled = true
+		if achievement_button: achievement_button.disabled = true
 		if sort_button: sort_button.disabled = true
 
 		_show_collection_overview_popup()
@@ -808,7 +935,7 @@ func _on_tutorial_continue_button_pressed() -> void:
 			collection_button.disabled = false
 			_start_button_pulse(collection_button)
 		if deck_button: deck_button.disabled = true
-		if leader_button: leader_button.disabled = true
+		if achievement_button: achievement_button.disabled = true
 		if sort_button: sort_button.disabled = true
 		
 		Globals.tutorial_stage = 1
@@ -820,27 +947,43 @@ func _on_tutorial_continue_button_pressed() -> void:
 
 
 func _on_3d_button_pressed() -> void:
+	# Make sure a card is selected
+	if not selected_card:
+		print("[3DButton] ⚠️ No card selected to display")
+		return
+
+	# Check if the card has a model path
+	if selected_card.model_path.is_empty():
+		print("[3DButton] ⚠️ Card has no 3D model:", selected_card.name)
+		return
+
+	print("[3DButton] 🎨 Opening 3D display for:", selected_card.name)
+
 	await TransitionFade.fade_out()
 	var scene_path := "res://Cards/Models/MODEL_DISPLAY_SCREEN.tscn"
 	var packed_scene: PackedScene = load(scene_path)
 
 	if packed_scene == null:
 		push_error("[3DButton] ❌ Could not load MODEL_DISPLAY_SCREEN.tscn at: " + scene_path)
+		await TransitionFade.fade_in()
 		return
 
 	var display_screen := packed_scene.instantiate()
 
-	# Add it to the same parent as the Collection UI (or use get_tree().root if you prefer fullscreen)
+	# ✨ PASS THE CARD DATA TO THE DISPLAY SCREEN
+	if display_screen.has_method("set_card_data"):
+		display_screen.set_card_data(selected_card, self)
+
+	# Add it to the root
 	get_tree().get_root().add_child(display_screen)
 	visible = false
-	
+
 	var em := get_earth_map_scene()
 	if em: em.visible = false
 
 	await TransitionFade.fade_in()
 
-
-	print("[3DButton] 📦 MODEL_DISPLAY_SCREEN instantiated.")
+	print("[3DButton] ✅ MODEL_DISPLAY_SCREEN loaded with card:", selected_card.name)
 
 
 func get_main_menu() -> Control:

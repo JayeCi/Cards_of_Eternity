@@ -301,7 +301,7 @@ func _start_elite(node: MapNode):
 	print("Starting ELITE fight at ", node.name)
 
 func _start_boss(node: MapNode):
-	print("Starting BOSS battle!")
+	print("Starting BOSS battle at ", node.name)
 
 func _open_shop(node: MapNode):
 	print("Opening shop UI")

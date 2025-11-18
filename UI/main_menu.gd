@@ -8,6 +8,7 @@ extends Control
 @onready var background: TextureRect = $Background
 @onready var game_logo: TextureRect = $GameLogo
 @onready var collection_gui: Control =$"../Card_Collection_GUI" # Adjust path as needed
+@onready var how_to_play: Control = $"../How_To_Play"
 
 # Keep track of tweens per button
 var active_tweens := {}
@@ -49,7 +50,7 @@ func _on_button_pressed(button: TextureButton):
 	click_sfx.play()
 	match button.name:
 		"PlayButton": _start_new_game()
-		"ShopButton": _shop_open()
+		"HowToPlayButton": _HowToPlay_open()
 		"CollectionButton": _open_collection()
 		"OptionsButton": _open_options()
 		"ExitButton": get_tree().quit()
@@ -62,8 +63,9 @@ func _start_new_game():
 	else:
 		get_tree().change_scene_to_file("res://World/MAP/map_screen.tscn")
 
-func _shop_open():
-	get_tree().change_scene_to_file("")
+func _HowToPlay_open():
+	how_to_play.visible = !how_to_play.visible
+
 
 func _open_collection():
 	# Hide main menu and show the collection UI

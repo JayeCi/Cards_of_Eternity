@@ -329,7 +329,7 @@ func _ready():
 	# 🎯 Performance: Cache frequently accessed node references
 	_fade_rect = ui_sys.get_node_or_null("FadeRect")
 	_end_turn_btn = ui_sys.get_node_or_null("EndTurnButton")
-	_orb_grid = ui_sys.get_node_or_null("OrbGrid")
+	_orb_grid = ui_sys.get_node_or_null("BottomContainer/OrbGrid")
 	_hand_container = ui_sys.get_node_or_null("BottomContainer/Hand")
 
 	# 🕶 Immediately cover screen with black before anything loads
@@ -905,7 +905,7 @@ func on_hand_card_clicked(card: CardData) -> void:
 			if battle_sys and battle_sys.has_method("clear_summon_highlights"):
 				battle_sys.call("clear_summon_highlights")
 			# Reset hover state so leader/tiles can be selected again
-			if ui_sys and ui_sys.has("_is_hovering_hand_card"):
+			if ui_sys and ui_sys.has_method("_is_hovering_hand_card"):
 				ui_sys._is_hovering_hand_card = false
 			# Reset selected card
 			selected_card = null

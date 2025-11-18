@@ -33,6 +33,6 @@ func _set_border_material():
 
 func _start_pulse():
 	var tw = create_tween()
-	tw.set_loops()
+	tw.set_loops(0)
 	tw.tween_property(border_mesh, "scale", Vector3(1.15, 1.15, 1.15), 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tw.tween_property(border_mesh, "scale", Vector3(1.05, 1.05, 1.05), 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)

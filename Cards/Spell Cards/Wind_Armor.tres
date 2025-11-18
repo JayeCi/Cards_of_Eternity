@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="CardData" load_steps=5 format=3 uid="uid://c2c1bmj4rdmvu"]
 
 [ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_5gm6a"]
-[ext_resource type="Texture2D" uid="uid://bqolpy4e08aqh" path="res://Images/WIND_ARMOR.png" id="2_l6aey"]
+[ext_resource type="Texture2D" uid="uid://cjrrw161w3i88" path="res://Images/windarmor.jpg" id="2_l6aey"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_yn5dr"]
 [ext_resource type="Resource" uid="uid://c7q3m8pvx4n2k" path="res://Cards/Abilities/Wind_Armor_Ability.tres" id="3_wind"]
 

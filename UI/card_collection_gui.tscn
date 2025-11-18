@@ -700,10 +700,10 @@ anchor_bottom = 1.0
 offset_right = 128.0
 grow_vertical = 2
 
-[node name="Leader_button" type="Button" parent="Card_Collection_GUI/Toolbar/ButtonRow1"]
+[node name="Achievement_button" type="Button" parent="Card_Collection_GUI/Toolbar/ButtonRow1"]
 custom_minimum_size = Vector2(40, 15)
 layout_mode = 2
-text = "L"
+text = "A"
 
 [node name="Deck_button" type="Button" parent="Card_Collection_GUI/Toolbar/ButtonRow1"]
 custom_minimum_size = Vector2(40, 15)
@@ -776,7 +776,7 @@ size_flags_horizontal = 6
 size_flags_vertical = 6
 columns = 5
 
-[node name="LeaderPanel" type="Panel" parent="Card_Collection_GUI"]
+[node name="AchievementPanel" type="Panel" parent="Card_Collection_GUI"]
 visible = false
 custom_minimum_size = Vector2(300, 600)
 layout_mode = 1
@@ -793,7 +793,7 @@ size_flags_vertical = 4
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxTexture_ypw0p")
 
-[node name="ScrollContainer" type="ScrollContainer" parent="Card_Collection_GUI/LeaderPanel"]
+[node name="ScrollContainer" type="ScrollContainer" parent="Card_Collection_GUI/AchievementPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -803,7 +803,7 @@ grow_horizontal = 2
 grow_vertical = 2
 horizontal_scroll_mode = 0
 
-[node name="GridContainer" type="GridContainer" parent="Card_Collection_GUI/LeaderPanel/ScrollContainer"]
+[node name="GridContainer" type="GridContainer" parent="Card_Collection_GUI/AchievementPanel/ScrollContainer"]
 layout_mode = 2
 columns = 6
 
@@ -841,6 +841,8 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = -0.5
+offset_right = 0.5
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -882,6 +884,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_mqaap")
 text = "Sort"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="Card_Collection_GUI/DeckPanel/Panel/Collection"]
+custom_minimum_size = Vector2(345, 0)
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
@@ -900,7 +903,7 @@ anchors_preset = 11
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -478.0
+offset_left = -438.0
 offset_top = 55.0
 offset_right = -5.0
 offset_bottom = -5.744995
@@ -909,9 +912,9 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="Panel" type="Panel" parent="Card_Collection_GUI/DeckPanel/Deck"]
-custom_minimum_size = Vector2(447.385, 25)
+custom_minimum_size = Vector2(438.07, 25)
 layout_mode = 2
-size_flags_horizontal = 4
+size_flags_horizontal = 8
 theme_override_styles/panel = ExtResource("5_ypw0p")
 
 [node name="DeckLabel" type="Label" parent="Card_Collection_GUI/DeckPanel/Deck/Panel"]
@@ -1061,7 +1064,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [connection signal="pressed" from="Card_Collection_GUI/LeftPanel/ScrollContainer/VBoxContainer/LeaderHbox/3D_Button" to="Card_Collection_GUI" method="_on_3d_button_pressed"]
-[connection signal="pressed" from="Card_Collection_GUI/Toolbar/ButtonRow1/Leader_button" to="Card_Collection_GUI" method="_on_leader_button_pressed"]
+[connection signal="pressed" from="Card_Collection_GUI/Toolbar/ButtonRow1/Achievement_button" to="Card_Collection_GUI" method="_on_leader_button_pressed"]
 [connection signal="pressed" from="Card_Collection_GUI/Toolbar/ButtonRow1/Deck_button" to="Card_Collection_GUI" method="_on_deck_button_pressed"]
 [connection signal="pressed" from="Card_Collection_GUI/Toolbar/ButtonRow1/Collection_button" to="Card_Collection_GUI" method="_on_collection_button_pressed"]
 [connection signal="pressed" from="Card_Collection_GUI/Toolbar/ButtonRow2/X" to="Card_Collection_GUI" method="_on_x_pressed"]
