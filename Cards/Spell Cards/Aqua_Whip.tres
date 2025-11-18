@@ -11,6 +11,7 @@ rarity = "rare"
 element = "Water"
 preferred_terrain = "Water"
 card_type = 1
+is_upgrade_spell = true
 id = "00108"
 name = "Aqua Whip"
 description = "A whip conjured in the deep. When fused with a WATER monster, increases ATK by 6."

@@ -132,6 +132,19 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, is_player:
 			core._play_card_place_sound()
 			return
 
+		# ⚔️ UPGRADE SPELL: Stay on board until moved onto monster
+		if card.is_upgrade_spell:
+			core._log("⚔️ %s placed on board (waiting for monster)." % card.name, Color(1.0, 0.9, 0.6))
+
+			# Place spell on tile and keep it there
+			core.units[pos] = unit
+			tile.set_occupant(unit)
+			tile.set_art(card.art)
+			tile.set_badge_text("U")  # U for Upgrade
+			unit.set_meta("spell_cast_position", pos)
+			core._play_card_place_sound()
+			return
+
 		# Otherwise, cast immediately and vanish
 		core._log("✨ Casting spell: %s" % card.name, Color(0.9, 0.8, 1.0))
 
@@ -416,7 +429,7 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		return
 
 	# -------------------------
-	# MOVE (no defender)
+	# MOVE (no defender) OR UPGRADE SPELL INTERACTION
 	# -------------------------
 	if dst.occupant == null:
 		clear_highlights()
@@ -429,13 +442,9 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 			model = src.get_node(model_path)
 
 		dst.set_occupant_no_summon(attacker)
-		dst.refresh_card_art()
+		# Don't refresh art yet - wait for model animation
 
 		_play_card_sound(core.CARD_MOVE_SOUND, dst.global_position)
-		dst.set_art(
-			attacker.card.art if attacker.mode != UnitData.Mode.FACEDOWN else core.CARD_BACK,
-			attacker.owner == core.ENEMY
-		)
 		dst.set_badge_text("P" if attacker.owner == core.PLAYER else "E")
 		core._apply_terrain_bonus(attacker, dst.terrain_type)
 
@@ -458,12 +467,97 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 				dst.add_child(model)
 				model.position = offset
 
+		# NOW set the art after model has moved
+		dst.set_art(
+			attacker.card.art if attacker.mode != UnitData.Mode.FACEDOWN else core.CARD_BACK,
+			attacker.owner == core.ENEMY
+		)
+		dst.refresh_card_art()
+
 		# --- Sync data and cleanup ---
 		src.clear()
 		core.units.erase(from)
 		core.units[to] = attacker
 		core.mark_unit_acted(attacker)
 
+		battle._is_battle_in_progress = false
+		return
+
+	# ⚔️ CHECK FOR UPGRADE SPELL INTERACTIONS (before battle)
+	# Case 1: Monster moves onto upgrade spell
+	if dst.occupant and attacker.card.card_type == CardData.CardType.MONSTER and dst.occupant.card and dst.occupant.card.is_upgrade_spell:
+		clear_highlights()
+
+		# Store spell unit reference before we change occupancy
+		var spell_unit = dst.occupant
+
+		# STEP 1: Move monster's 3D model to the spell's tile
+		var model: Node3D = null
+		var model_path := NodePath("CardModel")
+		if src.has_node(model_path):
+			model = src.get_node(model_path)
+
+		_play_card_sound(core.CARD_MOVE_SOUND, dst.global_position)
+
+		if model and is_instance_valid(model):
+			var offset = Vector3(0, 0.1, 0)
+			if attacker.card and attacker.card.model_position != Vector3.ZERO:
+				offset = attacker.card.model_position
+			var world_target = dst.global_position + offset
+
+			var tw = create_tween()
+			tw.tween_property(model, "global_position", world_target, 0.25)
+			await tw.finished
+
+			if is_instance_valid(src) and model.get_parent() == src:
+				src.remove_child(model)
+			if is_instance_valid(dst) and not model.is_queued_for_deletion():
+				dst.add_child(model)
+				model.position = offset
+
+		# STEP 2: Update tile occupancy and art
+		dst.set_occupant_no_summon(attacker)
+		dst.set_badge_text("P" if attacker.owner == core.PLAYER else "E")
+		dst.set_art(
+			attacker.card.art if attacker.mode != UnitData.Mode.FACEDOWN else core.CARD_BACK,
+			attacker.owner == core.ENEMY
+		)
+		dst.refresh_card_art()
+
+		# STEP 3: Clear previous tile
+		src.clear()
+		core.units.erase(from)
+		core.units[to] = attacker
+
+		# STEP 4: NOW play the upgrade animation (pass spell art since tile occupant is now monster)
+		await _try_upgrade_monster(spell_unit, attacker, dst, dst, spell_unit.card.art)
+
+		# Final cleanup
+		core.mark_unit_acted(attacker)
+		battle._is_battle_in_progress = false
+		return
+
+	# Case 2: Upgrade spell moves onto monster
+	if dst.occupant and attacker.card.is_upgrade_spell and dst.occupant.card.card_type == CardData.CardType.MONSTER:
+		clear_highlights()
+		await _try_upgrade_monster(attacker, dst.occupant, src, dst)
+
+		# Spell was removed, monster stays
+		src.clear()
+		core.units.erase(from)
+		core.mark_unit_acted(attacker)
+		battle._is_battle_in_progress = false
+		return
+
+	# Case 3: Upgrade spell moves onto another spell or event - destroy the upgrade spell
+	if dst.occupant and attacker.card.is_upgrade_spell and dst.occupant.card and (dst.occupant.card.card_type == CardData.CardType.SPELL or dst.occupant.card.card_type == CardData.CardType.EVENT):
+		core._log("💥 %s cannot be used here and is destroyed!" % attacker.card.name, Color(1.0, 0.6, 0.4))
+		clear_highlights()
+
+		# Remove the upgrade spell
+		src.clear()
+		core.units.erase(from)
+		core.mark_unit_acted(attacker)
 		battle._is_battle_in_progress = false
 		return
 		
@@ -694,9 +788,8 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 	if attacker.owner == core.ENEMY and result == "attacker_wins":
 		if not dst.occupant and attacker.current_def > 0:
 			dst.set_occupant_no_summon(attacker)
-			dst.refresh_card_art()
+			# Don't refresh art yet - wait for model animation
 
-			dst.set_art(attacker.card.art, true)
 			dst.set_badge_text("E")
 
 			if src.has_node("CardModel"):
@@ -716,6 +809,10 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 						dst.add_child(model)
 						model.position = Vector3(0, 0.1, 0)
 
+			# NOW set the art after model has moved
+			dst.set_art(attacker.card.art, true)
+			dst.refresh_card_art()
+
 			src.clear()
 			core.units.erase(from)
 			core.units[to] = attacker
@@ -729,9 +826,8 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		"attacker_wins":
 			if attacker.current_def > 0:
 				dst.set_occupant_no_summon(attacker)
-				dst.refresh_card_art()
+				# Don't refresh art yet - wait for model animation
 
-				dst.set_art(attacker.card.art, attacker.owner == core.ENEMY)
 				dst.set_badge_text("P" if attacker.owner == core.PLAYER else "E")
 
 				if src.has_node("CardModel"):
@@ -750,6 +846,10 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 						if is_instance_valid(dst):
 							dst.add_child(m1)
 							m1.position = Vector3(0, 0.5, 0)
+
+				# NOW set the art after model has moved
+				dst.set_art(attacker.card.art, attacker.owner == core.ENEMY)
+				dst.refresh_card_art()
 
 				src.clear()
 				core.units.erase(from)
@@ -887,6 +987,7 @@ func _show_move_targets(from: Vector2i) -> void:
 
 	# Check if this is an EVENT card (cannot attack)
 	var is_event_card = unit.card and unit.card.card_type == CardData.CardType.EVENT
+	var is_upgrade_spell = unit.card and unit.card.is_upgrade_spell
 
 	for dir in dirs:
 		for step in range(1, range + 1):
@@ -899,26 +1000,53 @@ func _show_move_targets(from: Vector2i) -> void:
 				break
 
 			if t.occupant:
+				# ⚔️ CHECK FOR UPGRADE SPELL INTERACTIONS
+				var target_is_upgrade_spell = t.occupant.card and t.occupant.card.is_upgrade_spell
+				var target_is_monster = t.occupant.card and t.occupant.card.card_type == CardData.CardType.MONSTER
+				var target_is_spell = t.occupant.card and t.occupant.card.card_type == CardData.CardType.SPELL
+				var target_is_event = t.occupant.card and t.occupant.card.card_type == CardData.CardType.EVENT
+				var moving_is_monster = unit.card and unit.card.card_type == CardData.CardType.MONSTER
+
+				# Case 1: Monster moving onto upgrade spell (YELLOW highlight)
+				# Skip if monster is a leader
+				if moving_is_monster and target_is_upgrade_spell and t.occupant.owner == core.PLAYER and not unit.is_leader:
+					move_targets[p] = {"kind": "upgrade"}
+					_highlight_move_tile(t, false, true)  # Yellow
+					break
+
+				# Case 2: Upgrade spell moving onto monster (YELLOW highlight)
+				# Skip if target is a leader
+				elif is_upgrade_spell and target_is_monster and t.occupant.owner == core.PLAYER and not t.occupant.is_leader:
+					move_targets[p] = {"kind": "upgrade"}
+					_highlight_move_tile(t, false, true)  # Yellow
+					break
+
+				# Case 3: Upgrade spell moving onto spell/event (YELLOW highlight - will be destroyed)
+				elif is_upgrade_spell and (target_is_spell or target_is_event) and t.occupant.owner == core.PLAYER:
+					move_targets[p] = {"kind": "upgrade"}
+					_highlight_move_tile(t, false, true)  # Yellow
+					break
+
 				# EVENT cards cannot attack - just stop when encountering enemies
-				if is_event_card:
+				elif is_event_card:
 					break
 				# Normal cards can attack enemies
-				if t.occupant.owner != core.PLAYER:
+				elif t.occupant.owner != core.PLAYER:
 					move_targets[p] = {"kind": "attack"}
-					_highlight_move_tile(t, true)
+					_highlight_move_tile(t, true, false)  # Red
 				break
 			else:
 				move_targets[p] = {"kind": "move"}
-				_highlight_move_tile(t, false)
+				_highlight_move_tile(t, false, false)  # Blue
 
-func _highlight_move_tile(tile: Node3D, is_attack: bool) -> void:
+func _highlight_move_tile(tile: Node3D, is_attack: bool, is_upgrade: bool = false) -> void:
 	# Badge symbol
 	if tile.has_method("set_highlight"):
-		var symbol := "⚔" if is_attack else "•"
+		var symbol := "⚔" if is_attack else ("⚡" if is_upgrade else "•")
 		tile.set_highlight(true, symbol)
 
 	# Tint color
-	var tint := Color(1.0, 0.3, 0.3) if is_attack else Color(0.3, 0.7, 1.0)
+	var tint := Color(1.0, 1.0, 0.3) if is_upgrade else (Color(1.0, 0.3, 0.3) if is_attack else Color(0.3, 0.7, 1.0))
 
 	# Animated highlight intro
 	if tile.has_method("play_move_highlight_intro"):
@@ -1027,3 +1155,159 @@ func _play_card_sound(sound: AudioStream, position := Vector3.ZERO) -> void:
 	p.pitch_scale = randf_range(0.95, 1.05)
 	p.play()
 	p.connect("finished", Callable(core, "_return_audio_player").bind(p), CONNECT_ONE_SHOT)
+
+
+## ⚔️ UPGRADE SPELL: Check if spell can upgrade monster, animate, and apply
+func _try_upgrade_monster(spell_unit: UnitData, monster_unit: UnitData, spell_tile: Node3D, monster_tile: Node3D, spell_art: Texture2D = null) -> bool:
+	if not spell_unit or not monster_unit:
+		return false
+	if not spell_unit.card or not monster_unit.card:
+		return false
+
+	# Check if spell is actually an upgrade spell
+	if not spell_unit.card.is_upgrade_spell:
+		return false
+
+	# Check if monster is actually a monster
+	if monster_unit.card.card_type != CardData.CardType.MONSTER:
+		return false
+
+	# Leaders cannot be upgraded or fused
+	if monster_unit.is_leader:
+		core._log("❌ Leaders cannot be upgraded!", Color(1.0, 0.5, 0.5))
+		return false
+
+	# Check element matching for valid upgrade
+	var spell_element = spell_unit.card.element
+	var monster_element = monster_unit.card.element
+	var is_valid_upgrade = (spell_element == monster_element)
+
+	if is_valid_upgrade:
+		core._log("⚔️ %s upgrades %s!" % [spell_unit.card.name, monster_unit.card.name], Color(1.0, 0.9, 0.3))
+
+		# 🎬 ANIMATION: Hide if enemy is upgrading a facedown card
+		# (Don't reveal enemy facedown upgrades to player)
+		var is_facedown = monster_unit.is_facedown or (monster_unit.has_meta("is_facedown") and monster_unit.get_meta("is_facedown"))
+		var is_enemy_card = monster_unit.owner == core.ENEMY
+
+		# Hide animation if: enemy card AND facedown
+		var should_hide_animation = is_enemy_card and is_facedown
+
+		if not should_hide_animation:
+			# Use passed spell_art if available, otherwise try to get from spell_unit
+			var art_to_use = spell_art if spell_art else (spell_unit.card.art if spell_unit.card else null)
+			await _animate_spell_upgrade(spell_tile, monster_tile, art_to_use)
+		else:
+			# Silent upgrade for facedown or enemy cards
+			await get_tree().create_timer(0.3).timeout
+
+		# 📊 Apply stat upgrades based on card ability
+		if spell_unit.card.ability:
+			# The ability should handle stat boosts (like +6 ATK or +8 DEF)
+			await core._execute_card_ability(monster_unit, spell_unit.card.ability)
+
+		# 🗑️ Remove upgrade spell from board
+		# Find the spell's position in the units dictionary
+		var spell_pos := Vector2i(-1, -1)
+		for pos in core.units:
+			if core.units[pos] == spell_unit:
+				spell_pos = pos
+				break
+
+		if spell_pos != Vector2i(-1, -1):
+			core.units.erase(spell_pos)
+		spell_tile.set_occupant(null)
+		spell_tile.set_art(null)
+		spell_tile.set_badge_text("")
+
+		core._log("✨ %s absorbed the power of %s!" % [monster_unit.card.name, spell_unit.card.name], Color(0.9, 1.0, 0.8))
+		return true
+	else:
+		# Invalid upgrade - just destroy the spell
+		core._log("❌ %s cannot be used on %s (element mismatch)!" % [spell_unit.card.name, monster_unit.card.name], Color(1.0, 0.5, 0.5))
+
+		# 🗑️ Remove upgrade spell from board
+		# Find the spell's position in the units dictionary
+		var spell_pos := Vector2i(-1, -1)
+		for pos in core.units:
+			if core.units[pos] == spell_unit:
+				spell_pos = pos
+				break
+
+		if spell_pos != Vector2i(-1, -1):
+			core.units.erase(spell_pos)
+		spell_tile.set_occupant(null)
+		spell_tile.set_art(null)
+		spell_tile.set_badge_text("")
+
+		return false
+
+
+## 🎬 Animate spell card sliding onto monster with particle flash
+func _animate_spell_upgrade(spell_tile: Node3D, monster_tile: Node3D, spell_art: Texture2D = null) -> void:
+	if not spell_tile or not monster_tile:
+		return
+
+	# Create temporary visual effect overlay
+	var canvas_layer = CanvasLayer.new()
+	canvas_layer.layer = 100
+	get_tree().root.add_child(canvas_layer)
+
+	var container = Control.new()
+	container.set_anchors_preset(Control.PRESET_FULL_RECT)
+	canvas_layer.add_child(container)
+
+	# Get spell card texture - use passed art parameter
+	var spell_tex = TextureRect.new()
+	spell_tex.texture = spell_art
+	spell_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	spell_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	spell_tex.custom_minimum_size = Vector2(120, 168)
+	spell_tex.pivot_offset = Vector2(60, 84)  # Set pivot to center for scaling
+	container.add_child(spell_tex)
+
+	# Position spell at its tile location
+	var cam = get_viewport().get_camera_3d()
+	if cam:
+		var spell_screen_pos = cam.unproject_position(spell_tile.global_position)
+		spell_tex.position = spell_screen_pos - Vector2(60, 84)
+
+	# Get monster screen position
+	var monster_screen_pos = Vector2.ZERO
+	if cam:
+		monster_screen_pos = cam.unproject_position(monster_tile.global_position)
+
+	# 🎬 Animate spell sliding to monster position
+	var slide_tween = create_tween()
+	slide_tween.set_parallel(true)
+	slide_tween.tween_property(spell_tex, "position", monster_screen_pos - Vector2(60, 84), 0.6).set_ease(Tween.EASE_IN_OUT)
+	slide_tween.tween_property(spell_tex, "modulate:a", 0.0, 0.5).set_delay(0.3)
+	slide_tween.tween_property(spell_tex, "scale", Vector2(0.5, 0.5), 0.6).set_ease(Tween.EASE_IN)
+
+	# ✨ Create particle flash effect at monster position
+	await get_tree().create_timer(0.5).timeout
+
+	# Create glowing particles
+	for i in range(15):
+		var particle = ColorRect.new()
+		particle.custom_minimum_size = Vector2(8, 8)
+		particle.color = Color(1.0, 0.9, 0.3, 0.8)
+		particle.position = monster_screen_pos
+		container.add_child(particle)
+
+		# Random burst direction
+		var angle = randf() * TAU
+		var distance = randf_range(30, 80)
+		var target_pos = monster_screen_pos + Vector2(cos(angle), sin(angle)) * distance
+
+		var particle_tween = create_tween()
+		particle_tween.set_parallel(true)
+		particle_tween.tween_property(particle, "position", target_pos, 0.4)
+		particle_tween.tween_property(particle, "modulate:a", 0.0, 0.4)
+		particle_tween.tween_property(particle, "custom_minimum_size", Vector2(2, 2), 0.4)
+
+	# Wait for animations to complete
+	await get_tree().create_timer(0.8).timeout
+
+	# Clean up
+	canvas_layer.queue_free()

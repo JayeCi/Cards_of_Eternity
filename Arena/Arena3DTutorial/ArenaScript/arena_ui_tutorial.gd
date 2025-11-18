@@ -13,7 +13,7 @@ var _last_hand_snapshot: Array = []
 var _selected_card_ui_map: Dictionary = {}
 
 @onready var fusion_pending := $FusionPending
-@onready var fusion_label := $FusionPending/FusionLabel
+@onready var fusion_label := $FusionPending/CenterContainer/VBoxContainer/FusionLabel
 
 # UI nodes
 @onready var hand_grid: GridContainer = $BottomContainer/Hand

@@ -3,40 +3,86 @@
 [ext_resource type="Script" uid="uid://cgsj7qd50h3m0" path="res://Cards/Abilities/fusion_effect2d.gd" id="1_esc5n"]
 
 [node name="FusionEffect2D" type="CanvasLayer"]
+layer = 100
 script = ExtResource("1_esc5n")
 
 [node name="Root" type="Control" parent="."]
 layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -500.0
+offset_top = -500.0
+offset_right = 500.0
+offset_bottom = 500.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="TextureRectA" type="TextureRect" parent="Root"]
+custom_minimum_size = Vector2(180, 250)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -90.0
+offset_top = -125.0
+offset_right = 90.0
+offset_bottom = 125.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(90, 125)
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TextureRectB" type="TextureRect" parent="Root"]
+custom_minimum_size = Vector2(180, 250)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -90.0
+offset_top = -125.0
+offset_right = 90.0
+offset_bottom = 125.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(90, 125)
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TextureRectFlash" type="ColorRect" parent="Root"]
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="TextureRectA" type="TextureRect" parent="Root"]
-custom_minimum_size = Vector2(125, 125)
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
-expand_mode = 1
-stretch_mode = 4
-
-[node name="TextureRectB" type="TextureRect" parent="Root"]
-custom_minimum_size = Vector2(125, 125)
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
-expand_mode = 1
-stretch_mode = 4
-
-[node name="TextureRectFlash" type="TextureRect" parent="Root"]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
 
 [node name="FusionText" type="Label" parent="Root"]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 23.0
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = 150.0
+offset_right = 200.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 32
+text = "FUSION!"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]

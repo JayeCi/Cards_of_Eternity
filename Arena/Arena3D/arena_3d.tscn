@@ -316,6 +316,12 @@ biome = 6
 
 [node name="UISystem" parent="." instance=ExtResource("2_opwpc")]
 
+[node name="FusionPending" parent="UISystem" index="3"]
+offset_left = -150.0
+offset_top = 0.0
+offset_right = 156.38501
+offset_bottom = 0.0
+
 [node name="BattleUI" parent="UISystem" instance=ExtResource("10_2nnof")]
 visible = false
 layout_mode = 1

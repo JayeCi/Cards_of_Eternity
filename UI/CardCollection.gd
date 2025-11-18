@@ -26,10 +26,10 @@ func _ready():
 func _test_set():
 	clear_collection()
 	var card_names := [
-		"BONE_WARRIOR_RACOON", 
+		"FLAME_FAE", 
 		"GALE_SPIRIT",
 		"WIND_ARMOR",
-		"ICE_CRAB",
+		"FOREST_FAE",
 		"FIREBALL"
 		
 		]

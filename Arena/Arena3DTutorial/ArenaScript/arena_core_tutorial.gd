@@ -54,12 +54,9 @@ const CARD_PATHS := {
 }
 
 var fusion_selection: Array = []   # up to 2 CardData objects
-var fusion_pairs := {
-	# Example mapping
-	["GOBLIN", "IMP"]: "JESTER_OF_FLAMES",
-	["FYSH", "LYZARD"]: "NAGA",
-	["FOREST_FAE", "LAVA_HARE"]: "FLAME_FAE",
-}
+
+# 🧬 Fusion Recipe Database (edit in Cards/Utilities/FusionDatabase.tres)
+@export var fusion_database: FusionDatabase = preload("res://Cards/Utilities/FusionDatabase.tres")
 
 # -----------------------------
 # PUBLIC SIGNALS
@@ -831,14 +828,11 @@ func _try_place_regular_card(hover_tile: Node3D) -> void:
 	)
 
 func _check_fusion_pair(a: CardData, b: CardData) -> CardData:
-	# --- 1️⃣ Explicit static fusion pairs ---
-	var key := [a.name, b.name]
-	var key_rev := [b.name, a.name]
-	for k in fusion_pairs.keys():
-		if k == key or k == key_rev:
-			var result_name = fusion_pairs[k]
-			if CARD_PATHS.has(result_name):
-				return get_card(CARD_PATHS[result_name])
+	# --- 1️⃣ Check fusion database for explicit recipes ---
+	if fusion_database:
+		var result = fusion_database.find_fusion(a, b, CARD_PATHS)
+		if result:
+			return result
 
 	# --- 2️⃣ Dynamic Conflaguration Blade fusion ---
 	var a_name := str(a.name).to_lower().replace(" ", "_")
@@ -891,9 +885,9 @@ func _play_fusion_effect(result_card: CardData) -> void:
 	stop_fusion_pending_hum()
 
 
-	# Optional: camera shake + UI log
-	if camera_sys and camera_sys.has_method("shake"):
-		camera_sys.shake(0.25, 0.4)
+	# Optional: camera shake + UI log (disabled to prevent jitter)
+	#if camera_sys and camera_sys.has_method("shake"):
+	#	camera_sys.shake(0.25, 0.4)
 
 	ui_sys.call("show_battle_message", "🧬 Fusion Created: %s!" % result_card.name, 2.0)
 
@@ -902,6 +896,149 @@ func _play_fusion_effect(result_card: CardData) -> void:
 
 	# Remove the effect layer when done
 	effect.queue_free()
+
+# 🪄 Monster + Spell fusion animation (spell flies into monster, upgrade effect)
+func _play_monster_spell_fusion_effect(monster_card: CardData, spell_card: CardData, result_card: CardData) -> void:
+	stop_fusion_pending_hum()
+
+	# Create a CanvasLayer for the animation
+	var anim_layer = CanvasLayer.new()
+	anim_layer.layer = 100
+	add_child(anim_layer)
+
+	var root = Control.new()
+	root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	anim_layer.add_child(root)
+
+	var viewport_size = get_viewport().get_visible_rect().size
+	var center = viewport_size * 0.5
+
+	# Create monster card display (stays in center)
+	var monster_tex = TextureRect.new()
+	monster_tex.texture = monster_card.art
+	monster_tex.custom_minimum_size = Vector2(180, 250)
+	monster_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	monster_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	monster_tex.anchor_left = 0.5
+	monster_tex.anchor_top = 0.5
+	monster_tex.anchor_right = 0.5
+	monster_tex.anchor_bottom = 0.5
+	monster_tex.offset_left = -90
+	monster_tex.offset_top = -125
+	monster_tex.offset_right = 90
+	monster_tex.offset_bottom = 125
+	monster_tex.pivot_offset = Vector2(90, 125)
+	root.add_child(monster_tex)
+
+	# Create spell card display (starts off to the side)
+	var spell_tex = TextureRect.new()
+	spell_tex.texture = spell_card.art
+	spell_tex.custom_minimum_size = Vector2(180, 250)
+	spell_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	spell_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	spell_tex.anchor_left = 0.5
+	spell_tex.anchor_top = 0.5
+	spell_tex.anchor_right = 0.5
+	spell_tex.anchor_bottom = 0.5
+	spell_tex.offset_left = 300
+	spell_tex.offset_top = -125
+	spell_tex.offset_right = 480
+	spell_tex.offset_bottom = 125
+	spell_tex.pivot_offset = Vector2(90, 125)
+	spell_tex.modulate = Color(1.0, 1.0, 0.7)
+	root.add_child(spell_tex)
+
+	# Create glow effect for monster
+	var glow = ColorRect.new()
+	glow.color = Color(1.0, 0.9, 0.4, 0.0)
+	glow.anchor_left = 0.5
+	glow.anchor_top = 0.5
+	glow.anchor_right = 0.5
+	glow.anchor_bottom = 0.5
+	glow.offset_left = -110
+	glow.offset_top = -145
+	glow.offset_right = 110
+	glow.offset_bottom = 145
+	glow.z_index = -1
+	root.add_child(glow)
+
+	ui_sys.call("show_battle_message", "⚡ %s empowered with %s!" % [monster_card.name, spell_card.name], 2.0)
+
+	# Animate spell flying into monster
+	var fly_tween = create_tween()
+	fly_tween.set_parallel(true)
+	fly_tween.tween_property(spell_tex, "offset_left", -90, 0.5).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	fly_tween.tween_property(spell_tex, "offset_right", 90, 0.5).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	fly_tween.tween_property(spell_tex, "scale", Vector2(0.3, 0.3), 0.5).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	fly_tween.tween_property(spell_tex, "modulate:a", 0.0, 0.4).set_delay(0.1)
+
+	await fly_tween.finished
+
+	# Power-up effect on monster
+	var power_tween = create_tween()
+	power_tween.set_parallel(true)
+	power_tween.tween_property(glow, "color:a", 0.8, 0.2)
+	power_tween.tween_property(monster_tex, "scale", Vector2(1.15, 1.15), 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+	await power_tween.finished
+
+	# Pulse and fade
+	var pulse_tween = create_tween()
+	pulse_tween.set_parallel(true)
+	pulse_tween.tween_property(glow, "color:a", 0.0, 0.3)
+	pulse_tween.tween_property(monster_tex, "scale", Vector2(1.0, 1.0), 0.2)
+	pulse_tween.tween_property(root, "modulate:a", 0.0, 0.3).set_delay(0.2)
+
+	await pulse_tween.finished
+	anim_layer.queue_free()
+
+# ❌ Invalid fusion animation (discarded card flies away)
+func _play_invalid_fusion_effect(discarded_card: CardData, remaining_card: CardData) -> void:
+	stop_fusion_pending_hum()
+
+	# Create a CanvasLayer for the animation
+	var anim_layer = CanvasLayer.new()
+	anim_layer.layer = 100
+	add_child(anim_layer)
+
+	var root = Control.new()
+	root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	anim_layer.add_child(root)
+
+	# Create discarded card display
+	var discard_tex = TextureRect.new()
+	discard_tex.texture = discarded_card.art
+	discard_tex.custom_minimum_size = Vector2(180, 250)
+	discard_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	discard_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	discard_tex.anchor_left = 0.5
+	discard_tex.anchor_top = 0.5
+	discard_tex.anchor_right = 0.5
+	discard_tex.anchor_bottom = 0.5
+	discard_tex.offset_left = -90
+	discard_tex.offset_top = -125
+	discard_tex.offset_right = 90
+	discard_tex.offset_bottom = 125
+	discard_tex.pivot_offset = Vector2(90, 125)
+	discard_tex.modulate = Color(1.0, 0.5, 0.5)
+	root.add_child(discard_tex)
+
+	ui_sys.call("show_battle_message", "❌ Invalid fusion — %s discarded" % discarded_card.name, 1.5)
+
+	# Fly off screen with rotation and fade
+	var discard_tween = create_tween()
+	discard_tween.set_parallel(true)
+	discard_tween.tween_property(discard_tex, "offset_left", -500, 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	discard_tween.tween_property(discard_tex, "offset_right", -320, 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	discard_tween.tween_property(discard_tex, "offset_top", -400, 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	discard_tween.tween_property(discard_tex, "offset_bottom", -150, 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	discard_tween.tween_property(discard_tex, "rotation", deg_to_rad(-45), 0.6)
+	discard_tween.tween_property(discard_tex, "modulate:a", 0.0, 0.5).set_delay(0.1)
+
+	await discard_tween.finished
+	anim_layer.queue_free()
 
 func confirm_summon_in_mode(mode: int) -> void:
 	if selected_card == null:
@@ -933,10 +1070,22 @@ func confirm_summon_in_mode(mode: int) -> void:
 		player_hand = player_hand.filter(func(c): return c != a and c != b)
 		ui_sys.refresh_hand(player_hand, player_essence)
 
-		# 🌀 Play fusion animation and wait for it to finish before placing
-		await _play_fusion_effect(fused)
+		# 🌀 Hide fusion pending overlay before playing fusion animation
 		if ui_sys and ui_sys.has_method("hide_fusion_pending"):
 			await ui_sys.hide_fusion_pending()
+
+		# 🌀 Play appropriate fusion animation based on fusion type
+		if not _fusion_was_valid:
+			# Invalid fusion - show discard animation
+			await _play_invalid_fusion_effect(a, b)
+		elif a.card_type == CardData.CardType.SPELL or b.card_type == CardData.CardType.SPELL:
+			# Monster + Spell fusion - show magic enhancement animation
+			var monster_card = a if a.card_type == CardData.CardType.MONSTER else b
+			var spell_card = a if a.card_type == CardData.CardType.SPELL else b
+			await _play_monster_spell_fusion_effect(monster_card, spell_card, fused)
+		else:
+			# Monster + Monster fusion - show swirl animation
+			await _play_fusion_effect(fused)
 
 		# ✅ Now safely place the fused card
 		battle_sys.place_unit(fused, selected_pos, PLAYER, mode, true)

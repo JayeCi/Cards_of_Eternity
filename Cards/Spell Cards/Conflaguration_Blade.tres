@@ -12,6 +12,7 @@ rarity = "rare"
 element = "Fire"
 preferred_terrain = "Lava"
 card_type = 1
+is_upgrade_spell = true
 id = "00107"
 name = "Conflaguration Blade "
 art = ExtResource("2_kdhuw")

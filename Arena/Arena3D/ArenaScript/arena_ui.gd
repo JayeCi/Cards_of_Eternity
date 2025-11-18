@@ -16,7 +16,7 @@ var _selected_card_ui_map: Dictionary = {}
 const CARD_UI_SCENE := preload("res://UI/CardUI.tscn")
 
 @onready var fusion_pending := $FusionPending
-@onready var fusion_label := $FusionPending/FusionLabel
+@onready var fusion_label := $FusionPending/CenterContainer/VBoxContainer/FusionLabel
 
 # UI nodes
 @onready var hand_grid: GridContainer = $BottomContainer/Hand
@@ -249,6 +249,7 @@ func refresh_hand(player_hand: Array, player_essence: int, force_update := false
 		else:
 			ui.modulate.a = 0.0  # Start invisible, _animate_card_draw will handle fade
 			ui.visible = false  # Keep completely hidden until animation starts
+			ui.mouse_filter = Control.MOUSE_FILTER_IGNORE  # Disable clicks until animation done
 		hand_grid.add_child(ui)
 		last_card_ui = ui
 
@@ -389,6 +390,7 @@ func _animate_card_draw(card_ui: Control) -> void:
 	# Keep the real card completely hidden until animation finishes
 	card_ui.modulate.a = 0.0
 	card_ui.visible = false
+	card_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE  # Disable clicks during animation
 
 	# Wait for layout to update so we get the correct final position
 	await get_tree().process_frame
@@ -425,6 +427,7 @@ func _animate_card_draw(card_ui: Control) -> void:
 	anim_card.queue_free()
 	card_ui.visible = true
 	card_ui.modulate.a = 1.0
+	card_ui.mouse_filter = Control.MOUSE_FILTER_STOP  # Re-enable clicks after animation
 
 func update_phase_label(phase: int) -> void:
 	match phase:
@@ -899,92 +902,291 @@ func show_fusion_pending(cards: Array, result_card: CardData = null) -> void:
 	var a: CardData = cards[0]
 	var b: CardData = cards[1]
 
-	# 🧩 Clear old card UIs
-	for child in fusion_pending.get_children():
-		if child.name.begins_with("FusionCardUI_") or child.name.begins_with("FusionGlow_"):
-			child.queue_free()
+	# 🧩 Clear old card UIs and particles
+	var card_container = fusion_pending.get_node("CenterContainer/VBoxContainer/CardContainer")
+	var particles_container = fusion_pending.get_node("ParticlesContainer")
+	var title_label = fusion_pending.get_node("CenterContainer/VBoxContainer/TitleLabel")
+
+	for child in card_container.get_children():
+		child.queue_free()
+	for child in particles_container.get_children():
+		child.queue_free()
 
 	var card_ui_scene := preload("res://UI/CardUI.tscn")
 
-	# Helper to make glowing frame
-	
-
-	# 🟩 Create glow + card UI for both cards
+	# 🎴 Create both card UIs with proper parenting
 	var card_ui_a: Control = card_ui_scene.instantiate()
 	card_ui_a.name = "FusionCardUI_A"
 	card_ui_a.card_data = a
 	card_ui_a.refresh()
-	card_ui_a.z_index = 100
-	card_ui_a.scale = Vector2(0.8, 0.8)
+	card_ui_a.custom_minimum_size = Vector2(150, 210)
+	card_ui_a.scale = Vector2(1.0, 1.0)
 	card_ui_a.modulate.a = 0.0
-	card_ui_a.position = Vector2(200, 200)
 
 	var card_ui_b: Control = card_ui_scene.instantiate()
 	card_ui_b.name = "FusionCardUI_B"
 	card_ui_b.card_data = b
 	card_ui_b.refresh()
-	card_ui_b.z_index = 101
-	card_ui_b.scale = Vector2(0.8, 0.8)
+	card_ui_b.custom_minimum_size = Vector2(150, 210)
+	card_ui_b.scale = Vector2(1.0, 1.0)
 	card_ui_b.modulate.a = 0.0
-	card_ui_b.position = Vector2(240, 200)
 
-	fusion_pending.add_child(card_ui_a)
-	fusion_pending.add_child(card_ui_b)
+	card_container.add_child(card_ui_a)
+	card_container.add_child(card_ui_b)
 
-	# 🌟 Enable fusion glow visuals
-	if card_ui_a.has_method("show_fusion_glow"):
-		card_ui_a.show_fusion_glow(true)
-	if card_ui_b.has_method("show_fusion_glow"):
-		card_ui_b.show_fusion_glow(true)
+	# 🌟 Create glow backgrounds for cards
+	for card_ui in [card_ui_a, card_ui_b]:
+		var glow_bg = ColorRect.new()
+		glow_bg.name = "GlowBG"
+		glow_bg.color = Color(1.0, 0.8, 0.3, 0.0)
+		glow_bg.z_index = -1
+		glow_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card_ui.add_child(glow_bg)
+		glow_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+		glow_bg.offset_left = -10
+		glow_bg.offset_top = -10
+		glow_bg.offset_right = 10
+		glow_bg.offset_bottom = 10
 
-	# 🧬 Label text
-	fusion_label.text = "Fusion: %s" % result_card.name if result_card != null else "Fusion Ready!"
+	# ⚡ Create energy beam between cards
+	var energy_beam = Line2D.new()
+	energy_beam.name = "EnergyBeam"
+	energy_beam.width = 0.0
+	energy_beam.default_color = Color(1.0, 0.9, 0.3, 0.0)
+	energy_beam.add_point(Vector2.ZERO)
+	energy_beam.add_point(Vector2.ZERO)
+	energy_beam.z_index = 99
+	particles_container.add_child(energy_beam)
 
+	# ✨ Create particle effects
+	for i in range(20):
+		var particle = ColorRect.new()
+		particle.name = "Particle_%d" % i
+		particle.custom_minimum_size = Vector2(4, 4)
+		particle.color = Color(1.0, 0.9 + randf() * 0.1, 0.3 + randf() * 0.4, 0.0)
+		particle.modulate.a = 0.0
+		particles_container.add_child(particle)
 
-	# 🟢 Fade in overlay
+	# 🧬 Update label text
+	fusion_label.text = "⚡ %s ⚡" % result_card.name if result_card != null else "Ready to Fuse!"
+	fusion_label.add_theme_color_override("font_outline_color", Color(0.2, 0.1, 0.5))
+	fusion_label.add_theme_constant_override("outline_size", 8)
+
+	# Style title label
+	title_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.5))
+	title_label.add_theme_color_override("font_outline_color", Color(0.6, 0.3, 0.0))
+	title_label.add_theme_constant_override("outline_size", 6)
+
+	# 🎬 ANIMATION SEQUENCE
 	fusion_pending.visible = true
 	fusion_pending.modulate.a = 0.0
-	var fade_overlay := create_tween()
-	fade_overlay.tween_property(fusion_pending, "modulate:a", 1.0, 0.25)
 
-	# 🎴 Staggered card fade
-	var fade_cards := create_tween()
-	fade_cards.tween_property(card_ui_b, "modulate:a", 1.0, 0.35).set_delay(0.05)
-	fade_cards.tween_property(card_ui_a, "modulate:a", 1.0, 0.35).set_delay(0.25)
+	# Fade in background
+	var fade_bg := create_tween()
+	fade_bg.tween_property(fusion_pending, "modulate:a", 1.0, 0.3)
 
-	# 🔄 Rotation swing
-	if fusion_enable_rotation:
-		var tw_a := create_tween()
-		tw_a.set_loops(0)
-		tw_a.tween_property(card_ui_a, "rotation_degrees", fusion_rotate_amplitude, fusion_rotate_speed).as_relative()
-		tw_a.tween_property(card_ui_a, "rotation_degrees", -fusion_rotate_amplitude, fusion_rotate_speed).as_relative()
+	# Animate title with scale punch
+	title_label.scale = Vector2(0.5, 0.5)
+	title_label.modulate.a = 0.0
+	var title_tween := create_tween()
+	title_tween.tween_property(title_label, "modulate:a", 1.0, 0.2).set_delay(0.1)
+	title_tween.parallel().tween_property(title_label, "scale", Vector2(1.15, 1.15), 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	title_tween.tween_property(title_label, "scale", Vector2(1.0, 1.0), 0.15).set_trans(Tween.TRANS_SINE)
 
-		var tw_b := create_tween()
-		tw_b.set_loops(0)
-		tw_b.tween_property(card_ui_b, "rotation_degrees", -fusion_rotate_amplitude, fusion_rotate_speed).as_relative()
-		tw_b.tween_property(card_ui_b, "rotation_degrees", fusion_rotate_amplitude, fusion_rotate_speed).as_relative()
-		
-	#if core and core.FUSION_PENDING_SOUND:
-		#var p := AudioStreamPlayer.new()
-		#p.name = "FusionPendingSound"
-		#add_child(p)
-		#p.stream = core.FUSION_PENDING_SOUND
-		#p.volume_db = -6.0
-		#p.play()
-		#p.connect("finished", Callable(p, "queue_free"))
+	# Staggered card entrance with bounce
+	await get_tree().create_timer(0.2).timeout
 
+	var card_a_tween := create_tween()
+	card_a_tween.set_parallel(true)
+	card_a_tween.tween_property(card_ui_a, "modulate:a", 1.0, 0.3)
+	card_a_tween.tween_property(card_ui_a, "scale", Vector2(1.0, 1.0), 0.3).from(Vector2(0.3, 0.3)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	card_a_tween.tween_property(card_ui_a, "rotation_degrees", 0.0, 0.3).from(-20.0).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+	await get_tree().create_timer(0.1).timeout
+
+	var card_b_tween := create_tween()
+	card_b_tween.set_parallel(true)
+	card_b_tween.tween_property(card_ui_b, "modulate:a", 1.0, 0.3)
+	card_b_tween.tween_property(card_ui_b, "scale", Vector2(1.0, 1.0), 0.3).from(Vector2(0.3, 0.3)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	card_b_tween.tween_property(card_ui_b, "rotation_degrees", 0.0, 0.3).from(20.0).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+	await card_b_tween.finished
+
+	# 🌊 Continuous pulsing glow animation
+	_start_fusion_pulse_animation(card_ui_a, card_ui_b)
+
+	# ⚡ Animate energy beam
+	_animate_fusion_energy_beam(energy_beam, card_ui_a, card_ui_b, particles_container)
+
+	# ✨ Animate particles
+	_animate_fusion_particles(particles_container, card_ui_a, card_ui_b)
+
+# 🌊 Continuous pulsing glow and scale animation for cards
+func _start_fusion_pulse_animation(card_a: Control, card_b: Control) -> void:
+	if not is_instance_valid(card_a) or not is_instance_valid(card_b):
+		return
+
+	# Pulse scale
+	var pulse_a := create_tween()
+	pulse_a.set_loops(0)
+	pulse_a.tween_property(card_a, "scale", Vector2(1.05, 1.05), 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	pulse_a.tween_property(card_a, "scale", Vector2(1.0, 1.0), 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+	var pulse_b := create_tween()
+	pulse_b.set_loops(0)
+	pulse_b.tween_property(card_b, "scale", Vector2(1.05, 1.05), 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	pulse_b.tween_property(card_b, "scale", Vector2(1.0, 1.0), 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+	# Pulse glow backgrounds
+	if card_a.has_node("GlowBG"):
+		var glow_a = card_a.get_node("GlowBG")
+		var glow_tween_a := create_tween()
+		glow_tween_a.set_loops(0)
+		glow_tween_a.tween_property(glow_a, "color:a", 0.6, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		glow_tween_a.tween_property(glow_a, "color:a", 0.3, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+	if card_b.has_node("GlowBG"):
+		var glow_b = card_b.get_node("GlowBG")
+		var glow_tween_b := create_tween()
+		glow_tween_b.set_loops(0)
+		glow_tween_b.tween_property(glow_b, "color:a", 0.6, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		glow_tween_b.tween_property(glow_b, "color:a", 0.3, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+	fusion_tweens.append(pulse_a)
+	fusion_tweens.append(pulse_b)
+
+# ⚡ Energy beam animation between cards
+func _animate_fusion_energy_beam(beam: Line2D, card_a: Control, card_b: Control, container: Control) -> void:
+	if not is_instance_valid(beam) or not is_instance_valid(card_a) or not is_instance_valid(card_b):
+		return
+
+	# Fade in beam width
+	var width_tween := create_tween()
+	width_tween.tween_property(beam, "width", 8.0, 0.4).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	width_tween.tween_property(beam, "default_color:a", 0.8, 0.4)
+
+	# Create continuous update for beam position
+	var update_timer := Timer.new()
+	update_timer.name = "BeamUpdateTimer"
+	update_timer.wait_time = 0.016  # ~60 FPS
+	update_timer.autostart = true
+	container.add_child(update_timer)
+
+	update_timer.timeout.connect(func():
+		if not is_instance_valid(beam) or not is_instance_valid(card_a) or not is_instance_valid(card_b):
+			if is_instance_valid(update_timer):
+				update_timer.queue_free()
+			return
+
+		# Convert global positions to container's local space
+		var pos_a_global = card_a.global_position + card_a.size * 0.5
+		var pos_b_global = card_b.global_position + card_b.size * 0.5
+
+		var pos_a_local = container.get_global_transform().affine_inverse() * pos_a_global
+		var pos_b_local = container.get_global_transform().affine_inverse() * pos_b_global
+
+		beam.set_point_position(0, pos_a_local)
+		beam.set_point_position(1, pos_b_local)
+
+		# Pulse beam color
+		var pulse = (sin(Time.get_ticks_msec() * 0.005) + 1.0) * 0.5
+		beam.default_color.a = 0.4 + pulse * 0.4
+	)
+
+	fusion_tweens.append(width_tween)
+
+# ✨ Particle animation around cards
+func _animate_fusion_particles(container: Control, card_a: Control, card_b: Control) -> void:
+	if not is_instance_valid(container):
+		return
+
+	var viewport_size = get_viewport().get_visible_rect().size
+	var center = viewport_size * 0.5
+
+	for child in container.get_children():
+		# Check if child is valid before accessing properties
+		if not is_instance_valid(child):
+			continue
+		if not child.name.begins_with("Particle_"):
+			continue
+
+		var particle = child as ColorRect
+		if not particle:
+			continue
+
+			# Random starting angle and radius
+			var angle = randf() * TAU
+			var radius = 100.0 + randf() * 200.0
+			var orbit_speed = 1.0 + randf() * 2.0
+			var start_delay = randf() * 0.5
+
+			# Fade in
+			await get_tree().create_timer(start_delay).timeout
+			if not is_instance_valid(particle):
+				continue
+
+			var fade_tween := create_tween()
+			fade_tween.tween_property(particle, "modulate:a", 1.0, 0.3)
+
+			# Create orbit animation
+			var update_timer := Timer.new()
+			update_timer.wait_time = 0.016
+			update_timer.autostart = true
+			particle.add_child(update_timer)
+
+			var elapsed = 0.0
+			update_timer.timeout.connect(func():
+				if not is_instance_valid(particle):
+					if is_instance_valid(update_timer):
+						update_timer.queue_free()
+					return
+
+				elapsed += 0.016
+				var current_angle = angle + elapsed * orbit_speed
+				var current_radius = radius + sin(elapsed * 3.0) * 30.0
+
+				var pos = center + Vector2(cos(current_angle), sin(current_angle)) * current_radius
+				particle.global_position = pos
+
+				# Pulse size
+				var scale_pulse = 1.0 + sin(elapsed * 4.0) * 0.3
+				particle.scale = Vector2(scale_pulse, scale_pulse)
+			)
 
 func hide_fusion_pending() -> void:
 	if not fusion_pending:
 		return
 	core._is_fusion_pending_active = false
 
+	# Kill all running fusion tweens
+	for tween in fusion_tweens:
+		if is_instance_valid(tween) and tween.is_running():
+			tween.kill()
+	fusion_tweens.clear()
+
+	# Stop all timers in particles container
+	if fusion_pending.has_node("ParticlesContainer"):
+		var particles_container = fusion_pending.get_node("ParticlesContainer")
+		for child in particles_container.get_children():
+			for timer in child.get_children():
+				if timer is Timer:
+					timer.stop()
+					timer.queue_free()
+
+	# Fade out
 	var t := create_tween()
-	t.tween_property(fusion_pending, "modulate:a", 0.0, fusion_fade_in_duration)
+	t.tween_property(fusion_pending, "modulate:a", 0.0, 0.3)
 	await t.finished
 
-	for child in fusion_pending.get_children():
-		if child.name.begins_with("FusionCardUI_") or child.name.begins_with("FusionGlow_"):
+	# Clean up all children
+	if fusion_pending.has_node("CenterContainer/VBoxContainer/CardContainer"):
+		var card_container = fusion_pending.get_node("CenterContainer/VBoxContainer/CardContainer")
+		for child in card_container.get_children():
+			child.queue_free()
+
+	if fusion_pending.has_node("ParticlesContainer"):
+		var particles_container = fusion_pending.get_node("ParticlesContainer")
+		for child in particles_container.get_children():
 			child.queue_free()
 
 	fusion_pending.visible = false
@@ -1030,3 +1232,44 @@ func _on_cancel_pressed() -> void:
 	# 🧩 Clear any lingering summon highlights
 	if core.battle_sys and core.battle_sys.has_method("clear_summon_highlights"):
 		core.battle_sys.call("clear_summon_highlights")
+
+
+## Hide all UI elements (for cutscenes)
+func hide_all_ui() -> void:
+	if has_node("BottomContainer"):
+		$BottomContainer.visible = false
+	if has_node("PhaseLabel"):
+		$PhaseLabel.visible = false
+	if has_node("PlayerHP"):
+		$PlayerHP.visible = false
+	if has_node("EnemyHP"):
+		$EnemyHP.visible = false
+	if has_node("VBoxContainer"):
+		$VBoxContainer.visible = false
+	if has_node("ArenaCardDetails"):
+		$ArenaCardDetails.visible = false
+	if has_node("ArenaLeaderDetails"):
+		$ArenaLeaderDetails.visible = false
+	if has_node("ArenaTerrainDetails"):
+		$ArenaTerrainDetails.visible = false
+	if has_node("SummonMode"):
+		$SummonMode.visible = false
+	if has_node("FusionPending"):
+		$FusionPending.visible = false
+
+
+## Show all UI elements (after cutscenes)
+func show_all_ui() -> void:
+	if has_node("BottomContainer"):
+		$BottomContainer.visible = true
+	if has_node("PhaseLabel"):
+		$PhaseLabel.visible = true
+	if has_node("PlayerHP"):
+		$PlayerHP.visible = true
+	if has_node("EnemyHP"):
+		$EnemyHP.visible = true
+	if has_node("VBoxContainer"):
+		$VBoxContainer.visible = true
+	# Details panels stay hidden until needed
+	# SummonMode stays hidden until needed
+	# FusionPending stays hidden until needed

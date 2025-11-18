@@ -249,6 +249,11 @@ func play_victory_cutscene() -> void:
 	core.is_cutscene_active = true
 	_disable_input(true)
 
+	# 🎭 Hide all UI for cinematic cutscene
+	var ui_sys = core.ui_sys
+	if ui_sys and ui_sys.has_method("hide_all_ui"):
+		ui_sys.hide_all_ui()
+
 	# 🕐 Pause before starting cutscene to let the moment sink in
 	await get_tree().create_timer(2.5).timeout
 
@@ -320,7 +325,7 @@ func play_victory_cutscene() -> void:
 	await get_tree().create_timer(rotation_duration * 0.5).timeout
 
 	# Show Victory message
-	var ui_sys = core.ui_sys
+	#var ui_sys = core.ui_sys
 	if ui_sys and ui_sys.has_method("show_victory_message"):
 		ui_sys.show_victory_message()
 	else:
@@ -332,6 +337,10 @@ func play_victory_cutscene() -> void:
 
 	# Brief pause before fade out
 	await get_tree().create_timer(0.5).timeout
+
+	# 🎭 Restore UI after cutscene
+	if ui_sys and ui_sys.has_method("show_all_ui"):
+		ui_sys.show_all_ui()
 
 	_is_cutscene_running = false
 	core.is_cutscene_active = false

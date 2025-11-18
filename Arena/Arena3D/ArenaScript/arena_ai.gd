@@ -94,13 +94,17 @@ func run_enemy_turn() -> void:
 		await _leader_behavior()
 		await get_tree().create_timer(0.4).timeout
 
-	# 2️⃣ Try summoning or moving
+	# 2️⃣ Check for fusion/upgrade opportunities (strategic value)
+	await _smart_fusion_upgrade()
+	await get_tree().create_timer(0.3).timeout
+
+	# 3️⃣ Try summoning or moving
 	var can_summon := _has_summon_space() and core.enemy_essence > 0
 	if can_summon and randf() < aggression:
 		await _smart_summon()
 	else:
 		await _smart_move_and_attack()
-	# 3️⃣ If no attacks or summons happened → do proactive movement
+	# 4️⃣ If no attacks or summons happened → do proactive movement
 	if not _any_action_taken():
 		await _proactive_reposition()
 
@@ -782,3 +786,327 @@ func _any_action_taken() -> bool:
 	var result = _did_action_this_turn
 	_did_action_this_turn = false
 	return result
+
+
+# ---------------------------------------------------------
+# FUSION / UPGRADE SPELL LOGIC
+# ---------------------------------------------------------
+## AI evaluates and executes fusion/upgrade opportunities
+func _smart_fusion_upgrade() -> void:
+	# Higher difficulty = more likely to use upgrades strategically
+	var fusion_chance = 0.3 + (aggression * 0.5)  # 30-80% based on aggression
+
+	if randf() > fusion_chance:
+		return
+
+	# ========================================
+	# PRIORITY 1: Monster+Monster Fusions (Database)
+	# ========================================
+	# Check for fusion pairs on the board first (immediate value)
+	if await _try_board_fusion():
+		return
+
+	# Check for fusion pairs in hand (strategic placement)
+	if await _try_hand_fusion_placement():
+		return
+
+	# ========================================
+	# PRIORITY 2: Upgrade Spell Fusions
+	# ========================================
+	# Strategy 1: Check if AI has upgrade spells in hand that can be used
+	var upgrade_spells_in_hand: Array[CardData] = []
+	for card in core.enemy_hand:
+		if card and card.is_upgrade_spell:
+			upgrade_spells_in_hand.append(card)
+
+	# Strategy 2: Check for upgrade spells already on the board
+	var upgrade_spells_on_board: Array[Dictionary] = []  # {pos: Vector2i, unit: UnitData}
+	var monsters_on_board: Array[Dictionary] = []  # {pos: Vector2i, unit: UnitData}
+
+	for pos in core.units:
+		var u = core.units[pos]
+		if u.owner == core.ENEMY:
+			if u.card and u.card.is_upgrade_spell:
+				upgrade_spells_on_board.append({"pos": pos, "unit": u})
+			elif u.card and u.card.card_type == CardData.CardType.MONSTER:
+				monsters_on_board.append({"pos": pos, "unit": u})
+
+	# Try to move existing upgrade spells onto matching monsters
+	if not upgrade_spells_on_board.is_empty() and not monsters_on_board.is_empty():
+		if await _try_move_spell_to_monster(upgrade_spells_on_board, monsters_on_board):
+			return
+
+	# Try to place upgrade spell from hand near monster
+	if not upgrade_spells_in_hand.is_empty() and not monsters_on_board.is_empty():
+		if await _try_place_upgrade_spell(upgrade_spells_in_hand, monsters_on_board):
+			return
+
+
+## Check if two cards on the board can fuse via database and move them together
+func _try_board_fusion() -> bool:
+	# Get all enemy units on board
+	var enemy_units: Array[Dictionary] = []
+	for pos in core.units:
+		var u = core.units[pos]
+		if u.owner == core.ENEMY and u.card:
+			enemy_units.append({"pos": pos, "unit": u})
+
+	# Check all pairs for fusion potential
+	for i in range(enemy_units.size()):
+		var unit_a_data = enemy_units[i]
+		var pos_a: Vector2i = unit_a_data.pos
+		var unit_a: UnitData = unit_a_data.unit
+
+		# Skip leaders - they cannot fuse
+		if unit_a.is_leader:
+			continue
+
+		# Can this unit act?
+		if not core.can_unit_act(unit_a):
+			continue
+
+		for j in range(i + 1, enemy_units.size()):
+			var unit_b_data = enemy_units[j]
+			var pos_b: Vector2i = unit_b_data.pos
+			var unit_b: UnitData = unit_b_data.unit
+
+			# Skip leaders - they cannot fuse
+			if unit_b.is_leader:
+				continue
+
+			# Check if these can fuse
+			var fusion_result = core._check_fusion_pair(unit_a.card, unit_b.card)
+			if fusion_result:
+				# Check if they're within movement range
+				var distance = pos_a.distance_to(pos_b)
+				if distance <= core.BASE_MOVE_RANGE:
+					core._log("🤖 AI found fusion opportunity: %s + %s = %s" %
+						[unit_a.card.name, unit_b.card.name, fusion_result.name], Color(1.0, 0.9, 0.3))
+
+					_focus_camera_on(core.board.get_tile(pos_b.x, pos_b.y).global_position, 0.8, 0.5)
+					await get_tree().create_timer(0.3).timeout
+
+					# Move unit A onto unit B to trigger fusion
+					await move._move_or_battle(pos_a, pos_b, true)
+					_did_action_this_turn = true
+					return true
+
+	return false
+
+
+## Check if AI has two cards in hand that can fuse and place them adjacent
+func _try_hand_fusion_placement() -> bool:
+	if core.enemy_hand.size() < 2:
+		return false
+
+	var leader_pos = battle.get_leader_pos(core.ENEMY)
+	if leader_pos == Vector2i(-1, -1):
+		return false
+
+	# Check all pairs in hand for fusion potential
+	for i in range(core.enemy_hand.size()):
+		var card_a = core.enemy_hand[i]
+		if not card_a:
+			continue
+
+		for j in range(i + 1, core.enemy_hand.size()):
+			var card_b = core.enemy_hand[j]
+			if not card_b:
+				continue
+
+			# Check if these can fuse
+			var fusion_result = core._check_fusion_pair(card_a, card_b)
+			if fusion_result:
+				# Check if we can afford both
+				var total_cost = card_a.cost + card_b.cost
+				if core.enemy_essence < total_cost:
+					continue
+
+				# Find two adjacent empty tiles near leader
+				var placed_first = false
+				var first_pos: Vector2i
+				var second_pos: Vector2i
+
+				# Search for adjacent empty tiles
+				for dir1 in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+					var pos1 = leader_pos + dir1
+					if not core.board.is_in_bounds(pos1):
+						continue
+
+					var tile1 = core.board.get_tile(pos1.x, pos1.y)
+					if not tile1 or tile1.occupant != null:
+						continue
+
+					# Found first spot, now look for adjacent spot
+					for dir2 in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+						var pos2 = pos1 + dir2
+						if pos2 == leader_pos:  # Skip if it's the leader spot
+							continue
+
+						if not core.board.is_in_bounds(pos2):
+							continue
+
+						var tile2 = core.board.get_tile(pos2.x, pos2.y)
+						if not tile2 or tile2.occupant != null:
+							continue
+
+						# Found two adjacent spots!
+						first_pos = pos1
+						second_pos = pos2
+						placed_first = true
+						break
+
+					if placed_first:
+						break
+
+				if not placed_first:
+					continue
+
+				core._log("🤖 AI placing fusion pair: %s + %s (will fuse to %s)" %
+					[card_a.name, card_b.name, fusion_result.name], Color(1.0, 0.9, 0.3))
+
+				# Remove from hand
+				core.enemy_hand.erase(card_a)
+				core.enemy_hand.erase(card_b)
+
+				# Place first card
+				_focus_camera_on(core.board.get_tile(first_pos.x, first_pos.y).global_position, 0.8, 0.5)
+				await get_tree().create_timer(0.3).timeout
+				move.place_unit(card_a, first_pos, core.ENEMY, UnitData.Mode.ATTACK, true)
+				core.enemy_essence -= int(card_a.cost)
+
+				await get_tree().create_timer(0.4).timeout
+
+				# Place second card
+				_focus_camera_on(core.board.get_tile(second_pos.x, second_pos.y).global_position, 0.8, 0.5)
+				await get_tree().create_timer(0.3).timeout
+				move.place_unit(card_b, second_pos, core.ENEMY, UnitData.Mode.ATTACK, true)
+				core.enemy_essence -= int(card_b.cost)
+
+				core.emit_signal("essence_changed", core.player_essence, core.enemy_essence)
+				_did_action_this_turn = true
+
+				# AI will fuse them together next turn
+				return true
+
+	return false
+
+
+## Try to move an upgrade spell on board onto a matching monster
+func _try_move_spell_to_monster(spells: Array[Dictionary], monsters: Array[Dictionary]) -> bool:
+	for spell_data in spells:
+		var spell_pos: Vector2i = spell_data.pos
+		var spell_unit: UnitData = spell_data.unit
+
+		if not spell_unit or not spell_unit.card:
+			continue
+
+		# Can this unit still act?
+		if not core.can_unit_act(spell_unit):
+			continue
+
+		var spell_element = spell_unit.card.element
+
+		# Find monsters with matching element
+		for monster_data in monsters:
+			var monster_pos: Vector2i = monster_data.pos
+			var monster_unit: UnitData = monster_data.unit
+
+			if not monster_unit or not monster_unit.card:
+				continue
+
+			# Skip leaders - they cannot be upgraded
+			if monster_unit.is_leader:
+				continue
+
+			var monster_element = monster_unit.card.element
+
+			# Check element match
+			if spell_element == monster_element:
+				# Check if monster is within movement range
+				var distance = spell_pos.distance_to(monster_pos)
+				if distance <= core.BASE_MOVE_RANGE:
+					core._log("🤖 AI moving %s to upgrade %s" % [spell_unit.card.name, monster_unit.card.name], Color(0.8, 0.9, 1.0))
+
+					_focus_camera_on(core.board.get_tile(monster_pos.x, monster_pos.y).global_position, 0.8, 0.5)
+					await get_tree().create_timer(0.3).timeout
+
+					await move._move_or_battle(spell_pos, monster_pos, true)
+					_did_action_this_turn = true
+					return true
+
+	return false
+
+
+## Try to place an upgrade spell from hand next to a matching monster
+func _try_place_upgrade_spell(spells: Array[CardData], monsters: Array[Dictionary]) -> bool:
+	var leader_pos = battle.get_leader_pos(core.ENEMY)
+
+	for spell_card in spells:
+		if not spell_card:
+			continue
+
+		var spell_element = spell_card.element
+
+		# Find best matching monster
+		var best_monster: Dictionary = {}
+		var best_score = -INF
+
+		for monster_data in monsters:
+			var monster_unit: UnitData = monster_data.unit
+			if not monster_unit or not monster_unit.card:
+				continue
+
+			# Skip leaders - they cannot be upgraded
+			if monster_unit.is_leader:
+				continue
+
+			# Check element match
+			if monster_unit.card.element == spell_element:
+				# Evaluate if this upgrade is worth it
+				var score = monster_unit.current_atk + monster_unit.current_def
+
+				# Prefer monsters that are face-up (more valuable to upgrade)
+				if not monster_unit.is_facedown:
+					score += 20
+
+				if score > best_score:
+					best_score = score
+					best_monster = monster_data
+
+		if best_monster.is_empty():
+			continue
+
+		var monster_pos: Vector2i = best_monster.pos
+
+		# Find adjacent empty tile to place upgrade spell
+		for dir in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			var place_pos = monster_pos + dir
+
+			if not core.board.is_in_bounds(place_pos):
+				continue
+
+			var tile = core.board.get_tile(place_pos.x, place_pos.y)
+			if tile and tile.occupant == null:
+				# Check if we can afford it
+				if core.enemy_essence < spell_card.cost:
+					continue
+
+				core._log("🤖 AI placing %s near %s" % [spell_card.name, best_monster.unit.card.name], Color(0.8, 0.9, 1.0))
+
+				# Remove from hand
+				core.enemy_hand.erase(spell_card)
+
+				_focus_camera_on(tile.global_position, 0.8, 0.5)
+				await get_tree().create_timer(0.3).timeout
+
+				# Place face-up (upgrade spells don't benefit from being face-down)
+				move.place_unit(spell_card, place_pos, core.ENEMY, UnitData.Mode.ATTACK, true)
+				core.enemy_essence -= int(spell_card.cost)
+				core.emit_signal("essence_changed", core.player_essence, core.enemy_essence)
+				_did_action_this_turn = true
+
+				# Next turn, AI will move monster onto spell or spell onto monster
+				return true
+
+	return false

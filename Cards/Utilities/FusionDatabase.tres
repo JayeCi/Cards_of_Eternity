@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="FusionDatabase" load_steps=15 format=3 uid="uid://rdtn8uxxx6up"]
+
+[ext_resource type="Script" uid="uid://cuoboksskjbkl" path="res://Cards/Utilities/FusionDatabase.gd" id="1_database"]
+[ext_resource type="Resource" uid="uid://cd3sihq52ta22" path="res://Cards/Monster Cards/Flame_Fae.tres" id="2_d2fbn"]
+[ext_resource type="Script" uid="uid://dc5cvrombb8ci" path="res://Cards/Utilities/FusionRecipe.gd" id="2_recipe"]
+[ext_resource type="Resource" uid="uid://d2snus2l750wy" path="res://Cards/Monster Cards/Forest_Fae.tres" id="3_njabg"]
+[ext_resource type="Resource" uid="uid://cajx71fbmr5pj" path="res://Cards/Monster Cards/Fyra.tres" id="4_h2q4k"]
+[ext_resource type="Resource" uid="uid://tifqojkddu4i" path="res://Cards/Monster Cards/Boogles.tres" id="5_njabg"]
+[ext_resource type="Resource" uid="uid://bmf71xkd1md54" path="res://Cards/Monster Cards/Lava_Hare.tres" id="6_ejljn"]
+[ext_resource type="Resource" uid="uid://dfig2wcoxt3fu" path="res://Cards/Monster Cards/Jester_of_Flames.tres" id="7_84qyq"]
+[ext_resource type="Resource" uid="uid://l8hkcr570yry" path="res://Cards/Monster Cards/Fysh.tres" id="8_un1an"]
+[ext_resource type="Resource" uid="uid://du4fq2g8pgtq5" path="res://Cards/Monster Cards/Aqua Lyzard.tres" id="9_asrjx"]
+[ext_resource type="Resource" uid="uid://bfwj21trvei3d" path="res://Cards/Monster Cards/Finn.tres" id="10_ys3ed"]
+
+[sub_resource type="Resource" id="recipe_1"]
+script = ExtResource("2_recipe")
+card_a = ExtResource("2_d2fbn")
+card_b = ExtResource("3_njabg")
+result = ExtResource("4_h2q4k")
+
+[sub_resource type="Resource" id="Resource_h2q4k"]
+script = ExtResource("2_recipe")
+card_a = ExtResource("5_njabg")
+card_b = ExtResource("6_ejljn")
+result = ExtResource("7_84qyq")
+metadata/_custom_type_script = "uid://dc5cvrombb8ci"
+
+[sub_resource type="Resource" id="Resource_scq0g"]
+script = ExtResource("2_recipe")
+card_a = ExtResource("8_un1an")
+card_b = ExtResource("9_asrjx")
+result = ExtResource("10_ys3ed")
+metadata/_custom_type_script = "uid://dc5cvrombb8ci"
+
+[resource]
+script = ExtResource("1_database")
+recipes = Array[ExtResource("2_recipe")]([SubResource("recipe_1"), SubResource("Resource_h2q4k"), SubResource("Resource_scq0g")])

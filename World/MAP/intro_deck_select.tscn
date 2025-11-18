@@ -1,97 +1,8 @@
-[gd_scene load_steps=25 format=3 uid="uid://d17sqncfrfh7s"]
+[gd_scene load_steps=4 format=3 uid="uid://d17sqncfrfh7s"]
 
-[ext_resource type="Script" uid="uid://b0wpww58niieu" path="res://World/MAP/intro_deck_select.gd" id="1_wwoti"]
-[ext_resource type="Shader" uid="uid://bhdeye3vfy1xa" path="res://World/MAP/2D_Outline_AIO_Fire.gdshader" id="2_6n4jv"]
-[ext_resource type="Texture2D" uid="uid://dg7ut2nih87ps" path="res://UI/fire.jpg" id="3_mg2fu"]
-[ext_resource type="Texture2D" uid="uid://pkffjdl3r4q3" path="res://World/MAP/earthdeck.png" id="3_y3fax"]
-[ext_resource type="Texture2D" uid="uid://d3n5old0nqkac" path="res://World/MAP/winddeck.png" id="4_ijd3w"]
-[ext_resource type="Texture2D" uid="uid://cqbneo6gm2fea" path="res://World/MAP/FIREDECK.png" id="4_pbp5d"]
-[ext_resource type="Texture2D" uid="uid://v58k1cwawjan" path="res://World/MAP/waterdeck.png" id="5_k1xmo"]
-[ext_resource type="Shader" uid="uid://buy1axxvjskg4" path="res://World/MAP/2D_Outline_AIO_Earth.gdshader" id="5_pbp5d"]
-[ext_resource type="Texture2D" uid="uid://cbc5l83bvnhjk" path="res://UI/Terrains/Water.png" id="6_k1xmo"]
-[ext_resource type="Texture2D" uid="uid://cqe7he3kmm1tx" path="res://addons/open-world-database/demo/resources/tree/bark.png" id="6_tan88"]
-[ext_resource type="Shader" uid="uid://c11lvjkfmqg31" path="res://World/MAP/2D_Outline_AIO_Wind.gdshader" id="8_yl7oa"]
-[ext_resource type="Texture2D" uid="uid://bhlen8e0rmkqu" path="res://UI/wind.png" id="9_nn5wj"]
-[ext_resource type="AudioStream" uid="uid://dsqlqauyrettj" path="res://Audio/hover.mp3" id="13_pbp5d"]
-[ext_resource type="AudioStream" uid="uid://c4ohnn6g7s2kj" path="res://Audio/Sound FX/UI_Click.mp3" id="14_tan88"]
-
-[sub_resource type="Gradient" id="Gradient_m7upp"]
-
-[sub_resource type="GradientTexture1D" id="GradientTexture1D_l3a21"]
-gradient = SubResource("Gradient_m7upp")
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_ijd3w"]
-shader = ExtResource("2_6n4jv")
-shader_parameter/scrollingTexture = ExtResource("3_mg2fu")
-shader_parameter/textureScale = Vector2(1, 1)
-shader_parameter/angle = 45.0
-shader_parameter/textureSpeed = 0.3320004907699996
-shader_parameter/textureStrength = 0.5
-shader_parameter/maxLineWidth = 20.466000972135
-shader_parameter/minLineWidth = 0.0
-shader_parameter/speed = 9.0970004321075
-shader_parameter/blockSize = 5.4650002595875
-shader_parameter/color = SubResource("GradientTexture1D_l3a21")
-shader_parameter/gradientResolution = 10
-shader_parameter/tolerance = 0.0
-shader_parameter/glow_active = false
-
-[sub_resource type="Gradient" id="Gradient_w7d6r"]
-
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_rpeqo"]
-gradient = SubResource("Gradient_w7d6r")
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_4hfmv"]
-shader = ExtResource("5_pbp5d")
-shader_parameter/scrollingTexture = ExtResource("6_tan88")
-shader_parameter/textureScale = Vector2(1, 1)
-shader_parameter/angle = 212.442010090995
-shader_parameter/textureSpeed = 0.020000475950000762
-shader_parameter/textureStrength = 1.0
-shader_parameter/maxLineWidth = 25.698001220655
-shader_parameter/minLineWidth = 5.0
-shader_parameter/speed = 0.0
-shader_parameter/blockSize = 14.186000673834998
-shader_parameter/color = SubResource("GradientTexture2D_rpeqo")
-shader_parameter/gradientResolution = 10
-shader_parameter/tolerance = 0.0
-shader_parameter/glow_active = false
-
-[sub_resource type="Gradient" id="Gradient_e6u3u"]
-
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_irlre"]
-gradient = SubResource("Gradient_e6u3u")
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_6pej7"]
-shader = ExtResource("8_yl7oa")
-shader_parameter/scrollingTexture = ExtResource("9_nn5wj")
-shader_parameter/textureScale = Vector2(13.675, 13.21)
-shader_parameter/angle = 9.418000447355
-shader_parameter/textureSpeed = 1.5120005468199995
-shader_parameter/textureStrength = 0.5470000259825
-shader_parameter/maxLineWidth = 11.74400055784
-shader_parameter/minLineWidth = 28.48800135318
-shader_parameter/speed = 1.0
-shader_parameter/blockSize = 20.0
-shader_parameter/color = SubResource("GradientTexture2D_irlre")
-shader_parameter/gradientResolution = 10
-shader_parameter/tolerance = 0.0
-shader_parameter/glow_active = false
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_qce27"]
-shader = ExtResource("8_yl7oa")
-shader_parameter/scrollingTexture = ExtResource("6_k1xmo")
-shader_parameter/textureScale = Vector2(0.535, -0.325)
-shader_parameter/angle = 116.1630055177425
-shader_parameter/textureSpeed = -0.13199953127000086
-shader_parameter/textureStrength = 0.6290000298775
-shader_parameter/maxLineWidth = 14.0690006682775
-shader_parameter/minLineWidth = 5.0000002375
-shader_parameter/speed = 5.7090002711775
-shader_parameter/blockSize = 32.2090015299275
-shader_parameter/gradientResolution = 10
-shader_parameter/tolerance = 0.0
-shader_parameter/glow_active = false
+[ext_resource type="Script" uid="uid://b0wpww58niieu" path="res://World/MAP/intro_deck_select.gd" id="1_script"]
+[ext_resource type="AudioStream" uid="uid://dsqlqauyrettj" path="res://Audio/hover.mp3" id="2_hover"]
+[ext_resource type="AudioStream" uid="uid://c4ohnn6g7s2kj" path="res://Audio/Sound FX/UI_Click.mp3" id="3_click"]
 
 [node name="IntroDeckSelect" type="Control"]
 layout_mode = 3
@@ -100,73 +11,64 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_wwoti")
+script = ExtResource("1_script")
 
-[node name="DeckGrid" type="GridContainer" parent="."]
+[node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -20.0
-offset_top = -20.0
-offset_right = 20.0
-offset_bottom = 20.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/h_separation = 39
-columns = 4
-
-[node name="FireDeck" type="TextureButton" parent="DeckGrid"]
-material = SubResource("ShaderMaterial_ijd3w")
-custom_minimum_size = Vector2(175.425, 359.035)
-layout_mode = 2
-texture_normal = ExtResource("4_pbp5d")
-ignore_texture_size = true
-stretch_mode = 5
-
-[node name="EarthDeck" type="TextureButton" parent="DeckGrid"]
-material = SubResource("ShaderMaterial_4hfmv")
-custom_minimum_size = Vector2(204, 306)
-layout_mode = 2
-texture_normal = ExtResource("3_y3fax")
-ignore_texture_size = true
-stretch_mode = 5
-
-[node name="WindDeck" type="TextureButton" parent="DeckGrid"]
-material = SubResource("ShaderMaterial_6pej7")
-custom_minimum_size = Vector2(156.45, 306)
-layout_mode = 2
-texture_normal = ExtResource("4_ijd3w")
-ignore_texture_size = true
-stretch_mode = 5
-
-[node name="WaterDeck" type="TextureButton" parent="DeckGrid"]
-material = SubResource("ShaderMaterial_qce27")
-custom_minimum_size = Vector2(204, 306)
-layout_mode = 2
-texture_normal = ExtResource("5_k1xmo")
-ignore_texture_size = true
-stretch_mode = 5
+color = Color(0.050980393, 0.050980393, 0.078431375, 0.5647059)
 
 [node name="TitleLabel" type="Label" parent="."]
+modulate = Color(1, 1, 1, 0)
 layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -20.0
-offset_right = 20.0
-offset_bottom = 23.0
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 60.0
+offset_bottom = 120.0
 grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.7, 1)
+theme_override_font_sizes/font_size = 48
+text = "CHOOSE YOUR PATH"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="."]
+modulate = Color(1, 1, 1, 0)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 130.0
+offset_bottom = 170.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 20
+text = "Select a starter deck to begin your journey"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DeckContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -127.0
+offset_bottom = 275.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 30
+alignment = 1
 
 [node name="Sounds" type="Node" parent="."]
 
 [node name="Hover" type="AudioStreamPlayer" parent="Sounds"]
-stream = ExtResource("13_pbp5d")
-volume_db = -21.444
-bus = &"SFX"
+stream = ExtResource("2_hover")
+volume_db = -5.0
 
 [node name="Click" type="AudioStreamPlayer" parent="Sounds"]
-stream = ExtResource("14_tan88")
-bus = &"SFX"
+stream = ExtResource("3_click")
+volume_db = -3.0
