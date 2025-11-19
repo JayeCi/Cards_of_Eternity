@@ -121,8 +121,8 @@ func _ready():
 	tutorial_label.append_text("[center][b]Welcome to Cards of Eternity![/b][/center]\n\n")
 	tutorial_label.append_text("This is the [b]Card Collection UI[/b].\n")
 	tutorial_label.append_text("Here you can view all of the cards you have collected, inspect their details, and see which cards are currently in your deck.\n\n")
-	tutorial_label.append_text("[color=yellow]• Hover[/color] a card to inspect it in detail.\n")
-	tutorial_label.append_text("[color=green]• Click[/color] a card to add or remove it from your deck.\n\n")
+	tutorial_label.append_text("[color=yellow]• Left-click[/color] a card to select it and view details.\n")
+	tutorial_label.append_text("[color=green]• Right-click[/color] a card to add or remove it from your deck.\n\n")
 	tutorial_label.append_text("When you're ready, click the [b]\"C\"[/b] on the toolbar to go to your full collection list.")
 	tutorial_can_continue = false
 	_unlock_tutorial_continue()
@@ -157,10 +157,10 @@ func add_all_cards_for_testing() -> void:
 
 	var cards_added := 0
 	for card_name in CardDB.PATH.keys():
-		CardCollection.add_card_by_name(card_name, 1)  # Add 3 of each card
+		CardCollection.add_card_by_name(card_name, 3)  # Add 3 of each card (max)
 		cards_added += 1
 
-	print("✅ [Testing] Added %d unique cards (3 of each) to collection!" % cards_added)
+	print("✅ [Testing] Added %d unique cards (3 copies each) to collection!" % cards_added)
 
 	# Reconnect signals
 	if not CardCollection.is_connected("card_added", Callable(self, "_on_card_added_signal")):
@@ -246,54 +246,47 @@ func _on_card_clicked(event: InputEvent, card_ui):
 	if event is InputEventMouseButton and event.pressed:
 		var parent_grid = card_ui.get_parent()
 
-		# LEFT CLICK → Select / Move (context-sensitive)
+		# LEFT CLICK → Select card to view details
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			selected_card = card_ui.card_data
 			_update_left_panel(selected_card)
+			print("[CollectionGUI] 📋 Selected card:", selected_card.name)
+			return
 
-			# 🔒 If clicked inside CollectionPanel → View only, no move
-			if parent_grid == main_panel:
-				print("[CollectionGUI] ℹ️ Clicked in CollectionPanel — view only (no move).")
-				return
-
-			# 🟢 If clicked in Deck Builder’s collection grid → Move to deck
-			if parent_grid == deck_collection_grid:
-				if deck_grid.get_child_count() >= 10:
-					sfx_action_beep.play()
-					print("[DeckBuilder] ⚠️ Deck is full.")
-					return
-				if _move_card_to_deck(card_ui.card_data):
-					card_ui.queue_free()
-					return
-
-			# 🔴 If clicked in DeckGrid → Remove from deck
-			if parent_grid == deck_grid:
-				_move_card_to_collection(card_ui.card_data)
-				card_ui.queue_free()
-				return
-
-		# RIGHT CLICK → Disabled in CollectionPanel
+		# RIGHT CLICK → Move cards (Deck Panel only)
 		elif event.button_index == MOUSE_BUTTON_RIGHT:
-			# Ignore right clicks in CollectionPanel
+			# ❌ Right-click disabled in CollectionPanel (view-only mode)
 			if parent_grid == main_panel:
 				print("[CollectionGUI] ❌ Right-click disabled in CollectionPanel.")
 				return
 
-			# 🔴 DeckGrid → Move back to collection
-			if parent_grid == deck_grid:
-				_move_card_to_collection(card_ui.card_data)
-				card_ui.queue_free()
-				return
-
-			# 🟢 Deck Builder’s collection grid → Add to deck
+			# 🟢 Deck Builder's collection grid → Add ONE copy to deck
 			if parent_grid == deck_collection_grid:
+				# Check if any copies available
+				var available = DeckManager.remaining_available(card_ui.card_data)
+				if available <= 0:
+					sfx_action_beep.play()
+					print("[DeckBuilder] ⚠️ No more copies of", card_ui.card_data.name, "available.")
+					return
+
+				# Check deck size limit
 				if deck_grid.get_child_count() >= 10:
 					sfx_action_beep.play()
 					print("[DeckBuilder] ⚠️ Deck is full.")
 					return
+
+				# Move ONE copy to deck
 				if _move_card_to_deck(card_ui.card_data):
-					card_ui.queue_free()
+					# Don't queue_free - just update quantity display
+					_refresh_collection_counts()
 					return
+
+			# 🔴 DeckGrid → Remove ONE copy from deck
+			if parent_grid == deck_grid:
+				_move_card_to_collection(card_ui.card_data)
+				# Remove this specific card UI instance from deck grid
+				card_ui.queue_free()
+				return
 
 func _move_card_to_deck(card_data: CardData) -> bool:
 	if deck_grid.get_child_count() >= 10:
@@ -310,48 +303,59 @@ func _move_card_to_deck(card_data: CardData) -> bool:
 
 
 func _on_card_count_changed(card_id: String, new_count: int) -> void:
-	for grid in [main_panel, deck_collection_grid]:
-		for child in grid.get_children():
-			if child.has_method("card_data") and child.card_data and child.card_data.id == card_id:
-				if child.has_method("set_quantity"):
-					child.set_quantity(new_count)
-					print("[CollectionGUI] 🔄 Updated quantity for ", card_id, " → ", new_count)
+	# Update main panel (shows total owned)
+	for child in main_panel.get_children():
+		if "card_data" in child and child.card_data and child.card_data.id == card_id:
+			if child.has_method("set_quantity"):
+				child.set_quantity(new_count)
+				print("[CollectionGUI] 🔄 Main panel quantity for", card_id, "→", new_count)
+
+	# Update deck collection grid (shows available)
+	for child in deck_collection_grid.get_children():
+		if "card_data" in child and child.card_data and child.card_data.id == card_id:
+			if child.has_method("set_quantity"):
+				var card_data = CardCollection.get_card_data(card_id)
+				if card_data:
+					var available = DeckManager.remaining_available(card_data)
+					child.set_quantity(available)
+					print("[CollectionGUI] 🔄 Deck panel available for", card_id, "→", available)
 
 func _move_card_to_collection(card_data: CardData):
 	if not DeckManager.remove_one(card_data):
 		print("[DeckBuilder] ⚠️ Not in deck:", card_data.name)
 		return
 
-	print("[DeckBuilder] ↩️ Moved", card_data.name, "to collection.")
+	print("[DeckBuilder] ↩️ Removed 1 copy of", card_data.name, "from deck.")
+
+	# Refresh deck grid to remove the visual card
 	_refresh_deck_grid()
+
+	# Update all quantity displays
 	_refresh_collection_counts()
-	_update_deck_count()
 
-	if not displayed_cards.has(card_data):
-		_add_card_to_gui(card_data)
-
-
-	var card_ui_scene := preload("res://UI/CardUI.tscn")
-	var deck_card_ui: Control = card_ui_scene.instantiate()
-	deck_card_ui.card_data = card_data
-	deck_card_ui.refresh()
-	deck_collection_grid.add_child(deck_card_ui)
-
-	deck_card_ui.connect("gui_input", Callable(self, "_on_card_clicked").bind(deck_card_ui))
-	deck_card_ui.connect("request_show_zoom", Callable(self, "_on_card_hovered"))
-	deck_card_ui.connect("request_hide_zoom", Callable(self, "_on_card_unhovered"))
-
-	print("[DeckBuilder] 🔁 Returned", card_data.name, "to deck collection grid")
-
-	# ✅ FIX: update deck count after removing
+	# Update deck count label
 	_update_deck_count()
 
 func _refresh_collection_counts():
+	# Update main collection panel (shows total owned)
 	for child in main_panel.get_children():
 		if "card_data" in child and child.card_data:
-			var left := DeckManager.remaining_available(child.card_data)
 			if child.has_method("set_quantity"):
-				child.set_quantity(left)  # show true remaining
+				var owned_count = CardCollection.get_card_count(child.card_data.id)
+				child.set_quantity(owned_count)
+
+	# Update deck builder collection grid (shows available to add to deck)
+	for child in deck_collection_grid.get_children():
+		if "card_data" in child and child.card_data:
+			if child.has_method("set_quantity"):
+				var available_count = DeckManager.remaining_available(child.card_data)
+				child.set_quantity(available_count)
+
+				# Optionally gray out if none available
+				if available_count <= 0:
+					child.modulate = Color(0.5, 0.5, 0.5, 0.7)
+				else:
+					child.modulate = Color(1, 1, 1, 1)
 
 func _update_deck_count() -> void:
 	await get_tree().process_frame
@@ -432,14 +436,17 @@ func _add_card_to_gui(card_data: CardData):
 
 	var card_ui_scene := preload("res://UI/CardUI.tscn")
 
+	# === Main Collection Panel Card ===
+	# Shows TOTAL owned count (e.g., "x3" if you own 3 copies)
 	var card_ui: Control = card_ui_scene.instantiate()
 	card_ui.card_data = card_data
 	card_ui.refresh()
-	
-		# show remaining copies available to add into deck
+
+	# Show total owned copies in collection panel
 	if card_ui.has_method("set_quantity"):
-		card_ui.set_quantity(DeckManager.remaining_available(card_data))
-		
+		var owned_count = CardCollection.get_card_count(card_data.id)
+		card_ui.set_quantity(owned_count)
+
 	main_panel.add_child(card_ui)
 
 	# Connect hover/click
@@ -449,13 +456,20 @@ func _add_card_to_gui(card_data: CardData):
 	card_ui.connect("request_return_to_collection", Callable(self, "_on_card_return_requested").bind(card_ui))
 
 
-	# Mirror in deck builder’s collection grid
+	# === Deck Builder Collection Grid Card ===
+	# Shows AVAILABLE count (owned - in_deck)
 	var deck_card_ui: Control = card_ui_scene.instantiate()
 	deck_card_ui.card_data = card_data
 	deck_card_ui.refresh()
+
+	# Show available copies (can still be added to deck)
+	if deck_card_ui.has_method("set_quantity"):
+		var available_count = DeckManager.remaining_available(card_data)
+		deck_card_ui.set_quantity(available_count)
+
 	deck_collection_grid.add_child(deck_card_ui)
 
-	# 🟢 Make these clickable too
+	# Connect signals
 	deck_card_ui.connect("gui_input", Callable(self, "_on_card_clicked").bind(deck_card_ui))
 	deck_card_ui.connect("request_show_zoom", Callable(self, "_on_card_hovered"))
 	deck_card_ui.connect("request_hide_zoom", Callable(self, "_on_card_unhovered"))
@@ -468,30 +482,17 @@ func _on_card_added_signal(card: CardData, count: int):
 	_add_card_to_gui(card)
 
 func _on_card_return_requested(card_data: CardData, sender_ui: Control):
-
 	if not card_data:
 		return
-	
 
 	# 🚫 Prevent this from firing on cards inside the CollectionPanel
 	if sender_ui and sender_ui.get_parent() == main_panel:
 		print("[CollectionGUI] ❌ Ignored return request from CollectionPanel card.")
 		return
 
-
-	var card_ui_scene := preload("res://UI/CardUI.tscn")
-	var new_card_ui: Control = card_ui_scene.instantiate()
-	new_card_ui.card_data = card_data
-	new_card_ui.refresh()
-	deck_collection_grid.add_child(new_card_ui)
-
-	print("[DeckBuilder] ↩️ Returned", card_data.name, "to collection")
-
-	for child in deck_grid.get_children():
-		if child.card_data and child.card_data == card_data:
-			child.queue_free()
-			print("[DeckBuilder] ❌ Removed", card_data.name, "from deck grid")
-			break
+	# This signal is now handled by right-click in deck grid
+	# Just call the standard move function
+	_move_card_to_collection(card_data)
 
 # ==========================================================
 # 🧾 LEFT PANEL UPDATES
@@ -677,6 +678,12 @@ func _refresh_sorted_collection() -> void:
 		var card_ui: Control = card_ui_scene.instantiate()
 		card_ui.card_data = card_data
 		card_ui.refresh()
+
+		# Show total owned quantity
+		if card_ui.has_method("set_quantity"):
+			var owned_count = CardCollection.get_card_count(card_data.id)
+			card_ui.set_quantity(owned_count)
+
 		main_panel.add_child(card_ui)
 
 		card_ui.connect("gui_input", Callable(self, "_on_card_clicked").bind(card_ui))
@@ -768,10 +775,10 @@ func _show_tutorial_stage_2():
 	tutorial_label.bbcode_enabled = true
 
 	tutorial_label.append_text("[center][b]Welcome to the Deck Builder![/b][/center]\n\n")
-	tutorial_label.append_text("Here, you assemble the cards you’ll bring into battle.\n\n")
+	tutorial_label.append_text("Here, you assemble the cards you'll bring into battle.\n\n")
 	tutorial_label.append_text("You can bring in any amount of cards, the maximum right now is 10.\n\n")
-	tutorial_label.append_text("• Click a card to add it to your deck.\n")
-	tutorial_label.append_text("• Click again to remove it.\n\n")
+	tutorial_label.append_text("• [color=yellow]Left-click[/color] a card to view its details.\n")
+	tutorial_label.append_text("• [color=green]Right-click[/color] a card to add or remove it from your deck.\n\n")
 	tutorial_label.append_text("Try building your first deck now with your first 5 cards!\n")
 	tutorial_label.append_text("Don't forget to set one as your leader!\n\n")
 	tutorial_label.visible_characters = 0

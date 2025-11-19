@@ -246,14 +246,32 @@ func _on_deck_selected(index: int):
 
 	await get_tree().create_timer(0.6).timeout
 
-	# Move selected panel to center and scale up
+	# Get selected panel and prepare for centering
 	var selected_panel = _deck_panels[index]
-	var viewport_center = get_viewport_rect().size / 2.0
-	var target_pos = viewport_center - (selected_panel.size / 2.0)
 
-	var center_tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
-	center_tween.tween_property(selected_panel, "global_position", target_pos, 0.8)
-	center_tween.parallel().tween_property(selected_panel, "scale", Vector2(1.3, 1.3), 0.8)
+	# Store current global position before reparenting
+	var current_global_pos = selected_panel.global_position
+	var panel_size = selected_panel.size
+
+	# Reparent to root to escape container layout constraints
+	var original_parent = selected_panel.get_parent()
+	original_parent.remove_child(selected_panel)
+	add_child(selected_panel)
+
+	# Restore global position after reparenting
+	selected_panel.global_position = current_global_pos
+
+	# Set pivot to center for symmetric scaling
+	selected_panel.pivot_offset = panel_size / 2.0
+
+	# Calculate true center position (accounting for pivot)
+	var viewport_center = get_viewport_rect().size / 2.0
+	var centered_position = viewport_center - (panel_size / 2.0)
+
+	# Smooth move to center with scale up
+	var center_tween = create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	center_tween.tween_property(selected_panel, "global_position", centered_position, 0.8)
+	center_tween.tween_property(selected_panel, "scale", Vector2(1.3, 1.3), 0.8)
 
 	await center_tween.finished
 	await get_tree().create_timer(0.3).timeout
@@ -266,6 +284,10 @@ func _on_deck_selected(index: int):
 
 
 func _animate_flip_to_deck_art(panel: PanelContainer, index: int):
+	# Store the current center position before any scaling
+	var viewport_center = get_viewport_rect().size / 2.0
+	var panel_center = panel.global_position + (panel.size / 2.0)
+
 	# Create deck art texture rect
 	var deck_art = TextureRect.new()
 	deck_art.texture = load(DECK_ART_PATHS[index])
@@ -278,20 +300,36 @@ func _animate_flip_to_deck_art(panel: PanelContainer, index: int):
 	panel.add_child(deck_art)
 	panel.move_child(deck_art, 0)
 
-	# Flip animation - horizontal scale to 0 then back
-	var flip_out = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-	flip_out.tween_property(panel, "scale:x", 0.0, 0.3)
+	# Professional flip animation - scale X to 0, swap content, scale back
+	# Part 1: Flip out (shrink horizontally to center)
+	var flip_out = create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+
+	# Scale down X while keeping Y constant for clean flip effect
+	flip_out.tween_property(panel, "scale:x", 0.0, 0.35)
+
+	# Maintain center position during scale (compensate for pivot)
+	var new_pos_during_flip = viewport_center - (panel.size * Vector2(0, 1.3) / 2.0)
+	flip_out.tween_property(panel, "global_position:y", new_pos_during_flip.y, 0.35)
 
 	await flip_out.finished
 
-	# Hide the front panel content, show deck art
+	# Swap content at the thinnest point of flip
 	for child in panel.get_children():
 		if child != deck_art:
 			child.visible = false
 	deck_art.modulate.a = 1.0
 
-	# Flip back in
-	var flip_in = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	flip_in.tween_property(panel, "scale:x", 1.3, 0.3)
+	# Part 2: Flip in (expand horizontally from center)
+	var flip_in = create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+	# Scale back to 1.3
+	flip_in.tween_property(panel, "scale:x", 1.3, 0.35)
+
+	# Restore centered position
+	var final_centered_pos = viewport_center - (panel.size * 1.3 / 2.0)
+	flip_in.tween_property(panel, "global_position", final_centered_pos, 0.35)
 
 	await flip_in.finished
+
+	# Final position lock - ensure absolutely perfect centering
+	panel.global_position = viewport_center - (panel.size * 1.3 / 2.0)
