@@ -4,7 +4,7 @@ class_name ArenaAI
 var core: ArenaCore
 var battle: ArenaBattle
 var ui: ArenaUI
-var move: ArenaMove
+var move: Node3D
 
 var aggression := 0.65
 var caution := 0.35

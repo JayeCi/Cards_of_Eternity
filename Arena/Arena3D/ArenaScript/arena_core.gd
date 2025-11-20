@@ -237,7 +237,7 @@ enum Phase { SUMMON_OR_MOVE, SELECT_SUMMON_TILE, SELECT_MOVE_TARGET, ENEMY_TURN 
 @onready var battle_sys: Node = $BattleSystem
 @onready var ai_sys: Node = $AISystem
 @onready var cutscene_sys: Node = $CutsceneSystem
-@onready var move_sys: ArenaMove = $MoveSystem
+@onready var move_sys = $MoveSystem
 
 # UI children we still reference directly (for convenience)
 @onready var card_draw: AudioStreamPlayer = $UISystem/SFX/CardDraw
@@ -359,8 +359,26 @@ func _ready():
 
 func _deferred_startup():
 	randomize()
-	#board.biome = all_biomes[randi() % all_biomes.size()]
-	board.biome = board.Biome.MEADOW
+
+	# ✅ Use biome from encounter_data if available
+	if data and data.has("biome") and data.biome != "":
+		var biome_name: String = data.biome.to_upper()
+		match biome_name:
+			"OCEAN": board.biome = board.Biome.OCEAN
+			"VOLCANO": board.biome = board.Biome.VOLCANO
+			"FOREST": board.biome = board.Biome.FOREST
+			"MEADOW": board.biome = board.Biome.MEADOW
+			"MOUNTAIN": board.biome = board.Biome.MOUNTAIN
+			"TUNDRA": board.biome = board.Biome.TUNDRA
+			_:
+				# Fallback to random if invalid biome
+				board.biome = all_biomes[randi() % all_biomes.size()]
+		_log("🌍 Using map node biome: %s" % biome_name, Color(0.6, 1.0, 0.6))
+	else:
+		# Random biome if not specified
+		board.biome = all_biomes[randi() % all_biomes.size()]
+		_log("🌍 Using random biome", Color(0.9, 0.9, 0.6))
+
 	# Generate the map for that biome
 	board._generate_grid()
 
@@ -705,8 +723,17 @@ func _spawn_leaders() -> void:
 
 	player_leader.is_leader = true
 
-		
-	enemy_leader = UnitData.new().init_from_card(get_card(CARD_PATHS.BOOGLES), ENEMY)
+	# ✅ Use enemy leader from encounter_data if available
+	var enemy_leader_card: CardData = null
+	if data and data.has("enemy_leader") and data.enemy_leader:
+		enemy_leader_card = data.enemy_leader
+		_log("👿 Using map node enemy leader: %s" % enemy_leader_card.name, Color(1, 0.6, 0.6))
+	else:
+		# Fallback to default
+		enemy_leader_card = get_card(CARD_PATHS.BOOGLES)
+		_log("👿 Using default enemy leader: Boogles", Color(1, 0.6, 0.6))
+
+	enemy_leader = UnitData.new().init_from_card(enemy_leader_card, ENEMY)
 	enemy_leader.is_leader = true
 
 

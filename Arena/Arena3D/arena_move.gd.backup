@@ -534,9 +534,6 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		await _try_upgrade_monster(spell_unit, attacker, dst, dst, spell_unit.card.art)
 
 		# STEP 5: ✅ Refresh monster tile visuals after upgrade
-		# Reassign occupant to ensure proper tile state
-		dst.set_occupant_no_summon(attacker)
-
 		dst.set_art(
 			attacker.card.art if attacker.mode != UnitData.Mode.FACEDOWN else core.CARD_BACK,
 			attacker.owner == core.ENEMY
@@ -553,9 +550,6 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 			if is_instance_valid(models):
 				models.visible = not attacker.is_facedown
 
-		# Force tile refresh for proper clickability
-		await get_tree().process_frame
-
 		# Final cleanup
 		core.mark_unit_acted(attacker)
 		battle._is_battle_in_progress = false
@@ -569,9 +563,6 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		await _try_upgrade_monster(attacker, monster_unit, src, dst)
 
 		# ✅ Refresh monster tile visuals after upgrade
-		# Reassign occupant to ensure proper tile state
-		dst.set_occupant_no_summon(monster_unit)
-
 		dst.set_art(
 			monster_unit.card.art if monster_unit.mode != UnitData.Mode.FACEDOWN else core.CARD_BACK,
 			monster_unit.owner == core.ENEMY
@@ -587,9 +578,6 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 			var model = dst.get_node("CardModel")
 			if is_instance_valid(model):
 				model.visible = not monster_unit.is_facedown
-
-		# Force tile refresh for proper clickability
-		await get_tree().process_frame
 
 		# Spell was removed, monster stays
 		src.clear()
@@ -637,7 +625,7 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 			dst.clear()
 
 			# Place the fusion result on the destination tile
-			dst.set_occupant_no_summon(fused_unit)
+			dst.set_occupant(fused_unit)
 			core.units[to] = fused_unit
 			dst.set_art(fusion_result.art, attacker.owner == core.ENEMY)
 			dst.set_badge_text("A")
@@ -668,7 +656,7 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 
 			# Trigger fusion abilities
 			if fusion_result.ability and "on_summon" in fusion_result.ability.trigger:
-				core._execute_card_ability(fused_unit, fusion_result.ability)
+				await core._execute_card_ability(fused_unit, fusion_result.ability)
 
 			# Mark as acted
 			core.mark_unit_acted(fused_unit)

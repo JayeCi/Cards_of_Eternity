@@ -1,6 +1,6 @@
-[gd_scene load_steps=27 format=3 uid="uid://bx8mbd37psymu"]
+[gd_scene load_steps=25 format=3 uid="uid://bx8mbd37psymu"]
 
-[ext_resource type="Script" uid="uid://c7p6ht8pl08vn" path="res://map_screen.gd" id="1_txqf5"]
+[ext_resource type="Script" uid="uid://c7p6ht8pl08vn" path="res://map_screen.gd" id="1_slgt3"]
 [ext_resource type="PackedScene" uid="uid://bw2igg30xct5v" path="res://World/MAP/map_node.tscn" id="2_1rsxy"]
 [ext_resource type="PackedScene" uid="uid://rf1o57ms7h1i" path="res://World/MAP/Map_UI_Overlay.tscn" id="2_1yy5y"]
 [ext_resource type="PackedScene" uid="uid://cv0hqr5q4w02b" path="res://UI/card_collection_gui.tscn" id="2_7hypk"]
@@ -9,26 +9,24 @@
 [ext_resource type="Script" uid="uid://x5gllef2oogk" path="res://World/MAP/background.gd" id="3_q23gr"]
 [ext_resource type="Script" uid="uid://8bbkeqyshhmk" path="res://World/MAP/line_drawer.gd" id="4_jnlq2"]
 [ext_resource type="Texture2D" uid="uid://bdh225tfiv5ri" path="res://World/MAP/PlayerLocation.png" id="6_haur7"]
-[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="8_haur7"]
-[ext_resource type="Resource" uid="uid://jne2skd0eidt" path="res://Cards/Monster Cards/Dirt.tres" id="9_jnlq2"]
 [ext_resource type="Texture2D" uid="uid://c7m48phmvq7f" path="res://World/MAP/portal_hub.png" id="9_lj5nr"]
-[ext_resource type="Texture2D" uid="uid://cg5stqo0o7fjj" path="res://World/MAP/Mystery.png" id="10_k3tqd"]
-[ext_resource type="Resource" uid="uid://xrp0akg8ejnj" path="res://Cards/Monster Cards/Falcreep.tres" id="14_173be"]
-[ext_resource type="Texture2D" uid="uid://bnradptbsyotm" path="res://World/MAP/goblin_villian.png" id="16_slgt3"]
+[ext_resource type="Script" uid="uid://dqgkchwentsab" path="res://World/MAP/map_node.gd" id="11_711yy"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="12_raa1s"]
+[ext_resource type="Resource" uid="uid://jne2skd0eidt" path="res://Cards/Monster Cards/Dirt.tres" id="13_iu2tk"]
+[ext_resource type="Resource" uid="uid://2etufmvoir0g" path="res://Cards/Monster Cards/Fungoo.tres" id="14_715l5"]
+[ext_resource type="Resource" uid="uid://bymlax4cwtbnq" path="res://Cards/Monster Cards/Imp.tres" id="15_egvj5"]
+[ext_resource type="Resource" uid="uid://xrp0akg8ejnj" path="res://Cards/Monster Cards/Falcreep.tres" id="16_173be"]
 [ext_resource type="AudioStream" uid="uid://cmmig4w5xvnlm" path="res://Audio/River_Forest.mp3" id="16_x5i6b"]
 [ext_resource type="AudioStream" uid="uid://c4ohnn6g7s2kj" path="res://Audio/Sound FX/UI_Click.mp3" id="17_1yy5y"]
-[ext_resource type="Texture2D" uid="uid://ck2usppkbsuca" path="res://World/MAP/goblin_villian_defeated.png" id="17_711yy"]
-[ext_resource type="Resource" uid="uid://2etufmvoir0g" path="res://Cards/Monster Cards/Fungoo.tres" id="17_vdqfd"]
-[ext_resource type="Resource" uid="uid://bw1sf4rk66258" path="res://Cards/Monster Cards/Goblin.tres" id="18_5n8sh"]
+[ext_resource type="Resource" uid="uid://bw1sf4rk66258" path="res://Cards/Monster Cards/Goblin.tres" id="17_5n8sh"]
+[ext_resource type="Resource" uid="uid://pwf2kvai3iy7" path="res://Cards/Spell Cards/Tsunami.tres" id="18_iu2tk"]
 [ext_resource type="AudioStream" uid="uid://vfsgi5xbjdhu" path="res://Audio/Sound FX/UI_Click_low.mp3" id="18_px1qw"]
-[ext_resource type="Texture2D" uid="uid://rw80duqklf86" path="res://World/MAP/goblin_villian_2.png" id="18_raa1s"]
-[ext_resource type="Texture2D" uid="uid://ctubandrxxt5d" path="res://World/MAP/goblin_villian_2_defeated.png" id="19_iu2tk"]
-[ext_resource type="Resource" uid="uid://bymlax4cwtbnq" path="res://Cards/Monster Cards/Imp.tres" id="20_egvj5"]
-[ext_resource type="Texture2D" uid="uid://bhclklq1ecyi7" path="res://World/MAP/goblin_villian_3.png" id="21_173be"]
-[ext_resource type="Texture2D" uid="uid://mn7yv1dpoob3" path="res://World/MAP/goblin_villian_3_defeated.png" id="22_6iona"]
+[ext_resource type="Resource" uid="uid://4478qyaioxtg" path="res://Cards/Monster Cards/Ninjoad.tres" id="19_715l5"]
+[ext_resource type="Resource" uid="uid://c2dkjm10ojwbb" path="res://Cards/Spell Cards/Enraging_Forest.tres" id="20_egvj5"]
+[ext_resource type="Resource" uid="uid://creh2y0d3xax5" path="res://Cards/Monster Cards/Mushmonk.tres" id="21_715l5"]
 
 [node name="EarthMapScene" type="Node2D"]
-script = ExtResource("1_txqf5")
+script = ExtResource("1_slgt3")
 
 [node name="Intro_Earth_Realm" parent="." instance=ExtResource("2_px1qw")]
 
@@ -58,10 +56,10 @@ color = Color(0.043137256, 0.105882354, 0.039215688, 1)
 
 [node name="Map" type="TextureRect" parent="MapRoot"]
 process_mode = 3
-offset_left = -74.0
-offset_top = -347.00006
-offset_right = 1462.0
-offset_bottom = 676.99994
+offset_left = -25.0
+offset_top = 158.00002
+offset_right = 1511.0
+offset_bottom = 1182.0
 scale = Vector2(0.9579734, 1.1538944)
 mouse_default_cursor_shape = 2
 texture = ExtResource("2_q23gr")
@@ -97,117 +95,26 @@ default_color = Color(1, 1, 1, 0.11764706)
 [node name="NodeLayer" type="Node2D" parent="MapRoot"]
 
 [node name="PortalHub" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
+custom_minimum_size = Vector2(50, 50)
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
 offset_left = 343.0
 offset_top = 472.0
 offset_right = 393.0
-offset_bottom = 503.0
-grow_horizontal = 0
-grow_vertical = 0
+offset_bottom = 522.0
+grow_horizontal = 1
+grow_vertical = 1
 stretch_mode = 5
 encounter_type = "hub"
 enemy_name = "Portal Hub"
-connected_nodes = Array[NodePath]([NodePath("../MapNode1")])
+connected_nodes = Array[NodePath]([NodePath("../Node_1A"), NodePath("../Node_1B"), NodePath("../Node_1C")])
 battle_completed = true
 is_completed = true
 custom_art = ExtResource("9_lj5nr")
 description = "Portal Hub"
-
-[node name="MapNode1" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
-anchors_preset = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 294.0
-offset_top = 541.0
-offset_right = 344.0
-offset_bottom = 572.0
-grow_horizontal = 1
-grow_vertical = 1
-texture_normal = ExtResource("10_k3tqd")
-stretch_mode = 5
-enemy_name = "Rig"
-enemy_deck = Array[ExtResource("8_haur7")]([ExtResource("9_jnlq2"), ExtResource("20_egvj5"), ExtResource("14_173be")])
-rewards = Array[ExtResource("8_haur7")]([ExtResource("17_vdqfd")])
-connected_nodes = Array[NodePath]([NodePath("../MapNode2")])
-randomize_event = false
-custom_art = ExtResource("16_slgt3")
-custom_art_defeated = ExtResource("17_711yy")
-bg_color = Color(1, 1, 1, 1)
-defeat_message = "You didn't let up at all... here take this."
-description = "Aha! Stop right there! 
-I see you have CARDS!"
-
-[node name="MapNode2" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
-anchors_preset = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 293.0
-offset_top = 667.0
-offset_right = 343.0
-offset_bottom = 698.0
-grow_horizontal = 1
-grow_vertical = 1
-texture_normal = ExtResource("10_k3tqd")
-stretch_mode = 5
-enemy_name = "Sug"
-enemy_deck = Array[ExtResource("8_haur7")]([ExtResource("18_5n8sh"), ExtResource("9_jnlq2")])
-rewards = Array[ExtResource("8_haur7")]([ExtResource("9_jnlq2")])
-connected_nodes = Array[NodePath]([NodePath("../MapNode3")])
-custom_art = ExtResource("18_raa1s")
-custom_art_defeated = ExtResource("19_iu2tk")
-defeat_message = "No... but I was supposed to defeat you..."
-description = "I watched that whole battle. You defeated my brother Rig!
-Now you will fall to me, as I know all of your strategies ahah!!!"
-
-[node name="MapNode3" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
-anchors_preset = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 465.0
-offset_top = 665.0
-offset_right = 515.0
-offset_bottom = 696.0
-grow_horizontal = 1
-grow_vertical = 1
-texture_normal = ExtResource("10_k3tqd")
-stretch_mode = 5
-enemy_name = "Bizik"
-enemy_deck = Array[ExtResource("8_haur7")]([ExtResource("14_173be"), ExtResource("18_5n8sh"), ExtResource("9_jnlq2")])
-difficulty = 2
-rewards = Array[ExtResource("8_haur7")]([ExtResource("20_egvj5")])
-connected_nodes = Array[NodePath]([NodePath("../MapNode4")])
-custom_art = ExtResource("21_173be")
-custom_art_defeated = ExtResource("22_6iona")
-defeat_message = "Wha...."
-description = "You've defeated both of my brothers. Enough is enough, prepare youself."
-
-[node name="MapNode4" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
-anchors_preset = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 526.0
-offset_top = 624.0
-offset_right = 576.0
-offset_bottom = 655.0
-grow_horizontal = 1
-grow_vertical = 1
-texture_normal = ExtResource("10_k3tqd")
-stretch_mode = 5
-encounter_type = "shop"
-enemy_name = "Enemy 3"
-difficulty = 3
 
 [node name="Player" type="Sprite2D" parent="MapRoot/NodeLayer"]
 z_index = 5
@@ -215,12 +122,409 @@ position = Vector2(368.00003, 466.00003)
 scale = Vector2(0.059167415, 0.059167415)
 texture = ExtResource("6_haur7")
 
+[node name="Node_1A" type="TextureButton" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
+z_index = 5
+offset_left = 240.0
+offset_top = 550.0
+offset_right = 290.0
+offset_bottom = 600.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 1
+ignore_texture_size = true
+stretch_mode = 4
+script = ExtResource("11_711yy")
+enemy_name = "Forest Guardian"
+enemy_deck = Array[ExtResource("12_raa1s")]([ExtResource("13_iu2tk"), ExtResource("14_715l5")])
+enemy_leader = ExtResource("14_715l5")
+connected_nodes = Array[NodePath]([NodePath("../Node_2A"), NodePath("../Node_2B")])
+description = "A small forest guardian blocks your path."
+
+[node name="Node_1B" type="TextureButton" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
+z_index = 5
+offset_left = 350.0
+offset_top = 550.0
+offset_right = 400.0
+offset_bottom = 600.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 1
+ignore_texture_size = true
+stretch_mode = 4
+script = ExtResource("11_711yy")
+enemy_name = "Wandering Imp"
+enemy_deck = Array[ExtResource("12_raa1s")]([ExtResource("15_egvj5"), ExtResource("16_173be")])
+enemy_leader = ExtResource("15_egvj5")
+biome = "VOLCANO"
+connected_nodes = Array[NodePath]([NodePath("../Node_2B"), NodePath("../Node_2C")])
+description = "A mischievous imp challenges you!"
+
+[node name="Node_1C" type="TextureButton" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
+z_index = 5
+offset_left = 460.0
+offset_top = 550.0
+offset_right = 510.0
+offset_bottom = 600.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 1
+ignore_texture_size = true
+stretch_mode = 4
+script = ExtResource("11_711yy")
+enemy_name = "Rocky Golem"
+enemy_deck = Array[ExtResource("12_raa1s")]([ExtResource("13_iu2tk"), ExtResource("17_5n8sh")])
+enemy_leader = ExtResource("17_5n8sh")
+biome = "MOUNTAIN"
+connected_nodes = Array[NodePath]([NodePath("../Node_2C"), NodePath("../Node_2D")])
+description = "An animated rock formation stands in your way."
+
+[node name="Node_2A" type="TextureButton" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
+z_index = 5
+offset_left = 200.0
+offset_top = 650.0
+offset_right = 250.0
+offset_bottom = 700.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 1
+ignore_texture_size = true
+stretch_mode = 4
+script = ExtResource("11_711yy")
+encounter_type = "fireevent"
+enemy_name = "Flame Spirit"
+biome = "VOLCANO"
+connected_nodes = Array[NodePath]([NodePath("../Node_3A"), NodePath("../Node_3B")])
+description = "A burning shrine radiates intense heat..."
+
+[node name="Node_2B" type="TextureButton" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
+z_index = 5
+offset_left = 310.0
+offset_top = 650.0
+offset_right = 360.0
+offset_bottom = 700.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 1
+ignore_texture_size = true
+stretch_mode = 4
+script = ExtResource("11_711yy")
+enemy_name = "Goblin Raider"
+enemy_deck = Array[ExtResource("12_raa1s")]([ExtResource("17_5n8sh"), ExtResource("17_5n8sh"), ExtResource("15_egvj5")])
+enemy_leader = ExtResource("17_5n8sh")
+biome = "MOUNTAIN"
+connected_nodes = Array[NodePath]([NodePath("../Node_3A"), NodePath("../Node_3B"), NodePath("../Node_3C")])
+description = "A cunning goblin prepares to raid!"
+
+[node name="Node_2C" type="TextureButton" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
+z_index = 5
+offset_left = 420.0
+offset_top = 650.0
+offset_right = 470.0
+offset_bottom = 700.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 1
+ignore_texture_size = true
+stretch_mode = 4
+script = ExtResource("11_711yy")
+enemy_name = "Fae"
+enemy_deck = Array[ExtResource("12_raa1s")]([ExtResource("18_iu2tk")])
+enemy_leader = ExtResource("19_715l5")
+rewards = Array[ExtResource("12_raa1s")]([ExtResource("20_egvj5")])
+connected_nodes = Array[NodePath]([NodePath("../Node_3B"), NodePath("../Node_3C")])
+description = "A hidden grove filled with mysterious energy..."
+
+[node name="Node_2D" type="TextureButton" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
+z_index = 5
+offset_left = 520.0
+offset_top = 650.0
+offset_right = 570.0
+offset_bottom = 700.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 1
+ignore_texture_size = true
+stretch_mode = 4
+script = ExtResource("11_711yy")
+enemy_name = "Earth Elemental"
+enemy_deck = Array[ExtResource("12_raa1s")]([ExtResource("13_iu2tk"), ExtResource("13_iu2tk"), ExtResource("14_715l5")])
+enemy_leader = ExtResource("14_715l5")
+biome = "MOUNTAIN"
+connected_nodes = Array[NodePath]([NodePath("../Node_3C")])
+description = "Pure earth energy coalesces into a guardian."
+
+[node name="Node_3A" type="TextureButton" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
+z_index = 5
+offset_left = 260.0
+offset_top = 750.0
+offset_right = 310.0
+offset_bottom = 800.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 1
+ignore_texture_size = true
+stretch_mode = 4
+script = ExtResource("11_711yy")
+encounter_type = "shop"
+enemy_name = "Merchant"
+biome = "MEADOW"
+connected_nodes = Array[NodePath]([NodePath("../Node_4A"), NodePath("../Node_4B")])
+description = "A traveling merchant offers their wares."
+
+[node name="Node_3B" type="TextureButton" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
+z_index = 5
+offset_left = 370.0
+offset_top = 750.0
+offset_right = 420.0
+offset_bottom = 800.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 1
+ignore_texture_size = true
+stretch_mode = 4
+script = ExtResource("11_711yy")
+enemy_name = "Veteran Fighter"
+enemy_deck = Array[ExtResource("12_raa1s")]([ExtResource("17_5n8sh"), ExtResource("16_173be"), ExtResource("15_egvj5")])
+enemy_leader = ExtResource("16_173be")
+difficulty = 2
+connected_nodes = Array[NodePath]([NodePath("../Node_4A"), NodePath("../Node_4B"), NodePath("../Node_4C")])
+description = "A seasoned warrior tests your skills."
+
+[node name="Node_3C" type="TextureButton" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
+z_index = 5
+offset_left = 470.0
+offset_top = 750.0
+offset_right = 520.0
+offset_bottom = 800.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 1
+ignore_texture_size = true
+stretch_mode = 4
+script = ExtResource("11_711yy")
+enemy_name = "Fighter"
+enemy_deck = Array[ExtResource("12_raa1s")]([ExtResource("14_715l5"), ExtResource("21_715l5")])
+enemy_leader = ExtResource("21_715l5")
+biome = "MEADOW"
+connected_nodes = Array[NodePath]([NodePath("../Node_4B"), NodePath("../Node_4C")])
+description = "An ancient campfire offers respite and rest."
+
+[node name="Node_4A" type="TextureButton" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
+z_index = 5
+offset_left = 310.0
+offset_top = 850.0
+offset_right = 360.0
+offset_bottom = 900.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 1
+ignore_texture_size = true
+stretch_mode = 4
+script = ExtResource("11_711yy")
+enemy_name = "Beast Tamer"
+enemy_deck = Array[ExtResource("12_raa1s")]([ExtResource("14_715l5"), ExtResource("14_715l5"), ExtResource("16_173be"), ExtResource("16_173be")])
+enemy_leader = ExtResource("16_173be")
+difficulty = 2
+connected_nodes = Array[NodePath]([NodePath("../Node_5A")])
+description = "A beast tamer commands fierce creatures!"
+
+[node name="Node_4B" type="TextureButton" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
+z_index = 5
+offset_left = 420.0
+offset_top = 850.0
+offset_right = 470.0
+offset_bottom = 900.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 1
+ignore_texture_size = true
+stretch_mode = 4
+script = ExtResource("11_711yy")
+encounter_type = "waterevent"
+enemy_name = "Water Spirit"
+biome = "OCEAN"
+connected_nodes = Array[NodePath]([NodePath("../Node_5A"), NodePath("../Node_5B")])
+description = "A mystic pool shimmers with ancient magic..."
+
+[node name="Node_4C" type="TextureButton" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
+z_index = 5
+offset_left = 520.0
+offset_top = 850.0
+offset_right = 570.0
+offset_bottom = 900.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 1
+ignore_texture_size = true
+stretch_mode = 4
+script = ExtResource("11_711yy")
+enemy_name = "Wind Dancer"
+enemy_deck = Array[ExtResource("12_raa1s")]([ExtResource("16_173be"), ExtResource("16_173be"), ExtResource("15_egvj5")])
+enemy_leader = ExtResource("16_173be")
+difficulty = 2
+biome = "MEADOW"
+connected_nodes = Array[NodePath]([NodePath("../Node_5B")])
+description = "Swift as the wind, deadly as a blade."
+
+[node name="Node_5A" type="TextureButton" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
+z_index = 5
+offset_left = 300.0
+offset_top = 950.0
+offset_right = 350.0
+offset_bottom = 1000.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 1
+ignore_texture_size = true
+stretch_mode = 4
+script = ExtResource("11_711yy")
+encounter_type = "elite"
+enemy_name = "Earth Warden"
+enemy_deck = Array[ExtResource("12_raa1s")]([ExtResource("13_iu2tk"), ExtResource("13_iu2tk"), ExtResource("14_715l5"), ExtResource("14_715l5"), ExtResource("17_5n8sh")])
+enemy_leader = ExtResource("17_5n8sh")
+difficulty = 3
+biome = "MOUNTAIN"
+connected_nodes = Array[NodePath]([NodePath("../Node_6A"), NodePath("../Node_6B")])
+description = "Elite Guardian of the Earth Realm - Prepare yourself!"
+
+[node name="Node_5B" type="TextureButton" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
+z_index = 5
+offset_left = 440.0
+offset_top = 950.0
+offset_right = 490.0
+offset_bottom = 1000.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 1
+ignore_texture_size = true
+stretch_mode = 4
+script = ExtResource("11_711yy")
+encounter_type = "elite"
+enemy_name = "Flame Champion"
+enemy_deck = Array[ExtResource("12_raa1s")]([ExtResource("15_egvj5"), ExtResource("15_egvj5"), ExtResource("16_173be"), ExtResource("16_173be"), ExtResource("17_5n8sh")])
+enemy_leader = ExtResource("17_5n8sh")
+difficulty = 3
+biome = "VOLCANO"
+connected_nodes = Array[NodePath]([NodePath("../Node_6B"), NodePath("../Node_6C")])
+description = "Elite Fire Warrior - A formidable challenge!"
+
+[node name="Node_6A" type="TextureButton" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
+z_index = 5
+offset_left = 320.0
+offset_top = 1050.0
+offset_right = 370.0
+offset_bottom = 1100.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 1
+ignore_texture_size = true
+stretch_mode = 4
+script = ExtResource("11_711yy")
+encounter_type = "shop"
+enemy_name = "Final Merchant"
+biome = "MEADOW"
+connected_nodes = Array[NodePath]([NodePath("../Node_BOSS")])
+description = "Last chance to acquire powerful cards before the boss."
+
+[node name="Node_6B" type="TextureButton" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
+z_index = 5
+offset_left = 400.0
+offset_top = 1050.0
+offset_right = 450.0
+offset_bottom = 1100.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 1
+ignore_texture_size = true
+stretch_mode = 4
+script = ExtResource("11_711yy")
+encounter_type = "rest"
+enemy_name = "None"
+connected_nodes = Array[NodePath]([NodePath("../Node_BOSS")])
+description = "Sacred grove - heal and prepare for the final battle."
+
+[node name="Node_6C" type="TextureButton" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
+z_index = 5
+offset_left = 480.0
+offset_top = 1050.0
+offset_right = 530.0
+offset_bottom = 1100.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 1
+ignore_texture_size = true
+stretch_mode = 4
+script = ExtResource("11_711yy")
+encounter_type = "explore"
+enemy_name = "None"
+biome = "MOUNTAIN"
+connected_nodes = Array[NodePath]([NodePath("../Node_BOSS")])
+description = "Ancient ruins hold powerful secrets..."
+
+[node name="Node_BOSS" type="TextureButton" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
+z_index = 5
+offset_left = 380.0
+offset_top = 1150.0
+offset_right = 430.0
+offset_bottom = 1200.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 1
+ignore_texture_size = true
+stretch_mode = 4
+script = ExtResource("11_711yy")
+encounter_type = "boss"
+enemy_name = "Terramaw, Guardian of Earth"
+enemy_deck = Array[ExtResource("12_raa1s")]([ExtResource("13_iu2tk"), ExtResource("13_iu2tk"), ExtResource("14_715l5"), ExtResource("14_715l5"), ExtResource("17_5n8sh"), ExtResource("17_5n8sh"), ExtResource("15_egvj5")])
+enemy_leader = ExtResource("17_5n8sh")
+difficulty = 5
+biome = "MOUNTAIN"
+description = "The ultimate guardian of the Earth Realm awaits - Victory brings great rewards!"
+
 [node name="MapCamera" type="Camera2D" parent="." groups=["Camera2D"]]
 position = Vector2(503, 510)
 limit_left = -75
 limit_top = -350
 limit_right = 1400
-limit_bottom = 830
+limit_bottom = 9999
 position_smoothing_enabled = true
 
 [node name="Sounds" type="Node" parent="."]

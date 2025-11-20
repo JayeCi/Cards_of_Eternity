@@ -19,13 +19,19 @@ func _process(_dt):
 	queue_redraw()
 
 func _draw():
+	if map_core == null or map_core.current_node == null:
+		return
+
 	var current := map_core.current_node
 	var taken = map_core.get_taken_edges()
 
 	for node in nodes:
+		if node == null or not is_instance_valid(node):
+			continue
+
 		for path in node.connected_nodes:
-			var other: MapNode = node.get_node(path)
-			if other == null:
+			var other: MapNode = node.get_node_or_null(path)
+			if other == null or not is_instance_valid(other):
 				continue
 
 			var key := map_core._edge_key(node, other)
@@ -38,8 +44,8 @@ func _draw():
 			if taken.has(key):
 				# TAKEN route → GRAY
 				color = Color(0.6, 0.6, 0.6, 1.0)
-			elif (node == current or other == current) and current.battle_completed:
-				# AVAILABLE from current → WHITE (optionally pulsing)
+			elif node == current and current.battle_completed:
+				# AVAILABLE from current → WHITE (forward connections only)
 				color = Color(1, 1, 1, 1)
 				# comment out next two lines if you don't want animation
 				var pulse := 0.5 + sin(Time.get_ticks_msec() / 300.0) * 0.5

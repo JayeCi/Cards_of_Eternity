@@ -182,6 +182,11 @@ func _on_node_clicked(node: MapNode):
 
 	click_valid.play()
 
+	# Check if clicking hub node - trigger immediate return
+	if node.encounter_type == "hub" and node != current_node:
+		_return_to_hub(node)
+		return
+
 	var key := _edge_key(current_node, node)
 	taken_edges[key] = true
 
@@ -264,6 +269,8 @@ func on_battle_loss():
 
 func _trigger_node_encounter(node: MapNode) -> void:
 	match node.encounter_type:
+		"hub":
+			_return_to_hub(node)
 		"fight":
 			_start_fight(node)
 		"elite":
@@ -283,10 +290,12 @@ func _prepare_arena_payload(node : MapNode):
 	GameSession.encounter_data = {
 		"enemy_name": node.enemy_name,
 		"enemy_deck": node.enemy_deck,
+		"enemy_leader": node.enemy_leader,
 		"difficulty": node.difficulty,
 		"ai_style": node.ai_style,
 		"rewards": node.rewards,
-		"completion": node.is_completed
+		"completion": node.is_completed,
+		"biome": node.biome
 	}
 
 	
@@ -298,10 +307,16 @@ func _start_fight(node: MapNode):
 	GameSession.switch_to_arena()
 
 func _start_elite(node: MapNode):
-	print("Starting ELITE fight at ", node.name)
+	print("🔥 Starting ELITE fight at ", node.name)
+	GameSession.last_selected_map_node = node
+	# Elite fights use same arena but with harder enemies
+	GameSession.switch_to_arena()
 
 func _start_boss(node: MapNode):
-	print("Starting BOSS battle at ", node.name)
+	print("💀 Starting BOSS battle at ", node.name)
+	GameSession.last_selected_map_node = node
+	# Boss battle - could add special arena modifiers here
+	GameSession.switch_to_arena()
 
 func _open_shop(node: MapNode):
 	print("Opening shop UI")
@@ -314,6 +329,11 @@ func _show_rest_site(node: MapNode):
 
 func _start_exploration(node: MapNode):
 	print("Exploration mini-event triggered")
+
+func _return_to_hub(node: MapNode):
+	print("Returning to hub...")
+	await TransitionFade.fade_out()
+	GameSession.switch_to_hub()
 
 func mark_node_resolved(node: MapNode):
 	if node.battle_completed:

@@ -89,7 +89,7 @@ var core: ArenaCore
 var board: Node3D
 var ui: ArenaUI
 var cam: ArenaCamera
-var mover: ArenaMove
+var mover: Node3D
 var hovered_tile: Node3D = null
 
 var _is_battle_in_progress: bool = false

@@ -9,10 +9,12 @@ var encounter_type := "fight"
 
 @export var enemy_name: String = "Tutorial Enemy"
 @export var enemy_deck: Array[CardData] = []
+@export var enemy_leader: CardData = null
 @export var difficulty: int = 1
 @export var ai_style: String = "balanced"
 @export var rewards: Array[CardData] = []
 @export var arena_modifier: String = "none"
+@export_enum("OCEAN", "VOLCANO", "FOREST", "MEADOW", "MOUNTAIN", "TUNDRA") var biome: String = "FOREST"
 @export var connected_nodes: Array[NodePath] = []
 @export var randomize_event: bool = true
 @export var battle_completed := false
@@ -84,15 +86,24 @@ func _ready():
 
 	#self.pressed.connect(_on_pressed)
 	match encounter_type:
-		
 		"shop":
 			texture_normal = preload("res://World/MAP/Shop.png")
-			
 		"unknown":
 			texture_normal = preload("res://World/MAP/Mystery.png")
 		"fight":
 			texture_normal = preload("res://World/MAP/Fight_Encounter_Node.png")
 			texture_hover = preload("res://World/MAP/Fight_Encounter_Node_Hover.png")
+		"elite":
+			# Elite nodes use fight texture but will have different color/glow
+			texture_normal = preload("res://World/MAP/Fight_Encounter_Node.png")
+			texture_hover = preload("res://World/MAP/Fight_Encounter_Node_Hover.png")
+			modulate = Color(1.3, 0.8, 1.5, 1)  # Purple-ish glow for elites
+		"boss":
+			# Boss nodes use fight texture but with dramatic color
+			texture_normal = preload("res://World/MAP/Fight_Encounter_Node.png")
+			texture_hover = preload("res://World/MAP/Fight_Encounter_Node_Hover.png")
+			modulate = Color(1.5, 0.5, 0.5, 1)  # Red glow for boss
+			scale = Vector2(1.2, 1.2)  # Slightly larger
 		"fireevent":
 			texture_normal = preload("res://World/MAP/Fire_Node.png")
 		"hub":
