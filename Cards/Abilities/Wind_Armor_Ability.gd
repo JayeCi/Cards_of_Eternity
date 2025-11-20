@@ -38,3 +38,7 @@ func execute(arena: Node, base_unit: UnitData) -> void:
 		if tile:
 			var pos3d = tile.global_position + Vector3(0, 1.2, 0)
 			arena.ui_sys._float_text(pos3d, "+%d DEF 🌪️" % bonus, Color(0.5, 1.0, 0.7))
+
+	# ✅ Refresh card details UI if this unit is currently displayed
+	if arena.card_details_ui:
+		arena.card_details_ui.call("refresh_if_showing", base_unit)

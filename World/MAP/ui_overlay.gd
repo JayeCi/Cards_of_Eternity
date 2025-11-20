@@ -13,6 +13,7 @@ extends Control
 
 
 var _info_panel_open := false
+var _is_starting_encounter := false
 
 func _ready():
 	#GameSession.map_ui = self
@@ -24,6 +25,9 @@ func _ready():
 # ---------------------------------------------------------
 func show_encounter_info(node: MapNode, animate: bool = true) -> void:
 	info_panel.visible = true
+
+	# ✅ Reset encounter start flag when showing new encounter info
+	_is_starting_encounter = false
 
 	# Basic info
 	$InfoPanel/MainPanel/VBoxContainer/EnemyName.text = node.enemy_name
@@ -230,6 +234,17 @@ func _on_collection_button_pressed() -> void:
 		Globals.tutorial_stage = 1
 
 func _on_start_button_pressed(node: MapNode) -> void:
+	# 🚫 Prevent double-clicking
+	if _is_starting_encounter:
+		return
+
+	_is_starting_encounter = true
+
+	# Disable button immediately
+	var start_button := $InfoPanel/StartButton
+	start_button.disabled = true
+	start_button.modulate = Color(0.6, 0.6, 0.6, 0.7)
+
 	if node.name == "PortalHub":
 		GameSession.switch_to_hub()
 	else:

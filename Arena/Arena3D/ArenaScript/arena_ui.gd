@@ -205,20 +205,31 @@ func refresh_hand(player_hand: Array, player_essence: int, force_update := false
 		ui.refresh()
 		ui.set_meta("base_y", ui.position.y)  # remember its original Y
 
-		ui.modulate = Color(0.8, 1.0, 0.8, 1) if core.fusion_selection.has(c) else Color(1, 1, 1, 1)
-		ui.position.y = -25.0 if core.fusion_selection.has(c) else 0.0
-
 		var cost := 1
 		if c.has_meta("cost"): cost = int(c.get_meta("cost"))
 		elif c.has_method("get_cost"): cost = c.get_cost()
 		elif "cost" in c: cost = int(c.cost)
-		ui.set_playable(cost <= player_essence)
 
-		# 🩵 Immediately store correct base tint for first draw
-		if cost <= player_essence:
+		var is_selected := core.fusion_selection.has(c)
+		var is_affordable := cost <= player_essence
+
+		# Position selected cards higher
+		ui.position.y = -25.0 if is_selected else 0.0
+
+		# Set playability
+		ui.set_playable(is_affordable)
+
+		# 🩵 Set colors: selected cards are always green, unselected cards are white or dimmed
+		if is_selected:
+			# Selected cards are always highlighted green, regardless of affordability
+			ui.modulate = Color(0.8, 1.0, 0.8, 1)
+			ui._base_modulate = Color(0.8, 1.0, 0.8, 1)
+		elif is_affordable:
+			# Affordable unselected cards are white
 			ui.modulate = Color(1, 1, 1, 1)
 			ui._base_modulate = Color(1, 1, 1, 1)
 		else:
+			# Unaffordable unselected cards are dimmed
 			ui.modulate = Color(0.4, 0.4, 0.4, 0.5)
 			ui._base_modulate = Color(0.4, 0.4, 0.4, 0.5)
 
@@ -541,7 +552,9 @@ func _on_card_hovered_in_hand(card: CardData) -> void:
 				cost = card.get_cost()
 			elif "cost" in card:
 				cost = int(card.cost)
-			card_ui.set_playable(cost <= core.player_essence)
+			# Check against available essence (accounting for selected cards)
+			var available_essence := core._get_available_essence() if core.has_method("_get_available_essence") else core.player_essence
+			card_ui.set_playable(cost <= available_essence)
 			break
 
 	# 🟢 Show the card details

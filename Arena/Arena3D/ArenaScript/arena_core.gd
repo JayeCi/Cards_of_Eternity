@@ -201,6 +201,8 @@ const MAX_ENEMY_HAND_SIZE := 5
 const BASE_MOVE_RANGE := 1
 const CARD_BACK := preload("res://Images/CardBack1.png")
 const CARD_MOVE_SOUND := preload("res://Audio/Sound FX/CardMove.mp3")
+const CARD_PLACE_SOUND := preload("res://Audio/Sound FX/NEW_card.mp3")
+const CARD_DEATH_SOUND := preload("res://Audio/Sound FX/CardDeath.mp3")
 const TERRAIN_BONUS := {
 	"Grass": {"Fire": 0.9, "Water": 1.1, "Earth": 1.1, "Wind": 1.0},
 	"Forest": {"Fire": 0.8, "Earth": 1.2, "Water": 1.0, "Wind": 1.0},
@@ -916,6 +918,13 @@ func _draw_card() -> Control:
 	card_draw.play()
 	return ui_sys.call("get_last_hand_card_ui")
 
+func _get_available_essence() -> int:
+	var reserved := 0
+	for c in fusion_selection:
+		var cost := int(c.cost) if "cost" in c else 1
+		reserved += cost
+	return player_essence - reserved
+
 func on_hand_card_clicked(card: CardData) -> void:
 	if dragging_card:
 		return
@@ -924,6 +933,11 @@ func on_hand_card_clicked(card: CardData) -> void:
 	if fusion_selection.has(card):
 		fusion_selection.erase(card)
 		_log("❎ Deselected %s" % card.name)
+
+		# Refresh hand
+		if ui_sys:
+			ui_sys.refresh_hand(player_hand, _get_available_essence(), true)
+
 		# 🔹 Clear highlights when deselecting all
 		if fusion_selection.is_empty():
 			if battle_sys and battle_sys.has_method("clear_summon_highlights"):
@@ -936,6 +950,10 @@ func on_hand_card_clicked(card: CardData) -> void:
 	else:
 		fusion_selection.append(card)
 		_log("✅ Selected %s (%d/2)" % [card.name, fusion_selection.size()])
+
+		# Refresh hand
+		if ui_sys:
+			ui_sys.refresh_hand(player_hand, _get_available_essence(), true)
 
 	# --- Handle selection states ---
 	if fusion_selection.size() == 1:
@@ -1120,10 +1138,18 @@ func _try_place_regular_card(hover_tile: Node3D) -> void:
 				[live_cost, fresh_essence], Color(1, 0.5, 0.3))
 			return
 
+		# Deduct essence
 		player_essence = clamp(player_essence - live_cost, 0, 8)
 		_emit_essence_changed()
-		ui_sys.call("refresh_hand", player_hand, player_essence)
+
+		# Clear fusion state and reserved essence
+		fusion_selection.clear()
+
+		# Remove from hand and refresh with actual essence
 		player_hand.erase(selected_card)
+		ui_sys.call("refresh_hand", player_hand, player_essence)
+
+		# Place unit
 		battle_sys.call("place_unit", selected_card, selected_pos, PLAYER, mode, true)
 		_log("🎴 %s summoned in %s Mode!" % [selected_card.name, str(mode)], Color(0.7, 1.0, 0.7))
 		_set_phase(Phase.SUMMON_OR_MOVE)
@@ -1217,6 +1243,26 @@ func _play_fusion_effect(result_card: CardData) -> void:
 	# Optional: camera shake + UI log (disabled to prevent jitter)
 	#if camera_sys and camera_sys.has_method("shake"):
 	#	camera_sys.shake(0.25, 0.4)
+
+	ui_sys.call("show_battle_message", "🧬 Fusion Created: %s!" % result_card.name, 2.0)
+
+	# ⏳ Wait for the animation duration (matches FusionEffect2D duration)
+	await get_tree().create_timer(1.5).timeout
+
+	# Remove the effect layer when done
+	effect.queue_free()
+
+# 🧬 Board-to-board fusion animation (same as hand fusion, but takes cards as parameters)
+func _play_board_fusion_effect(card_a: CardData, card_b: CardData, result_card: CardData) -> void:
+	var fusion_scene := preload("res://Cards/Abilities/fusion_effect.tscn")
+	var effect: CanvasLayer = fusion_scene.instantiate()
+	add_child(effect)
+
+	var art_a: Texture2D = card_a.art
+	var art_b: Texture2D = card_b.art
+	var fusion_name := result_card.name
+
+	effect.start(art_a, art_b, fusion_name)
 
 	ui_sys.call("show_battle_message", "🧬 Fusion Created: %s!" % result_card.name, 2.0)
 
@@ -1404,6 +1450,8 @@ func confirm_summon_in_mode(mode: int) -> void:
 		player_essence -= cost
 		_emit_essence_changed()
 
+		# Reset fusion reserved essence since we've deducted the actual cost
+
 		player_hand = player_hand.filter(func(c): return c != a and c != b)
 		ui_sys.refresh_hand(player_hand, player_essence)
 
@@ -1450,6 +1498,8 @@ func confirm_summon_in_mode(mode: int) -> void:
 		var cost := int(selected_card.cost) if "cost" in selected_card else 1
 		player_essence -= cost
 		_emit_essence_changed()
+
+		# Reset fusion reserved essence since we've deducted the actual cost
 
 		player_hand.erase(selected_card)
 		ui_sys.refresh_hand(player_hand, player_essence)
@@ -1691,7 +1741,8 @@ func _gain_essence(owner: int, amount: int = 1) -> void:
 
 		# 🩵 Force UI + hand sync every time essence changes
 	if owner == PLAYER and ui_sys and ui_sys.has_method("refresh_hand"):
-		ui_sys.call("refresh_hand", player_hand, player_essence, true)
+		# Account for essence reserved by selected fusion cards
+		ui_sys.call("refresh_hand", player_hand, _get_available_essence(), true)
 
 
 func on_leader_damaged(owner: int, new_hp: int) -> void:
@@ -1823,21 +1874,6 @@ func _unhandled_input(event: InputEvent) -> void:
 					get_viewport().set_input_as_handled()
 					return
 
-			if _hand_container:
-				for card_ui in _hand_container.get_children():
-					if card_ui is Control:
-						# Reset hover/selection tweens ONLY
-						card_ui.position.y = 0
-						# ✅ Restore essence-based tint instead of forcing white
-						if card_ui.has_method("get_card_data") and card_ui.has_method("set_playable"):
-							var c = card_ui.get_card_data()
-							if c:
-								var cost := 1
-								if c.has_meta("cost"): cost = int(c.get_meta("cost"))
-								elif c.has_method("get_cost"): cost = c.get_cost()
-								elif "cost" in c: cost = int(c.cost)
-								card_ui.set_playable(cost <= player_essence)
-
 			# Reset hover / highlights / selections
 			if ui_sys and ui_sys.has_method("hide_fusion_pending"):
 				ui_sys.hide_fusion_pending()
@@ -1876,6 +1912,9 @@ func _unhandled_input(event: InputEvent) -> void:
 					ui_sys.call("fade_hand_in")
 				if ui_sys.has_method("cancel_drag"):
 					ui_sys.call("cancel_drag")
+				# ✅ Refresh hand to restore correct essence-based playability
+				if ui_sys.has_method("refresh_hand"):
+					ui_sys.refresh_hand(player_hand, player_essence, true)
 
 			_set_phase(Phase.SUMMON_OR_MOVE)
 			_update_phase_ui()

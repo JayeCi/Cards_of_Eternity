@@ -46,9 +46,13 @@ var cutscene_cards : Array[CardData] = []
 
 func _ready() -> void:
 	for key in CARD_PATHS.keys():
-		var cd = load(CARD_PATHS[key])
-		if cd:
-			cutscene_cards.append(cd)
+		var path = CARD_PATHS[key]
+		if ResourceLoader.exists(path):
+			var cd = load(path)
+			if cd:
+				cutscene_cards.append(cd)
+		else:
+			push_warning("[CardLoop] Card resource not found: " + path)
 
 	_spawn_row_cards(card_row_1)
 	_spawn_row_cards(card_row_2)

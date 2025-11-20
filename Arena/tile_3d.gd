@@ -217,8 +217,9 @@ func set_occupant(unit: UnitData) -> void:
 		set_art(unit.card.art, unit.owner == 1)
 		_update_card_border_color(unit.card.element)
 	else:
-		card_mesh.visible = false
-		if card_border:
+		if is_instance_valid(card_mesh):
+			card_mesh.visible = false
+		if card_border and is_instance_valid(card_border):
 			card_border.visible = false
 
 	# Show/hide the leader badge

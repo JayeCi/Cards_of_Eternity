@@ -64,9 +64,9 @@ var current_from: Vector2i = Vector2i(-1, -1)
 var move_targets: Dictionary = {} # { Vector2i : { "kind": "move"|"attack" } }
 
 func _ready():
-	if $MoveHighlight:
-		var mh = $MoveHighlight
-		if mh.material:
+	if has_node("MoveHighlight"):
+		var mh = get_node("MoveHighlight")
+		if mh and mh.material:
 			mh.material = mh.material.duplicate()
 
 func init(core_ref: ArenaCore, ui_ref: ArenaUI, board_ref: Node3D, battle_ref: ArenaBattle) -> void:
@@ -620,7 +620,11 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		var fusion_result = core._check_fusion_pair(attacker.card, dst.occupant.card)
 
 		if fusion_result:
-			core._log("🧬 Fusion detected! %s + %s → %s" % [attacker.card.name, dst.occupant.card.name, fusion_result.name], Color(0.8, 1.0, 0.8))
+			# Save card references before clearing tiles
+			var attacker_card = attacker.card
+			var defender_card = dst.occupant.card
+
+			core._log("🧬 Fusion detected! %s + %s → %s" % [attacker_card.name, defender_card.name, fusion_result.name], Color(0.8, 1.0, 0.8))
 			clear_highlights()
 
 			# Create the fused unit
@@ -630,18 +634,56 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 			fused_unit.set_meta("is_facedown", false)
 			fused_unit.set_meta("flipped_permanent", true)
 
-			# Remove both source units
+			# Remove both source units from game state FIRST
 			core.units.erase(from)
 			core.units.erase(to)
+
+			# Clean up visual elements from source tile (Flame_Fae's position)
+			if src.has_node("CardMesh"):
+				var mesh = src.get_node("CardMesh")
+				if is_instance_valid(mesh):
+					src.remove_child(mesh)
+					mesh.queue_free()
+			if src.has_node("CardModel"):
+				var model = src.get_node("CardModel")
+				if is_instance_valid(model):
+					src.remove_child(model)
+					model.queue_free()
+
+			# Clean up visual elements from destination tile (Forest_Fae's position)
+			if dst.has_node("CardMesh"):
+				var mesh = dst.get_node("CardMesh")
+				if is_instance_valid(mesh):
+					dst.remove_child(mesh)
+					mesh.queue_free()
+			if dst.has_node("CardModel"):
+				var model = dst.get_node("CardModel")
+				if is_instance_valid(model):
+					dst.remove_child(model)
+					model.queue_free()
+
+			# Clear tile states
 			src.clear()
 			dst.clear()
+
+			# Explicitly set both tiles to null state
+			src.set_occupant(null)
+			src.set_art(null)
+			dst.set_occupant(null)
+			dst.set_art(null)
+
+			# Wait a frame for cleanup to complete
+			await get_tree().process_frame
+
+			# 🌀 Play fusion animation BEFORE placing result
+			if core.has_method("_play_board_fusion_effect"):
+				await core._play_board_fusion_effect(attacker_card, defender_card, fusion_result)
 
 			# Place the fusion result on the destination tile
 			dst.set_occupant_no_summon(fused_unit)
 			core.units[to] = fused_unit
 			dst.set_art(fusion_result.art, attacker.owner == core.ENEMY)
 			dst.set_badge_text("A")
-			dst.refresh_card_art()
 
 			# Apply terrain bonus
 			core._apply_terrain_bonus(fused_unit, dst.terrain_type)
@@ -666,21 +708,72 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 						model_instance.rotate_y(deg_to_rad(180))
 					model_instance.visible = true
 
-			# Trigger fusion abilities
+			# Refresh card art after all setup is complete
+			dst.refresh_card_art()
+
+			# Wait a frame to ensure visuals are ready
+			await get_tree().process_frame
+
+			# Trigger fusion abilities from source cards
+			if core.has_method("_trigger_fusion_abilities"):
+				await core._trigger_fusion_abilities(fused_unit, [attacker_card, defender_card])
+
+			# Trigger fusion abilities on result card
 			if fusion_result.ability and "on_summon" in fusion_result.ability.trigger:
-				core._execute_card_ability(fused_unit, fusion_result.ability)
+				await core._execute_card_ability(fused_unit, fusion_result.ability)
 
 			# Mark as acted
 			core.mark_unit_acted(fused_unit)
 
-			# Play fusion effect
-			_play_card_sound(core.CARD_PLACE_SOUND, dst.global_position)
+			# Refresh card details to show the fused unit
+			if core.card_details_ui and core.card_details_ui.visible:
+				core.card_details_ui.call("show_unit", fused_unit)
+
 			battle._is_battle_in_progress = false
 			return
 		else:
-			# Invalid fusion - block the move
-			core._log("❌ Cannot fuse %s with %s - no valid fusion exists!" % [attacker.card.name, dst.occupant.card.name], Color(1.0, 0.5, 0.5))
+			# Invalid fusion - destroy the target, attacker remains in place
+			var target_unit = dst.occupant
+			var target_name = target_unit.card.name if target_unit.card else "Unknown Card"
+
+			core._log("❌ Cannot fuse %s with %s - %s is destroyed!" % [attacker.card.name, target_name, target_name], Color(1.0, 0.5, 0.5))
 			clear_highlights()
+
+			# Play death sound
+			if target_unit.card and "death_sound" in target_unit.card and target_unit.card.death_sound:
+				_play_card_sound(target_unit.card.death_sound, dst.global_position)
+			else:
+				_play_card_sound(core.CARD_DEATH_SOUND, dst.global_position)
+
+			# Destroy visual elements
+			if dst.has_node("CardMesh"):
+				var mesh = dst.get_node("CardMesh")
+				if is_instance_valid(mesh):
+					var tw = create_tween()
+					tw.tween_property(mesh, "scale", mesh.scale * 0.5, 0.3)
+					await tw.finished
+
+			if dst.has_node("CardModel"):
+				var model = dst.get_node("CardModel")
+				if is_instance_valid(model):
+					var tw2 = create_tween()
+					tw2.tween_property(model, "scale", model.scale * 0.3, 0.3)
+					await tw2.finished
+					await get_tree().process_frame
+					if is_instance_valid(model):
+						model.queue_free()
+
+			# Clear the target tile and remove from units
+			dst.clear()
+			core.units.erase(to)
+
+			# Hide card details if showing the destroyed unit
+			if core.card_details_ui:
+				core.card_details_ui.call("hide_card")
+
+			# Mark attacker as acted (it attempted the fusion)
+			core.mark_unit_acted(attacker)
+
 			battle._is_battle_in_progress = false
 			return
 		
