@@ -57,7 +57,9 @@ var ui_overlay: Control = null
 var earth_map_scene: MapCore = null
 
 func _ready():
-	Globals.tutorial_stage = 0
+	# 🚀 Tutorial Skip: Don't reset tutorial stage if skip is enabled
+	if not Globals.TUTORIAL_SKIP:
+		Globals.tutorial_stage = 0
 
 	x.disabled = true
 
@@ -113,19 +115,25 @@ func _ready():
 	_clear_left_panel()
 
 	print("[CollectionGUI] ✅ Ready – drag/drop initialized.")
-	
-	tutorial_popups.visible = true
-	tutorial_label.clear()
-	tutorial_label.bbcode_enabled = true
 
-	tutorial_label.append_text("[center][b]Welcome to Cards of Eternity![/b][/center]\n\n")
-	tutorial_label.append_text("This is the [b]Card Collection UI[/b].\n")
-	tutorial_label.append_text("Here you can view all of the cards you have collected, inspect their details, and see which cards are currently in your deck.\n\n")
-	tutorial_label.append_text("[color=yellow]• Left-click[/color] a card to select it and view details.\n")
-	tutorial_label.append_text("[color=green]• Right-click[/color] a card to add or remove it from your deck.\n\n")
-	tutorial_label.append_text("When you're ready, click the [b]\"C\"[/b] on the toolbar to go to your full collection list.")
-	tutorial_can_continue = false
-	_unlock_tutorial_continue()
+	# 🚀 Tutorial Skip: Hide tutorial popups if skip is enabled
+	if Globals.TUTORIAL_SKIP:
+		tutorial_popups.visible = false
+		tutorial_can_continue = true
+		print("🚀 TUTORIAL SKIP - Collection GUI tutorial bypassed")
+	else:
+		tutorial_popups.visible = true
+		tutorial_label.clear()
+		tutorial_label.bbcode_enabled = true
+
+		tutorial_label.append_text("[center][b]Welcome to Cards of Eternity![/b][/center]\n\n")
+		tutorial_label.append_text("This is the [b]Card Collection UI[/b].\n")
+		tutorial_label.append_text("Here you can view all of the cards you have collected, inspect their details, and see which cards are currently in your deck.\n\n")
+		tutorial_label.append_text("[color=yellow]• Left-click[/color] a card to select it and view details.\n")
+		tutorial_label.append_text("[color=green]• Right-click[/color] a card to add or remove it from your deck.\n\n")
+		tutorial_label.append_text("When you're ready, click the [b]\"C\"[/b] on the toolbar to go to your full collection list.")
+		tutorial_can_continue = false
+		_unlock_tutorial_continue()
 
 # ==========================================================
 # 🎮 TESTING: Input Handler for Shift+A Key
@@ -238,6 +246,9 @@ func _on_leader_checkbox_toggled(checked: bool) -> void:
 			if player:
 				player.leader_card = null
 			print("[Leader] Cleared leader selection.")
+
+	# ✅ Refresh all card emblems to show new leader
+	_refresh_all_leader_emblems()
 
 	# ✅ Force tutorial re-check after changing leader
 	_update_deck_count()
@@ -372,7 +383,7 @@ func _update_deck_count() -> void:
 		deck_count.add_theme_color_override("font_color", Color(0.8, 1, 0.8))
 
 	# ✅ Tutorial Stage 3 gate
-	if count >= 5 and Globals.tutorial_stage == 2:
+	if not Globals.TUTORIAL_SKIP and count >= 5 and Globals.tutorial_stage == 2:
 		if Globals.selected_leader == null:
 			print("[Tutorial] ⚠️ Leader not selected yet — showing tutorial reminder.")
 
@@ -382,9 +393,9 @@ func _update_deck_count() -> void:
 			tutorial_label.bbcode_enabled = true
 			tutorial_label.append_text("[center][b]Don't Forget Your Leader![/b][/center]\n\n")
 			tutorial_label.append_text("Before your deck can be finalized, you must choose a [b]Leader Card[/b].\n\n")
-			tutorial_label.append_text("Select one of your cards, then check the box [color=yellow][b]‘Leader’[/b][/color] in the left panel to assign it.\n\n")
+			tutorial_label.append_text("Select one of your cards, then check the box [color=yellow][b]'Leader'[/b][/color] in the left panel to assign it.\n\n")
 
-			
+
 			tutorial_label.visible_characters = 0
 			tutorial_can_continue = false
 			_unlock_tutorial_continue()
@@ -415,6 +426,10 @@ func _refresh_deck_grid():
 		ui.card_data = data
 		ui.refresh()
 		deck_grid.add_child(ui)
+
+		# Add leader emblem
+		_add_leader_emblem(ui, data)
+
 		ui.connect("gui_input", Callable(self, "_on_card_clicked").bind(ui))
 
 	# ✅ update label after rebuilding
@@ -449,6 +464,9 @@ func _add_card_to_gui(card_data: CardData):
 
 	main_panel.add_child(card_ui)
 
+	# Add leader emblem
+	_add_leader_emblem(card_ui, card_data)
+
 	# Connect hover/click
 	card_ui.connect("request_show_zoom", Callable(self, "_on_card_hovered"))
 	card_ui.connect("request_hide_zoom", Callable(self, "_on_card_unhovered"))
@@ -468,6 +486,9 @@ func _add_card_to_gui(card_data: CardData):
 		deck_card_ui.set_quantity(available_count)
 
 	deck_collection_grid.add_child(deck_card_ui)
+
+	# Add leader emblem
+	_add_leader_emblem(deck_card_ui, card_data)
 
 	# Connect signals
 	deck_card_ui.connect("gui_input", Callable(self, "_on_card_clicked").bind(deck_card_ui))
@@ -879,7 +900,7 @@ func _on_deck_button_pressed() -> void:
 	main_panel_label.text = "Deck Builder"
 
 	# ✅ Stage 2 tutorial (if you want continuation later)
-	if Globals.tutorial_stage == 1:
+	if not Globals.TUTORIAL_SKIP and Globals.tutorial_stage == 1:
 		_show_tutorial_stage_2()
 		Globals.tutorial_stage = 2
 
@@ -893,7 +914,7 @@ func _on_collection_button_pressed() -> void:
 		_stop_button_pulse(collection_button)
 
 	# ✅ When C is pressed during Stage 1 → show quick collection overview
-	if Globals.tutorial_stage == 1:
+	if not Globals.TUTORIAL_SKIP and Globals.tutorial_stage == 1:
 		if deck_button: deck_button.disabled = true
 		if achievement_button: achievement_button.disabled = true
 		if sort_button: sort_button.disabled = true
@@ -937,19 +958,19 @@ func _on_tutorial_continue_button_pressed() -> void:
 
 	tutorial_popups.visible = false
 
-	if Globals.tutorial_stage == 0:
+	if not Globals.TUTORIAL_SKIP and Globals.tutorial_stage == 0:
 		if collection_button:
 			collection_button.disabled = false
 			_start_button_pulse(collection_button)
 		if deck_button: deck_button.disabled = true
 		if achievement_button: achievement_button.disabled = true
 		if sort_button: sort_button.disabled = true
-		
+
 		Globals.tutorial_stage = 1
 
-	elif Globals.tutorial_stage == 1.5:
+	elif not Globals.TUTORIAL_SKIP and Globals.tutorial_stage == 1.5:
 		# Player just finished the collection overview
-		_show_tutorial_stage_1()  # now guide them to press “D” (Deck)
+		_show_tutorial_stage_1()  # now guide them to press "D" (Deck)
 		Globals.tutorial_stage = 1
 
 
@@ -1012,3 +1033,85 @@ func get_earth_map_scene() -> MapCore:
 	if earth_map_scene == null:
 		earth_map_scene = get_node_or_null("../../..")
 	return earth_map_scene
+
+# ==========================================================
+# 👑 LEADER EMBLEM SYSTEM
+# ==========================================================
+func _add_leader_emblem(card_ui: Control, card_data: CardData):
+	"""Add a leader emblem to a card UI if it's the current leader"""
+	if not card_ui or not card_data:
+		return
+
+	# Remove existing emblem if present
+	var existing_emblem = card_ui.get_node_or_null("LeaderEmblem")
+	if existing_emblem:
+		existing_emblem.queue_free()
+
+	# Only add emblem if this card is the leader (compare by ID to avoid object comparison issues)
+	if Globals.selected_leader and Globals.selected_leader.id == card_data.id:
+		var emblem = Panel.new()
+		emblem.name = "LeaderEmblem"
+		emblem.custom_minimum_size = Vector2(35, 35)
+		emblem.size = Vector2(35, 35)
+		emblem.mouse_filter = Control.MOUSE_FILTER_IGNORE  # Allow clicks to pass through
+
+		# Position at bottom-right corner (to avoid covering art)
+		emblem.position = Vector2(card_ui.size.x - 40, card_ui.size.y - 40)
+		emblem.z_index = 100  # Ensure it's on top
+
+		# Add crown icon label
+		var crown_label = Label.new()
+		crown_label.text = "👑"
+		crown_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		crown_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		crown_label.add_theme_font_size_override("font_size", 20)
+		crown_label.size = Vector2(35, 35)
+		crown_label.mouse_filter = Control.MOUSE_FILTER_IGNORE  # Allow clicks to pass through
+
+		## Add glow effect with label settings
+		#var label_settings = LabelSettings.new()
+		#label_settings.font_size = 20
+		#label_settings.outline_size = 2
+		#label_settings.outline_color = Color(1.0, 0.8, 0.0, 1.0)  # Golden outline
+		#label_settings.shadow_size = 3
+		#label_settings.shadow_color = Color(0.0, 0.0, 0.0, 0.6)
+		#label_settings.shadow_offset = Vector2(1, 1)
+		#crown_label.label_settings = label_settings
+
+		emblem.add_child(crown_label)
+		card_ui.add_child(emblem)
+
+		print("👑 Added leader emblem to:", card_data.name)
+func _refresh_single_emblem(card_ui: Control, card_data: CardData) -> void:
+	var emblem := card_ui.get_node_or_null("LeaderEmblem")
+
+	# If this card is NOT the leader → remove emblem
+	if not Globals.selected_leader or Globals.selected_leader.id != card_data.id:
+		if emblem:
+			emblem.queue_free()
+		return
+
+	# If this IS the leader → ensure emblem exists
+	_add_leader_emblem(card_ui, card_data)
+	
+func _refresh_all_leader_emblems():
+	print("👑 Refreshing all leader emblems...")
+	# Main collection
+	for card_ui in main_panel.get_children():
+		var cd = card_ui.get("card_data")
+		if cd != null:
+			_refresh_single_emblem(card_ui, cd)
+
+	# Deck builder collection grid
+	for card_ui in deck_collection_grid.get_children():
+		var cd = card_ui.get("card_data")
+		if cd != null:
+			_refresh_single_emblem(card_ui, cd)
+
+	# Deck grid
+	for card_ui in deck_grid.get_children():
+		var cd = card_ui.get("card_data")
+		if cd != null:
+			_refresh_single_emblem(card_ui, cd)
+
+	print("👑 Leader emblem refresh complete!")

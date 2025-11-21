@@ -24,6 +24,12 @@ var post_intro_lines: Array[DialogueLine] = [
 ]
 
 func _ready():
+	# 🚀 Tutorial Skip: Hide intro if skip is enabled
+	if Globals.TUTORIAL_SKIP:
+		self.visible = false
+		self.queue_free()  # Clean up since we don't need it
+		return
+
 	# ✅ Check if tutorial already finished globally
 	if GameSession.tutorial_started:
 		self.visible = false

@@ -82,7 +82,7 @@ func _ready():
 			"explore":
 				description = "Explore, see what you find."
 				
-	generate_random_rewards()
+	#generate_random_rewards()
 
 	#self.pressed.connect(_on_pressed)
 	match encounter_type:

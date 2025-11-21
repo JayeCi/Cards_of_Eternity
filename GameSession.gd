@@ -1,5 +1,7 @@
 extends Node
 
+signal gold_changed(new_amount: int)
+
 var hub_scene_path := "res://EarthPortalScene.tscn"
 var arena_scene_path := "res://Arena/Arena3D/arena_3d.tscn"
 var map_scene_path := "res://World/MAP/earth_map_screen.tscn"
@@ -14,6 +16,14 @@ var encounter_data: Dictionary = {}
 var last_selected_map_node: MapNode = null
 var tutorial_started := false
 var last_battle_result: String = ""
+
+# 💰 Gold Currency System
+var gold: int = 10:
+	set(value):
+		gold = max(0, value)  # Cannot go below 0
+		gold_changed.emit(gold)
+
+var pending_gold_reward: int = 0  # Gold earned from last battle
 
 
 # =====================================================
@@ -133,3 +143,38 @@ func switch_to_earth_map() -> void:
 		last_battle_result = ""
 
 	await TransitionFade.fade_in()
+
+# =====================================================
+# 💰 Gold Management Methods
+# =====================================================
+func add_gold(amount: int) -> void:
+	"""Add gold to player's total"""
+	if amount > 0:
+		gold += amount
+		print("💰 Gained ", amount, " gold. Total: ", gold)
+
+func spend_gold(amount: int) -> bool:
+	"""Attempt to spend gold. Returns true if successful"""
+	if gold >= amount:
+		gold -= amount
+		print("💸 Spent ", amount, " gold. Remaining: ", gold)
+		return true
+	else:
+		print("❌ Not enough gold! Need ", amount, ", have ", gold)
+		return false
+
+func has_gold(amount: int) -> bool:
+	"""Check if player has enough gold"""
+	return gold >= amount
+
+# =====================================================
+# ⚔️ Battle Finished Callback
+# =====================================================
+func _on_battle_finished(result: String) -> void:
+	print("🏁 Battle finished with result: ", result)
+	last_battle_result = result
+
+	# Store gold reward for display when returning to map
+	if result == "player_won":
+		pending_gold_reward = randi_range(10, 30)
+		print("💰 Earned ", pending_gold_reward, " gold from battle (will display on map)")

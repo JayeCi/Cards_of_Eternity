@@ -3,7 +3,8 @@
     "allow": [
       "Bash(cat:*)",
       "Bash(godot:*)",
-      "Bash(python -m py_compile:*)"
+      "Bash(python -m py_compile:*)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []

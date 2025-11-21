@@ -1,7 +1,7 @@
 extends CardAbility
 class_name ChangeTerrainAbility
 
-@export_enum("Grass", "Lava", "Forest", "Water", "Ice", "Stone", "Shadow") var new_terrain := "Grass"
+@export_enum("Grass", "Lava", "Forest", "Water", "Ice", "Stone", "Shadow") var new_terrain := "Lava"
 @export var fire_sound: AudioStream = preload("res://Audio/FIRE.mp3")
 
 func _init():

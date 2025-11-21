@@ -1,8 +1,10 @@
 extends Node
 
-var tutorial_stage := 0.0
+const TUTORIAL_SKIP := false
 
-var tutorial_completed := false
+# Set tutorial_stage to 999 when skip is enabled to bypass all stage checks
+var tutorial_stage := 999.0 if TUTORIAL_SKIP else 0.0
+var tutorial_completed := TUTORIAL_SKIP
 var pending_post_tutorial_dialogue := false
 var selected_leader: CardData = null
 

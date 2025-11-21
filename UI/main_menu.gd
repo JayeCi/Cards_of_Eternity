@@ -68,12 +68,12 @@ func _HowToPlay_open():
 
 
 func _open_collection():
-	# Hide main menu and show the collection UI
-	visible = false
-	if collection_gui:
-		collection_gui.visible = true
-	else:
-		push_error("Collection GUI not found. Check node path in _ready().")
+	return	## Hide main menu and show the collection UI
+	#visible = false
+	#if collection_gui:
+		#collection_gui.visible = true
+	#else:
+		#push_error("Collection GUI not found. Check node path in _ready().")
 
 func _open_options():
 	get_tree().change_scene_to_file("res://UI/OptionsMenu.tscn")

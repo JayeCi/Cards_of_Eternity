@@ -144,6 +144,15 @@ custom_minimum_size = Vector2(0, 35)
 layout_mode = 2
 text = "C"
 
+[node name="GoldIcon" type="Label" parent="Taskbar/Panel/VBoxContainer"]
+layout_mode = 2
+text = "💰"
+horizontal_alignment = 1
+
+[node name="GoldCounter" type="Label" parent="Taskbar/Panel/VBoxContainer"]
+layout_mode = 2
+horizontal_alignment = 1
+
 [node name="VBoxContainer2" type="VBoxContainer" parent="Taskbar/Panel"]
 layout_mode = 1
 anchors_preset = 14
@@ -312,7 +321,7 @@ alignment = 1
 layout_mode = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="InfoPanel/MainPanel/VBoxContainer/DescriptionPanel/VBoxContainer"]
-custom_minimum_size = Vector2(125, 150)
+custom_minimum_size = Vector2(125, 216)
 layout_mode = 2
 size_flags_vertical = 4
 

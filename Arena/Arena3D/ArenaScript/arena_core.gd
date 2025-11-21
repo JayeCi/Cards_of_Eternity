@@ -250,6 +250,7 @@ var _fade_rect: ColorRect = null
 var _end_turn_btn: TextureButton = null
 var _orb_grid: Node = null
 var _hand_container: GridContainer = null
+var difficulty := 0.0
 
 # 🎯 Performance: Track last emitted essence values to avoid duplicate signals
 var _last_emitted_player_essence: int = -1
@@ -1169,8 +1170,6 @@ func _check_fusion_pair(a: CardData, b: CardData) -> CardData:
 	var a_elem := str(a.element if a.element != null else "").to_lower()
 	var b_elem := str(b.element if b.element != null else "").to_lower()
 
-	print("🔥 FUSION DEBUG:", a.name, "(", a_elem, ")", b.name, "(", b_elem, ")")
-
 	# Conflaguration Blade + Fire type
 	var is_blade_a := a_name.find("conflaguration_blade") != -1
 	var is_blade_b := b_name.find("conflaguration_blade") != -1
@@ -1222,7 +1221,6 @@ func _check_fusion_pair(a: CardData, b: CardData) -> CardData:
 		fused.description += "\n🌪️ Fortified by the Wind Armor (+8 DEF)."
 		return fused
 
-	print("❌ Fusion failed: no valid elemental weapon + matching type combo found.")
 	return null
 
 func _play_fusion_effect(result_card: CardData) -> void:

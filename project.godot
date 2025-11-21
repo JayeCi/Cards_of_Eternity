@@ -17,7 +17,7 @@ environment_file_directory="res://AmbientCG/Environments"
 [application]
 
 config/name="Cards of Eternity"
-run/main_scene="uid://bp0h2hrcf2ohw"
+run/main_scene="uid://cnirerbyp4a6f"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 

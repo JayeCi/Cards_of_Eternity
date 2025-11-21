@@ -68,10 +68,7 @@ func configure_style(ai_style: String, difficulty: int) -> void:
 			aggression = randf_range(0.4, 1.0)
 			caution = 1.0 - aggression
 			face_down_chance = randf_range(0.3, 0.8)
-	print("AI configured → Style:", ai_style, " | Difficulty:", difficulty)
-
-	#core._log("🧠 AI configured: style=%s, diff=%d" % 
-		#[ai_style, difficulty, aggression, caution, face_down_chance], Color(0.7, 0.9, 1.0))
+	# Silent configuration - no spam
 
 # ---------------------------------------------------------
 # MAIN TURN ENTRY
@@ -83,10 +80,9 @@ func run_enemy_turn() -> void:
 	_draw_up_to_limit()
 
 
-	# 🔹 NEW: Smart flip before planning moves
+	# Smart flip before planning moves
 	await _smart_flip_faceup()
 
-	core._log("🤖 Enemy analyzing field...", Color(0.8, 0.8, 1.0))
 	await get_tree().create_timer(1).timeout
 
 	# 1️⃣ Handle leader logic first (survival priority)
@@ -108,7 +104,6 @@ func run_enemy_turn() -> void:
 	if not _any_action_taken():
 		await _proactive_reposition()
 
-	core._log("🤖 Enemy turn complete.", Color(0.7, 0.9, 1))
 	await get_tree().create_timer(0.4).timeout
 
 
@@ -119,7 +114,6 @@ func _leader_behavior() -> void:
 	var lpos = battle.get_leader_pos(core.ENEMY)
 	if lpos == Vector2i(-1, -1):
 		return
-	core._log("⚠️ Enemy leader assessing threats...", Color(1, 0.8, 0.6))
 
 	var leader_tile = core.board.get_tile(lpos.x, lpos.y)
 	if not leader_tile or not leader_tile.occupant:
@@ -139,7 +133,7 @@ func _leader_behavior() -> void:
 	if adjacent_threats.is_empty():
 		return
 
-	core._log("🚨 Leader is under threat! Evaluating escape routes...", Color(1, 0.7, 0.6))
+	core._log("⚠️ Leader in danger — retreating...", Color(1, 0.8, 0.5))
 
 	# ---------------------------------------------------------
 	# 1️⃣ Check for any empty escape tiles (away from player)
@@ -168,7 +162,6 @@ func _leader_behavior() -> void:
 	if best_escape != lpos:
 		_did_action_this_turn = true
 		await move._move_or_battle(lpos, best_escape, true)
-		core._log("🏃 Leader retreats to %s to avoid damage!" % str(best_escape), Color(1, 0.7, 0.5))
 		lpos = best_escape
 		await get_tree().create_timer(0.3).timeout
 
@@ -185,7 +178,6 @@ func _leader_behavior() -> void:
 				break
 
 	if still_threatened:
-		core._log("🛡 Calling allies to block enemies near leader!", Color(0.8, 0.9, 1.0))
 		await _assist_leader_defense(lpos, adjacent_threats)
 
 	# ---------------------------------------------------------
@@ -209,7 +201,6 @@ func _leader_behavior() -> void:
 			if t and t.occupant and t.occupant.owner == core.ENEMY and not t.occupant.is_leader:
 				_did_action_this_turn = true
 				await move._move_or_battle(lpos, alt, true)
-				core._log("↩️ Leader swaps with ally to protect itself!", Color(1, 0.8, 0.6))
 				return
 
 	# ---------------------------------------------------------
@@ -227,7 +218,6 @@ func _leader_behavior() -> void:
 				core.enemy_hand.pop_front()
 				core.enemy_essence -= int(card.cost)
 				core.emit_signal("essence_changed", core.player_essence, core.enemy_essence)
-				core._log("🧱 Leader summons %s to create a blocker!" % card.name, Color(0.6, 0.9, 1))
 				await get_tree().create_timer(0.3).timeout
 
 # ---------------------------------------------------------
@@ -260,7 +250,6 @@ func _assist_leader_defense(leader_pos: Vector2i, threats: Array[Vector2i]) -> v
 				if not path.is_empty():
 					await move._move_or_battle(best_ally, path.front(), true)
 				await _find_and_attack_target(best_ally)
-				core._log("💥 %s attacks to protect the leader!" % ally_unit.card.name, Color(1, 0.8, 0.8))
 				await get_tree().create_timer(0.3).timeout
 
 # ---------------------------------------------------------
@@ -311,9 +300,6 @@ func _smart_summon() -> void:
 	core.enemy_essence -= int(card.cost)
 	core.emit_signal("essence_changed", core.player_essence, core.enemy_essence)
 	_did_action_this_turn = true
-
-	#core._log("🤖 Summoned %s (%s) at %s" % 
-		#[card.name, ("Facedown" if facedown else "Faceup"), str(best)], Color(0.8, 0.8, 1))
 
 func _evaluate_card(card, pos: Vector2i) -> float:
 	var base := 10.0
@@ -381,9 +367,16 @@ func _smart_move_and_attack() -> void:
 			_unit_has_moved[unit] = true
 			continue
 
-		# 2️⃣ Try to move closer to enemy leader
+		# 2️⃣ Try to move closer to enemy leader (but avoid dangerous positions)
 		var best_move = _find_best_move_toward(from, player_leader)
 		if best_move != from:
+			# 🧠 Check if moving there would put us in danger
+			var is_safe = _is_position_safe(best_move, unit)
+
+			if not is_safe and randf() < (caution + core.difficulty * 0.05):
+				# AI recognizes danger and avoids the move
+				continue
+
 			var target_tile = core.board.get_tile(best_move.x, best_move.y)
 			if target_tile and target_tile.occupant and target_tile.occupant.owner == core.PLAYER:
 				# Move *onto* enemy → attack normally
@@ -403,8 +396,6 @@ func _smart_move_and_attack() -> void:
 			continue
 
 func _proactive_reposition() -> void:
-	core._log("🤖 AI is repositioning idle units...", Color(0.8, 0.8, 1.0))
-
 	var player_leader = battle.get_leader_pos(core.PLAYER)
 	if player_leader == Vector2i(-1, -1):
 		return
@@ -437,7 +428,6 @@ func _proactive_reposition() -> void:
 				var best_move = _find_best_move_toward(pos, player_leader)
 				if best_move != pos:
 					await move._move_or_battle(pos, best_move, true)
-					core._log("🤖 Moves facedown unit toward player!", Color(0.7, 0.9, 1.0))
 					_did_action_this_turn = true
 					await get_tree().create_timer(0.3).timeout
 		else:
@@ -445,7 +435,6 @@ func _proactive_reposition() -> void:
 			var best_move = _find_best_move_toward(pos, player_leader)
 			if best_move != pos:
 				await move._move_or_battle(pos, best_move, true)
-				core._log("🤖 Advances idle %s toward enemy lines." % u.card.name, Color(0.7, 0.9, 1.0))
 				_did_action_this_turn = true
 				await get_tree().create_timer(0.3).timeout
 
@@ -486,34 +475,34 @@ func _smart_flip_faceup() -> void:
 			should_flip = true
 
 		if should_flip:
-			core._log("🤖 AI flips %s face-up!" % unit.card.name, Color(0.9, 0.9, 1.0))
 			await battle.reveal_card(pos)
 			_did_action_this_turn = true
 
-			# ✅ NEW: mark it permanently face-up this turn
+			# Mark it permanently face-up this turn
 			unit.is_facedown = false
 			unit.set_meta("is_facedown", false)
 			unit.set_meta("flipped_permanent", true)
 
-			# Optional: visually refresh so the sync routines agree
+			# Visually refresh
 			core.refresh_tile_art_safe(pos)
 
 			await get_tree().create_timer(0.2).timeout
 
 # ---------------------------------------------------------
-# ATTACK DECISION (same ATTACK_RADIUS logic)
+# ATTACK DECISION (Human-like reaction to faceup/facedown)
 # ---------------------------------------------------------
 func _find_and_attack_target(from: Vector2i) -> bool:
 	var attacker = core.units.get(from)
 	if not attacker:
 		return false
 
-	# Don’t allow attacking if already moved this turn
+	# Don't allow attacking if already moved this turn
 	if _unit_has_moved.has(attacker) and _unit_has_moved[attacker]:
 		return false
 
 	var best_target: Vector2i = Vector2i(-1, -1)
 	var best_score := -INF
+	var should_retreat := false
 
 	for dir in [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]:
 		var target = from + dir
@@ -524,17 +513,93 @@ func _find_and_attack_target(from: Vector2i) -> bool:
 		if not t or not t.occupant or t.occupant.owner != core.PLAYER:
 			continue
 
-		var score = 10.0 - float(t.occupant.current_def)
-		if t.occupant.is_leader:
-			score += 10.0
+		var defender = t.occupant
+		var score = 0.0
+
+		# ============================================
+		# 🎭 HUMAN-LIKE REACTION SYSTEM
+		# ============================================
+
+		if defender.is_facedown:
+			# 🔒 FACEDOWN CARD - Treat as unknown threat
+			# AI assumes it could be: Monster, Spell, or Event
+			# Base aggression: be more aggressive toward facedown (eliminate unknowns)
+			score = 15.0  # Base "attack the unknown" bonus
+
+			# 🎲 Difficulty scaling for facedown aggression
+			# Lower difficulty = more cautious with facedowns
+			# Higher difficulty = more aggressive
+			var facedown_aggression = aggression * (0.5 + (core.difficulty * 0.1))
+			score += facedown_aggression * 10.0
+
+			# 🧠 Smart assumptions based on AI's knowledge
+			# If defender is adjacent to their leader, assume it's a protector (Monster)
+			var player_leader_pos = battle.get_leader_pos(core.PLAYER)
+			if player_leader_pos != Vector2i(-1, -1) and target.distance_to(player_leader_pos) <= 1:
+				score += 8.0  # Prioritize attacking protectors
+
+		else:
+			# 👁️ FACEUP CARD - Full information available
+			# AI can now make informed decisions
+
+			# Calculate battle outcome
+			var attacker_survives = attacker.current_atk >= defender.current_def
+			var defender_survives = defender.current_atk >= attacker.current_def
+
+			# 💪 Evaluate if AI would WIN this fight
+			if attacker_survives and not defender_survives:
+				# 🎯 AI WINS - Attack with confidence!
+				score = 25.0
+				score += (defender.current_atk + defender.current_def) * 0.5
+
+				if defender.is_leader:
+					score += 50.0  # MASSIVE priority for winning against leader
+
+			elif not attacker_survives:
+				# 💀 AI LOSES - Try to save the card!
+				score = -100.0
+				should_retreat = true
+				core._log("🛡️ %s retreats to avoid defeat" % attacker.card.name, Color(1, 0.8, 0.5))
+
+			else:
+				# 🤝 MUTUAL DESTRUCTION or defender survives
+				var attacker_value = attacker.current_atk + attacker.current_def
+				var defender_value = defender.current_atk + defender.current_def
+
+				if defender_value > attacker_value * 1.3:
+					# Good trade - eliminate higher-value target
+					score = 20.0
+					score += (defender_value - attacker_value) * 0.3
+				elif defender.is_leader:
+					# Always worth it to damage/kill leader
+					score = 40.0
+				else:
+					# Unfavorable trade - might retreat instead
+					score = -20.0
+					should_retreat = randf() < (caution * (1.0 + core.difficulty * 0.1))
+
+		# 🎯 Leader targeting bonus (always attractive)
+		if defender.is_leader:
+			score += 30.0
 
 		if score > best_score:
 			best_score = score
 			best_target = target
 
-	if best_target != Vector2i(-1, -1):
-		core._log("⚔ %s attacks %s!" %
-			[attacker.card.name, core.units[best_target].card.name], Color(1, 0.7, 0.7))
+	# ============================================
+	# 🏃 RETREAT LOGIC - Save valuable units
+	# ============================================
+	if should_retreat and best_score < 0:
+		await _tactical_retreat(from)
+		_unit_has_moved[attacker] = true
+		return false
+
+	# ============================================
+	# ⚔️ EXECUTE ATTACK
+	# ============================================
+	if best_target != Vector2i(-1, -1) and best_score > 0:
+		var defender_name = "a facedown card" if core.units[best_target].is_facedown else core.units[best_target].card.name
+		core._log("⚔️ %s attacks %s" % [attacker.card.name, defender_name], Color(1, 0.85, 0.7))
 		await move._move_or_battle(from, best_target, true)
 		_did_action_this_turn = true
 		_unit_has_moved[attacker] = true
@@ -607,7 +672,6 @@ func _tactical_retreat(from: Vector2i) -> void:
 
 	if best != from:
 		await battle._move_or_battle(from, best, true)
-		core._log("🛡 %s retreats to %s" % [unit.card.name, str(best)], Color(0.6, 0.9, 1.0))
 		_did_action_this_turn = true
 # ---------------------------------------------------------
 # LEADER ESCAPE (same rules)
@@ -643,7 +707,6 @@ func _try_escape_corner(leader_pos: Vector2i) -> bool:
 					var t2 = core.board.get_tile(target.x, target.y)
 					if t2 and t2.occupant == null:
 						await battle._move_or_battle(adj, target, true)
-						core._log("🤖 Ally clears path for leader.", Color(0.8, 0.9, 1))
 						await get_tree().create_timer(0.3).timeout
 						break
 
@@ -653,7 +716,6 @@ func _try_escape_corner(leader_pos: Vector2i) -> bool:
 			var tile = core.board.get_tile(escape.x, escape.y)
 			if tile and tile.occupant == null:
 				await battle._move_or_battle(leader_pos, escape, true)
-				core._log("🏃 Leader escapes corner!", Color(1, 0.7, 0.5))
 				return true
 	return false
 
@@ -787,6 +849,53 @@ func _any_action_taken() -> bool:
 	_did_action_this_turn = false
 	return result
 
+# ---------------------------------------------------------
+# DANGER ASSESSMENT - Check if position is safe for unit
+# ---------------------------------------------------------
+func _is_position_safe(pos: Vector2i, unit: UnitData) -> bool:
+	"""Check if moving to this position would endanger the unit"""
+	if not core.board.is_in_bounds(pos):
+		return false
+
+	# Check all adjacent tiles for threats
+	for dir in [Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)]:
+		var adj = pos + dir
+		if not core.board.is_in_bounds(adj):
+			continue
+
+		var t = core.board.get_tile(adj.x, adj.y)
+		if not t or not t.occupant or t.occupant.owner != core.PLAYER:
+			continue
+
+		var threat = t.occupant
+
+		# 🔒 Facedown threats - always somewhat risky
+		if threat.is_facedown:
+			# Assume facedown could be dangerous, but not certain
+			# Higher difficulty = less afraid of unknowns
+			if randf() > (aggression * 0.7):
+				return false
+
+		else:
+			# 👁️ Faceup threat - calculate if we'd lose
+			var would_lose = threat.current_atk >= unit.current_def
+
+			if would_lose:
+				# This position is DANGEROUS - threat can kill us
+				return false
+
+			# Even if we survive, check if it's a bad trade
+			var threat_value = threat.current_atk + threat.current_def
+			var our_value = unit.current_atk + unit.current_def
+
+			if threat_value > our_value * 1.5:
+				# They're much stronger - risky position
+				if randf() < caution:
+					return false
+
+	# No immediate threats detected
+	return true
+
 
 # ---------------------------------------------------------
 # FUSION / UPGRADE SPELL LOGIC
@@ -880,8 +989,8 @@ func _try_board_fusion() -> bool:
 				# Check if they're within movement range
 				var distance = pos_a.distance_to(pos_b)
 				if distance <= core.BASE_MOVE_RANGE:
-					core._log("🤖 AI found fusion opportunity: %s + %s = %s" %
-						[unit_a.card.name, unit_b.card.name, fusion_result.name], Color(1.0, 0.9, 0.3))
+					core._log("✨ Fusing %s + %s → %s" %
+						[unit_a.card.name, unit_b.card.name, fusion_result.name], Color(1.0, 0.9, 0.5))
 
 					_focus_camera_on(core.board.get_tile(pos_b.x, pos_b.y).global_position, 0.8, 0.5)
 					await get_tree().create_timer(0.3).timeout
@@ -962,8 +1071,7 @@ func _try_hand_fusion_placement() -> bool:
 				if not placed_first:
 					continue
 
-				core._log("🤖 AI placing fusion pair: %s + %s (will fuse to %s)" %
-					[card_a.name, card_b.name, fusion_result.name], Color(1.0, 0.9, 0.3))
+				core._log("✨ Placing fusion pair: %s + %s" % [card_a.name, card_b.name], Color(0.9, 0.9, 1.0))
 
 				# Remove from hand
 				core.enemy_hand.erase(card_a)
@@ -1026,7 +1134,7 @@ func _try_move_spell_to_monster(spells: Array[Dictionary], monsters: Array[Dicti
 				# Check if monster is within movement range
 				var distance = spell_pos.distance_to(monster_pos)
 				if distance <= core.BASE_MOVE_RANGE:
-					core._log("🤖 AI moving %s to upgrade %s" % [spell_unit.card.name, monster_unit.card.name], Color(0.8, 0.9, 1.0))
+					core._log("⬆️ Upgrading %s with %s" % [monster_unit.card.name, spell_unit.card.name], Color(0.7, 1.0, 0.9))
 
 					_focus_camera_on(core.board.get_tile(monster_pos.x, monster_pos.y).global_position, 0.8, 0.5)
 					await get_tree().create_timer(0.3).timeout
@@ -1091,8 +1199,6 @@ func _try_place_upgrade_spell(spells: Array[CardData], monsters: Array[Dictionar
 				# Check if we can afford it
 				if core.enemy_essence < spell_card.cost:
 					continue
-
-				core._log("🤖 AI placing %s near %s" % [spell_card.name, best_monster.unit.card.name], Color(0.8, 0.9, 1.0))
 
 				# Remove from hand
 				core.enemy_hand.erase(spell_card)

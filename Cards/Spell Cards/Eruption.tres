@@ -8,7 +8,6 @@
 
 [sub_resource type="Resource" id="Resource_b23iv"]
 script = ExtResource("1_vgk8i")
-new_terrain = "Lava"
 display_name = "Eruption"
 description = "Converts a 3×3 zone around into Lava terrain. All Fire-aligned creatures are empowered by the eruption’s heat."
 metadata/_custom_type_script = "uid://d7dl4wk8jcyr"
@@ -18,6 +17,7 @@ script = ExtResource("2_l182c")
 types = Array[String](["Magic", "Terrain"])
 rarity = "rare"
 element = "Fire"
+preferred_terrain = "Lava"
 card_type = 1
 id = "00101"
 name = "Eruption"

@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_xvxqk")
+damage = 5
 display_name = "Fireball"
-description = "When placed face up, inflict 20 damage to the enemy leader."
+description = "When placed face up, inflict 5 damage to the enemy leader."
 metadata/_custom_type_script = "uid://drpr4ltaf6yu"

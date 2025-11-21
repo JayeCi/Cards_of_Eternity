@@ -7,19 +7,25 @@ class_name MapCore
 @onready var ui_overlay: Control = $CanvasLayer/UIOverlay
 @onready var click_valid: AudioStreamPlayer = $Sounds/ClickValid
 @onready var click_invalid: AudioStreamPlayer = $Sounds/ClickInvalid
+@onready var shop_panel: Control = null  # Will be instantiated when needed
+
+const SHOP_PANEL_SCENE = preload("res://World/MAP/shop_panel.tscn")
 
 @onready var node_layer := $MapRoot/NodeLayer
 @onready var player_icon := $MapRoot/NodeLayer/Player
 @onready var start_node := $MapRoot/NodeLayer/PortalHub
 @export var player_offset := Vector2(25, 0)
 
+var current_shop_node: MapNode = null  # Track which shop is currently open
+
 @export var difficulty: int = 1
 @export var enemy_deck: Array[CardData] = []
 @export var reward_pool: Array[String] = []
 
 var current_node: MapNode = null
+var preview_node: MapNode = null  # Node being previewed (not committed yet)
 var all_nodes: Array[MapNode] = []
-var taken_edges: = {}  
+var taken_edges: = {}
 var dragging := false
 var zoom_speed := 0.1
 var min_zoom := 0.5
@@ -38,12 +44,15 @@ func _ready():
 	TransitionFade.fade_in()
 	GameSession.map_instance = self
 
-	
+
 	# Gather all MapNodes
 	for child in node_layer.get_children():
 		if child is MapNode:
 			all_nodes.append(child)
 			child.clicked.connect(_on_node_clicked)
+
+	# Connect UI overlay signals
+	ui_overlay.shop_button_pressed.connect(_open_shop)
 
 	# Set starting node
 	current_node = start_node
@@ -80,7 +89,27 @@ func _ready():
 			
 	var intro = get_node_or_null("../Intro_Earth_Realm")
 
-	if intro and not GameSession.tutorial_started:
+	# 🚀 Tutorial Skip: Bypass all tutorials
+	if Globals.TUTORIAL_SKIP:
+		is_in_intro = false
+		intro_complete = true
+		is_in_collection_tutorial = false
+		collection_tutorial_complete = true
+		in_in_post_intro = false
+		post_intro_complete = true
+		tutorial_started = true
+		GameSession.tutorial_started = true
+
+		# Give player starting resources for testing
+		if GameSession.gold < 50:  # Only give gold if they don't have enough
+			GameSession.gold = 100  # Give 100 gold for testing
+
+		# Add starter cards if collection is empty
+		if CardCollection.count() < 10:
+			_add_starter_cards_for_testing()
+
+		print("🚀 TUTORIAL SKIP ENABLED - All tutorials bypassed, starting gold: ", GameSession.gold)
+	elif intro and not GameSession.tutorial_started:
 		intro.intro_finished.connect(_on_intro_finished)
 		intro.post_intro_finished.connect(_on_post_intro_finished)
 		is_in_intro = true
@@ -182,27 +211,41 @@ func _on_node_clicked(node: MapNode):
 
 	click_valid.play()
 
-	# Check if clicking hub node - trigger immediate return
+	# Check if clicking hub node - trigger immediate return (commits immediately)
 	if node.encounter_type == "hub" and node != current_node:
+		_commit_node_choice(node)
 		_return_to_hub(node)
 		return
 
+	# Just preview the node - don't commit until button is pressed
+	preview_node = node
+	_prepare_arena_payload(node)
+
+	var animate = not ui_overlay.is_info_panel_open()
+	ui_overlay.show_encounter_info(node, animate)
+
+func _commit_node_choice(node: MapNode):
+	"""Actually move to the node and lock in the choice"""
+	if node == current_node:
+		return  # Already at this node
+
+	# Mark the edge as taken
 	var key := _edge_key(current_node, node)
 	taken_edges[key] = true
 
+	# Move player to new node
 	current_node.is_current = false
 	current_node = node
 	current_node.is_current = true
 
 	player_icon.global_position = current_node.global_position + player_offset
 
-	_prepare_arena_payload(node)
-
-	var animate = not ui_overlay.is_info_panel_open()
-	ui_overlay.show_encounter_info(node, animate)
-
+	# Update reachability to lock out other options
 	_update_node_reachability()
+	_update_node_visuals()
 	line_drawer.queue_redraw()
+
+	print("✅ Committed to node:", node.name)
 
 func _update_node_visuals():
 	for n in all_nodes:
@@ -236,12 +279,18 @@ func on_battle_win():
 		current_node.battle_completed = true
 		current_node.is_completed = true
 
-	# ✅ Give rewards
+	# ✅ Give gold reward
+	if GameSession.pending_gold_reward > 0:
+		GameSession.add_gold(GameSession.pending_gold_reward)
+
+	# ✅ Give card rewards
 	if GameSession.encounter_data.has("rewards"):
 		var rewards = GameSession.encounter_data["rewards"]
 		for r in rewards:
 			_grant_reward(r)
-		ui_overlay.show_rewards(rewards)
+		# Show rewards with gold
+		ui_overlay.show_rewards(rewards, GameSession.pending_gold_reward)
+		GameSession.pending_gold_reward = 0  # Reset after showing
 
 	_update_node_reachability()
 	line_drawer.queue_redraw()
@@ -300,6 +349,11 @@ func _prepare_arena_payload(node : MapNode):
 
 	
 
+func on_encounter_confirmed():
+	"""Called when player presses Start button to confirm their node choice"""
+	if preview_node and preview_node != current_node:
+		_commit_node_choice(preview_node)
+
 func _start_fight(node: MapNode):
 	print("Starting fight at ", node.name)
 	GameSession.last_selected_map_node = node
@@ -319,7 +373,95 @@ func _start_boss(node: MapNode):
 	GameSession.switch_to_arena()
 
 func _open_shop(node: MapNode):
-	print("Opening shop UI")
+	print("🛒 Opening shop UI at ", node.name)
+
+	# Store reference to current shop node
+	current_shop_node = node
+
+	# Instantiate shop panel if it doesn't exist
+	if not shop_panel:
+		_initialize_shop_panel()
+
+	# Open the shop
+	if shop_panel:
+		shop_panel.open_shop()
+
+		# Hide UI overlay while shop is open
+		ui_overlay.hide_info_panel(false)
+
+func _initialize_shop_panel():
+	"""Instantiate and setup the shop panel"""
+	shop_panel = SHOP_PANEL_SCENE.instantiate()
+	$CanvasLayer.add_child(shop_panel)
+
+	# Connect signals
+	shop_panel.shop_closed.connect(_on_shop_closed)
+	shop_panel.card_purchased.connect(_on_card_purchased)
+	shop_panel.pack_purchased.connect(_on_pack_purchased)
+
+	print("✅ Shop panel initialized")
+
+func _on_shop_closed():
+	"""Handle shop panel closing"""
+	print("🚪 Shop closed")
+
+	# Mark shop node as completed and progress player
+	if current_shop_node and not current_shop_node.is_completed:
+		current_shop_node.is_completed = true
+		current_shop_node.battle_completed = true  # Use same flag as battles
+
+		# Move player to the shop node (progress)
+		if current_node:
+			current_node.is_current = false
+		current_node = current_shop_node
+		current_node.is_current = true
+		player_icon.global_position = current_node.global_position + player_offset
+
+		# Update map visuals
+		_update_node_reachability()
+		_update_node_visuals()
+		line_drawer.queue_redraw()
+
+		print("✅ Shop completed and progressed to:", current_node.name)
+
+	# Clear shop reference
+	current_shop_node = null
+
+func _on_card_purchased(card: CardData):
+	"""Handle individual card purchase"""
+	print("🛒 Card purchased: ", card.name)
+
+func _on_pack_purchased(cards: Array[CardData]):
+	"""Handle card pack purchase"""
+	print("📦 Pack purchased! Got ", cards.size(), " cards")
+	for card in cards:
+		print("  - ", card.name)
+
+func _add_starter_cards_for_testing():
+	"""Add starter cards for tutorial skip testing"""
+	print("🎴 Adding starter cards for tutorial skip...")
+
+	var starter_cards = [
+		"res://Cards/Monster Cards/Goblin.tres",
+		"res://Cards/Monster Cards/Imp.tres",
+		"res://Cards/Monster Cards/Dirt.tres",
+		"res://Cards/Monster Cards/Fysh.tres",
+		"res://Cards/Monster Cards/Lava_Hare.tres",
+		"res://Cards/Monster Cards/Forest_Fae.tres",
+		"res://Cards/Monster Cards/Cloud_Monkey.tres",
+		"res://Cards/Spells/Fireball.tres",
+		"res://Cards/Spells/Tidal_Wave.tres",
+		"res://Cards/Monster Cards/Flame_Fae.tres",
+	]
+
+	for card_path in starter_cards:
+		if ResourceLoader.exists(card_path):
+			var card = load(card_path) as CardData
+			if card:
+				CardCollection.add_card(card, 1)
+				print("  ✅ Added: ", card.name)
+
+	print("🎴 Starter cards added!")
 
 func _show_event(node: MapNode):
 	print("Showing story / event popup")
