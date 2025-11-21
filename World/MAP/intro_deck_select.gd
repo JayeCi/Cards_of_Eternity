@@ -18,8 +18,8 @@ var _is_selecting := false
 const DECK_ART_PATHS := {
 	0: "res://World/MAP/FIREDECK.png",
 	1: "res://World/MAP/earthdeck.png",
-	2: "res://World/MAP/waterdeck.png",
-	3: "res://World/MAP/winddeck.png"
+	2: "res://World/MAP/winddeck.png",
+	3: "res://World/MAP/waterdeck.png"
 }
 
 # Deck information

@@ -47,25 +47,21 @@ func execute_at(arena: Node, unit: UnitData, origin_pos: Vector2i) -> void:
 		var tile = board.get_tile(p.x, p.y)
 		if not tile:
 			continue
-			
-	# 🔥 Play sound only if this is a Lava-based Elemental Fan
-		if new_terrain == "Lava":
-			_play_fire_sound(arena)
-		if new_terrain == "Water":
-			_play_water_sound(arena)
-		if new_terrain == "Stone":
-			_play_earth_sound(arena)
-		if new_terrain == "Grass":
-			_play_grass_sound(arena)
-			
-		# Skip if already that terrain
-		if tile.terrain_type == new_terrain:
-			continue
 
-		# Apply terrain change
-		tile.terrain_type = new_terrain
-		if tile.has_method("_apply_terrain_visual"):
-			tile._apply_terrain_visual(new_terrain)
+		# Skip sound spam: play only on first valid tile
+		if i == 1:
+			match new_terrain:
+				"Lava": _play_fire_sound(arena)
+				"Water": _play_water_sound(arena)
+				"Stone": _play_earth_sound(arena)
+				"Grass": _play_grass_sound(arena)
+
+		# If tile already right terrain, still count it but don’t change visuals
+		if tile.terrain_type != new_terrain:
+			tile.terrain_type = new_terrain
+			if tile.has_method("_apply_terrain_visual"):
+				tile._apply_terrain_visual(new_terrain)
+
 		changed_tiles.append(tile)
 
 		# Re-apply buffs for any unit on this tile
