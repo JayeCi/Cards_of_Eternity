@@ -8,7 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://cmwi3xrb0nspr" path="res://UI/Terrains/Lava.png" id="6_4wn2b"]
 [ext_resource type="Texture2D" uid="uid://dkc013g0vjkfa" path="res://UI/Terrains/grass.png" id="7_8xvv3"]
 [ext_resource type="Texture2D" uid="uid://c07v4ijon03kv" path="res://UI/Terrains/Forest.png" id="8_nvpqm"]
-[ext_resource type="Texture2D" uid="uid://dp1ew5edt28ly" path="res://UI/Terrains/stone.png" id="9_joerh"]
+[ext_resource type="Texture2D" uid="uid://dp1ew5edt28ly" path="res://UI/Terrains/stoneold.png" id="9_joerh"]
 [ext_resource type="ArrayMesh" uid="uid://dnscntj46qyil" path="res://Cards/Utilities/CardModel/CardMeshExt.res" id="10_qhqc0"]
 [ext_resource type="Texture2D" uid="uid://bq6fn5ar8y44d" path="res://Cards/Utilities/CardModel/Border_TP_Edge.png" id="11_t4v35"]
 [ext_resource type="PackedScene" uid="uid://b226o8whi8uox" path="res://Arena/Terrain_Models/column_stylized_low-poly_3d_model.glb" id="12_gbbma"]

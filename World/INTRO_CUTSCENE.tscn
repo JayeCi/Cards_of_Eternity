@@ -1,8 +1,9 @@
-[gd_scene load_steps=9 format=3 uid="uid://dqausrlyf6dt"]
+[gd_scene load_steps=10 format=3 uid="uid://dqausrlyf6dt"]
 
 [ext_resource type="Script" uid="uid://dpfu2r22nyy0c" path="res://World/intro_cutscene.gd" id="1_2jjgu"]
-[ext_resource type="Texture2D" uid="uid://cjw8qsb0thllt" path="res://Images/abstract-heavy-blue-haze-liquid (1).jpg" id="1_c6o74"]
 [ext_resource type="Texture2D" uid="uid://csya7myvxxlhb" path="res://World/MAP/hooded_antagonist.png" id="2_2jjgu"]
+[ext_resource type="Texture2D" uid="uid://5mwylk3gqsym" path="res://Images/Purple_Nebula_02-1024x1024.png" id="2_fahll"]
+[ext_resource type="PackedScene" uid="uid://b5qybr5c860xf" path="res://Animated_Cutscene.tscn" id="2_i5tyh"]
 [ext_resource type="PackedScene" uid="uid://d17sqncfrfh7s" path="res://World/MAP/intro_deck_select.tscn" id="4_fahll"]
 
 [sub_resource type="Animation" id="Animation_fahll"]
@@ -92,10 +93,13 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_2jjgu")
 
+[node name="Node3D" parent="." instance=ExtResource("2_i5tyh")]
+
 [node name="Background" type="Sprite2D" parent="."]
+visible = false
 position = Vector2(574, 266)
-scale = Vector2(0.2941548, 0.2941548)
-texture = ExtResource("1_c6o74")
+scale = Vector2(1.1497446, 1.1497446)
+texture = ExtResource("2_fahll")
 
 [node name="HoodedAntagonist" type="Sprite2D" parent="."]
 modulate = Color(0, 0, 0, 0)
@@ -111,3 +115,5 @@ libraries = {
 &"": SubResource("AnimationLibrary_frx31")
 }
 autoplay = "ArtSlideIn"
+
+[editable path="Node3D"]

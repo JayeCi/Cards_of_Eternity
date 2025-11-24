@@ -436,9 +436,10 @@ func _animate_card_draw(card_ui: Control) -> void:
 
 	# Remove animated duplicate and show real card
 	anim_card.queue_free()
-	card_ui.visible = true
-	card_ui.modulate.a = 1.0
-	card_ui.mouse_filter = Control.MOUSE_FILTER_STOP  # Re-enable clicks after animation
+	if card_ui:
+		card_ui.visible = true
+		card_ui.modulate.a = 1.0
+		card_ui.mouse_filter = Control.MOUSE_FILTER_STOP  # Re-enable clicks after animation
 
 func update_phase_label(phase: int) -> void:
 	match phase:

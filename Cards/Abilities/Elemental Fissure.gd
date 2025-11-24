@@ -5,13 +5,14 @@ class_name ElementalFissure
 @export var water_sound: AudioStream = preload("res://Audio/Water.mp3")
 @export var stone_sound: AudioStream = preload("res://Audio/Rocks.mp3")
 @export var grass_sound: AudioStream = preload("res://Audio/Dirt_Grass.mp3")
+var tile_range 
 
 func _init():
 	display_name = "Elemental Fissure"
 	description = "On Summon | Flip: Changes up to 3 tiles in front of this card to match this card’s element."
 	trigger = "on_summon"
 	value = 0
-	range = 3  # number of tiles forward to affect
+	tile_range = 3  # number of tiles forward to affect
 
 
 # ✅ Standard execution (for direct summons)
@@ -21,7 +22,7 @@ func execute(arena: Node, unit: UnitData) -> void:
 	var pos = arena.board.get_unit_position(unit)
 	if pos == Vector2i(-1, -1):
 		return
-	execute_at(arena, unit, pos)
+	await execute_at(arena, unit, pos)
 
 
 # ✅ Directional execution (for summon or flip)
@@ -38,8 +39,8 @@ func execute_at(arena: Node, unit: UnitData, origin_pos: Vector2i) -> void:
 	# --- Determine facing direction (down for player, up for enemy) ---
 	var dir := Vector2i(0, 1) if unit.owner == arena.PLAYER else Vector2i(0, -1)
 
-	# --- Loop through 1..range tiles straight ahead ---
-	for i in range(1, range + 1):
+	# --- Loop through 1..tile_range tiles straight ahead ---
+	for i in range(1, tile_range + 1):
 		var p = origin_pos + dir * i
 		if p.x < 0 or p.y < 0 or p.x >= arena.BOARD_W or p.y >= arena.BOARD_H:
 			break
@@ -55,14 +56,16 @@ func execute_at(arena: Node, unit: UnitData, origin_pos: Vector2i) -> void:
 				"Water": _play_water_sound(arena)
 				"Stone": _play_earth_sound(arena)
 				"Grass": _play_grass_sound(arena)
-
-		# If tile already right terrain, still count it but don’t change visuals
-		if tile.terrain_type != new_terrain:
+				
+		if tile:
+			# Force terrain change EVEN IF tile normally blocks updates
 			tile.terrain_type = new_terrain
-			if tile.has_method("_apply_terrain_visual"):
-				tile._apply_terrain_visual(new_terrain)
 
-		changed_tiles.append(tile)
+			if tile.has_method("_apply_terrain_visual"):
+				tile.call_deferred("_apply_terrain_visual", new_terrain)
+
+			changed_tiles.append(tile)
+
 
 		# Re-apply buffs for any unit on this tile
 		if tile.occupant:

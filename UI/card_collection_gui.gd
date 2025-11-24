@@ -1054,10 +1054,9 @@ func _add_leader_emblem(card_ui: Control, card_data: CardData):
 		emblem.custom_minimum_size = Vector2(35, 35)
 		emblem.size = Vector2(35, 35)
 		emblem.mouse_filter = Control.MOUSE_FILTER_IGNORE  # Allow clicks to pass through
-
+		emblem.z_index = 5
 		# Position at bottom-right corner (to avoid covering art)
 		emblem.position = Vector2(card_ui.size.x - 40, card_ui.size.y - 40)
-		emblem.z_index = 100  # Ensure it's on top
 
 		# Add crown icon label
 		var crown_label = Label.new()
@@ -1067,7 +1066,8 @@ func _add_leader_emblem(card_ui: Control, card_data: CardData):
 		crown_label.add_theme_font_size_override("font_size", 20)
 		crown_label.size = Vector2(35, 35)
 		crown_label.mouse_filter = Control.MOUSE_FILTER_IGNORE  # Allow clicks to pass through
-
+		crown_label.z_index = 5
+		
 		## Add glow effect with label settings
 		#var label_settings = LabelSettings.new()
 		#label_settings.font_size = 20

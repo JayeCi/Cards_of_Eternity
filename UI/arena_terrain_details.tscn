@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://hs2m5kkdydux"]
 
-[ext_resource type="Texture2D" uid="uid://dp1ew5edt28ly" path="res://UI/Terrains/stone.png" id="1_0vugx"]
+[ext_resource type="Texture2D" uid="uid://dp1ew5edt28ly" path="res://UI/Terrains/stoneold.png" id="1_0vugx"]
 [ext_resource type="Script" uid="uid://dun8065c8ikya" path="res://UI/arena_terrain_details.gd" id="1_yn11x"]
 [ext_resource type="LabelSettings" uid="uid://bh5cergsoq62" path="res://UI/TERRAINLABEL.tres" id="3_r7uwu"]
 

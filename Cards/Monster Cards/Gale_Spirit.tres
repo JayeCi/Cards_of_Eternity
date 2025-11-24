@@ -1,8 +1,9 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://cfasv61o0gj32"]
+[gd_resource type="Resource" script_class="CardData" load_steps=5 format=3 uid="uid://cfasv61o0gj32"]
 
 [ext_resource type="Texture2D" uid="uid://ckftpjyy7waqi" path="res://Images/Gale_Spirit.png" id="1_kf4fd"]
 [ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_swpmd"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_kf4fd"]
+[ext_resource type="Resource" path="res://Cards/Abilities/Gust.tres" id="3_gust"]
 
 [resource]
 script = ExtResource("2_kf4fd")
@@ -16,5 +17,6 @@ description = "A wandering breeze made manifest, whispering encouragement to all
 art = ExtResource("1_kf4fd")
 atk = 5
 def = 20
+ability = ExtResource("3_gust")
 model_path = "res://Cards/Models/GALE_SPIRIT_MODEL.tscn"
 metadata/_custom_type_script = "uid://57up1u0etcmc"

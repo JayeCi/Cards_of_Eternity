@@ -360,7 +360,7 @@ libraries = {
 
 [node name="HoverSound" type="AudioStreamPlayer" parent="MainMenu"]
 stream = ExtResource("9_cafmx")
-volume_db = -13.419
+volume_db = -19.197
 bus = &"SFX"
 
 [node name="ClickSound" type="AudioStreamPlayer" parent="MainMenu"]

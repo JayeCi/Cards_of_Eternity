@@ -1,4 +1,4 @@
-[gd_scene load_steps=54 format=3 uid="uid://dymngijkrptcc"]
+[gd_scene load_steps=52 format=3 uid="uid://dymngijkrptcc"]
 
 [ext_resource type="Script" uid="uid://dtfto6htrvfm5" path="res://Arena/tile_3d.gd" id="1_5v3qr"]
 [ext_resource type="PackedScene" uid="uid://cqxo8j6lh1au8" path="res://Downloaded/bricks_A.tscn" id="2_wh67p"]
@@ -6,7 +6,6 @@
 [ext_resource type="PackedScene" uid="uid://dnajq0rmf2gw2" path="res://Arena/Terrain_Models/mountains.tscn" id="3_w0pxh"]
 [ext_resource type="Texture2D" uid="uid://cbc5l83bvnhjk" path="res://UI/Terrains/Water.png" id="4_27ivk"]
 [ext_resource type="Texture2D" uid="uid://j0dkcfmp3g3d" path="res://UI/Terrains/Ice.png" id="5_nvf5m"]
-[ext_resource type="Texture2D" uid="uid://dp1ew5edt28ly" path="res://UI/Terrains/stone.png" id="5_u8wge"]
 [ext_resource type="Texture2D" uid="uid://cmwi3xrb0nspr" path="res://UI/Terrains/Lava.png" id="6_sa6f8"]
 [ext_resource type="Shader" uid="uid://cpe6qgq8ywmob" path="res://Arena/iceshader.gdshader" id="7_iqoe2"]
 [ext_resource type="Texture2D" uid="uid://c07v4ijon03kv" path="res://UI/Terrains/Forest.png" id="8_2dc0q"]
@@ -16,8 +15,8 @@
 [ext_resource type="Texture2D" uid="uid://bq6fn5ar8y44d" path="res://Cards/Utilities/CardModel/Border_TP_Edge.png" id="11_3e2tw"]
 [ext_resource type="PackedScene" uid="uid://b226o8whi8uox" path="res://Arena/Terrain_Models/column_stylized_low-poly_3d_model.glb" id="12_3e2tw"]
 [ext_resource type="PackedScene" uid="uid://din0i6ruhakdx" path="res://Arena/Arena3DTutorial/Forest_3D.tscn" id="12_jvghx"]
+[ext_resource type="Material" uid="uid://bmm6yd525wgne" path="res://UI/Terrains/tilable_stone_texture.tres" id="13_glohs"]
 [ext_resource type="PackedScene" uid="uid://dfpatff4d5okj" path="res://addons/godot_3d_cursor/3d_cursor.tscn" id="13_ir6gf"]
-[ext_resource type="PackedScene" uid="uid://cs4mmkarsqxam" path="res://Arena/Terrain_Models/river_stones.glb" id="14_jvghx"]
 [ext_resource type="Shader" uid="uid://c5atsr487tksr" path="res://Arena/ImmovableTile.gdshader" id="15_wy7sf"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_5v3qr"]
@@ -106,16 +105,14 @@ albedo_texture = ExtResource("10_glohs")
 material = SubResource("StandardMaterial3D_2dc0q")
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3e2tw"]
+albedo_color = Color(1, 1, 1, 0)
 albedo_texture = ExtResource("8_2dc0q")
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_l2kch"]
 material = SubResource("StandardMaterial3D_3e2tw")
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_u8wge"]
-albedo_texture = ExtResource("5_u8wge")
-
 [sub_resource type="PlaneMesh" id="PlaneMesh_nvf5m"]
-material = SubResource("StandardMaterial3D_u8wge")
+material = ExtResource("13_glohs")
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wy7sf"]
 albedo_texture = ExtResource("10_ir6gf")
@@ -233,21 +230,19 @@ transform = Transform3D(0.467104, 0, 0, 0, -2.04178e-08, -0.467104, 0, 0.467104,
 visible = false
 mesh = SubResource("PlaneMesh_3e2tw")
 
-[node name="ForestMesh" type="MeshInstance3D" parent="TileMesh"]
-transform = Transform3D(0.467104, 0, 0, 0, -2.04178e-08, -0.467104, 0, 0.467104, -2.04178e-08, 0, -1.80143e-09, 0.041212)
+[node name="ForestMesh" parent="TileMesh" instance=ExtResource("12_jvghx")]
+transform = Transform3D(0.030177766, 0, 0, 0, -1.3191145e-09, -0.030177766, 0, 0.030177766, -1.3191145e-09, -0.20000191, -1.80143e-09, 0.041212)
+visible = false
+
+[node name="ForestMesh" type="MeshInstance3D" parent="TileMesh/ForestMesh"]
+transform = Transform3D(15.478415, 0, 0, 0, 15.478415, 2.2404496e-14, 0, -2.2404496e-14, 15.478415, 6.627459, 5.3971357, -3.846173e-13)
 visible = false
 mesh = SubResource("PlaneMesh_l2kch")
-
-[node name="Sketchfab_Scene" parent="TileMesh/ForestMesh" instance=ExtResource("12_jvghx")]
-transform = Transform3D(0.0646061, 0, 0, 0, 0.0646061, 0, 0, 0, 0.0646061, -0.42817426, 0, 0)
+skeleton = NodePath("../..")
 
 [node name="StoneMesh" type="MeshInstance3D" parent="TileMesh"]
-transform = Transform3D(0.467104, 0, 0, 0, -2.04178e-08, -0.467104, 0, 0.467104, -2.04178e-08, 0, -1.80143e-09, 0.041212)
+transform = Transform3D(0.467104, 0, 0, 0, -2.04178e-08, -0.467104, 0, 0.467104, -2.04178e-08, 0, -1.9033886e-09, 0.04354454)
 mesh = SubResource("PlaneMesh_nvf5m")
-
-[node name="Sketchfab_Scene" parent="TileMesh/StoneMesh" instance=ExtResource("14_jvghx")]
-transform = Transform3D(0.68670326, 0, 0, 0, 0.68670326, 1.0164395e-20, 0, -1.0164395e-20, 0.68670326, 0.7852645, 0, -0.12026728)
-visible = false
 
 [node name="DefaultMesh" type="MeshInstance3D" parent="TileMesh"]
 transform = Transform3D(0.467104, 0, 0, 0, -2.04178e-08, -0.467104, 0, 0.467104, -2.04178e-08, 0, -1.80143e-09, 0.041212)
@@ -255,7 +250,7 @@ visible = false
 mesh = SubResource("PlaneMesh_t3ml4")
 
 [node name="CardMesh" type="MeshInstance3D" parent="."]
-transform = Transform3D(1.13, 0, 0, 0, 1.13, 0, 0, 0, 1.13, 0, 0.15204161, -0.554)
+transform = Transform3D(1.13, 0, 0, 0, 1.13, 0, 0, 0, 1.13, 0, 0.27826405, -0.554)
 visible = false
 mesh = ExtResource("3_mf1uq")
 

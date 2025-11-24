@@ -67,7 +67,8 @@ alignment = 1
 
 [node name="Hover" type="AudioStreamPlayer" parent="Sounds"]
 stream = ExtResource("2_hover")
-volume_db = -5.0
+volume_db = -25.019
+bus = &"SFX"
 
 [node name="Click" type="AudioStreamPlayer" parent="Sounds"]
 stream = ExtResource("3_click")

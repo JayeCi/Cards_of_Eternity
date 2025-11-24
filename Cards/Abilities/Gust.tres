@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="Gust" load_steps=2 format=3 uid="uid://cg8x4m5oap2qr"]
+
+[ext_resource type="Script" uid="uid://bc5r53gtpx7s7" path="res://Cards/Abilities/Gust.gd" id="1_gust"]
+
+[resource]
+script = ExtResource("1_gust")
+trigger = "passive"
+display_name = "Gust"
+value = 1
+range = 2
+description = "Grants +1 movement to friendly units within 2 tiles (including diagonals) while faceup."

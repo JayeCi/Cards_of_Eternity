@@ -33,7 +33,7 @@ enum CardType { MONSTER, SPELL, EVENT }
 @export var ability: CardAbility
 @export var model_path: String = ""
 @export var model_scale: Vector3 = Vector3(.5, .5, .5)
-@export var model_position: Vector3 = Vector3(0, 0, 0)
+@export var model_position: Vector3 = Vector3(0, 0.279, 0)
 @export var is_spell: bool = false
 @export var is_upgrade_spell: bool = false  # If true, spell stays on board and upgrades monsters
 @export var ability_name: String = ""

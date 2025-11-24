@@ -201,7 +201,7 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, is_player:
 			var model_instance: Node3D = model_scene.instantiate()
 			model_instance.name = "CardModel"
 
-			if card.model_position != Vector3(0, 0, 0):
+			if card.model_position != Vector3(0, 0.5, 0):
 				model_instance.position = card.model_position
 
 			if card.model_scale != Vector3(.5, .5, .5):
@@ -409,7 +409,7 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 			unit.set_meta("pending_on_flip_ability", null)
 			if ab:
 				core._log("✨ %s activates %s!" % [unit.card.name, ab.display_name], Color(1.0, 0.9, 0.6))
-				core._execute_card_ability(unit, ab)
+				await core._execute_card_ability(unit, ab)
 		else:
 			core._log("🌀 %s steadies their position." % unit.card.name, Color(0.8, 0.8, 1.0))
 
@@ -698,7 +698,7 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 				if model_scene:
 					var model_instance: Node3D = model_scene.instantiate()
 					model_instance.name = "CardModel"
-					if fusion_result.model_position != Vector3(0, 0, 0):
+					if fusion_result.model_position != Vector3(0, 0.279, 0):
 						model_instance.position = fusion_result.model_position
 					if fusion_result.model_scale != Vector3(.5, .5, .5):
 						model_instance.scale = fusion_result.model_scale
@@ -818,7 +818,7 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 					% [attacker.card.name, ab_a.display_name],
 					Color(1.0, 0.9, 0.6)
 				)
-				core._execute_card_ability(attacker, ab_a)
+				await core._execute_card_ability(attacker, ab_a)
 
 		var attacker_tile = board.get_tile(from.x, from.y)
 		if attacker_tile:
@@ -828,8 +828,8 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 				if is_instance_valid(m_a):
 					m_a.visible = true
 
-	# 🪤 TRAP CARD: Check if defender is a facedown EVENT card
-	core._log("🔍 TRAP CHECK: defender.mode=%s, card_type=%s, card_name=%s" % [defender.mode, defender.card.card_type if defender.card else "NO CARD", defender.card.name if defender.card else "NO CARD"], Color(1.0, 1.0, 0.0))
+	## 🪤 TRAP CARD: Check if defender is a facedown EVENT card
+	#core._log("🔍 TRAP CHECK: defender.mode=%s, card_type=%s, card_name=%s" % [defender.mode, defender.card.card_type if defender.card else "NO CARD", defender.card.name if defender.card else "NO CARD"], Color(1.0, 1.0, 0.0))
 
 	if defender.mode == UnitData.Mode.FACEDOWN and defender.card and defender.card.card_type == CardData.CardType.EVENT:
 		core._log("🪤 %s was a trap! It activates on the attacker!" % defender.card.name, Color(1.0, 0.6, 1.0))
@@ -870,8 +870,8 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		battle._is_battle_in_progress = false
 		clear_highlights()
 		return
-	else:
-		core._log("🔍 NOT A TRAP - continuing to normal battle", Color(1.0, 1.0, 0.0))
+	#else:
+		#core._log("🔍 NOT A TRAP - continuing to normal battle", Color(1.0, 1.0, 0.0))
 
 	# 🛡️ DEFENSIVE ABILITY: Check if defender has "on_attacked" trigger (like Ground Slam)
 	if defender.card and defender.card.ability:
@@ -1186,6 +1186,10 @@ func _show_move_targets(from: Vector2i) -> void:
 
 	var range := core.BASE_MOVE_RANGE
 
+	# Gust ability bonus
+	if unit.has_meta("movement_bonus_from_gust"):
+		range += unit.get_meta("movement_bonus_from_gust")
+
 	# Preferred terrain bonus
 	var is_down = unit.is_facedown or (unit.has_meta("is_facedown") and unit.get_meta("is_facedown"))
 	var previewed_up = unit.has_meta("is_previewing_flip") and unit.get_meta("is_previewing_flip")
@@ -1326,7 +1330,7 @@ func confirm_faceup(unit: UnitData) -> void:
 				"✨ %s activates %s!" % [unit.card.name, ab.display_name],
 				Color(1.0, 1.0, 0.6)
 			)
-			core._execute_card_ability(unit, ab)
+			await core._execute_card_ability(unit, ab)
 
 
 func _flip_faceup(tile: Node3D, new_texture: Texture2D) -> void:

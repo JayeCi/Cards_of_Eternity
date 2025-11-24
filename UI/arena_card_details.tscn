@@ -1,7 +1,7 @@
 [gd_scene load_steps=22 format=3 uid="uid://be24omkufdto6"]
 
 [ext_resource type="Script" uid="uid://cgy1ya7ras2uv" path="res://UI/arena_card_details.gd" id="1_6jj6o"]
-[ext_resource type="Texture2D" uid="uid://dp1ew5edt28ly" path="res://UI/Terrains/stone.png" id="2_1oedn"]
+[ext_resource type="Texture2D" uid="uid://dp1ew5edt28ly" path="res://UI/Terrains/stoneold.png" id="2_1oedn"]
 [ext_resource type="LabelSettings" uid="uid://bh5cergsoq62" path="res://UI/TERRAINLABEL.tres" id="2_lmswf"]
 [ext_resource type="Texture2D" uid="uid://cqw22yb1awb6i" path="res://Images/Dark Sprite.jpg" id="4_w80mf"]
 [ext_resource type="LabelSettings" uid="uid://c8mtid42im4y8" path="res://UI/RARITY.tres" id="5_es5ck"]

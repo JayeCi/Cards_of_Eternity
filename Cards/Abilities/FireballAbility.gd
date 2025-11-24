@@ -1,7 +1,7 @@
 extends CardAbility
 class_name FireballAbility
 
-@export var damage: int = 5
+@export var damage: int = 20
 
 func _init():
 	trigger = "on_summon"

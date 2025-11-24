@@ -29,7 +29,7 @@ var core: ArenaCore
 @onready var ice_mesh: MeshInstance3D = $TileMesh/IceMesh
 @onready var lava_mesh: MeshInstance3D = $TileMesh/LavaMesh
 @onready var grass_mesh: MeshInstance3D = $TileMesh/GrassMesh
-@onready var forest_mesh: MeshInstance3D = $TileMesh/ForestMesh
+@onready var forest_mesh: Node3D = $TileMesh/ForestMesh
 @onready var default_mesh: MeshInstance3D = $TileMesh/DefaultMesh
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
 
@@ -41,11 +41,6 @@ func _ready():
 
 	if card_mesh:
 		card_mesh.visible = false  # invisible until art is set
-	#await get_tree().create_timer(1.0).timeout
-	#print("TEST SHAKE START")
-	#var tween := create_tween()
-	#tween.tween_property(self, "position:y", position.y + 0.5, 0.2)
-	#tween.tween_property(self, "position:y", position.y, 0.2)
 
 	set_meta("tile_marker", true)
 	_apply_terrain_visual()
@@ -96,7 +91,7 @@ func set_art(tex: Texture2D, flipped: bool = false) -> void:
 			card_border.visible = false
 	else:
 		card_mesh.visible = true
-		card_mesh.position.y = 0.05
+		#card_mesh.position.y = 0.05
 
 
 

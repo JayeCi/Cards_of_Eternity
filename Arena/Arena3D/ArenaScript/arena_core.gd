@@ -812,7 +812,7 @@ func _place_leader(unit: UnitData, pos: Vector2i) -> void:
 		if model_scene:
 			var model_instance: Node3D = model_scene.instantiate()
 			model_instance.name = "CardModel"
-			model_instance.position = Vector3(0, 0.1, 0)
+			model_instance.position = Vector3(0, 0.279, 0)
 			model_instance.scale = CARD_MODEL_SCALE
 
 			if unit.owner == ENEMY:
@@ -1953,10 +1953,10 @@ func _execute_card_ability(unit: UnitData, ability: CardAbility) -> void:
 		_log("⚠️ Tried to execute null ability on %s" % unit.card.name)
 		return
 
-	_log("🔍 DEBUG: Executing ability for %s" % unit.card.name, Color(0.9, 0.9, 0.6))
-	_log("🔍 DEBUG: Ability type: %s" % str(type_string(typeof(ability))), Color(0.9, 0.9, 0.6))
-	_log("🔍 DEBUG: Ability class: %s" % ability.get_class(), Color(0.9, 0.9, 0.6))
-	_log("🔍 DEBUG: Has script: %s" % str(ability.get_script() != null), Color(0.9, 0.9, 0.6))
+	#_log("🔍 DEBUG: Executing ability for %s" % unit.card.name, Color(0.9, 0.9, 0.6))
+	#_log("🔍 DEBUG: Ability type: %s" % str(type_string(typeof(ability))), Color(0.9, 0.9, 0.6))
+	#_log("🔍 DEBUG: Ability class: %s" % ability.get_class(), Color(0.9, 0.9, 0.6))
+	#_log("🔍 DEBUG: Has script: %s" % str(ability.get_script() != null), Color(0.9, 0.9, 0.6))
 
 	# 🔧 FIXED: Always instantiate from the script, never use the resource directly
 	var inst = null
@@ -1964,14 +1964,14 @@ func _execute_card_ability(unit: UnitData, ability: CardAbility) -> void:
 	# Get the script from the resource
 	var script_ref = ability.get_script()
 	if script_ref:
-		_log("🔍 DEBUG: Creating new instance from script...", Color(0.9, 0.9, 0.6))
+		#_log("🔍 DEBUG: Creating new instance from script...", Color(0.9, 0.9, 0.6))
 		inst = script_ref.new()
 	else:
-		_log("⚠️ Ability has no script for %s" % unit.card.name)
+		#_log("⚠️ Ability has no script for %s" % unit.card.name)
 		return
 
 	if not inst:
-		_log("⚠️ Failed to instantiate ability for %s" % unit.card.name)
+		#_log("⚠️ Failed to instantiate ability for %s" % unit.card.name)
 		return
 		
 	if not inst.has_method("execute"):

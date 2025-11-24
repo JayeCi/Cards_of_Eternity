@@ -671,7 +671,7 @@ func _tactical_retreat(from: Vector2i) -> void:
 				best_score = score
 
 	if best != from:
-		await battle._move_or_battle(from, best, true)
+		await move._move_or_battle(from, best, true)
 		_did_action_this_turn = true
 # ---------------------------------------------------------
 # LEADER ESCAPE (same rules)
