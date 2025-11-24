@@ -246,6 +246,21 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, is_player:
 # 🟦 Movement
 # ===============================
 
+# ✅ Layer 1: Direct tile click (called from Area3D input_event)
+func on_tile_clicked(tile: Tile) -> void:
+	# Ignore during battle / cutscene
+	if battle._is_battle_in_progress or (core and core.is_cutscene_active):
+		return
+
+	if not tile:
+		return
+
+	var pos := Vector2i(tile.x, tile.y)
+	core.hovered_tile = tile
+
+	_handle_tile_interaction(tile, pos)
+
+# ✅ Layer 2: Raycast-based click (fallback)
 func on_board_click(screen_pos: Vector2) -> void:
 	# Ignore during battle / cutscene
 	if battle._is_battle_in_progress or (core and core.is_cutscene_active):
@@ -261,6 +276,11 @@ func on_board_click(screen_pos: Vector2) -> void:
 
 	var pos := Vector2i(tile.x, tile.y)
 	core.hovered_tile = tile
+
+	_handle_tile_interaction(tile, pos)
+
+# 🎯 Unified tile interaction logic
+func _handle_tile_interaction(tile: Tile, pos: Vector2i) -> void:
 
 	var is_placing := (core.dragging_card != null)
 
@@ -1148,11 +1168,21 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		core._update_phase_ui()
 		
 func _is_within_move_range(from_pos: Vector2i, to_pos: Vector2i, unit: UnitData) -> bool:
-	# Block diagonal moves entirely
 	var dx := to_pos.x - from_pos.x
 	var dy := to_pos.y - from_pos.y
-	if abs(dx) > 0 and abs(dy) > 0:
-		return false
+
+	# Check if this is a diagonal move
+	var is_diagonal = abs(dx) > 0 and abs(dy) > 0
+
+	# Block diagonal moves unless unit has diagonal movement capability
+	# Flying is separate - it only allows jumping over allies, not diagonal movement
+	if is_diagonal:
+		var can_diagonal := false
+		if unit and unit.card:
+			can_diagonal = unit.card.can_move_diagonally
+
+		if not can_diagonal:
+			return false
 
 	var allowed_range := core.BASE_MOVE_RANGE
 	var from_tile = board.get_tile(from_pos.x, from_pos.y)
@@ -1162,7 +1192,9 @@ func _is_within_move_range(from_pos: Vector2i, to_pos: Vector2i, unit: UnitData)
 		if from_tile.terrain_type == unit.card.preferred_terrain:
 			allowed_range *= 2
 
-	var dist = abs(dx) + abs(dy)
+	# For diagonal moves, use max of dx/dy (chess king movement)
+	# For orthogonal moves, use Manhattan distance
+	var dist = max(abs(dx), abs(dy)) if is_diagonal else abs(dx) + abs(dy)
 	return dist <= allowed_range
 
 
@@ -1198,12 +1230,23 @@ func _show_move_targets(from: Vector2i) -> void:
 		if src.has_method("pulse_move_highlight"):
 			src.pulse_move_highlight()
 
+	# Start with orthogonal directions
 	var dirs = [
 		Vector2i(1, 0),
 		Vector2i(-1, 0),
 		Vector2i(0, 1),
 		Vector2i(0, -1)
 	]
+
+	# Add diagonal directions ONLY if unit has diagonal movement
+	# Flying is separate - it allows jumping over allies, not diagonal movement
+	if unit.card and unit.card.can_move_diagonally:
+		dirs.append_array([
+			Vector2i(1, 1),
+			Vector2i(-1, -1),
+			Vector2i(1, -1),
+			Vector2i(-1, 1)
+		])
 
 	# Check if this is an EVENT card (cannot attack)
 	var is_event_card = unit.card and unit.card.card_type == CardData.CardType.EVENT
@@ -1272,6 +1315,53 @@ func _show_move_targets(from: Vector2i) -> void:
 			else:
 				move_targets[p] = {"kind": "move"}
 				_highlight_move_tile(t, false, false)  # Blue
+
+	# ✈️ FLYING MECHANIC - Jump over allies
+	if unit.card and (unit.card.can_fly or unit.card.has_type("Flying")):
+		# Only check orthogonal directions for flying
+		var fly_dirs = [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
+
+		for dir in fly_dirs:
+			for step in range(1, range + 1):
+				var ally_pos = from + dir * step
+				if not core.board.is_in_bounds(ally_pos):
+					break
+
+				var ally_tile = board.get_tile(ally_pos.x, ally_pos.y)
+				if not ally_tile:
+					break
+
+				# Found an ally - can we fly over it?
+				if ally_tile.occupant and ally_tile.occupant.owner == core.PLAYER:
+					# Check the tile AFTER the ally (one tile beyond)
+					var land_pos = ally_pos + dir
+					if not core.board.is_in_bounds(land_pos):
+						break
+
+					var land_tile = board.get_tile(land_pos.x, land_pos.y)
+					if not land_tile:
+						break
+
+					# Flying allows landing one tile beyond normal range
+					# Ally must be within range, landing is always +1 from ally
+					# No additional range check needed - if ally is reachable, we can fly over
+
+					# Can land here!
+					if land_tile.occupant == null:
+						# Empty tile - safe landing
+						if not move_targets.has(land_pos):  # Don't override existing targets
+							move_targets[land_pos] = {"kind": "fly"}
+							_highlight_move_tile(land_tile, false, false)  # Blue
+					elif land_tile.occupant.owner != core.PLAYER:
+						# Enemy tile - flying attack!
+						if not move_targets.has(land_pos):  # Don't override existing targets
+							move_targets[land_pos] = {"kind": "fly_attack"}
+							_highlight_move_tile(land_tile, true, false)  # Red
+
+					break  # Stop checking this direction after finding first ally
+				elif ally_tile.occupant:
+					# Enemy in the way - can't fly through
+					break
 
 func _highlight_move_tile(tile: Node3D, is_attack: bool, is_upgrade: bool = false, is_fusion: bool = false) -> void:
 	# Badge symbol

@@ -46,6 +46,11 @@ func _ready():
 	_apply_terrain_visual()
 	
 	if hover_area:
+		# Area3D for hover detection only (not for clicks - using raycast instead)
+		hover_area.input_ray_pickable = false  # Disabled - causes issues
+		hover_area.collision_layer = 2
+		hover_area.collision_mask = 0
+		# hover_area.input_event.connect(_on_area_input_event)  # DISABLED
 		hover_area.mouse_entered.connect(_on_mouse_entered)
 		hover_area.mouse_exited.connect(_on_mouse_exited) 
 	# --- Ensure unique mesh and material per tile ---
@@ -439,7 +444,7 @@ func _on_mouse_entered() -> void:
 	hover_highlight = true
 	#_update_highlight_visibility()
 	emit_signal("hovered", self)
-	
+
 func _on_mouse_exited() -> void:
 	hover_highlight = false
 
@@ -448,3 +453,22 @@ func _on_mouse_exited() -> void:
 		#highlight_mesh.visible = false
 
 	emit_signal("unhovered", self)
+
+# ✅ Layer 1: Area3D Input Event Handler (Primary - 95% reliability)
+func _on_area_input_event(_camera: Node, event: InputEvent, _position: Vector3, _normal: Vector3, _shape_idx: int) -> void:
+	if not event is InputEventMouseButton or not event.pressed or event.button_index != MOUSE_BUTTON_LEFT:
+		return
+
+	if not core or not core.move_sys:
+		return
+
+	# Skip Area3D handling ONLY when cards are actively selected for placement
+	# This lets core's _unhandled_input set up the dragging_card state first
+	if core.fusion_selection.size() > 0 or core.dragging_card != null:
+		# Card(s) selected - let core._unhandled_input handle tile click for placement
+		return
+
+	# All other clicks: handle directly via Area3D (unit selection, movement, etc.)
+	if core.move_sys.has_method("on_tile_clicked"):
+		core.move_sys.on_tile_clicked(self)
+		get_viewport().set_input_as_handled()

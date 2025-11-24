@@ -270,6 +270,7 @@ const MAX_AUDIO_POOL_SIZE: int = 10
 var phase: int = Phase.SUMMON_OR_MOVE
 var summon_mode := UnitData.Mode.ATTACK
 var _is_transitioning := false
+var _is_drawing_cards := false  # Blocks card clicks during draw animation
 
 # Decks & hands
 var player_deck: Array = []
@@ -906,10 +907,12 @@ func _draw_starting_hand(n: int) -> void:
 	card_draw.play()
 
 	# ✅ Animate each card one by one
+	_is_drawing_cards = true  # Block card clicks during animation
 	var hand_uis = ui_sys.hand_grid.get_children()
 	for i in range(cards_to_draw.size()):
 		if i < hand_uis.size():
 			await ui_sys.call("_animate_card_draw", hand_uis[i])
+	_is_drawing_cards = false  # Re-enable card clicks
 
 func _draw_card() -> Control:
 	if player_deck.is_empty(): return null
@@ -928,6 +931,18 @@ func _get_available_essence() -> int:
 
 func on_hand_card_clicked(card: CardData) -> void:
 	if dragging_card:
+		return
+
+	# Block clicks during enemy turn or inappropriate phases
+	if phase == Phase.ENEMY_TURN:
+		return
+
+	# Block clicks during battle, cutscenes, or card draw animations
+	if battle_sys and battle_sys._is_battle_in_progress:
+		return
+	if is_cutscene_active:
+		return
+	if _is_drawing_cards:
 		return
 
 	# Toggle selection
@@ -1644,11 +1659,13 @@ func _start_enemy_turn() -> void:
 
 
 func _draw_up_to_hand_limit() -> void:
+	_is_drawing_cards = true  # Block card clicks during animation
 	while player_hand.size() < MAX_HAND_SIZE and not player_deck.is_empty():
 		var ui_card = _draw_card()
 		if not ui_card: break
 		await ui_sys.call("_animate_card_draw", ui_card)
 		await get_tree().create_timer(0.15).timeout
+	_is_drawing_cards = false  # Re-enable card clicks
 
 func _reset_action_flags() -> void:
 	acted_this_turn.clear()
@@ -1661,6 +1678,14 @@ func cancel_summon_popup() -> void:
 		battle_sys.call("clear_summon_highlights")
 	if ui_sys and ui_sys.has_method("fade_hand_in"):
 		ui_sys.fade_hand_in()
+
+	# ✅ Reset move system state
+	if move_sys and move_sys.has_method("_reset_selection"):
+		move_sys._reset_selection()
+
+	# ✅ CRITICAL: Clear hover flag to unblock board interaction
+	if ui_sys:
+		ui_sys._is_hovering_hand_card = false
 
 	fusion_selection.clear()
 	selected_card = null
@@ -1820,6 +1845,14 @@ func _unhandled_input(event: InputEvent) -> void:
 				if battle_sys and battle_sys.has_method("clear_summon_highlights"):
 					battle_sys.call("clear_summon_highlights")
 
+				# ✅ Reset move system state
+				if move_sys and move_sys.has_method("_reset_selection"):
+					move_sys._reset_selection()
+
+			# ✅ CRITICAL: Clear hover flag to unblock board interaction
+				if ui_sys:
+					ui_sys._is_hovering_hand_card = false
+
 				_set_phase(Phase.SUMMON_OR_MOVE)
 				_update_phase_ui()
 				return
@@ -1877,6 +1910,10 @@ func _unhandled_input(event: InputEvent) -> void:
 				ui_sys.hide_fusion_pending()
 			if battle_sys and battle_sys.has_method("clear_highlights"):
 				battle_sys.call("clear_highlights")
+
+			# ✅ CRITICAL: Reset move system state to allow new clicks
+			if move_sys and move_sys.has_method("_reset_selection"):
+				move_sys._reset_selection()
 
 			selected_card = null
 			fusion_selection.clear()

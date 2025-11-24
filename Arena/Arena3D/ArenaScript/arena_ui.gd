@@ -144,6 +144,9 @@ func _input(event: InputEvent) -> void:
 			core._log("🔄 Action canceled — highlights and selections cleared.", Color(0.8, 0.8, 1.0))
 
 		# 🟢 7. Hide hover & card details
+		# ✅ CRITICAL: Clear hover flag to unblock board interaction
+		_is_hovering_hand_card = false
+
 		if has_method("hide_hover"):
 			hide_hover()
 		if card_details_ui:

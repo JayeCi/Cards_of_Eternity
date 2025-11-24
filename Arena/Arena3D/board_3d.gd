@@ -197,6 +197,12 @@ func _generate_grid() -> void:
 			# ✅ Mark as tile so we can detect from any child collider
 			tile.set_meta("tile_marker", true)
 
+			# ✅ Connect hover signals for UI info display
+			if tile.has_signal("hovered"):
+				tile.hovered.connect(_on_tile_hovered)
+			if tile.has_signal("unhovered"):
+				tile.unhovered.connect(_on_tile_hover_exited)
+
 			var pos_x := (x - half_w) * spacing
 			var pos_z := -(y - half_h) * spacing
 			tile.position = Vector3(pos_x, 0, pos_z)

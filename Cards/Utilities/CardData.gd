@@ -49,6 +49,10 @@ enum CardType { MONSTER, SPELL, EVENT }
 @export var fusion_materials: Array[String] = []
 @export var attack_moves: Array[String] = []
 
+# --- MOVEMENT FLAGS ---
+@export var can_fly: bool = false  # Flying units can move diagonally
+@export var can_move_diagonally: bool = false  # Non-flying units with diagonal movement
+
 # --- UTILITY HELPERS ---
 func has_type(t: String) -> bool:
 	# Case-insensitive type check

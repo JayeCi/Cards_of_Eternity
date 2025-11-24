@@ -17,4 +17,5 @@ atk = 15
 def = 10
 model_path = "res://Cards/Models/YORG_ARCHER_MODEL.tscn"
 model_scale = Vector3(0.55, 0.55, 0.55)
+can_move_diagonally = true
 metadata/_custom_type_script = "uid://57up1u0etcmc"

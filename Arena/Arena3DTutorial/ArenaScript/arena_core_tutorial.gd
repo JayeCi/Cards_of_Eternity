@@ -134,7 +134,7 @@ enum Phase { SUMMON_OR_MOVE, SELECT_SUMMON_TILE, SELECT_MOVE_TARGET, ENEMY_TURN 
 # -----------------------------
 var phase: int = Phase.SUMMON_OR_MOVE
 var summon_mode := UnitData.Mode.ATTACK
-
+var _is_drawing_cards := false  # Blocks card clicks during draw animation
 
 # Decks & hands
 var player_deck: Array = []
@@ -681,12 +681,15 @@ func clear_card_placement_mode() -> void:
 # DRAW / HAND / ESSENCE
 # -----------------------------
 func _draw_starting_hand(n: int) -> void:
+	_is_drawing_cards = true  # Block card clicks during animation
 	for i in range(n):                     # ✅ fix loop
 		var card_ui: Control = _draw_card()
 		if not card_ui:
+			_is_drawing_cards = false
 			return
 		await ui_sys.call("_animate_card_draw", card_ui)
 		await get_tree().create_timer(0.15).timeout
+	_is_drawing_cards = false  # Re-enable card clicks
 
 func _draw_card() -> Control:
 	if player_deck.is_empty(): return null
@@ -698,6 +701,14 @@ func _draw_card() -> Control:
 
 func on_hand_card_clicked(card: CardData) -> void:
 	if dragging_card:
+		return
+
+	# Block clicks during enemy turn or inappropriate phases
+	if phase == Phase.ENEMY_TURN:
+		return
+
+	# Block clicks during card draw animations
+	if _is_drawing_cards:
 		return
 
 	# Toggle selection
@@ -1259,11 +1270,13 @@ func _start_enemy_turn() -> void:
 
 
 func _draw_up_to_hand_limit() -> void:
+	_is_drawing_cards = true  # Block card clicks during animation
 	while player_hand.size() < MAX_HAND_SIZE and not player_deck.is_empty():
 		var ui_card = _draw_card()
 		if not ui_card: break
 		await ui_sys.call("_animate_card_draw", ui_card)
 		await get_tree().create_timer(0.15).timeout
+	_is_drawing_cards = false  # Re-enable card clicks
 
 func _reset_action_flags() -> void:
 	acted_this_turn.clear()

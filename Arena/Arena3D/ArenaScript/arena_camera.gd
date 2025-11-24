@@ -219,11 +219,19 @@ func focus_on_battle(att_pos: Vector3, def_pos: Vector3, zoom_in := true) -> voi
 # RAY PICKING
 # ====================================================
 func ray_pick(screen_pos: Vector2) -> Dictionary:
+	if not camera or not core:
+		return {}
+
 	var from = camera.project_ray_origin(screen_pos)
 	var dir = camera.project_ray_normal(screen_pos)
-	var to = from + dir * 100
+	var to = from + dir * 1000  # ✅ Much longer range
+
+	# Raycast targeting StaticBody3D on layer 1 (tile collision)
 	var q = PhysicsRayQueryParameters3D.create(from, to)
-	q.collision_mask = 1
+	q.collision_mask = 1  # Layer 1 (StaticBody3D)
+	q.collide_with_bodies = true
+	q.collide_with_areas = false
+
 	return core.get_world_3d().direct_space_state.intersect_ray(q)
 
 # ====================================================

@@ -369,6 +369,22 @@ func _smart_move_and_attack() -> void:
 
 		# 2️⃣ Try to move closer to enemy leader (but avoid dangerous positions)
 		var best_move = _find_best_move_toward(from, player_leader)
+
+		# 2.5️⃣ Check for flying moves (jump over allies)
+		var flying_moves = _find_flying_moves(from, unit, player_leader)
+		if not flying_moves.is_empty():
+			# Sort by score and pick best
+			flying_moves.sort_custom(func(a, b): return a.score > b.score)
+			var best_fly = flying_moves[0]
+
+			# Compare flying move vs normal move
+			var fly_dist = best_fly.pos.distance_to(player_leader)
+			var normal_dist = best_move.distance_to(player_leader) if best_move != from else INF
+
+			# Prefer flying if it gets us closer
+			if fly_dist < normal_dist:
+				best_move = best_fly.pos
+
 		if best_move != from:
 			# 🧠 Check if moving there would put us in danger
 			var is_safe = _is_position_safe(best_move, unit)
@@ -648,18 +664,46 @@ func _tactical_retreat(from: Vector2i) -> void:
 	if not unit:
 		return
 
+	# Get movement range (respecting terrain bonuses)
+	var src_tile = core.board.get_tile(from.x, from.y)
+	if not src_tile:
+		return
+
 	var range = core.BASE_MOVE_RANGE
+	if src_tile.terrain_type == unit.card.preferred_terrain and not unit.is_facedown:
+		range *= 2
+
+	# Determine which directions this unit can move
+	var dirs: Array[Vector2i] = []
+
+	# All units can move orthogonally (4 directions)
+	dirs.append_array([Vector2i(1,0), Vector2i(-1,0), Vector2i(0,1), Vector2i(0,-1)])
+
+	# Some units (Flying, etc.) can also move diagonally
+	if _can_move_diagonally(unit):
+		dirs.append_array([Vector2i(1,1), Vector2i(-1,-1), Vector2i(1,-1), Vector2i(-1,1)])
+
 	var best := from
 	var best_score := -INF
-	for dx in range(-range, range + 1):
-		for dy in range(-range, range + 1):
-			var pos = from + Vector2i(dx, dy)
-			if not core.board.is_in_bounds(pos):
-				continue
-			var t = core.board.get_tile(pos.x, pos.y)
-			if not t or t.occupant != null:
-				continue
 
+	# Check each direction for retreat options
+	for dir in dirs:
+		for step in range(1, range + 1):
+			var pos = from + dir * step
+
+			# Stop if out of bounds
+			if not core.board.is_in_bounds(pos):
+				break
+
+			var t = core.board.get_tile(pos.x, pos.y)
+			if not t:
+				break
+
+			# Stop if blocked by any unit (ally or enemy)
+			if t.occupant != null:
+				break
+
+			# Evaluate this empty tile as a retreat option
 			var dist_score = pos.distance_to(leader_pos)
 			var terrain_bonus := 0.0
 			if not unit.is_facedown and t.terrain_type == unit.card.preferred_terrain:
@@ -848,6 +892,85 @@ func _any_action_taken() -> bool:
 	var result = _did_action_this_turn
 	_did_action_this_turn = false
 	return result
+
+# ---------------------------------------------------------
+# MOVEMENT CAPABILITY - Check if unit can move diagonally
+# ---------------------------------------------------------
+func _can_move_diagonally(unit: UnitData) -> bool:
+	"""Check if this unit has diagonal movement capability"""
+	if not unit or not unit.card:
+		return false
+
+	# Only diagonal movement flag grants diagonal movement
+	# Flying is a separate mechanic (jump over allies)
+	return unit.card.can_move_diagonally
+
+func _can_fly(unit: UnitData) -> bool:
+	"""Check if this unit can fly over allies"""
+	if not unit or not unit.card:
+		return false
+
+	return unit.card.can_fly or unit.card.has_type("Flying")
+
+func _find_flying_moves(from: Vector2i, unit: UnitData, goal: Vector2i) -> Array[Dictionary]:
+	"""Find all valid flying moves (jumping over allies). Returns array of {pos: Vector2i, score: float}"""
+	var flying_moves: Array[Dictionary] = []
+
+	if not _can_fly(unit):
+		return flying_moves
+
+	var src_tile = core.board.get_tile(from.x, from.y)
+	if not src_tile:
+		return flying_moves
+
+	var range = core.BASE_MOVE_RANGE
+	if src_tile.terrain_type == unit.card.preferred_terrain and not unit.is_facedown:
+		range *= 2
+
+	# Only check orthogonal directions for flying
+	var fly_dirs = [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
+
+	for dir in fly_dirs:
+		for step in range(1, range + 1):
+			var ally_pos = from + dir * step
+			if not core.board.is_in_bounds(ally_pos):
+				break
+
+			var ally_tile = core.board.get_tile(ally_pos.x, ally_pos.y)
+			if not ally_tile:
+				break
+
+			# Found an ally - can we fly over it?
+			if ally_tile.occupant and ally_tile.occupant.owner == core.ENEMY:
+				# Check the tile AFTER the ally (one tile beyond)
+				var land_pos = ally_pos + dir
+				if not core.board.is_in_bounds(land_pos):
+					break
+
+				var land_tile = core.board.get_tile(land_pos.x, land_pos.y)
+				if not land_tile:
+					break
+
+				# Flying allows landing one tile beyond normal range
+				# Ally must be within range, landing is always +1 from ally
+				# No additional range check needed - if ally is reachable, we can fly over
+
+				# Can land here! Score based on distance to goal
+				if land_tile.occupant == null:
+					# Empty tile
+					var score = -land_pos.distance_to(goal)
+					flying_moves.append({"pos": land_pos, "score": score})
+				elif land_tile.occupant.owner == core.PLAYER:
+					# Enemy tile - good for attacking!
+					var score = -land_pos.distance_to(goal) + 5.0  # Bonus for attacking
+					flying_moves.append({"pos": land_pos, "score": score})
+
+				break  # Stop after finding first ally in this direction
+			elif ally_tile.occupant:
+				# Player unit in the way - can't fly through
+				break
+
+	return flying_moves
 
 # ---------------------------------------------------------
 # DANGER ASSESSMENT - Check if position is safe for unit
