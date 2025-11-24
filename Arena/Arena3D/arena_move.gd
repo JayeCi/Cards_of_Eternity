@@ -168,6 +168,10 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, is_player:
 		core._play_card_place_sound()
 		core._log("💨 %s vanishes after casting." % card.name, Color(0.7, 0.7, 1.0))
 
+		# 🪦 Add spell to discard pile
+		if core.has_method("add_to_discard"):
+			core.add_to_discard(card, unit.owner)
+
 		# Clean up
 		core.units.erase(pos)
 		tile.set_occupant(null)
@@ -654,6 +658,11 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 			fused_unit.set_meta("is_facedown", false)
 			fused_unit.set_meta("flipped_permanent", true)
 
+			# 🪦 Add fusion materials to discard pile
+			if core.has_method("add_to_discard"):
+				core.add_to_discard(attacker_card, attacker.owner)
+				core.add_to_discard(defender_card, attacker.owner)
+
 			# Remove both source units from game state FIRST
 			core.units.erase(from)
 			core.units.erase(to)
@@ -783,6 +792,10 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 					if is_instance_valid(model):
 						model.queue_free()
 
+			# 🪦 Add destroyed card to discard pile
+			if target_unit.card and core.has_method("add_to_discard"):
+				core.add_to_discard(target_unit.card, target_unit.owner)
+
 			# Clear the target tile and remove from units
 			dst.clear()
 			core.units.erase(to)
@@ -876,6 +889,10 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		# Remove the EVENT card from the board
 		await get_tree().create_timer(0.5).timeout
 		core._log("💨 %s vanishes after activation." % defender.card.name, Color(0.7, 0.7, 1.0))
+		# 🪦 Add EVENT card to discard pile
+		if defender.card and core.has_method("add_to_discard"):
+			core.add_to_discard(defender.card, defender.owner)
+
 		core.units.erase(to)
 		dst.set_occupant(null)
 		dst.set_art(null)

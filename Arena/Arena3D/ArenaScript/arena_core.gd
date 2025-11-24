@@ -278,6 +278,10 @@ var player_hand: Array = []
 var enemy_deck: Array = []
 var enemy_hand: Array = []
 
+# 🪦 Discard Piles (for tracking destroyed/used cards)
+var player_discard_pile: Array[CardData] = []
+var enemy_discard_pile: Array[CardData] = []
+
 # Essence
 var player_essence: int = 1
 var enemy_essence: int = 1
@@ -922,6 +926,22 @@ func _draw_card() -> Control:
 	card_draw.play()
 	return ui_sys.call("get_last_hand_card_ui")
 
+# 🪦 Add card to discard pile (for tracking destroyed/used cards)
+func add_to_discard(card: CardData, owner: int) -> void:
+	if not card:
+		return
+
+	if owner == PLAYER:
+		player_discard_pile.append(card)
+		_log("🪦 %s added to player discard pile (%d cards)" % [card.name, player_discard_pile.size()], Color(0.7, 0.7, 0.8))
+	else:
+		enemy_discard_pile.append(card)
+		_log("🪦 %s added to enemy discard pile (%d cards)" % [card.name, enemy_discard_pile.size()], Color(0.7, 0.7, 0.8))
+
+	# Update discard pile button count
+	if ui_sys and ui_sys.has_method("update_discard_button"):
+		ui_sys.update_discard_button()
+
 func _get_available_essence() -> int:
 	var reserved := 0
 	for c in fusion_selection:
@@ -1464,6 +1484,11 @@ func confirm_summon_in_mode(mode: int) -> void:
 		_emit_essence_changed()
 
 		# Reset fusion reserved essence since we've deducted the actual cost
+
+		# 🪦 Add fusion materials to discard pile
+		if has_method("add_to_discard"):
+			add_to_discard(a, PLAYER)
+			add_to_discard(b, PLAYER)
 
 		player_hand = player_hand.filter(func(c): return c != a and c != b)
 		ui_sys.refresh_hand(player_hand, player_essence)

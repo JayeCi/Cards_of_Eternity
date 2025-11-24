@@ -1241,6 +1241,10 @@ func _kill_unit(u: UnitData, silent := false) -> void:
 			if is_instance_valid(model):
 				model.queue_free()
 
+	# 🪦 Add to discard pile before removing from board
+	if u.card and core.has_method("add_to_discard"):
+		core.add_to_discard(u.card, u.owner)
+
 	tile.clear()
 	core.units.erase(found_pos)
 

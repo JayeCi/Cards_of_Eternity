@@ -1,8 +1,15 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://xrp0akg8ejnj"]
+[gd_resource type="Resource" script_class="CardData" load_steps=6 format=3 uid="uid://xrp0akg8ejnj"]
 
 [ext_resource type="Texture2D" uid="uid://db45ilfu71eul" path="res://Images/Falcreep.png" id="1_j6gld"]
 [ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_q1tcp"]
+[ext_resource type="Script" uid="uid://d2to4368imoiw" path="res://Cards/Utilities/CardAbility.gd" id="1_yqacq"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_j6gld"]
+
+[sub_resource type="Resource" id="Resource_friu3"]
+script = ExtResource("1_yqacq")
+display_name = "Take Flight"
+description = "Can fly over allies +1 tile"
+metadata/_custom_type_script = "uid://d2to4368imoiw"
 
 [resource]
 script = ExtResource("2_j6gld")
@@ -14,9 +21,8 @@ description = "A silent assassin born of shadow and feather. Once a noble guardi
 art = ExtResource("1_j6gld")
 atk = 11
 def = 14
+ability = SubResource("Resource_friu3")
 model_path = "res://Cards/Models/FALCREEP_MODEL.tscn"
 model_scale = Vector3(0.6, 0.6, 0.6)
-ability_name = "Take Flight"
-ability_description = "Can fly over allies +1 tile"
 can_fly = true
 metadata/_custom_type_script = "uid://57up1u0etcmc"

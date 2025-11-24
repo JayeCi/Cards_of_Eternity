@@ -50,7 +50,8 @@ func _ready():
 	$ArenaLeaderDetails.visible = false
 	$ArenaCardDetails.visible = false
 	$ArenaTerrainDetails.visible = false
-	$BottomContainer/OrbGrid/OrbGrid.visible = false 
+	$BottomContainer/OrbGrid/OrbGrid.visible = false
+	_setup_discard_pile_ui()  # 🪦 Initialize discard pile viewer 
 
 
 func init_ui(core_ref: ArenaCore) -> void:
@@ -1290,3 +1291,347 @@ func show_all_ui() -> void:
 	# Details panels stay hidden until needed
 	# SummonMode stays hidden until needed
 	# FusionPending stays hidden until needed
+# ==========================================================
+# 🪦 DISCARD PILE VIEWER EXTENSION
+# ==========================================================
+# This file extends ArenaUI with discard pile viewing functionality
+# Add these functions to arena_ui.gd
+
+var discard_viewer: Panel = null
+var discard_button: Button = null
+var _current_discard_view := "player"  # "player" or "enemy"
+var _discard_grid: GridContainer = null  # Direct reference to card grid
+var _discard_empty_label: Label = null  # Direct reference to empty state label
+
+# Call this from _ready() to set up the discard pile UI
+func _setup_discard_pile_ui() -> void:
+	# Create button to open discard pile (positioned near bottom-right)
+	discard_button = Button.new()
+	discard_button.name = "DiscardPileButton"
+	discard_button.text = "🪦 Discard (0)"
+	discard_button.custom_minimum_size = Vector2(140, 45)
+	discard_button.add_theme_font_size_override("font_size", 18)
+
+	# Style the button
+	var button_style = StyleBoxFlat.new()
+	button_style.bg_color = Color(0.15, 0.15, 0.2, 0.9)
+	button_style.border_color = Color(0.4, 0.4, 0.5, 1.0)
+	button_style.set_border_width_all(2)
+	button_style.corner_radius_top_left = 8
+	button_style.corner_radius_top_right = 8
+	button_style.corner_radius_bottom_left = 8
+	button_style.corner_radius_bottom_right = 8
+	discard_button.add_theme_stylebox_override("normal", button_style)
+
+	var hover_style = button_style.duplicate()
+	hover_style.bg_color = Color(0.2, 0.2, 0.3, 0.95)
+	discard_button.add_theme_stylebox_override("hover", hover_style)
+
+	# Position button in bottom-right corner
+	discard_button.position = Vector2(10, 10)
+	discard_button.anchor_left = 1.0
+	discard_button.anchor_top = 1.0
+	discard_button.anchor_right = 1.0
+	discard_button.anchor_bottom = 1.0
+	discard_button.offset_left = -150
+	discard_button.offset_top = -170
+	discard_button.offset_right = -10
+	discard_button.offset_bottom = -125
+
+	discard_button.pressed.connect(_on_discard_button_pressed)
+	add_child(discard_button)
+
+	# Create the discard viewer panel (hidden by default)
+	_create_discard_viewer_panel()
+
+func _create_discard_viewer_panel() -> void:
+	# Main panel (full screen overlay)
+	discard_viewer = Panel.new()
+	discard_viewer.name = "DiscardViewer"
+	discard_viewer.visible = false
+	discard_viewer.set_anchors_preset(Control.PRESET_FULL_RECT)
+
+	# Semi-transparent dark background
+	var panel_style = StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.05, 0.05, 0.1, 0.95)
+	discard_viewer.add_theme_stylebox_override("panel", panel_style)
+
+	# Container for centered content
+	var margin = MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 100)
+	margin.add_theme_constant_override("margin_right", 100)
+	margin.add_theme_constant_override("margin_top", 80)
+	margin.add_theme_constant_override("margin_bottom", 80)
+	discard_viewer.add_child(margin)
+
+	# Main VBox
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 20)
+	margin.add_child(vbox)
+
+	# === HEADER ===
+	var header = HBoxContainer.new()
+	header.add_theme_constant_override("separation", 20)
+	vbox.add_child(header)
+
+	# Title
+	var title = Label.new()
+	title.text = "🪦 DISCARD PILE"
+	title.add_theme_font_size_override("font_size", 48)
+	title.add_theme_color_override("font_color", Color(0.9, 0.8, 0.6))
+	title.add_theme_color_override("font_outline_color", Color(0.2, 0.15, 0.1))
+	title.add_theme_constant_override("outline_size", 8)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(title)
+
+	# Close button
+	var close_btn = Button.new()
+	close_btn.text = "✕ CLOSE"
+	close_btn.custom_minimum_size = Vector2(120, 50)
+	close_btn.add_theme_font_size_override("font_size", 20)
+	close_btn.pressed.connect(_close_discard_viewer)
+	header.add_child(close_btn)
+
+	# === TAB BUTTONS ===
+	var tab_container = HBoxContainer.new()
+	tab_container.alignment = BoxContainer.ALIGNMENT_CENTER
+	tab_container.add_theme_constant_override("separation", 10)
+	vbox.add_child(tab_container)
+
+	var player_tab = Button.new()
+	player_tab.name = "PlayerTab"
+	player_tab.text = "YOUR DISCARD"
+	player_tab.custom_minimum_size = Vector2(200, 50)
+	player_tab.add_theme_font_size_override("font_size", 20)
+	player_tab.toggle_mode = true
+	player_tab.button_pressed = true
+	player_tab.pressed.connect(func(): _switch_discard_view("player"))
+	tab_container.add_child(player_tab)
+
+	var enemy_tab = Button.new()
+	enemy_tab.name = "EnemyTab"
+	enemy_tab.text = "ENEMY DISCARD"
+	enemy_tab.custom_minimum_size = Vector2(200, 50)
+	enemy_tab.add_theme_font_size_override("font_size", 20)
+	enemy_tab.toggle_mode = true
+	enemy_tab.pressed.connect(func(): _switch_discard_view("enemy"))
+	tab_container.add_child(enemy_tab)
+
+	# === CARD GRID CONTAINER ===
+	var scroll = ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.add_child(scroll)
+
+	_discard_grid = GridContainer.new()
+	_discard_grid.name = "CardGrid"
+	_discard_grid.columns = 6
+	_discard_grid.add_theme_constant_override("h_separation", 15)
+	_discard_grid.add_theme_constant_override("v_separation", 15)
+	scroll.add_child(_discard_grid)
+
+	# === EMPTY STATE LABEL ===
+	_discard_empty_label = Label.new()
+	_discard_empty_label.name = "EmptyLabel"
+	_discard_empty_label.text = "No cards in discard pile"
+	_discard_empty_label.add_theme_font_size_override("font_size", 32)
+	_discard_empty_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+	_discard_empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_discard_empty_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_discard_empty_label.visible = false
+	_discard_empty_label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	scroll.add_child(_discard_empty_label)
+
+	add_child(discard_viewer)
+
+	print("🪦 Discard viewer panel created successfully!")
+
+func _on_discard_button_pressed() -> void:
+	print("\n🪦 ============ DISCARD BUTTON PRESSED ============")
+
+	if not discard_viewer:
+		print("❌ ERROR: discard_viewer is null!")
+		return
+
+	if not core:
+		print("❌ ERROR: core is null!")
+		return
+
+	print("🪦 Setting up viewer: current_view=player")
+	print("🪦 Player discard pile: %d cards" % core.player_discard_pile.size())
+	print("🪦 Enemy discard pile: %d cards" % core.enemy_discard_pile.size())
+
+	_current_discard_view = "player"
+	discard_viewer.visible = true
+	print("🪦 Viewer visible set to: %s" % discard_viewer.visible)
+
+	# Set alpha to 0 for fade-in BEFORE refreshing
+	discard_viewer.modulate.a = 0.0
+	print("🪦 Viewer alpha set to: 0.0 (for fade-in)")
+
+	# Refresh content
+	print("🪦 Calling _refresh_discard_viewer()...")
+	_refresh_discard_viewer()
+	print("🪦 _refresh_discard_viewer() completed")
+
+	# Fade in animation
+	var tween = create_tween()
+	tween.tween_property(discard_viewer, "modulate:a", 1.0, 0.3)
+	print("🪦 Fade-in animation started")
+	print("🪦 ============ END BUTTON PRESS ============\n")
+
+func _close_discard_viewer() -> void:
+	if not discard_viewer:
+		return
+
+	# Fade out animation
+	var tween = create_tween()
+	tween.tween_property(discard_viewer, "modulate:a", 0.0, 0.2)
+	await tween.finished
+	discard_viewer.visible = false
+
+func _switch_discard_view(view: String) -> void:
+	_current_discard_view = view
+	_refresh_discard_viewer()
+
+	# Update tab button states
+	var player_tab = discard_viewer.find_child("PlayerTab")
+	var enemy_tab = discard_viewer.find_child("EnemyTab")
+	if player_tab and enemy_tab:
+		player_tab.button_pressed = (view == "player")
+		enemy_tab.button_pressed = (view == "enemy")
+
+func _refresh_discard_viewer() -> void:
+	if not discard_viewer or not discard_viewer.visible:
+		print("🪦 Refresh skipped: viewer not visible or null")
+		return
+	if not core:
+		print("🪦 Refresh skipped: core is null")
+		return
+
+	if not _discard_grid:
+		print("❌ ERROR: _discard_grid reference is null!")
+		return
+	if not _discard_empty_label:
+		print("❌ ERROR: _discard_empty_label reference is null!")
+		return
+
+	print("🪦 Refreshing discard viewer...")
+
+	# Clear existing cards
+	for child in _discard_grid.get_children():
+		child.queue_free()
+
+	# Get appropriate discard pile
+	var pile: Array[CardData] = core.player_discard_pile if _current_discard_view == "player" else core.enemy_discard_pile
+
+	print("🪦 View: %s | Pile size: %d | Player pile: %d | Enemy pile: %d" % [
+		_current_discard_view,
+		pile.size(),
+		core.player_discard_pile.size(),
+		core.enemy_discard_pile.size()
+	])
+
+	# Show empty state if no cards
+	if pile.is_empty():
+		_discard_empty_label.visible = true
+		_discard_grid.visible = false
+		print("🪦 Pile is empty, showing empty label")
+		return
+	else:
+		_discard_empty_label.visible = false
+		_discard_grid.visible = true
+
+	# Create card UI for each card in discard pile
+	var cards_added = 0
+	for card in pile:
+		if not card:
+			print("⚠️ NULL card in discard pile!")
+			continue
+
+		print("🪦 Creating UI for card: %s (ATK:%d DEF:%d)" % [card.name, card.atk, card.def])
+		var card_container = _create_discard_card_ui(card)
+		if card_container:
+			_discard_grid.add_child(card_container)
+			cards_added += 1
+			print("  ✅ Card container added to grid")
+		else:
+			print("  ❌ Failed to create card container!")
+
+	print("🪦 Refresh complete: %d cards added to grid" % cards_added)
+
+func _create_discard_card_ui(card: CardData) -> Control:
+	if not card:
+		print("    ❌ Card is null, returning null")
+		return null
+
+	print("    🔨 Creating container for: %s" % card.name)
+
+	# Container with border
+	var container = PanelContainer.new()
+	container.custom_minimum_size = Vector2(140, 196)
+
+	var container_style = StyleBoxFlat.new()
+	container_style.bg_color = Color(0.1, 0.1, 0.15, 0.9)
+	container_style.border_color = Color(0.3, 0.3, 0.4)
+	container_style.set_border_width_all(2)
+	container_style.corner_radius_top_left = 8
+	container_style.corner_radius_top_right = 8
+	container_style.corner_radius_bottom_left = 8
+	container_style.corner_radius_bottom_right = 8
+	container.add_theme_stylebox_override("panel", container_style)
+
+	# Inner VBox
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 5)
+	container.add_child(vbox)
+
+	# Card art
+	var art_rect = TextureRect.new()
+	if card.art:
+		art_rect.texture = card.art
+		print("    🖼️ Card art texture set")
+	else:
+		print("    ⚠️ Card has no art texture")
+	art_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	art_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	art_rect.custom_minimum_size = Vector2(130, 150)
+	vbox.add_child(art_rect)
+
+	# Card name
+	var name_label = Label.new()
+	name_label.text = card.name
+	name_label.add_theme_font_size_override("font_size", 14)
+	name_label.add_theme_color_override("font_color", Color(1, 1, 1))
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	vbox.add_child(name_label)
+
+	# Hover effect
+	container.mouse_entered.connect(func():
+		var tween = create_tween()
+		tween.tween_property(container, "scale", Vector2(1.05, 1.05), 0.1)
+		# Show card details on hover
+		if has_node("ArenaCardDetails"):
+			var details = get_node("ArenaCardDetails")
+			if details.has_method("show_card"):
+				details.show_card(card)
+				details.visible = true
+	)
+
+	container.mouse_exited.connect(func():
+		var tween = create_tween()
+		tween.tween_property(container, "scale", Vector2(1.0, 1.0), 0.1)
+	)
+
+	print("    ✅ Container created successfully")
+	return container
+
+# Call this to update discard button count
+func update_discard_button() -> void:
+	if not discard_button or not core:
+		return
+
+	var total_count = core.player_discard_pile.size() + core.enemy_discard_pile.size()
+	discard_button.text = "🪦 Discard (%d)" % total_count

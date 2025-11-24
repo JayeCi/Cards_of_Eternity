@@ -346,10 +346,14 @@ func _smart_move_and_attack() -> void:
 		return
 
 	movable.sort_custom(func(a, b):
+		if not core.units.has(a) or not core.units.has(b):
+			return false
 		return core.units[b].current_atk > core.units[a].current_atk
 	)
 
 	for from in movable:
+		if not core.units.has(from):
+			continue
 		var unit: UnitData = core.units[from]
 		if not unit:
 			continue
@@ -614,6 +618,9 @@ func _find_and_attack_target(from: Vector2i) -> bool:
 	# ⚔️ EXECUTE ATTACK
 	# ============================================
 	if best_target != Vector2i(-1, -1) and best_score > 0:
+		# Verify target still exists before attacking
+		if not core.units.has(best_target):
+			return false
 		var defender_name = "a facedown card" if core.units[best_target].is_facedown else core.units[best_target].card.name
 		core._log("⚔️ %s attacks %s" % [attacker.card.name, defender_name], Color(1, 0.85, 0.7))
 		await move._move_or_battle(from, best_target, true)
@@ -628,8 +635,10 @@ func _find_and_attack_target(from: Vector2i) -> bool:
 # ---------------------------------------------------------
 func _find_best_move_toward(from: Vector2i, goal: Vector2i) -> Vector2i:
 	var src_tile = core.board.get_tile(from.x, from.y)
+	if not src_tile or not core.units.has(from):
+		return from
 	var unit = core.units[from]
-	if not src_tile or not unit:
+	if not unit:
 		return from
 
 	var range = core.BASE_MOVE_RANGE
@@ -660,6 +669,8 @@ func _find_best_move_toward(from: Vector2i, goal: Vector2i) -> Vector2i:
 # ---------------------------------------------------------
 func _tactical_retreat(from: Vector2i) -> void:
 	var leader_pos = battle.get_leader_pos(core.ENEMY)
+	if not core.units.has(from):
+		return
 	var unit: UnitData = core.units[from]
 	if not unit:
 		return
