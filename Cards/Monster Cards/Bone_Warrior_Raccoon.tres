@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("2_ui26b")
 rarity = "rare"
-element = "Shadow"
+element = "Fire"
 preferred_terrain = "Stone"
 id = "00041"
 name = "Bone Warrior Racoon"

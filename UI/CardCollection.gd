@@ -20,8 +20,8 @@ signal collection_changed
 # ==========================================================
 # 🏁 INITIALIZATION / TESTING
 # ==========================================================
-func _ready():
-	_test_set()
+#func _ready():
+	#_test_set()
 
 func _test_set():
 	clear_collection()

@@ -36,7 +36,7 @@ var intro_lines: Array[DialogueLine] = [
 var starter_decks := [
 
 	#FIRE
-	[CardDB.PATH["FIREBALL"], CardDB.PATH["IMP"], CardDB.PATH["MOLTEN_PIG"], CardDB.PATH["VOIDLING_ERO"], CardDB.PATH["ERUPTION"]],
+	[CardDB.PATH["BONE_WARRIOR_RACOON"], CardDB.PATH["IMP"], CardDB.PATH["MOLTEN_PIG"], CardDB.PATH["VOIDLING_ERO"], CardDB.PATH["ERUPTION"]],
 	#EARTH
 	[CardDB.PATH["ENRAGING_FOREST"], CardDB.PATH["DIRT"], CardDB.PATH["STONE_FAE"], CardDB.PATH["IMP"], CardDB.PATH["MUSHMONK"]],
 	#WIND

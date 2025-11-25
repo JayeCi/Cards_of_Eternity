@@ -1,4 +1,4 @@
-[gd_scene load_steps=43 format=3 uid="uid://bx8mbd37psymu"]
+[gd_scene load_steps=49 format=3 uid="uid://bx8mbd37psymu"]
 
 [ext_resource type="Script" uid="uid://c7p6ht8pl08vn" path="res://map_screen.gd" id="1_slgt3"]
 [ext_resource type="PackedScene" uid="uid://bw2igg30xct5v" path="res://World/MAP/map_node.tscn" id="2_1rsxy"]
@@ -38,10 +38,16 @@
 [ext_resource type="Texture2D" uid="uid://cji0s27ooe7qr" path="res://Images/porcu-beast.png" id="32_ikhu8"]
 [ext_resource type="Resource" uid="uid://ptqlf6eqyam" path="res://Cards/Monster Cards/Porcu-Beast.tres" id="33_2dvlf"]
 [ext_resource type="Resource" uid="uid://yc1hp8vqjhtc" path="res://Cards/Spell Cards/Orb of Frost.tres" id="34_2xbk1"]
-[ext_resource type="Texture2D" uid="uid://db45ilfu71eul" path="res://Images/Falcreep.png" id="35_2daim"]
+[ext_resource type="Resource" uid="uid://csdjm8ki4xt35" path="res://Cards/Monster Cards/Earthrealm_Machinist.tres" id="34_rsvl0"]
 [ext_resource type="Texture2D" uid="uid://debvkrhcid66e" path="res://Images/Mushmonk.jpeg" id="36_2dvlf"]
+[ext_resource type="Texture2D" uid="uid://qx34e5l4ysx0" path="res://Images/Earthrealm Machinist.jpg" id="36_4rcy5"]
 [ext_resource type="Resource" uid="uid://dddn456gtvtf0" path="res://Cards/Monster Cards/Axo the Knight.tres" id="37_2dvlf"]
 [ext_resource type="Resource" uid="uid://l8hkcr570yry" path="res://Cards/Monster Cards/Fysh.tres" id="38_ulb61"]
+[ext_resource type="Resource" uid="uid://4478qyaioxtg" path="res://Cards/Monster Cards/Ninjoad.tres" id="41_o6fmh"]
+[ext_resource type="Resource" uid="uid://ct5jsl7tvo64g" path="res://Cards/Monster Cards/Zei_Panda.tres" id="42_c1hh1"]
+[ext_resource type="Resource" uid="uid://cly3vcdjweta5" path="res://Cards/Spell Cards/Tidal_Wave.tres" id="43_lxnxl"]
+[ext_resource type="Resource" uid="uid://bu1r54otrg5ht" path="res://Cards/Spell Cards/Aqua_Whip.tres" id="44_c6sau"]
+[ext_resource type="Resource" uid="uid://big1xr38n6pnr" path="res://Cards/Monster Cards/Minotaur_Warlord.tres" id="45_llkfy"]
 
 [node name="EarthMapScene" type="Node2D"]
 script = ExtResource("1_slgt3")
@@ -161,6 +167,7 @@ offset_bottom = 600.0
 enemy_name = "Stone Fae"
 enemy_deck = Array[ExtResource("12_raa1s")]([ExtResource("15_er2k4"), ExtResource("16_5we6y"), ExtResource("20_egvj5"), ExtResource("21_715l5")])
 enemy_leader = ExtResource("15_er2k4")
+rewards = Array[ExtResource("12_raa1s")]([ExtResource("15_er2k4")])
 connected_nodes = Array[NodePath]([NodePath("../Node_2B"), NodePath("../Node_2C")])
 custom_art = ExtResource("19_ja4bh")
 description = "A mischievous imp challenges you!"
@@ -173,6 +180,7 @@ offset_bottom = 600.0
 enemy_name = "Stone Guard"
 enemy_deck = Array[ExtResource("12_raa1s")]([ExtResource("20_egvj5"), ExtResource("15_6iona"), ExtResource("16_5we6y"), ExtResource("17_5n8sh")])
 enemy_leader = ExtResource("15_6iona")
+rewards = Array[ExtResource("12_raa1s")]([ExtResource("15_6iona")])
 biome = "MOUNTAIN"
 connected_nodes = Array[NodePath]([NodePath("../Node_2C"), NodePath("../Node_2D")])
 custom_art = ExtResource("18_y66xd")
@@ -252,13 +260,14 @@ offset_left = 370.0
 offset_top = 750.0
 offset_right = 420.0
 offset_bottom = 800.0
-enemy_name = "Veteran Fighter"
-enemy_deck = Array[ExtResource("12_raa1s")]([ExtResource("17_5n8sh"), ExtResource("16_173be"), ExtResource("16_173be"), ExtResource("16_173be"), ExtResource("16_173be"), ExtResource("16_173be"), ExtResource("34_2xbk1")])
-enemy_leader = ExtResource("16_173be")
+enemy_name = "Earthrealm Machinist"
+enemy_deck = Array[ExtResource("12_raa1s")]([ExtResource("17_5n8sh"), ExtResource("16_173be"), ExtResource("16_173be"), ExtResource("16_173be"), ExtResource("34_rsvl0"), ExtResource("34_rsvl0"), ExtResource("34_2xbk1"), ExtResource("34_rsvl0")])
+enemy_leader = ExtResource("34_rsvl0")
 difficulty = 2
 rewards = Array[ExtResource("12_raa1s")]([ExtResource("16_173be")])
+biome = "MOUNTAIN"
 connected_nodes = Array[NodePath]([NodePath("../Node_4A"), NodePath("../Node_4B"), NodePath("../Node_4C")])
-custom_art = ExtResource("35_2daim")
+custom_art = ExtResource("36_4rcy5")
 description = "A seasoned warrior tests your skills."
 
 [node name="Node_3C" parent="MapRoot/NodeLayer" instance=ExtResource("2_1rsxy")]
@@ -298,6 +307,7 @@ encounter_type = "waterevent"
 enemy_name = "Water Spirit"
 enemy_deck = Array[ExtResource("12_raa1s")]([ExtResource("34_2xbk1"), ExtResource("34_2xbk1"), ExtResource("37_2dvlf"), ExtResource("37_2dvlf"), ExtResource("38_ulb61"), ExtResource("38_ulb61")])
 enemy_leader = ExtResource("37_2dvlf")
+rewards = Array[ExtResource("12_raa1s")]([ExtResource("34_2xbk1")])
 biome = "OCEAN"
 connected_nodes = Array[NodePath]([NodePath("../Node_5A"), NodePath("../Node_5B")])
 description = "A mystic pool shimmers with ancient magic..."
@@ -344,7 +354,7 @@ enemy_deck = Array[ExtResource("12_raa1s")]([ExtResource("15_egvj5"), ExtResourc
 enemy_leader = ExtResource("25_ja4bh")
 difficulty = 3
 ai_style = "aggressive"
-rewards = Array[ExtResource("12_raa1s")]([ExtResource("25_ja4bh"), ExtResource("18_58c47"), ExtResource("20_er2k4")])
+rewards = Array[ExtResource("12_raa1s")]([ExtResource("18_58c47"), ExtResource("20_er2k4")])
 biome = "VOLCANO"
 connected_nodes = Array[NodePath]([NodePath("../Node_6B"), NodePath("../Node_6C")])
 description = "Elite Fire Warrior - A formidable challenge!"
@@ -375,9 +385,12 @@ offset_left = 480.0
 offset_top = 1050.0
 offset_right = 530.0
 offset_bottom = 1100.0
-encounter_type = "explore"
-enemy_name = "None"
-biome = "MOUNTAIN"
+enemy_name = "Ninjoad"
+enemy_deck = Array[ExtResource("12_raa1s")]([ExtResource("41_o6fmh"), ExtResource("41_o6fmh"), ExtResource("41_o6fmh"), ExtResource("41_o6fmh"), ExtResource("41_o6fmh"), ExtResource("42_c1hh1"), ExtResource("43_lxnxl"), ExtResource("43_lxnxl"), ExtResource("44_c6sau"), ExtResource("44_c6sau")])
+enemy_leader = ExtResource("41_o6fmh")
+difficulty = 3
+rewards = Array[ExtResource("12_raa1s")]([ExtResource("41_o6fmh")])
+biome = "OCEAN"
 connected_nodes = Array[NodePath]([NodePath("../Node_BOSS")])
 description = "Ancient ruins hold powerful secrets..."
 
@@ -388,10 +401,10 @@ offset_right = 430.0
 offset_bottom = 1200.0
 encounter_type = "boss"
 enemy_name = "Terramaw, Guardian of Earth"
-enemy_deck = Array[ExtResource("12_raa1s")]([ExtResource("13_iu2tk"), ExtResource("13_iu2tk"), ExtResource("13_iu2tk"), ExtResource("14_715l5"), ExtResource("14_715l5"), ExtResource("15_6iona"), ExtResource("15_6iona"), ExtResource("16_5we6y"), ExtResource("16_5we6y"), ExtResource("21_715l5"), ExtResource("21_715l5"), ExtResource("33_2dvlf"), ExtResource("17_5n8sh"), ExtResource("17_5n8sh"), ExtResource("20_egvj5"), ExtResource("20_egvj5"), ExtResource("18_58c47")])
-enemy_leader = ExtResource("15_6iona")
+enemy_deck = Array[ExtResource("12_raa1s")]([ExtResource("45_llkfy"), ExtResource("45_llkfy"), ExtResource("45_llkfy"), ExtResource("15_6iona"), ExtResource("16_5we6y"), ExtResource("21_715l5"), ExtResource("33_2dvlf"), ExtResource("20_egvj5"), ExtResource("20_egvj5"), ExtResource("18_58c47")])
+enemy_leader = ExtResource("45_llkfy")
 difficulty = 5
-rewards = Array[ExtResource("12_raa1s")]([ExtResource("15_6iona"), ExtResource("16_5we6y"), ExtResource("21_715l5"), ExtResource("33_2dvlf"), ExtResource("18_58c47")])
+rewards = Array[ExtResource("12_raa1s")]([ExtResource("21_715l5"), ExtResource("33_2dvlf"), ExtResource("18_58c47"), ExtResource("34_rsvl0")])
 biome = "MOUNTAIN"
 description = "The ultimate guardian of the Earth Realm awaits - Victory brings great rewards!"
 

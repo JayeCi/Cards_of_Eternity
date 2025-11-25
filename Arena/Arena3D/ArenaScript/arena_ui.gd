@@ -1337,7 +1337,6 @@ func _setup_discard_pile_ui() -> void:
 	discard_button.offset_top = -170
 	discard_button.offset_right = -10
 	discard_button.offset_bottom = -125
-
 	discard_button.pressed.connect(_on_discard_button_pressed)
 	add_child(discard_button)
 
@@ -1350,10 +1349,11 @@ func _create_discard_viewer_panel() -> void:
 	discard_viewer.name = "DiscardViewer"
 	discard_viewer.visible = false
 	discard_viewer.set_anchors_preset(Control.PRESET_FULL_RECT)
-
+	discard_viewer.z_index = 50
 	# Semi-transparent dark background
 	var panel_style = StyleBoxFlat.new()
 	panel_style.bg_color = Color(0.05, 0.05, 0.1, 0.95)
+
 	discard_viewer.add_theme_stylebox_override("panel", panel_style)
 
 	# Container for centered content
