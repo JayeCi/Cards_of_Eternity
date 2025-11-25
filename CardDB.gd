@@ -82,14 +82,15 @@ const PATH := {
 	"TSUNAMI":                  "res://Cards/Spell Cards/Tsunami.tres",
 	"ENRAGING_FOREST":          "res://Cards/Spell Cards/Enraging_Forest.tres",
 	"WIND_ARMOR":               "res://Cards/Spell Cards/Wind_Armor.tres",
-
+	"ACORN_OF_LIFE":            "res://Cards/Spell Cards/Acorn_of_Life.tres",
+	
 	# ================================================================
 	# 🌑 SPELL CARDS — DARK / ARCANE
 	# ================================================================
 	"ORB_OF_DARKNESS":          "res://Cards/Spell Cards/Orb_Of_Darkness.tres",
 	"ORB_OF_FROST":             "res://Cards/Spell Cards/Orb of Frost.tres",
 	"CONFLAGURATION_BLADE":     "res://Cards/Spell Cards/Conflaguration_Blade.tres",
-
+	"SINKHOLE":                 "res://Cards/Spell Cards/Sinkhole.tres",
 	# ================================================================
 	# 🎓 SPECIAL / TUTORIAL
 	# ================================================================

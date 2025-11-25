@@ -1,4 +1,4 @@
-[gd_scene load_steps=52 format=3 uid="uid://dymngijkrptcc"]
+[gd_scene load_steps=53 format=3 uid="uid://dymngijkrptcc"]
 
 [ext_resource type="Script" uid="uid://dtfto6htrvfm5" path="res://Arena/tile_3d.gd" id="1_5v3qr"]
 [ext_resource type="PackedScene" uid="uid://cqxo8j6lh1au8" path="res://Downloaded/bricks_A.tscn" id="2_wh67p"]
@@ -119,6 +119,8 @@ albedo_texture = ExtResource("10_ir6gf")
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_t3ml4"]
 material = SubResource("StandardMaterial3D_wy7sf")
+
+[sub_resource type="BoxMesh" id="BoxMesh_glohs"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_mf1uq"]
 
@@ -248,6 +250,11 @@ mesh = SubResource("PlaneMesh_nvf5m")
 transform = Transform3D(0.467104, 0, 0, 0, -2.04178e-08, -0.467104, 0, 0.467104, -2.04178e-08, 0, -1.80143e-09, 0.041212)
 visible = false
 mesh = SubResource("PlaneMesh_t3ml4")
+
+[node name="HoleMesh" type="MeshInstance3D" parent="TileMesh"]
+transform = Transform3D(0.9260856, 0, 0, 0, -2.04178e-08, -0.9968437, 0, 0.467104, -4.35735e-08, 0, 4.2489865e-09, -0.09720537)
+visible = false
+mesh = SubResource("BoxMesh_glohs")
 
 [node name="CardMesh" type="MeshInstance3D" parent="."]
 transform = Transform3D(1.13, 0, 0, 0, 1.13, 0, 0, 0, 1.13, 0, 0.27826405, -0.554)

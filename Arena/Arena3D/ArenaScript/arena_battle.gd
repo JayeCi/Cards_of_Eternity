@@ -336,6 +336,13 @@ func confirm_flip(unit: UnitData = null) -> void:
 		elif unit.card.ability and "on_summon" in unit.card.ability.trigger:
 			await core._execute_card_ability(unit, unit.card.ability)
 
+		# 🌱 Check if this is a persistent spell (like Acorn of Life)
+		var is_persistent = unit.get_meta("persistent_spell", false)
+		if is_persistent:
+			# Don't remove persistent spells - they stay on the board
+			core._log("🌱 %s remains planted on the field." % unit.card.name, Color(0.7, 1.0, 0.7))
+			return
+
 		# Remove spell from board
 		await get_tree().create_timer(0.5).timeout
 		core._log("💨 %s vanishes after casting." % unit.card.name, Color(0.7, 0.7, 1.0))
@@ -1065,6 +1072,15 @@ func apply_all_passives() -> void:
 
 		if not facedown and unit.card and unit.card.ability and unit.card.ability.trigger == "passive":
 			unit.card.ability.execute(core, unit)
+
+		# 🌿 Handle per-turn abilities like Acorn of Life grass spreading
+		# Only spread on the owner's turn (enemy turn = ENEMY owner, otherwise PLAYER owner)
+		var is_enemy_turn = (core.phase == core.Phase.ENEMY_TURN)
+		var is_owner_turn = (is_enemy_turn and unit.owner == core.ENEMY) or (not is_enemy_turn and unit.owner == core.PLAYER)
+
+		if not facedown and is_owner_turn and unit.get_meta("is_acorn_planted", false):
+			if unit.card and unit.card.ability and unit.card.ability.has_method("spread_grass_per_turn"):
+				await unit.card.ability.spread_grass_per_turn(core, unit)
 
 		if facedown:
 			tile.set_art(core.CARD_BACK)

@@ -187,6 +187,11 @@ func _update_node_reachability():
 	# Always allow clicking the CURRENT node (to open InfoPanel again)
 	current_node.is_reachable = true
 
+	# 🏠 Always allow clicking the Portal Hub (for returning to hub anytime)
+	for n in all_nodes:
+		if n.name == "PortalHub" or n.encounter_type == "hub":
+			n.is_reachable = true
+
 	# If battle not finished, don't unlock others yet
 	if not current_node.battle_completed:
 		_update_node_visuals()
@@ -211,18 +216,22 @@ func _on_node_clicked(node: MapNode):
 
 	click_valid.play()
 
-	# Check if clicking hub node - trigger immediate return (commits immediately)
-	if node.encounter_type == "hub" and node != current_node:
-		_commit_node_choice(node)
-		_return_to_hub(node)
-		return
-
-	# Just preview the node - don't commit until button is pressed
+	# Preview the node - move player sprite for visual feedback
 	preview_node = node
 	_prepare_arena_payload(node)
 
+	# 👟 Move player sprite to previewed node immediately (visual preview)
+	player_icon.global_position = node.global_position + player_offset
+	print("👁️ Previewing node: ", node.name)
+
 	var animate = not ui_overlay.is_info_panel_open()
 	ui_overlay.show_encounter_info(node, animate)
+
+func reset_preview():
+	"""Reset player sprite back to current node position (cancel preview)"""
+	if current_node and player_icon:
+		player_icon.global_position = current_node.global_position + player_offset
+		print("🔙 Preview canceled, sprite returned to: ", current_node.name)
 
 func _commit_node_choice(node: MapNode):
 	"""Actually move to the node and lock in the choice"""
@@ -249,10 +258,13 @@ func _commit_node_choice(node: MapNode):
 
 func _update_node_visuals():
 	for n in all_nodes:
-		if n.is_current:
+		# 🏠 Portal Hub always looks bright and active
+		if n.name == "PortalHub" or n.encounter_type == "hub":
+			n.modulate = Color(1, 1, 1, 1)  # always bright
+		elif n.is_current:
 			n.modulate = Color(1, 1, 1, 1)  # bright
 		elif n.is_completed:
-			n.modulate = Color(0.6, 0.6, 0.6, 1) 
+			n.modulate = Color(0.6, 0.6, 0.6, 1)
 		elif n.is_reachable:
 			n.modulate = Color(1, 1, 1, 0.9)
 		else:

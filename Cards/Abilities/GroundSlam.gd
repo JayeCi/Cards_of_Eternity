@@ -144,6 +144,16 @@ func _knockback_unit(core: Node, board: Node, target: UnitData, current_pos: Vec
 
 	core._log("⬅ %s was knocked back by the ground slam!" % target.card.name, Color(1.0, 0.6, 0.6))
 
+	# ⚫ HOLE TERRAIN: Check if unit was knocked into a hole
+	if new_tile.terrain_type == "Hole":
+		core._log("💀 %s was knocked into a HOLE and was destroyed!" % target.card.name, Color(0.5, 0.5, 0.5))
+		await core.get_tree().create_timer(0.5).timeout
+		# Set DEF to 0 to allow _kill_unit to work
+		target.current_def = 0
+		if core.battle_sys and core.battle_sys.has_method("_kill_unit"):
+			await core.battle_sys._kill_unit(target, false)
+		return
+
 	# Animate model movement
 	if target.has_meta("model_instance"):
 		var model: Node3D = target.get_meta("model_instance")

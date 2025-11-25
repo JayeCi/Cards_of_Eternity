@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="AcornOfLife" load_steps=3 format=3 uid="uid://c7n8rar0s1t2u"]
+
+[ext_resource type="Script" uid="uid://blv051iu5are2" path="res://Cards/Abilities/AcornOfLife.gd" id="1_psdwv"]
+[ext_resource type="AudioStream" uid="uid://c6venr73hly0t" path="res://Audio/Dirt_Grass.mp3" id="1_vf5nb"]
+
+[resource]
+script = ExtResource("1_psdwv")
+metadata/_custom_type_script = "uid://d2to4368imoiw"

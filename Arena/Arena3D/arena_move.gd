@@ -163,6 +163,36 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, is_player:
 		if card.ability and "on_summon" in card.ability.trigger:
 			await core._execute_card_ability(unit, card.ability)
 
+		# 🌱 Check if this is a persistent spell (like Acorn of Life)
+		var is_persistent = unit.get_meta("persistent_spell", false)
+		if is_persistent:
+			# Don't remove persistent spells - they stay on the board
+			core._log("🌱 %s remains planted on the field." % card.name, Color(0.7, 1.0, 0.7))
+
+			# 🎨 Load 3D model for persistent spell if it has one
+			if card.model_path != "":
+				var model_scene: PackedScene = load(card.model_path)
+				if model_scene:
+					var model_instance: Node3D = model_scene.instantiate()
+					model_instance.name = "CardModel"
+
+					if card.model_position != Vector3(0, 0.5, 0):
+						model_instance.position = card.model_position
+
+					if card.model_scale != Vector3(.5, .5, .5):
+						model_instance.scale = card.model_scale
+
+					tile.add_child(model_instance)
+					unit.set_meta("model_instance", model_instance)
+
+					if owner == core.ENEMY:
+						model_instance.rotate_y(deg_to_rad(180))
+
+					model_instance.visible = true
+
+			core._play_card_place_sound()
+			return
+
 		# Remove spell from board
 		await get_tree().create_timer(0.5).timeout
 		core._play_card_place_sound()
@@ -232,6 +262,19 @@ func place_unit(card: CardData, pos: Vector2i, owner: int, mode: int, is_player:
 
 	var terrain = tile.terrain_type
 	core._apply_terrain_bonus(unit, terrain)
+
+	# ⚫ HOLE TERRAIN: Instantly kill any unit placed on a hole
+	if terrain == "Hole":
+		core._log("💀 %s fell into a HOLE and was destroyed!" % card.name, Color(0.5, 0.5, 0.5))
+		await get_tree().create_timer(0.5).timeout  # Brief delay to show the unit before it dies
+
+		# Set DEF to 0 to allow _kill_unit to work
+		unit.current_def = 0
+		if battle and battle.has_method("_kill_unit"):
+			await battle._kill_unit(unit, false)
+
+		# Don't trigger on_summon abilities if unit died in a hole
+		return
 
 	await get_tree().process_frame
 
@@ -375,7 +418,13 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		core._log("❄️ %s is frozen and cannot act!" % attacker.card.name, Color(0.5, 0.5, 0.9))
 		battle._is_battle_in_progress = false
 		return
-		
+
+	# 🔒 Check if unit is immobile (planted, rooted, etc.)
+	if from != to and attacker.get_meta("immobile", false):
+		core._log("🌱 %s is rooted to the ground and cannot move!" % attacker.card.name, Color(0.7, 1.0, 0.7))
+		battle._is_battle_in_progress = false
+		return
+
 	# 🟢 If this command is a move/attack to ANOTHER tile, confirm flip now.
 	if from != to and attacker.has_meta("is_previewing_flip") and attacker.get_meta("is_previewing_flip"):
 		core._log("✅ Confirming %s's flip before movement/attack." % attacker.card.name, Color(0.8, 1.0, 0.8))
@@ -503,6 +552,17 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		core.units.erase(from)
 		core.units[to] = attacker
 		core.mark_unit_acted(attacker)
+
+		# ⚫ HOLE TERRAIN: Check if unit moved into a hole
+		if dst.terrain_type == "Hole":
+			core._log("💀 %s fell into a HOLE and was destroyed!" % attacker.card.name, Color(0.5, 0.5, 0.5))
+			await get_tree().create_timer(0.3).timeout
+			# Set DEF to 0 to allow _kill_unit to work
+			attacker.current_def = 0
+			if battle.has_method("_kill_unit"):
+				await battle._kill_unit(attacker, false)
+			battle._is_battle_in_progress = false
+			return
 
 		battle._is_battle_in_progress = false
 		return

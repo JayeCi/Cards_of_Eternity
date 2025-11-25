@@ -1064,6 +1064,10 @@ func try_place_dragged_card(hover_tile: Node3D) -> void:
 		if ui_sys and ui_sys.has_method("fade_hand_in"):
 			ui_sys.call("fade_hand_in")
 
+		# 🩵 Refresh hand to restore reserved essence to available pool
+		if ui_sys and ui_sys.has_method("refresh_hand"):
+			ui_sys.refresh_hand(player_hand, player_essence, true)
+
 		return
 
 	print("🧩 DEBUG fusion_selection size:", fusion_selection.size())
@@ -1566,6 +1570,21 @@ func confirm_summon_in_mode(mode: int) -> void:
 	# 🧩 Force hover system reset to fix broken tile hover
 	if battle_sys and battle_sys.has_method("_reset_hover_state"):
 		battle_sys.call("_reset_hover_state")
+
+# -----------------------------
+# SUMMON MODE BUTTON HANDLERS
+# -----------------------------
+func _on_attack_mode_pressed() -> void:
+	if ui_sys and ui_sys.has_method("on_attack_mode_pressed"):
+		ui_sys.on_attack_mode_pressed()
+
+func _on_defense_mode_pressed() -> void:
+	if ui_sys and ui_sys.has_method("on_defense_mode_pressed"):
+		ui_sys.on_defense_mode_pressed()
+
+func _on_facedown_mode_pressed() -> void:
+	if ui_sys and ui_sys.has_method("on_face_down_pressed"):
+		ui_sys.on_face_down_pressed()
 
 # -----------------------------
 # TURN FLOW

@@ -416,7 +416,7 @@ func show_encounter_info(node: MapNode, animate: bool = true) -> void:
 		start_button.pressed.disconnect(conn["callable"])
 	start_button.pressed.connect(_on_start_button_pressed.bind(node))
 
-	if node.name == "PortalHub":
+	if node.name == "PortalHub" or node.encounter_type == "hub":
 		start_button.text = "Return to Hub"
 	elif node.encounter_type == "shop":
 		start_button.text = "Enter Shop"
@@ -429,8 +429,9 @@ func show_encounter_info(node: MapNode, animate: bool = true) -> void:
 
 	# -----------------------------------------------------
 	# ✅ Disable start button if node is already completed
+	# 🏠 BUT keep Portal Hub button always enabled
 	# -----------------------------------------------------
-	if node.is_completed:
+	if node.is_completed and node.name != "PortalHub" and node.encounter_type != "hub":
 		start_button.disabled = true
 		start_button.modulate = Color(0.6, 0.6, 0.6, 0.7)  # slightly dimmed
 		start_button.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -487,6 +488,10 @@ func hide_info_panel(animate: bool = true) -> void:
 	else:
 		info_panel.visible = false
 	_info_panel_open = false
+
+	# 🔙 Reset player sprite to current node position when closing without confirming
+	if GameSession.map_instance and GameSession.map_instance.has_method("reset_preview"):
+		GameSession.map_instance.reset_preview()
 
 func is_info_panel_open() -> bool:
 	return _info_panel_open
@@ -601,10 +606,12 @@ func _on_start_button_pressed(node: MapNode) -> void:
 	start_button.modulate = Color(0.6, 0.6, 0.6, 0.7)
 
 	# Commit the node choice before proceeding
-	if GameSession.map_instance:
+	# 🏠 BUT don't commit when returning to hub (player stays at current node)
+	if GameSession.map_instance and node.name != "PortalHub" and node.encounter_type != "hub":
 		GameSession.map_instance.on_encounter_confirmed()
 
-	if node.name == "PortalHub":
+	if node.name == "PortalHub" or node.encounter_type == "hub":
+		# 🏠 Don't move player, just switch to hub
 		GameSession.switch_to_hub()
 	elif node.encounter_type == "shop":
 		# Emit signal for shop - map_screen will handle opening shop panel

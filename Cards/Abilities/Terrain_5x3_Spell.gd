@@ -74,6 +74,10 @@ func execute_at(arena: Node, unit: UnitData, origin_pos: Vector2i) -> void:
 			if tile.terrain_type == new_terrain:
 				continue
 
+			# ⚫ HOLES cannot be changed by terrain abilities
+			if tile.terrain_type == "Hole":
+				continue
+
 			# Apply terrain change
 			tile.terrain_type = new_terrain
 			if tile.has_method("_apply_terrain_visual"):

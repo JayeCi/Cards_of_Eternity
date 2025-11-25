@@ -58,6 +58,10 @@ func execute_at(arena: Node, unit: UnitData, origin_pos: Vector2i) -> void:
 				"Grass": _play_grass_sound(arena)
 				
 		if tile:
+			# ⚫ HOLES cannot be changed by terrain abilities
+			if tile.terrain_type == "Hole":
+				continue
+
 			# Force terrain change EVEN IF tile normally blocks updates
 			tile.terrain_type = new_terrain
 

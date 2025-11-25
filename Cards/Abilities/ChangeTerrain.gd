@@ -35,6 +35,10 @@ func execute_at(arena: Node, unit: UnitData, tile_pos: Vector2i) -> void:
 				affected.append(t)
 
 	for t in affected:
+		# ⚫ HOLES cannot be changed by terrain abilities
+		if t.terrain_type == "Hole":
+			continue
+
 		t.terrain_type = new_terrain
 		if t.has_method("_apply_terrain_visual"):
 			t._apply_terrain_visual()

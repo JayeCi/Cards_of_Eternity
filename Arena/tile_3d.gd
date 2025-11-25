@@ -31,6 +31,7 @@ var core: ArenaCore
 @onready var grass_mesh: MeshInstance3D = $TileMesh/GrassMesh
 @onready var forest_mesh: Node3D = $TileMesh/ForestMesh
 @onready var default_mesh: MeshInstance3D = $TileMesh/DefaultMesh
+@onready var hole_mesh: MeshInstance3D = $TileMesh/HoleMesh
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
 
 signal hovered(tile)
@@ -336,7 +337,7 @@ func _apply_terrain_visual(new_terrain_type: String = "") -> void:
 
 	# ✅ Hide all terrain meshes first
 	for mesh_variant in [
-		water_mesh, stone_mesh, ice_mesh, lava_mesh, grass_mesh, forest_mesh, default_mesh
+		water_mesh, stone_mesh, ice_mesh, lava_mesh, grass_mesh, forest_mesh, default_mesh, hole_mesh
 	]:
 		if mesh_variant:
 			mesh_variant.visible = false
@@ -381,6 +382,17 @@ func _apply_terrain_visual(new_terrain_type: String = "") -> void:
 					mat.albedo_color = Color(0.2, 0.4, 0.9)
 					mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 					mat.albedo_color.a = 0.85
+
+		"Hole":
+			if hole_mesh:
+				hole_mesh.visible = true
+				# ⚫ Dark black appearance for the hole
+				if not hole_mesh.material_override:
+					hole_mesh.material_override = StandardMaterial3D.new()
+				var mat = hole_mesh.material_override
+				mat.albedo_color = Color(0.05, 0.05, 0.05, 1.0)  # Very dark gray/black
+				mat.roughness = 0.9
+				mat.metallic = 0.0
 
 	# ✅ Refresh card art if this tile has an occupant
 	if occupant and occupant.card:

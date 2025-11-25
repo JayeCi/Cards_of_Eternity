@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="SinkholeAbility" load_steps=3 format=3 uid="uid://bqj8k7m3n4p5r"]
+
+[ext_resource type="Script" uid="uid://7pm6slvmytqc" path="res://Cards/Abilities/SinkholeAbility.gd" id="1_sinkhole"]
+[ext_resource type="AudioStream" uid="uid://dl0at0b012bxp" path="res://Audio/Rocks.mp3" id="1_sy4if"]
+
+[resource]
+script = ExtResource("1_sinkhole")
+metadata/_custom_type_script = "uid://d2to4368imoiw"

@@ -20,14 +20,14 @@ signal collection_changed
 # ==========================================================
 # 🏁 INITIALIZATION / TESTING
 # ==========================================================
-#func _ready():
-	#_test_set()
+func _ready():
+	_test_set()
 
 func _test_set():
 	clear_collection()
 	var card_names := [
-		"YORG_ARCHER", 
-		"FALCREEP",
+		"SINKHOLE", 
+		"ACORN_OF_LIFE",
 		"ZEI_PANDA",
 		"FOREST_FAE",
 		"FIREBALL"

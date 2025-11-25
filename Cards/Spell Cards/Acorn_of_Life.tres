@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=5 format=3 uid="uid://d1rl3q1yjov32"]
+
+[ext_resource type="Resource" uid="uid://c7n8rar0s1t2u" path="res://Cards/Abilities/Acorn_of_Life.tres" id="1_gpta2"]
+[ext_resource type="Texture2D" uid="uid://bg81wkai5n2nn" path="res://Images/acornoflife.png" id="2_e38up"]
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="2_srvkq"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="3_kfu05"]
+
+[resource]
+script = ExtResource("3_kfu05")
+types = Array[String](["Nature", "Magic"])
+element = "Earth"
+card_type = 1
+id = "00106"
+name = "Acorn of Life"
+description = "Plants itself and converts its tile to Grass. Each turn, spreads Grass to 1 adjacent tile. Dies if destroyed, replaced, or if its tile becomes Lava."
+art = ExtResource("2_e38up")
+def = 3
+ability = ExtResource("1_gpta2")
+model_path = "res://Cards/Models/ACORN_OF_LIFE_MODEL.tscn"
+metadata/_custom_type_script = "uid://57up1u0etcmc"

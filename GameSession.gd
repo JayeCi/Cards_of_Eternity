@@ -46,6 +46,7 @@ func switch_to_hub() -> void:
 
 	# --- Cache and remove old scenes ---
 	if map_instance and is_instance_valid(map_instance):
+		print("💾 Saving map state for realm: ", current_realm)
 		realm_maps[current_realm] = map_instance
 		_detach_scene(map_instance)
 
@@ -102,6 +103,8 @@ func switch_to_arena(tutorial := false) -> void:
 # 🗺️ Switch TO MAP
 # =====================================================
 func switch_to_earth_map() -> void:
+	# 🌍 Set the current realm to identify which map we're using
+	current_realm = "earth"
 
 	# --- Clean arena/hub while screen is dark ---
 	if arena_instance and is_instance_valid(arena_instance):
@@ -115,8 +118,10 @@ func switch_to_earth_map() -> void:
 
 	# --- Restore or create map ---
 	if current_realm != "" and current_realm in realm_maps and is_instance_valid(realm_maps[current_realm]):
+		print("🗺️ Restoring saved Earth Realm map state")
 		map_instance = realm_maps[current_realm]
 	elif map_instance == null or not is_instance_valid(map_instance):
+		print("🗺️ Creating new Earth Realm map instance")
 		map_instance = load(map_scene_path).instantiate()
 
 	var root := get_tree().root
@@ -133,6 +138,14 @@ func switch_to_earth_map() -> void:
 		map_instance._update_node_reachability()
 	if map_instance.has_node("LineDrawer"):
 		map_instance.line_drawer.queue_redraw()
+
+	# 🏠 Ensure player sprite is at the correct position after returning from hub
+	if map_instance.has_node("MapRoot/NodeLayer/Player") and "current_node" in map_instance:
+		var player_icon = map_instance.get_node("MapRoot/NodeLayer/Player")
+		var current_node = map_instance.current_node
+		if player_icon and current_node and "player_offset" in map_instance:
+			player_icon.global_position = current_node.global_position + map_instance.player_offset
+			print("📍 Player position restored to: ", current_node.name)
 
 	# ✅ Handle battle results (win/loss)
 	if last_battle_result != "":

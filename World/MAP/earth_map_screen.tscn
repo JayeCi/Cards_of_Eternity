@@ -411,10 +411,14 @@ description = "The ultimate guardian of the Earth Realm awaits - Victory brings 
 [node name="MapCamera" type="Camera2D" parent="." groups=["Camera2D"]]
 position = Vector2(503, 510)
 limit_left = -75
-limit_top = -350
-limit_right = 1400
-limit_bottom = 9999
+limit_top = 150
+limit_right = 1450
+limit_bottom = 1350
+limit_smoothed = true
 position_smoothing_enabled = true
+position_smoothing_speed = 2.0
+drag_horizontal_enabled = true
+drag_vertical_enabled = true
 
 [node name="Sounds" type="Node" parent="."]
 

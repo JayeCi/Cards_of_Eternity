@@ -179,6 +179,29 @@ func _generate_grid() -> void:
 			#if map[y][x] == "Default":
 				#map[y][x] = base_terrain
 
+	# --- STEP 2.5: Add HOLE terrain (guaranteed 1, max 3 on 7x7 board) ---
+	var max_holes := 3
+	var hole_count := 0
+	var total_tiles := width * height
+	var target_holes := randi_range(1, max_holes)  # Always want 1-3 holes
+
+	# ✅ GUARANTEED: Place at least 1 hole
+	while hole_count < target_holes:
+		var hx := randi_range(1, width - 2)  # Avoid edges
+		var hy := randi_range(1, height - 2)  # Avoid edges
+
+		# Don't overwrite if already a hole
+		if map[hy][hx] != "Hole":
+			map[hy][hx] = "Hole"
+			hole_count += 1
+			print("⚫ Placed HOLE at (%d, %d)" % [hx, hy])
+
+		# Safety: prevent infinite loop if board is too small
+		if hole_count >= max_holes or hole_count >= (width - 2) * (height - 2):
+			break
+
+	print("⚫ Total holes placed: %d" % hole_count)
+
 	# --- STEP 3: Instantiate tiles ---
 	for y in range(height):
 		for x in range(width):
