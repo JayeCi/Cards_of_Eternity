@@ -7,7 +7,7 @@
 
 [resource]
 script = ExtResource("4_ykoso")
-types = Array[String](["Magic"])
+types = Array[String](["Magic", "Event"])
 element = "Water"
 preferred_terrain = "Ice"
 card_type = 2

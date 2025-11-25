@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=9 format=3 uid="uid://bmnledjup5o7b"]
+
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_1wy1y"]
+[ext_resource type="AudioStream" uid="uid://cj7dv1bxn2us8" path="res://Audio/FIRE.mp3" id="1_ivgc6"]
+[ext_resource type="AudioStream" uid="uid://c6venr73hly0t" path="res://Audio/Dirt_Grass.mp3" id="2_kbd5h"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_ufw7v"]
+[ext_resource type="Script" uid="uid://5puuvoqpdhal" path="res://Cards/Abilities/Terrain_5x3_Spell.gd" id="3_5l30v"]
+[ext_resource type="AudioStream" uid="uid://dl0at0b012bxp" path="res://Audio/Rocks.mp3" id="4_d7ewg"]
+[ext_resource type="AudioStream" uid="uid://cvc044ku2ltcs" path="res://Audio/Water.mp3" id="5_7clww"]
+
+[sub_resource type="Resource" id="Resource_amfbt"]
+script = ExtResource("3_5l30v")
+metadata/_custom_type_script = "uid://5puuvoqpdhal"
+
+[resource]
+script = ExtResource("2_ufw7v")
+types = Array[String](["Magic", "Terrain"])
+rarity = "uncommon"
+element = "Earth"
+preferred_terrain = "Stone"
+card_type = 1
+id = "00114"
+name = "Landslide"
+description = "Converts a 5×3 zone ahead with Stone terrain."
+ability = SubResource("Resource_amfbt")
+metadata/_custom_type_script = "uid://57up1u0etcmc"

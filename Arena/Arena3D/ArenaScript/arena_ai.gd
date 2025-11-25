@@ -291,15 +291,15 @@ func _smart_summon() -> void:
 			best = s
 			best_score = score
 
-	_focus_camera_on(core.board.get_tile(best.x, best.y).global_position, 0.8, 0.5)
-	await get_tree().create_timer(0.3).timeout
-
 	var facedown = randf() < face_down_chance
 	var mode = UnitData.Mode.FACEDOWN if facedown else UnitData.Mode.ATTACK
 	move.place_unit(card, best, core.ENEMY, mode, true)
 	core.enemy_essence -= int(card.cost)
 	core.emit_signal("essence_changed", core.player_essence, core.enemy_essence)
 	_did_action_this_turn = true
+
+	# 🎬 Brief pause after summon
+	await get_tree().create_timer(0.5).timeout
 
 func _evaluate_card(card, pos: Vector2i) -> float:
 	var base := 10.0
@@ -398,8 +398,9 @@ func _smart_move_and_attack() -> void:
 				continue
 
 			var target_tile = core.board.get_tile(best_move.x, best_move.y)
+
 			if target_tile and target_tile.occupant and target_tile.occupant.owner == core.PLAYER:
-				# Move *onto* enemy → attack normally
+				# Move *onto* enemy → attack normally (camera will focus on battle in _move_or_battle)
 				await move._move_or_battle(from, best_move, true)
 				_did_action_this_turn = true
 			else:
@@ -851,9 +852,6 @@ func _has_summon_space() -> bool:
 				return true
 	return false
 
-func _focus_camera_on(pos: Vector3, zoom_mult: float, duration: float) -> void:
-	core.emit_signal("focus_camera", pos, zoom_mult, duration)
-
 func _find_path_toward(from: Vector2i, to: Vector2i) -> Array[Vector2i]:
 	if from == to:
 		return []
@@ -1126,9 +1124,6 @@ func _try_board_fusion() -> bool:
 					core._log("✨ Fusing %s + %s → %s" %
 						[unit_a.card.name, unit_b.card.name, fusion_result.name], Color(1.0, 0.9, 0.5))
 
-					_focus_camera_on(core.board.get_tile(pos_b.x, pos_b.y).global_position, 0.8, 0.5)
-					await get_tree().create_timer(0.3).timeout
-
 					# Move unit A onto unit B to trigger fusion
 					await move._move_or_battle(pos_a, pos_b, true)
 					_did_action_this_turn = true
@@ -1212,16 +1207,12 @@ func _try_hand_fusion_placement() -> bool:
 				core.enemy_hand.erase(card_b)
 
 				# Place first card
-				_focus_camera_on(core.board.get_tile(first_pos.x, first_pos.y).global_position, 0.8, 0.5)
-				await get_tree().create_timer(0.3).timeout
 				move.place_unit(card_a, first_pos, core.ENEMY, UnitData.Mode.ATTACK, true)
 				core.enemy_essence -= int(card_a.cost)
 
 				await get_tree().create_timer(0.4).timeout
 
 				# Place second card
-				_focus_camera_on(core.board.get_tile(second_pos.x, second_pos.y).global_position, 0.8, 0.5)
-				await get_tree().create_timer(0.3).timeout
 				move.place_unit(card_b, second_pos, core.ENEMY, UnitData.Mode.ATTACK, true)
 				core.enemy_essence -= int(card_b.cost)
 
@@ -1269,9 +1260,6 @@ func _try_move_spell_to_monster(spells: Array[Dictionary], monsters: Array[Dicti
 				var distance = spell_pos.distance_to(monster_pos)
 				if distance <= core.BASE_MOVE_RANGE:
 					core._log("⬆️ Upgrading %s with %s" % [monster_unit.card.name, spell_unit.card.name], Color(0.7, 1.0, 0.9))
-
-					_focus_camera_on(core.board.get_tile(monster_pos.x, monster_pos.y).global_position, 0.8, 0.5)
-					await get_tree().create_timer(0.3).timeout
 
 					await move._move_or_battle(spell_pos, monster_pos, true)
 					_did_action_this_turn = true
@@ -1336,9 +1324,6 @@ func _try_place_upgrade_spell(spells: Array[CardData], monsters: Array[Dictionar
 
 				# Remove from hand
 				core.enemy_hand.erase(spell_card)
-
-				_focus_camera_on(tile.global_position, 0.8, 0.5)
-				await get_tree().create_timer(0.3).timeout
 
 				# Place face-up (upgrade spells don't benefit from being face-down)
 				move.place_unit(spell_card, place_pos, core.ENEMY, UnitData.Mode.ATTACK, true)

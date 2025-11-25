@@ -6,7 +6,7 @@
 
 [resource]
 script = ExtResource("3_lcehn")
-types = Array[String](["Trap"])
+types = Array[String](["Magic", "Event"])
 element = "Earth"
 preferred_terrain = "Stone"
 card_type = 2

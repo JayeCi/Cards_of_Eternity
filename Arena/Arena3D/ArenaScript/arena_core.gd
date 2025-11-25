@@ -139,6 +139,8 @@ const CARD_PATHS := {
 	"LAVA_HARE":          "res://Cards/Monster Cards/Lava_Hare.tres",
 	"FOREST_FAE":         "res://Cards/Monster Cards/Forest_Fae.tres",
 	"FIREBALL":           "res://Cards/Spell Cards/Fireball.tres",
+	"ESSENCE_FLAIR":      "res://Cards/Spell Cards/EssenceFlair.tres",
+	"WINGED_GUST":        "res://Cards/Spell Cards/WingedGust.tres",
 	"LYZARD":             "res://Cards/Monster Cards/Aqua Lyzard.tres",
 	"ERUPTION":           "res://Cards/Spell Cards/Eruption.tres",
 	"DRAKE_OF_EMERALD":   "res://Cards/Monster Cards/Drake of Emerald.tres",
@@ -1258,6 +1260,27 @@ func _check_fusion_pair(a: CardData, b: CardData) -> CardData:
 		var fused := a.duplicate()
 		fused.def += 8
 		fused.description += "\n🌪️ Fortified by the Wind Armor (+8 DEF)."
+		return fused
+
+	# Winged Gust + Wind type
+	var is_gust_a := a_name.find("winged_gust") != -1
+	var is_gust_b := b_name.find("winged_gust") != -1
+
+	if (is_gust_a and is_wind_b):
+		var fused := b.duplicate()
+		# Add movement bonus via metadata (will be read by movement system)
+		if not fused.has_meta("movement_bonus_from_gust"):
+			fused.set_meta("movement_bonus_from_gust", 0)
+		fused.set_meta("movement_bonus_from_gust", fused.get_meta("movement_bonus_from_gust") + 1)
+		fused.description += "\n💨 Empowered by the Winged Gust (+1 Movement)."
+		return fused
+	elif (is_gust_b and is_wind_a):
+		var fused := a.duplicate()
+		# Add movement bonus via metadata (will be read by movement system)
+		if not fused.has_meta("movement_bonus_from_gust"):
+			fused.set_meta("movement_bonus_from_gust", 0)
+		fused.set_meta("movement_bonus_from_gust", fused.get_meta("movement_bonus_from_gust") + 1)
+		fused.description += "\n💨 Empowered by the Winged Gust (+1 Movement)."
 		return fused
 
 	return null

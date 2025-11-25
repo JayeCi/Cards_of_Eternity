@@ -1,4 +1,4 @@
-[gd_scene load_steps=49 format=3 uid="uid://bx8mbd37psymu"]
+[gd_scene load_steps=53 format=3 uid="uid://bx8mbd37psymu"]
 
 [ext_resource type="Script" uid="uid://c7p6ht8pl08vn" path="res://map_screen.gd" id="1_slgt3"]
 [ext_resource type="PackedScene" uid="uid://bw2igg30xct5v" path="res://World/MAP/map_node.tscn" id="2_1rsxy"]
@@ -43,11 +43,15 @@
 [ext_resource type="Texture2D" uid="uid://qx34e5l4ysx0" path="res://Images/Earthrealm Machinist.jpg" id="36_4rcy5"]
 [ext_resource type="Resource" uid="uid://dddn456gtvtf0" path="res://Cards/Monster Cards/Axo the Knight.tres" id="37_2dvlf"]
 [ext_resource type="Resource" uid="uid://l8hkcr570yry" path="res://Cards/Monster Cards/Fysh.tres" id="38_ulb61"]
+[ext_resource type="Resource" uid="uid://cfasv61o0gj32" path="res://Cards/Monster Cards/Gale_Spirit.tres" id="41_llkfy"]
 [ext_resource type="Resource" uid="uid://4478qyaioxtg" path="res://Cards/Monster Cards/Ninjoad.tres" id="41_o6fmh"]
 [ext_resource type="Resource" uid="uid://ct5jsl7tvo64g" path="res://Cards/Monster Cards/Zei_Panda.tres" id="42_c1hh1"]
+[ext_resource type="Resource" uid="uid://c2c1bmj4rdmvu" path="res://Cards/Spell Cards/Wind_Armor.tres" id="42_csmdg"]
+[ext_resource type="Resource" uid="uid://h38gllr4thgr" path="res://Cards/Monster Cards/Yorg_Archer.tres" id="43_53e0v"]
 [ext_resource type="Resource" uid="uid://cly3vcdjweta5" path="res://Cards/Spell Cards/Tidal_Wave.tres" id="43_lxnxl"]
 [ext_resource type="Resource" uid="uid://bu1r54otrg5ht" path="res://Cards/Spell Cards/Aqua_Whip.tres" id="44_c6sau"]
 [ext_resource type="Resource" uid="uid://big1xr38n6pnr" path="res://Cards/Monster Cards/Minotaur_Warlord.tres" id="45_llkfy"]
+[ext_resource type="Texture2D" uid="uid://54m3goojg2wa" path="res://Images/Minotaur Warlord.jpg" id="49_csmdg"]
 
 [node name="EarthMapScene" type="Node2D"]
 script = ExtResource("1_slgt3")
@@ -141,7 +145,7 @@ custom_art = ExtResource("9_lj5nr")
 description = "Portal Hub"
 
 [node name="Player" type="Sprite2D" parent="MapRoot/NodeLayer"]
-z_index = 5
+z_index = 6
 position = Vector2(368.00003, 466.00003)
 scale = Vector2(0.059167415, 0.059167415)
 texture = ExtResource("6_haur7")
@@ -375,8 +379,13 @@ offset_left = 400.0
 offset_top = 1050.0
 offset_right = 450.0
 offset_bottom = 1100.0
-encounter_type = "rest"
-enemy_name = "None"
+encounter_type = "windevent"
+enemy_name = "Wind Spirit"
+enemy_deck = Array[ExtResource("12_raa1s")]([ExtResource("41_llkfy"), ExtResource("41_llkfy"), ExtResource("41_llkfy"), ExtResource("42_csmdg"), ExtResource("42_csmdg"), ExtResource("16_173be"), ExtResource("43_53e0v")])
+enemy_leader = ExtResource("41_llkfy")
+difficulty = 3
+rewards = Array[ExtResource("12_raa1s")]([ExtResource("42_csmdg"), ExtResource("43_53e0v")])
+biome = "MOUNTAIN"
 connected_nodes = Array[NodePath]([NodePath("../Node_BOSS")])
 description = "Sacred grove - heal and prepare for the final battle."
 
@@ -404,8 +413,9 @@ enemy_name = "Terramaw, Guardian of Earth"
 enemy_deck = Array[ExtResource("12_raa1s")]([ExtResource("45_llkfy"), ExtResource("45_llkfy"), ExtResource("45_llkfy"), ExtResource("15_6iona"), ExtResource("16_5we6y"), ExtResource("21_715l5"), ExtResource("33_2dvlf"), ExtResource("20_egvj5"), ExtResource("20_egvj5"), ExtResource("18_58c47")])
 enemy_leader = ExtResource("45_llkfy")
 difficulty = 5
-rewards = Array[ExtResource("12_raa1s")]([ExtResource("21_715l5"), ExtResource("33_2dvlf"), ExtResource("18_58c47"), ExtResource("34_rsvl0")])
+rewards = Array[ExtResource("12_raa1s")]([ExtResource("34_rsvl0")])
 biome = "MOUNTAIN"
+custom_art = ExtResource("49_csmdg")
 description = "The ultimate guardian of the Earth Realm awaits - Victory brings great rewards!"
 
 [node name="MapCamera" type="Camera2D" parent="." groups=["Camera2D"]]

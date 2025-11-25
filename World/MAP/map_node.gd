@@ -79,6 +79,10 @@ func _ready():
 				description = "Trade cards and items for gold."
 			"fireevent":
 				description = "An elemental event tied to fire energy unfolds here."
+			"waterevent":
+				description = "An elemental event tied to water energy overflows here."
+			"windevent":
+				description = "An elemental event tied to wind energy blows here."
 			"explore":
 				description = "Explore, see what you find."
 				
@@ -100,12 +104,17 @@ func _ready():
 			modulate = Color(1.3, 0.8, 1.5, 1)  # Purple-ish glow for elites
 		"boss":
 			# Boss nodes use fight texture but with dramatic color
-			texture_normal = preload("res://World/MAP/Fight_Encounter_Node.png")
-			texture_hover = preload("res://World/MAP/Fight_Encounter_Node_Hover.png")
+			texture_normal = preload("res://World/MAP/boss_node.png")
+
+			
 			modulate = Color(1.5, 0.5, 0.5, 1)  # Red glow for boss
 			scale = Vector2(1.2, 1.2)  # Slightly larger
 		"fireevent":
 			texture_normal = preload("res://World/MAP/Fire_Node.png")
+		"waterevent":
+			texture_normal = preload("res://World/MAP/Water_node.png")
+		"windevent":
+			texture_normal = preload("res://World/MAP/Wind_node.png")
 		"hub":
 			texture_normal = preload("res://World/MAP/portal_hub.png")
 			

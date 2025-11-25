@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="EssenceFlairAbility" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Cards/Abilities/EssenceFlairAbility.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Essence Flair"
+description = "Grants 1 Essence to the caster immediately."
+value = 1

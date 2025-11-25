@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=5 format=3 uid="uid://d2lswmu1uvm6y"]
+
+[ext_resource type="Resource" path="res://Cards/Abilities/EssenceFlairAbility.tres" id="1"]
+[ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2"]
+[ext_resource type="Texture2D" uid="uid://eilupkb0ff6r" path="res://Images/essence_flair.jpeg" id="2_57um2"]
+[ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="2_743nd"]
+
+[resource]
+script = ExtResource("2")
+types = Array[String](["Magic", "Essence"])
+preferred_terrain = ""
+card_type = 1
+id = "00116"
+name = "Essence Flair"
+description = "Grants 1 Essence to the caster immediately."
+art = ExtResource("2_57um2")
+cost = 0
+ability = ExtResource("1")

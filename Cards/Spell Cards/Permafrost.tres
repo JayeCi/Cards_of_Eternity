@@ -15,7 +15,7 @@ metadata/_custom_type_script = "uid://5puuvoqpdhal"
 
 [resource]
 script = ExtResource("2_nnqh3")
-types = Array[String]([])
+types = Array[String](["Magic", "Terrain"])
 element = "Water"
 preferred_terrain = "Ice"
 card_type = 1

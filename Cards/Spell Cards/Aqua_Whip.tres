@@ -7,14 +7,15 @@
 
 [resource]
 script = ExtResource("2_6ahw0")
+types = Array[String](["Upgrade"])
 rarity = "rare"
 element = "Water"
 preferred_terrain = "Water"
 card_type = 1
-is_upgrade_spell = true
 id = "00108"
 name = "Aqua Whip"
 description = "A whip conjured in the deep. When fused with a WATER monster, increases ATK by 6."
 art = ExtResource("1_6ahw0")
 ability = ExtResource("3_aqua")
+is_upgrade_spell = true
 metadata/_custom_type_script = "uid://57up1u0etcmc"

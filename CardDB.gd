@@ -83,6 +83,9 @@ const PATH := {
 	"ENRAGING_FOREST":          "res://Cards/Spell Cards/Enraging_Forest.tres",
 	"WIND_ARMOR":               "res://Cards/Spell Cards/Wind_Armor.tres",
 	"ACORN_OF_LIFE":            "res://Cards/Spell Cards/Acorn_of_Life.tres",
+	"ESSENCE_FLAIR":            "res://Cards/Spell Cards/EssenceFlair.tres",
+	"LANDSLIDE":                "res://Cards/Spell Cards/Landslide.tres",
+	"WINGED_GUST":              "res://Cards/Spell Cards/Winged_Gust.tres",
 	
 	# ================================================================
 	# 🌑 SPELL CARDS — DARK / ARCANE
