@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="CardAbility" load_steps=2 format=3 uid="uid://bnbx7s831bpby"]
+
+[ext_resource type="Script" uid="uid://d2to4368imoiw" path="res://Cards/Utilities/CardAbility.gd" id="1_d1cfq"]
+
+[resource]
+script = ExtResource("1_d1cfq")
+display_name = "Take Flight"
+description = "Can fly over allies +1 tile"
+metadata/_custom_type_script = "uid://d2to4368imoiw"

@@ -10,6 +10,7 @@ script = ExtResource("2_1c73e")
 types = Array[String](["Beast", "Elemental"])
 rarity = "epic"
 element = "Water"
+preferred_terrain = "Water"
 id = "00009"
 name = "Aqua Lyzard"
 description = "A predator of coral reefs and flooded caverns, armored in plates of living shell. The Aqua Lyzard’s cold stare can paralyze prey before the strike. Some scholars claim they were once guardians of sunken temples, cursed to wander forever below."

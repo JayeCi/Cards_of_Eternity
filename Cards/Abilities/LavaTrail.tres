@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="LavaTrail" load_steps=2 format=3 uid="uid://diay5k6l8m3np"]
+
+[ext_resource type="Script" path="res://Cards/Abilities/LavaTrail.gd" id="1_lavatrail"]
+
+[resource]
+script = ExtResource("1_lavatrail")
+trigger = "on_summon"
+display_name = "Lava Trail"
+value = 0
+description = "When faceup, every tile this card occupies turns into scorching Lava terrain."

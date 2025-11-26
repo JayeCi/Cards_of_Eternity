@@ -8,10 +8,10 @@
 [resource]
 script = ExtResource("2_1qbt4")
 element = "Earth"
-preferred_terrain = "Grass"
 id = "00023"
 name = "Mushmonk"
 art = ExtResource("1_1qbt4")
+cost = 2
 atk = 10
 def = 10
 ability = ExtResource("1_i6yng")

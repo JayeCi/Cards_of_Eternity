@@ -5,7 +5,7 @@ class_name ArenaCardDetails
 @onready var art: TextureRect = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/Art
 @onready var name_label: Label = $MarginContainer/PanelContainer/NameLabel
 @onready var rarity_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/Rarity
-@onready var cost_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/Cost
+#@onready var cost_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/Cost
 #@onready var abilities_label: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/Abilities
 @onready var abilities_name: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/AbilitiesName
 @onready var abilities_desc: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/ScrollContainer/VBoxContainer/AbilitiesDesc
@@ -15,6 +15,8 @@ class_name ArenaCardDetails
 
 @onready var terrain: TextureRect = $MarginContainer/PanelContainer/MarginContainer/Terrain
 @onready var terrain_label: Label = $MarginContainer/PanelContainer/MarginContainer/TerrainLabel
+@onready var element: Label = $Element
+@onready var pref: Label = $MarginContainer/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/HBoxContainer/Pref
 
 # --- Combat stats ---
 @onready var atk_label: Label = $VBoxContainer2/AtkLabel
@@ -118,7 +120,9 @@ func show_card(card: CardData) -> void:
 	name_label.text = card.name
 	rarity_label.text = str(card.rarity)
 	set_rarity_color(str(card.rarity))
-	cost_label.text = "Cost: %d" % int(card.cost)
+	#cost_label.text = "Cost: %d" % int(card.cost)
+	element.text = str(card.element)
+	pref.text = str(card.preferred_terrain)
 	description.text = str(card.description)
 
 	if card.types and card.types.size() > 0:
@@ -186,7 +190,7 @@ func show_unit(unit: UnitData) -> void:
 	name_label.text = card.name
 	rarity_label.text = str(card.rarity)
 	set_rarity_color(str(card.rarity))
-	cost_label.text = "Cost: %d" % int(card.cost)
+	#cost_label.text = "Cost: %d" % int(card.cost)
 
 	# 🟩 Hide stats for Leaders or Spell/Event cards
 	if unit.is_leader or card.card_type in [CardData.CardType.SPELL, CardData.CardType.EVENT]:

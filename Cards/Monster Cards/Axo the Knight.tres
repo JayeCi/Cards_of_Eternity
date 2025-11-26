@@ -8,7 +8,7 @@
 script = ExtResource("2_xrivy")
 rarity = "rare"
 element = "Water"
-preferred_terrain = "WATER"
+preferred_terrain = "Water"
 id = "00011"
 name = "Axo the Knight"
 description = "Once a curious amphibian, Axo found the path of honor beneath the waves. Trained by forgotten knights who perished in a flood, he now wields their spirit in his blade. Calm, loyal, and noble — yet dangerous when his home is threatened."

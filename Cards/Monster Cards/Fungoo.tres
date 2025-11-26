@@ -8,7 +8,7 @@
 script = ExtResource("2_85vbc")
 types = Array[String](["Elemental"])
 element = "Earth"
-preferred_terrain = "WATER"
+preferred_terrain = "Water"
 id = "00020"
 name = "Fungoo"
 description = "A tall, wiry mushroom creature that wanders the dim places between life and decay. Its spores cloud the air with hallucinogenic dreams and eerie whispers. Some say it doesn’t attack — it simply lets its victims lose themselves to madness."

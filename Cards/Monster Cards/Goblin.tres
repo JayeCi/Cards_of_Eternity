@@ -9,7 +9,7 @@
 [resource]
 script = ExtResource("1_42yog")
 element = "Earth"
-preferred_terrain = "FOREST"
+preferred_terrain = "Forest"
 id = "00001"
 name = "Goblin"
 description = "Small, wiry, and endlessly resourceful, Goblins thrive in the cracks between civilizations. They cobble together crude weapons from whatever they can scavenge, and their cunning often outweighs their size. Alone they’re pests — together, a swarm of trouble."

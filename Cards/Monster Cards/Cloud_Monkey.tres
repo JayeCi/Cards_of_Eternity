@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("2_5lrc8")
 element = "Wind"
-preferred_terrain = "Stone"
+preferred_terrain = "None"
 id = "00032"
 name = "Cloud Monkey"
 description = "A monkey who lives and breaths clouds."

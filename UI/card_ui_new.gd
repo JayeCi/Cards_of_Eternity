@@ -11,6 +11,7 @@ extends Control
 
 @onready var cost: Label = $MarginContainer/VBoxContainer/Cost
 @onready var fusion_glow: TextureRect = $FusionGlow
+@onready var fusion_icon: TextureRect = $FusionIcon
 @onready var quantity_label: Label = $QuantityLabel
 @onready var ability_indicator = $Border/AbilityIndicator
 
@@ -393,3 +394,35 @@ func _add_card_to_deck(card_data: CardData):
 	)
 
 	print("[DeckBuilder] ➕ Added card to deck:", card_data.name)
+
+
+# ====================================
+# FUSION ICON PULSE ANIMATION
+# ====================================
+
+var _fusion_pulse_tween: Tween = null
+
+func start_fusion_icon_pulse():
+	if not fusion_icon:
+		return
+	fusion_icon.visible = true
+
+	# Kill existing tween if running
+	if _fusion_pulse_tween and _fusion_pulse_tween.is_running():
+		_fusion_pulse_tween.kill()
+
+	# Create infinite pulsing animation
+	_fusion_pulse_tween = create_tween()
+	_fusion_pulse_tween.set_loops(0)  # Infinite loops
+	_fusion_pulse_tween.tween_property(fusion_icon, "scale", Vector2(1.2, 1.2), 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_fusion_pulse_tween.tween_property(fusion_icon, "scale", Vector2(1.0, 1.0), 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+func stop_fusion_icon_pulse():
+	# Kill tween if running
+	if _fusion_pulse_tween and _fusion_pulse_tween.is_running():
+		_fusion_pulse_tween.kill()
+
+	# Hide icon and reset scale
+	if fusion_icon:
+		fusion_icon.visible = false
+		fusion_icon.scale = Vector2(1.0, 1.0)

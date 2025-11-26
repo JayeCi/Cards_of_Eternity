@@ -10,6 +10,7 @@ script = ExtResource("2_0luq1")
 types = Array[String](["Elemental"])
 rarity = "rare"
 element = "Earth"
+preferred_terrain = "Stone"
 id = "00013"
 name = "Stone Fae"
 description = "A steadfast guardian of caverns and crystalline groves. Her body is adorned with shards of living gem that shimmer with ancient magic. When she moves, mountains tremble — not from her weight, but from her will."

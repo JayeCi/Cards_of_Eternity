@@ -14,6 +14,7 @@ id = "00027"
 name = "Stone Guard"
 description = "A colossal elemental stone guard."
 art = ExtResource("1_n02e0")
+cost = 2
 atk = 15
 def = 22
 model_path = "res://Cards/Models/STONE_GUARD_MODEL.tscn"

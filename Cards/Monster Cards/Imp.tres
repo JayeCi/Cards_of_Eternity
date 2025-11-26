@@ -11,6 +11,7 @@ script = ExtResource("1_t13up")
 types = Array[String](["Demon"])
 rarity = "rare"
 element = "Fire"
+preferred_terrain = "Lava"
 id = "00003"
 name = "Imp"
 description = "A mischievous flame-born demon that delights in the suffering of others. It flits about battlefields leaving sparks and cackles in its wake. When cornered, its rage ignites — quite literally."

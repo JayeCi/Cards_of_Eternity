@@ -553,6 +553,11 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 		core.units[to] = attacker
 		core.mark_unit_acted(attacker)
 
+		# 🔥 LAVA TRAIL: Apply lava trail effect if unit has the ability
+		if attacker.has_meta("creates_lava_trail") and not attacker.is_facedown:
+			if attacker.card and attacker.card.ability and attacker.card.ability.has_method("apply_lava_trail"):
+				await attacker.card.ability.apply_lava_trail(core, attacker, to)
+
 		# ⚫ HOLE TERRAIN: Check if unit moved into a hole
 		if dst.terrain_type == "Hole":
 			core._log("💀 %s fell into a HOLE and was destroyed!" % attacker.card.name, Color(0.5, 0.5, 0.5))
@@ -810,6 +815,9 @@ func _move_or_battle(from: Vector2i, to: Vector2i, bypass_control_check := false
 			# Trigger fusion abilities on result card
 			if fusion_result.ability and "on_summon" in fusion_result.ability.trigger:
 				await core._execute_card_ability(fused_unit, fusion_result.ability)
+
+			# Re-apply all passive abilities to ensure bonuses are active
+			battle.apply_all_passives()
 
 			# Mark as acted
 			core.mark_unit_acted(fused_unit)
@@ -1498,6 +1506,13 @@ func confirm_faceup(unit: UnitData) -> void:
 				Color(1.0, 1.0, 0.6)
 			)
 			await core._execute_card_ability(unit, ab)
+
+	# 🔥 LAVA TRAIL: Apply lava trail effect if unit has the ability and was just flipped faceup
+	if unit.has_meta("creates_lava_trail") and not unit.is_facedown:
+		var pos = core.board.get_unit_position(unit)
+		if pos != Vector2i(-1, -1) and unit.card and unit.card.ability:
+			if unit.card.ability.has_method("apply_lava_trail"):
+				await unit.card.ability.apply_lava_trail(core, unit, pos)
 
 
 func _flip_faceup(tile: Node3D, new_texture: Texture2D) -> void:

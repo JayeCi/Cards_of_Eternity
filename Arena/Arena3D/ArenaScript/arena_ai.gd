@@ -144,7 +144,7 @@ func _leader_behavior() -> void:
 		if not core.board.is_in_bounds(pos):
 			continue
 		var t = core.board.get_tile(pos.x, pos.y)
-		if t and t.occupant == null:
+		if t and t.occupant == null and t.terrain_type != "Hole":
 			escape_tiles.append(pos)
 
 	# Sort escape tiles by distance away from nearest threat
@@ -212,7 +212,7 @@ func _leader_behavior() -> void:
 		var summon_tile = lpos + (lpos - threat)
 		if core.board.is_in_bounds(summon_tile):
 			var t = core.board.get_tile(summon_tile.x, summon_tile.y)
-			if t and t.occupant == null:
+			if t and t.occupant == null and t.terrain_type != "Hole":
 				_did_action_this_turn = true
 				move.place_unit(card, summon_tile, core.ENEMY, UnitData.Mode.ATTACK, true)
 				core.enemy_hand.pop_front()
@@ -271,7 +271,7 @@ func _smart_summon() -> void:
 		var p = leader_pos + d
 		if core.board.is_in_bounds(p):
 			var t = core.board.get_tile(p.x, p.y)
-			if t and t.occupant == null:
+			if t and t.occupant == null and t.terrain_type != "Hole":
 				spaces.append(p)
 	if spaces.is_empty():
 		return
@@ -660,7 +660,7 @@ func _find_best_move_toward(from: Vector2i, goal: Vector2i) -> Vector2i:
 				break
 			if t.occupant and t.occupant.owner == core.ENEMY:
 				break # ally blocks path
-			if not t.occupant and p.distance_to(goal) < best_dist:
+			if not t.occupant and t.terrain_type != "Hole" and p.distance_to(goal) < best_dist:
 				best = p
 				best_dist = p.distance_to(goal)
 	return best
@@ -713,6 +713,10 @@ func _tactical_retreat(from: Vector2i) -> void:
 
 			# Stop if blocked by any unit (ally or enemy)
 			if t.occupant != null:
+				break
+
+			# ⚫ NEVER retreat into a HOLE
+			if t.terrain_type == "Hole":
 				break
 
 			# Evaluate this empty tile as a retreat option
@@ -770,7 +774,7 @@ func _try_escape_corner(leader_pos: Vector2i) -> bool:
 		var escape = leader_pos + dir
 		if core.board.is_in_bounds(escape):
 			var tile = core.board.get_tile(escape.x, escape.y)
-			if tile and tile.occupant == null:
+			if tile and tile.occupant == null and tile.terrain_type != "Hole":
 				await battle._move_or_battle(leader_pos, escape, true)
 				return true
 	return false
@@ -965,8 +969,8 @@ func _find_flying_moves(from: Vector2i, unit: UnitData, goal: Vector2i) -> Array
 				# No additional range check needed - if ally is reachable, we can fly over
 
 				# Can land here! Score based on distance to goal
-				if land_tile.occupant == null:
-					# Empty tile
+				if land_tile.occupant == null and land_tile.terrain_type != "Hole":
+					# Empty tile (and NOT a hole!)
 					var score = -land_pos.distance_to(goal)
 					flying_moves.append({"pos": land_pos, "score": score})
 				elif land_tile.occupant.owner == core.PLAYER:
@@ -987,6 +991,11 @@ func _find_flying_moves(from: Vector2i, unit: UnitData, goal: Vector2i) -> Array
 func _is_position_safe(pos: Vector2i, unit: UnitData) -> bool:
 	"""Check if moving to this position would endanger the unit"""
 	if not core.board.is_in_bounds(pos):
+		return false
+
+	# ⚫ HOLE terrain is NEVER safe
+	var tile = core.board.get_tile(pos.x, pos.y)
+	if tile and tile.terrain_type == "Hole":
 		return false
 
 	# Check all adjacent tiles for threats
@@ -1172,7 +1181,7 @@ func _try_hand_fusion_placement() -> bool:
 						continue
 
 					var tile1 = core.board.get_tile(pos1.x, pos1.y)
-					if not tile1 or tile1.occupant != null:
+					if not tile1 or tile1.occupant != null or tile1.terrain_type == "Hole":
 						continue
 
 					# Found first spot, now look for adjacent spot
@@ -1185,7 +1194,7 @@ func _try_hand_fusion_placement() -> bool:
 							continue
 
 						var tile2 = core.board.get_tile(pos2.x, pos2.y)
-						if not tile2 or tile2.occupant != null:
+						if not tile2 or tile2.occupant != null or tile2.terrain_type == "Hole":
 							continue
 
 						# Found two adjacent spots!
@@ -1317,7 +1326,7 @@ func _try_place_upgrade_spell(spells: Array[CardData], monsters: Array[Dictionar
 				continue
 
 			var tile = core.board.get_tile(place_pos.x, place_pos.y)
-			if tile and tile.occupant == null:
+			if tile and tile.occupant == null and tile.terrain_type != "Hole":
 				# Check if we can afford it
 				if core.enemy_essence < spell_card.cost:
 					continue

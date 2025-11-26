@@ -2,12 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dartvgare5ayb"
-valid=false
+uid="uid://bobhbg7582m6l"
+path="res://.godot/imported/Winged_gust.png-e7c4432e237aba7340ee9f23da6445a6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
-source_file="res://UI/Terrains/hole.png"
+source_file="res://Images/Winged_gust.png"
+dest_files=["res://.godot/imported/Winged_gust.png-e7c4432e237aba7340ee9f23da6445a6.ctex"]
 
 [params]
 

@@ -16,6 +16,7 @@ id = "00113"
 name = "Wind Armor"
 description = "Armor forged from compressed wind. When fused with a WIND monster, increases DEF by 8."
 art = ExtResource("2_l6aey")
+cost = 2
 ability = ExtResource("3_wind")
 is_upgrade_spell = true
 metadata/_custom_type_script = "uid://57up1u0etcmc"

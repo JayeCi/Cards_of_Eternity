@@ -5,7 +5,11 @@ var core: ArenaCore
 var board: Node3D
 var camera: Camera3D
 var _is_cutscene_running := false
+var victory_audio_player: AudioStreamPlayer = null
+
 signal camera_focus_on_player_started
+
+@onready var bg_music: AudioStreamPlayer = $"../BGMusic"
 
 func wait_for_camera_focus_on_player() -> void:
 	await camera_focus_on_player_started
@@ -249,6 +253,18 @@ func play_victory_cutscene() -> void:
 	core.is_cutscene_active = true
 	_disable_input(true)
 
+	# 🎵 Fade out background music
+	if bg_music and bg_music is AudioStreamPlayer:
+		bg_music.stop()
+
+	# 🎵 Play victory sound
+	victory_audio_player = AudioStreamPlayer.new()
+	victory_audio_player.stream = core.VICTORY_SOUND
+	victory_audio_player.volume_db = -30.0
+	victory_audio_player.bus = "Music"
+	core.add_child(victory_audio_player)
+	victory_audio_player.play()
+
 	# 🎭 Hide all UI for cinematic cutscene
 	var ui_sys = core.ui_sys
 	if ui_sys and ui_sys.has_method("hide_all_ui"):
@@ -334,6 +350,14 @@ func play_victory_cutscene() -> void:
 
 	# Wait for rotation to complete
 	await rotation_tween.finished
+
+	# 🎵 Fade out victory sound
+	if victory_audio_player and victory_audio_player.playing:
+		var fade_tween = create_tween()
+		fade_tween.tween_property(victory_audio_player, "volume_db", -80.0, 2.0)
+		await fade_tween.finished
+		victory_audio_player.stop()
+		victory_audio_player.queue_free()
 
 	# Brief pause before fade out
 	await get_tree().create_timer(0.5).timeout

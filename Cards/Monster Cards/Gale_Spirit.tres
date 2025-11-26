@@ -3,19 +3,20 @@
 [ext_resource type="Texture2D" uid="uid://ckftpjyy7waqi" path="res://Images/Gale_Spirit.png" id="1_kf4fd"]
 [ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_swpmd"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_kf4fd"]
-[ext_resource type="Resource" path="res://Cards/Abilities/Gust.tres" id="3_gust"]
+[ext_resource type="Resource" uid="uid://cg8x4m5oap2qr" path="res://Cards/Abilities/Gust.tres" id="3_gust"]
 
 [resource]
 script = ExtResource("2_kf4fd")
 types = Array[String](["Elemental"])
 rarity = "epic"
 element = "Wind"
-preferred_terrain = "None"
+preferred_terrain = "Stone"
 id = "00028"
 name = "Gale Spirit"
 description = "A wandering breeze made manifest, whispering encouragement to allies. Its presence turns sluggish steps into swift strides, guiding warriors as if carried by the wind itself."
 art = ExtResource("1_kf4fd")
-atk = 5
+cost = 2
+atk = 9
 def = 20
 ability = ExtResource("3_gust")
 model_path = "res://Cards/Models/GALE_SPIRIT_MODEL.tscn"

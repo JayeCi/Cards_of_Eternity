@@ -9,11 +9,13 @@
 script = ExtResource("3_kfu05")
 types = Array[String](["Nature", "Magic"])
 element = "Earth"
+preferred_terrain = "None"
 card_type = 1
 id = "00106"
 name = "Acorn of Life"
 description = "Plants itself and converts its tile to Grass. Each turn, spreads Grass to 1 adjacent tile. Dies if destroyed, replaced, or if its tile becomes Lava."
 art = ExtResource("2_e38up")
+cost = 3
 def = 3
 ability = ExtResource("1_gpta2")
 model_path = "res://Cards/Models/ACORN_OF_LIFE_MODEL.tscn"

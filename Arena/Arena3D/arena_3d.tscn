@@ -196,6 +196,12 @@ texture_list = Array[Terrain3DTextureAsset]([SubResource("Terrain3DTextureAsset_
 
 [node name="Arena3D" type="Node3D" groups=["battle_scene"]]
 script = ExtResource("1_2nnof")
+fusion_database = null
+camera_move_speed = null
+camera_zoom_speed = null
+min_zoom = null
+max_zoom = null
+is_tutorial_match = null
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(-0.944063, -0.54489195, 0.013316881, 0, 0.026633775, 1.0897844, -0.5450547, 0.9437812, -0.02306553, -16.18901, 3.6758308, 0)
