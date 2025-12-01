@@ -1,20 +1,17 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=5 format=3 uid="uid://5ii0vn16y4qw"]
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://5ii0vn16y4qw"]
 
 [ext_resource type="Resource" path="res://Cards/Abilities/WingedGustAbility.tres" id="1"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2"]
-[ext_resource type="Texture2D" uid="uid://bobhbg7582m6l" path="res://Images/Winged_gust.png" id="2_cso1f"]
 [ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="2_vlyjk"]
 
 [resource]
 script = ExtResource("2")
 types = Array[String](["Magic", "Upgrade"])
 element = "Wind"
-preferred_terrain = "None"
+preferred_terrain = ""
 card_type = 1
 id = "00112"
 name = "Winged Gust"
 description = "When fused with a WIND type, grants +1 Movement."
-art = ExtResource("2_cso1f")
-cost = 2
 ability = ExtResource("1")
 is_upgrade_spell = true

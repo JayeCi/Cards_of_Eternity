@@ -9,7 +9,6 @@ script = ExtResource("1_e2isb")
 types = Array[String](["Beast", "Elemental"])
 rarity = "rare"
 element = "Fire"
-preferred_terrain = "Lava"
 id = "00006"
 name = "Lava Hare"
 description = "Forged in the volcanic forges of the underlands, Lava Hares are creatures of molten rock and burning fury. They bound across firefields, leaving glowing footprints that never fade. Hunters say even their laughter sizzles."

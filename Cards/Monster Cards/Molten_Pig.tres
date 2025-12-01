@@ -1,28 +1,20 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=7 format=3 uid="uid://cv0p5uqckiiej"]
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://cv0p5uqckiiej"]
 
 [ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_cbbap"]
 [ext_resource type="Texture2D" uid="uid://cghc4fwfwjr4q" path="res://Images/Molten Pig.png" id="1_htmb6"]
-[ext_resource type="AudioStream" uid="uid://cj7dv1bxn2us8" path="res://Audio/FIRE.mp3" id="1_ughum"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_htmb6"]
-[ext_resource type="Script" uid="uid://bj836drbysujw" path="res://Cards/Abilities/LavaTrail.gd" id="2_kto8u"]
-
-[sub_resource type="Resource" id="Resource_fsyhy"]
-script = ExtResource("2_kto8u")
-metadata/_custom_type_script = "uid://bj836drbysujw"
 
 [resource]
 script = ExtResource("2_htmb6")
 types = Array[String](["Beast", "Elemental"])
 element = "Fire"
-preferred_terrain = "Lava"
+preferred_terrain = "LAVA"
 id = "00018"
 name = "Molten Pig"
 description = "A beast of smoke and fury, born where lava meets living flame. Its hooves strike sparks, its breath belches cinders, and its squeal heralds chaos. Few can stand its molten charge and live to boast of it."
 art = ExtResource("1_htmb6")
-cost = 2
 atk = 12
 def = 12
-ability = SubResource("Resource_fsyhy")
 model_path = "res://Cards/Models/MOLTEN_PIG_MODEL.tscn"
 model_scale = Vector3(0.4, 0.4, 0.4)
 metadata/_custom_type_script = "uid://57up1u0etcmc"

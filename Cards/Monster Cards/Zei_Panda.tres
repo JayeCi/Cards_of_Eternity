@@ -13,7 +13,6 @@ preferred_terrain = "Water"
 id = "00024"
 name = "Zei Panda"
 art = ExtResource("1_mc4x6")
-cost = 3
 atk = 12
 def = 25
 ability = ExtResource("1_h3fbj")

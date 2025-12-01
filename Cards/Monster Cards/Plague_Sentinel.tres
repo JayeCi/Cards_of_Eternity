@@ -7,7 +7,6 @@
 [resource]
 script = ExtResource("2_wix2b")
 element = "Shadow"
-preferred_terrain = "Stone"
 id = "00039"
 name = "Plague Sentinel"
 description = "A lone plague sentinel."

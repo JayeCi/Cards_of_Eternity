@@ -266,23 +266,6 @@ func refresh_hand(player_hand: Array, player_essence: int, force_update := false
 			ui.visible = false  # Keep completely hidden until animation starts
 			ui.mouse_filter = Control.MOUSE_FILTER_IGNORE  # Disable clicks until animation done
 		hand_grid.add_child(ui)
-
-		# 🧬 Check for valid fusion partners and show pulsing icon
-		var has_fusion_partner := false
-		for other_card in player_hand:
-			if other_card != c:
-				var fusion_result = core._check_fusion_pair(c, other_card)
-				if fusion_result != null:
-					has_fusion_partner = true
-					break
-
-		# Show/hide fusion icon with pulse animation
-		if ui.has_method("start_fusion_icon_pulse") and ui.has_method("stop_fusion_icon_pulse"):
-			if has_fusion_partner:
-				ui.start_fusion_icon_pulse()
-			else:
-				ui.stop_fusion_icon_pulse()
-
 		last_card_ui = ui
 
 	if orb_grid:
@@ -1291,13 +1274,8 @@ func hide_all_ui() -> void:
 		$SummonMode.visible = false
 	if has_node("FusionPending"):
 		$FusionPending.visible = false
-	if has_node("EndTurnButton"):
-		$EndTurnButton.visible = false
-	if has_node("EndTurnButton"):
-		$EndTurnButton.visible = false
-	if has_node("DiscardPileButton"):
-		$DiscardPileButton.visible = false
-		
+
+
 ## Show all UI elements (after cutscenes)
 func show_all_ui() -> void:
 	if has_node("BottomContainer"):

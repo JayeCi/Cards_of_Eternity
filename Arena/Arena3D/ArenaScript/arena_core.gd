@@ -190,11 +190,10 @@ signal unit_stats_changed(unit: UnitData)
 # -----------------------------
 const HEAL_SOUND := preload("res://Audio/Sound FX/heal.mp3")
 const LEADER_IN_SOUND := preload("res://Audio/Sound FX/leaderslide.mp3")
-const VICTORY_SOUND := preload("res://Audio/Sound FX/victory.mp3")
 #const FUSION_PENDING_SOUND := preload("res://Audio/Sound FX/Fusion Pending.mp3")
 #const FUSE_SOUND := preload("res://Audio/Sound FX/Fuse.mp3")
 
-const CARD_MODEL_SCALE := Vector3(0.65, 0.65, 0.65)
+const CARD_MODEL_SCALE := Vector3(0.75, 0.75, 0.75)
 const BOARD_W := 7
 const BOARD_H := 7
 const PLAYER := 0
@@ -1212,32 +1211,23 @@ func _check_fusion_pair(a: CardData, b: CardData) -> CardData:
 	var a_elem := str(a.element if a.element != null else "").to_lower()
 	var b_elem := str(b.element if b.element != null else "").to_lower()
 
-	# 🔥 Conflaguration Blade + FIRE MONSTER (not spells)
+	# Conflaguration Blade + Fire type
 	var is_blade_a := a_name.find("conflaguration_blade") != -1
 	var is_blade_b := b_name.find("conflaguration_blade") != -1
 	var is_fire_a := a_elem == "fire"
 	var is_fire_b := b_elem == "fire"
 
-
-	# Check monster constraint (enum comparison)
-	var is_monster_a := (a.card_type == CardData.CardType.MONSTER)
-	var is_monster_b := (b.card_type == CardData.CardType.MONSTER)
-
-
-	# Blade in A + FIRE MONSTER in B
-	if (is_blade_a and is_fire_b and is_monster_b):
+	if (is_blade_a and is_fire_b):
 		var fused := b.duplicate()
 		fused.atk += 8
 		fused.description += "\n🔥 Empowered by the Conflaguration Blade (+8 ATK)."
 		return fused
-
-	# Blade in B + FIRE MONSTER in A
-	elif (is_blade_b and is_fire_a and is_monster_a):
+	elif (is_blade_b and is_fire_a):
 		var fused := a.duplicate()
 		fused.atk += 8
 		fused.description += "\n🔥 Empowered by the Conflaguration Blade (+8 ATK)."
 		return fused
-		
+
 	# Aqua Whip + Water type
 	var is_whip_a := a_name.find("aqua_whip") != -1
 	var is_whip_b := b_name.find("aqua_whip") != -1
@@ -1323,7 +1313,7 @@ func _play_fusion_effect(result_card: CardData) -> void:
 	effect.queue_free()
 
 # 🧬 Board-to-board fusion animation (same as hand fusion, but takes cards as parameters)
-wfunc _play_board_fusion_effect(card_a: CardData, card_b: CardData, result_card: CardData) -> void:
+func _play_board_fusion_effect(card_a: CardData, card_b: CardData, result_card: CardData) -> void:
 	var fusion_scene := preload("res://Cards/Abilities/fusion_effect.tscn")
 	var effect: CanvasLayer = fusion_scene.instantiate()
 	add_child(effect)
@@ -1554,9 +1544,6 @@ func confirm_summon_in_mode(mode: int) -> void:
 		var fused_unit = units.get(selected_pos)
 		if fused_unit:
 			_trigger_fusion_abilities(fused_unit, [a, b])
-
-		# Re-apply all passive abilities to ensure bonuses are active
-		battle_sys.apply_all_passives()
 
 		if _fusion_was_valid:
 			_log("🧬 %s + %s fused into %s (%s)!" %

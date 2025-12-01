@@ -1,4 +1,4 @@
-[gd_scene load_steps=47 format=3 uid="uid://bpwfipvsy0wxt"]
+[gd_scene load_steps=46 format=3 uid="uid://bpwfipvsy0wxt"]
 
 [ext_resource type="Script" uid="uid://d131h1pen840s" path="res://UI/card_ui_new.gd" id="1_nfm18"]
 [ext_resource type="LabelSettings" uid="uid://cgbudukt4ny64" path="res://UI/CardUI_Name.tres" id="2_kgeiq"]
@@ -11,7 +11,6 @@
 [ext_resource type="Texture2D" uid="uid://c1bncd8qiexd0" path="res://UI/wave2.png" id="8_cn5yf"]
 [ext_resource type="Texture2D" uid="uid://ykuho4eu1yj8" path="res://UI/rock_light_gray.png" id="9_fmclv"]
 [ext_resource type="Texture2D" uid="uid://bhlen8e0rmkqu" path="res://UI/wind.png" id="10_m4fq4"]
-[ext_resource type="Texture2D" uid="uid://4un5gda1locj" path="res://Images/fusion.png" id="12_m4fq4"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jhlvl"]
 
@@ -484,13 +483,3 @@ size_flags_vertical = 8
 texture = ExtResource("10_m4fq4")
 expand_mode = 1
 stretch_mode = 4
-
-[node name="FusionIcon" type="TextureRect" parent="."]
-visible = false
-custom_minimum_size = Vector2(40, 40)
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-texture = ExtResource("12_m4fq4")
-expand_mode = 1
-stretch_mode = 5

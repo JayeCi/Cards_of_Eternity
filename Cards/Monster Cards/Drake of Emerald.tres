@@ -1,23 +1,20 @@
-[gd_resource type="Resource" script_class="CardData" load_steps=5 format=3 uid="uid://qypewj4smi1"]
+[gd_resource type="Resource" script_class="CardData" load_steps=4 format=3 uid="uid://qypewj4smi1"]
 
 [ext_resource type="AudioStream" uid="uid://brgxtorwd5y4b" path="res://Audio/Sound FX/CardDeath.mp3" id="1_eckl2"]
 [ext_resource type="Texture2D" uid="uid://6eham6aa75lt" path="res://Images/Drake of Emeralds.png" id="1_kr3mg"]
-[ext_resource type="Resource" uid="uid://bnbx7s831bpby" path="res://Take_Flight.tres" id="1_pn05o"]
 [ext_resource type="Script" uid="uid://57up1u0etcmc" path="res://Cards/Utilities/CardData.gd" id="2_kr3mg"]
 
 [resource]
 script = ExtResource("2_kr3mg")
 types = Array[String](["Beast", "Elemental"])
 element = "Wind"
-preferred_terrain = "Stone"
 id = "00010"
 name = "Drake of Emeralds"
 description = "A young dragon infused with the life essence of forests and gemstones. Its scales radiate green light that heals the wounded earth beneath its wings. Though not yet ancient, it carries the wisdom of countless springs."
 art = ExtResource("1_kr3mg")
+cost = 2
 atk = 10
 def = 20
-ability = ExtResource("1_pn05o")
 model_path = "res://Cards/Models/DRAKE_OF_EMERALD_MODEL.tscn"
 model_scale = Vector3(0.55, 0.55, 0.55)
-can_fly = true
 metadata/_custom_type_script = "uid://57up1u0etcmc"

@@ -10,7 +10,6 @@
 script = ExtResource("1_4nhxv")
 rarity = "epic"
 element = "Water"
-preferred_terrain = "Ice"
 id = "00008"
 name = "Cold Sloth"
 description = "A glacial beast who moves at the pace of glaciers themselves. Its icy fur and breath freeze all that draws near. Few realize its lethargy hides an ancient patience — and an uncanny resilience against harm."

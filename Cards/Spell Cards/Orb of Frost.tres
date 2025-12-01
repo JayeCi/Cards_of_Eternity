@@ -9,12 +9,11 @@
 script = ExtResource("4_ykoso")
 types = Array[String](["Magic", "Event"])
 element = "Water"
-preferred_terrain = "None"
+preferred_terrain = "Ice"
 card_type = 2
 id = "00104"
 name = "Orb of Frost"
 description = "Freeze all adjacent enemies for 2 turns. They cannot move, attack, or counter-attack."
 art = ExtResource("2_g88ps")
-cost = 3
 ability = ExtResource("1_g88ps")
 metadata/_custom_type_script = "uid://57up1u0etcmc"
