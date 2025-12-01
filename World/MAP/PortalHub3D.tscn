@@ -1,0 +1,47 @@
+[gd_scene load_steps=5 format=3 uid="uid://c7hub3dmodel"]
+
+[ext_resource type="Script" path="res://World/MAP/map_node_3d.gd" id="1_portal_hub"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_portal"]
+albedo_color = Color(0.4, 0.2, 0.6, 1)
+emission_enabled = true
+emission = Color(0.3, 0.15, 0.5, 1)
+emission_energy_multiplier = 2.0
+metallic = 0.5
+roughness = 0.3
+
+[sub_resource type="TorusMesh" id="TorusMesh_portal"]
+inner_radius = 0.6
+outer_radius = 1.2
+rings = 32
+ring_segments = 16
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_portal"]
+radius = 1.5
+
+[node name="PortalHub3D" type="Area3D"]
+script = ExtResource("1_portal_hub")
+encounter_type = "hub"
+enemy_name = "Portal Hub"
+description = "Return to the central hub"
+is_completed = true
+is_revealed = true
+
+[node name="PortalRing" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 1, 0)
+mesh = SubResource("TorusMesh_portal")
+surface_material_override/0 = SubResource("StandardMaterial3D_portal")
+
+[node name="InnerGlow" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.1, 0, 1, 0)
+mesh = SubResource("TorusMesh_portal")
+surface_material_override/0 = SubResource("StandardMaterial3D_portal")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_portal")
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+light_color = Color(0.5, 0.3, 0.8, 1)
+light_energy = 2.0
+omni_range = 4.0

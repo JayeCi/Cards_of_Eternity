@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://bvn8j3k4mwo3d"]
+
+[ext_resource type="Script" path="res://World/MAP/map_node_3d.gd" id="1_map_node"]
+
+[node name="MapNode3D" type="Area3D"]
+script = ExtResource("1_map_node")
+encounter_type = "fight"
