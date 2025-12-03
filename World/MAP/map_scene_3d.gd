@@ -15,13 +15,16 @@ signal player_arrived(node: MapNode3D)
 @onready var path_lines: Node3D = $PathLines
 @onready var map_audio: MapAudio3D = $MapAudio3D
 @onready var map_generator: MapGenerator3D = $MapGenerator3D
-@onready var ui_overlay: MapUIOverlay3D = $MapUIOverlay3D
+@onready var ui_overlay: MapUIOverlay3D = $UI/MapUIOverlay3D
 
 # Map data
 var all_nodes: Array[MapNode3D] = []
 var current_level_data: Dictionary = {}
 
 func _ready():
+	# Register this map instance with GameSession
+	GameSession.map_instance = self
+
 	# Initialize the map
 	setup_scene()
 
@@ -39,6 +42,10 @@ func _ready():
 
 	print("🗺️ Setting up pre-existing nodes...")
 	setup_existing_nodes()
+
+	# Check if returning from a battle
+	check_battle_result()
+
 	print("✅ 3D Map scene ready!")
 	print("📊 Found ", all_nodes.size(), " nodes")
 	print("📷 Camera position: ", camera.global_position)
@@ -103,14 +110,23 @@ func setup_existing_nodes():
 	if show_path_lines:
 		draw_all_path_lines()
 
-	# Find and set the starting node (Portal Hub)
+	# Find the Portal Hub
 	var portal_hub = get_node_by_name("PortalHub")
 	if portal_hub:
-		print("🎮 Setting player at Portal Hub")
-		player.set_current_node(portal_hub)
+		# Only set player at Portal Hub if we're NOT returning from a battle
+		# If there's a battle result, preserve player position
+		if GameSession.last_battle_result == "":
+			print("🎮 Setting player at Portal Hub (new game)")
+			player.set_current_node(portal_hub)
+		else:
+			print("🎮 Returning from battle, preserving player position")
+			# Player position will be restored after battle result is processed
+
+		# Initialize node locking - only 1a, 1b, 1c, and portal hub are unlocked
+		initialize_node_locking()
 
 		# Debug: Show which nodes are reachable
-		print("📍 Reachable nodes from Portal Hub:")
+		print("📍 Reachable nodes:")
 		for node in all_nodes:
 			if node.is_reachable:
 				print("  ✓ ", node.name, " (revealed: ", node.is_revealed, ")")
@@ -241,6 +257,10 @@ func setup_node_connections():
 func draw_all_path_lines():
 	"""Draw lines for traveled paths and currently available paths"""
 
+	if not path_lines:
+		print("❌ PathLines container is NULL!")
+		return
+
 	# Clear existing lines
 	for child in path_lines.get_children():
 		child.queue_free()
@@ -248,42 +268,114 @@ func draw_all_path_lines():
 	if not player or not player.current_node:
 		return
 
-	# Draw lines from current node to reachable nodes (available paths)
+	var lines_drawn = 0
 	var current = player.current_node
+
+	# Draw lines from current node to reachable nodes (available paths)
 	for node_path in current.connected_nodes:
 		var target = current.get_node(node_path) as MapNode3D
 		if target and target.is_revealed and target.is_reachable:
-			draw_path_line(current, target, Color(0.8, 0.8, 1.0, 0.6))  # Bright blue for available
+			draw_path_line(current, target, Color(0.6, 0.75, 1.0, 0.8))  # Bright blue for available
+			lines_drawn += 1
 
 	# Draw traveled paths (from visited nodes)
 	for node in all_nodes:
-		if node.is_completed:  # Only draw from completed nodes
+		if node.is_completed:
 			for node_path in node.connected_nodes:
 				var target = node.get_node(node_path) as MapNode3D
-				# Only draw to nodes we've been to
 				if target and target.is_completed:
-					draw_path_line(node, target, Color(0.5, 0.5, 0.5, 0.4))  # Gray for traveled
+					draw_path_line(node, target, Color(0.4, 0.4, 0.5, 0.5))  # Subtle gray for traveled
+					lines_drawn += 1
 
-func draw_path_line(from_node: MapNode3D, to_node: MapNode3D, line_color: Color = Color(0.5, 0.5, 0.8, 0.3)):
-	"""Draw a line between two nodes"""
+	if lines_drawn > 0:
+		print("✨ Drew ", lines_drawn, " path lines")
 
-	var line = MeshInstance3D.new()
-	var mesh = ImmediateMesh.new()
+func draw_path_line(from_node: MapNode3D, to_node: MapNode3D, line_color: Color = Color(0.5, 0.7, 1.0, 0.8)):
+	"""Draw a curved line between two nodes with glow and animation"""
 
-	# Create line material
-	var material = StandardMaterial3D.new()
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	material.albedo_color = line_color
-	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	var start_pos = from_node.global_position
+	var end_pos = to_node.global_position
+	var distance = start_pos.distance_to(end_pos)
 
-	# Draw the line
-	mesh.surface_begin(Mesh.PRIMITIVE_LINES, material)
-	mesh.surface_add_vertex(from_node.global_position)
-	mesh.surface_add_vertex(to_node.global_position)
-	mesh.surface_end()
+	# Create control point for Bezier curve (arc upward)
+	var midpoint = (start_pos + end_pos) / 2.0
+	var arc_height = distance * 0.25  # Arc height is 25% of distance
+	var control_point = midpoint + Vector3(0, arc_height, 0)
 
-	line.mesh = mesh
-	path_lines.add_child(line)
+	# Create curved path using multiple segments
+	var segments = 20  # Number of segments for smooth curve
+	var prev_point = start_pos
+
+	# Create material once for all segments
+	var shader_material = ShaderMaterial.new()
+	var shader = load("res://World/MAP/path_line.gdshader")
+	var material_to_use: Material = null
+
+	if shader:
+		shader_material.shader = shader
+		shader_material.set_shader_parameter("line_color", line_color)
+
+		# Different colors for different path types
+		if line_color.b > 0.7:  # Available path
+			shader_material.set_shader_parameter("glow_color", Color(0.7, 0.85, 1.0, 1.0))
+			shader_material.set_shader_parameter("glow_intensity", 2.5)
+			shader_material.set_shader_parameter("flow_speed", 3.0)
+			shader_material.set_shader_parameter("pulse_speed", 2.0)
+		else:  # Traveled path
+			shader_material.set_shader_parameter("glow_color", Color(0.5, 0.5, 0.6, 1.0))
+			shader_material.set_shader_parameter("glow_intensity", 0.6)
+			shader_material.set_shader_parameter("flow_speed", 0.8)
+			shader_material.set_shader_parameter("pulse_speed", 0.3)
+
+		material_to_use = shader_material
+	else:
+		# Fallback material
+		var fallback_mat = StandardMaterial3D.new()
+		fallback_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		fallback_mat.albedo_color = line_color
+		fallback_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		fallback_mat.emission_enabled = true
+		fallback_mat.emission = line_color.lightened(0.3)
+		fallback_mat.emission_energy_multiplier = 2.0
+		material_to_use = fallback_mat
+
+	# Draw segments along the curve
+	for i in range(1, segments + 1):
+		var t = float(i) / float(segments)
+
+		# Quadratic Bezier curve: B(t) = (1-t)²P0 + 2(1-t)tP1 + t²P2
+		var point = (1 - t) * (1 - t) * start_pos + 2 * (1 - t) * t * control_point + t * t * end_pos
+
+		# Create cylinder segment
+		var segment = MeshInstance3D.new()
+		var cylinder = CylinderMesh.new()
+		cylinder.top_radius = 0.05
+		cylinder.bottom_radius = 0.05
+		cylinder.height = prev_point.distance_to(point)
+		cylinder.radial_segments = 12
+		cylinder.rings = 1
+
+		segment.mesh = cylinder
+
+		# Position and orient segment
+		var segment_midpoint = (prev_point + point) / 2.0
+		var segment_direction = (point - prev_point).normalized()
+
+		var up_vector = Vector3.UP
+		if abs(segment_direction.dot(Vector3.UP)) > 0.99:
+			up_vector = Vector3.FORWARD
+
+		var y_axis = segment_direction
+		var x_axis = up_vector.cross(y_axis).normalized()
+		var z_axis = y_axis.cross(x_axis).normalized()
+		var basis = Basis(x_axis, y_axis, z_axis)
+
+		segment.global_transform = Transform3D(basis, segment_midpoint)
+		segment.material_override = material_to_use
+
+		path_lines.add_child(segment)
+
+		prev_point = point
 
 func clear_existing_nodes():
 	"""Clear all existing map nodes"""
@@ -303,6 +395,95 @@ func get_node_by_name(node_name: String) -> MapNode3D:
 		if node.name == node_name:
 			return node
 	return null
+
+func initialize_node_locking():
+	"""Lock all nodes except starting nodes (Node_1A, Node_1B, Node_1C, PortalHub)"""
+	print("🔒 Initializing node locking system...")
+
+	# Define starting unlocked nodes (multiple variations to catch different naming)
+	var starting_nodes = ["Node_1A", "Node_1B", "Node_1C", "Node1A", "Node1B", "Node1C", "1a", "1b", "1c", "PortalHub"]
+
+	for node in all_nodes:
+		if node.name in starting_nodes or node.encounter_type == "hub":
+			# Unlock and reveal starting nodes
+			node.is_reachable = true
+			node.is_revealed = true
+
+			# Remove fog effects from unlocked nodes
+			if node.has_method("remove_fog_effects"):
+				node.remove_fog_effects()
+
+			# Make node fully visible
+			if node.mesh_instance:
+				var material = node.mesh_instance.get_surface_override_material(0) as StandardMaterial3D
+				if material:
+					material.albedo_color = node.node_colors.get(node.encounter_type, Color.WHITE)
+					material.emission_enabled = true
+					material.emission = material.albedo_color * 0.3
+					material.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
+
+			# Show glow
+			if node.glow_effect:
+				node.glow_effect.visible = true
+				node.glow_effect.light_color = node.node_colors.get(node.encounter_type, Color.WHITE)
+
+			print("  ✅ Unlocked and revealed starting node: ", node.name)
+		else:
+			# Lock all other nodes
+			node.is_reachable = false
+			node.is_revealed = false
+			print("  🔒 Locked node: ", node.name)
+
+	# Update visuals
+	update_node_visuals()
+
+func update_node_reachability():
+	"""Update which nodes are reachable based on progression"""
+	print("🔄 Updating node reachability...")
+
+	# Always keep PortalHub reachable
+	for node in all_nodes:
+		if node.name == "PortalHub" or node.encounter_type == "hub":
+			node.is_reachable = true
+			continue
+
+	# Check progression: when a node is completed, unlock its connected nodes
+	for node in all_nodes:
+		if node.is_completed:
+			print("  ✅ Node ", node.name, " completed, unlocking connected nodes...")
+
+			# Unlock all connected nodes
+			for node_path in node.connected_nodes:
+				var connected_node = node.get_node(node_path) as MapNode3D
+				if connected_node:
+					if not connected_node.is_reachable:
+						connected_node.is_reachable = true
+						connected_node.is_revealed = true
+						print("    🔓 Unlocked: ", connected_node.name)
+
+	# Update visual appearance
+	update_node_visuals()
+
+	# Redraw path lines
+	if show_path_lines:
+		draw_all_path_lines()
+
+func update_node_visuals():
+	"""Update the visual appearance of all nodes based on their state"""
+	for node in all_nodes:
+		if not node.is_revealed:
+			# Unrevealed nodes stay with fog
+			continue
+
+		if node.is_completed:
+			# Completed nodes stay reachable (can revisit them)
+			node.set_reachable(true)
+		elif node.is_reachable:
+			# Reachable nodes are highlighted
+			node.set_reachable(true)
+		else:
+			# Revealed but unreachable nodes are dimmed
+			node.set_reachable(false)
 
 # Signal handlers
 
@@ -372,19 +553,19 @@ func _on_player_arrived_at_node(node: MapNode3D):
 	handle_node_event(node)
 
 func handle_node_event(node: MapNode3D):
-	"""Handle the event for the node type"""
+	"""Handle the event for the node type (called automatically when player arrives)"""
 
 	match node.encounter_type:
 		"fight", "elite", "boss":
 			# Start battle
 			print("Starting battle at ", node.name)
-			# TODO: Transition to battle scene
+			# Note: Don't auto-start, wait for player to press DUEL button
 			pass
 
 		"shop":
 			# Open shop
 			print("Opening shop at ", node.name)
-			# TODO: Open shop UI
+			# Note: Don't auto-open, wait for player to press ENTER SHOP button
 			pass
 
 		"rest":
@@ -408,8 +589,127 @@ func handle_node_event(node: MapNode3D):
 		"hub":
 			# Portal hub - allow returning to main hub
 			print("At portal hub")
-			# TODO: Show portal hub options
 			pass
+
+func trigger_node_encounter(node: MapNode3D):
+	"""Manually trigger the encounter for a node (called by action button)"""
+	if not node:
+		return
+
+	print("🎯 Triggering encounter for: ", node.name, " (", node.encounter_type, ")")
+
+	match node.encounter_type:
+		"fight", "elite", "boss":
+			_start_battle(node)
+
+		"shop":
+			_open_shop(node)
+
+		"rest":
+			_show_rest_site(node)
+
+		"explore":
+			_start_exploration(node)
+
+		"fireevent", "waterevent", "windevent", "earthevent":
+			_show_elemental_event(node)
+
+		"hub":
+			_return_to_hub(node)
+
+func _prepare_arena_payload(node: MapNode3D):
+	"""Prepare encounter data for the arena"""
+	GameSession.encounter_data = {
+		"enemy_name": node.enemy_name,
+		"enemy_deck": node.enemy_deck,
+		"enemy_leader": node.enemy_leader,
+		"difficulty": node.difficulty,
+		"ai_style": node.ai_style,
+		"rewards": node.rewards,
+		"completion": node.is_completed,
+		"biome": node.biome
+	}
+	print("📦 Arena payload prepared for: ", node.enemy_name)
+
+func _start_battle(node: MapNode3D):
+	"""Start a battle encounter"""
+	print("⚔️ Starting battle at ", node.name)
+	_prepare_arena_payload(node)
+
+	# Store battle node name so we can restore player position when returning
+	GameSession.encounter_data["battle_node_name"] = node.name
+
+	# Store current node for when player returns
+	if player and player.current_node != node:
+		# Move player to this node first
+		player.set_current_node(node)
+
+	# Don't mark as completed yet - wait for battle result
+	# Will be marked complete when player returns victorious
+
+	# Transition to arena
+	GameSession.switch_to_arena()
+
+func _open_shop(node: MapNode3D):
+	"""Open the shop interface"""
+	print("🛒 Opening shop at ", node.name)
+
+	# Try to find and instantiate the shop panel
+	var shop_panel_scene = load("res://World/MAP/shop_panel.tscn")
+	if shop_panel_scene:
+		var shop_panel = shop_panel_scene.instantiate()
+		# Add to the scene
+		add_child(shop_panel)
+
+		# Connect shop closed signal
+		if shop_panel.has_signal("shop_closed"):
+			shop_panel.shop_closed.connect(_on_shop_closed.bind(node))
+
+		# Open the shop
+		if shop_panel.has_method("open_shop"):
+			shop_panel.open_shop()
+
+		# Hide UI overlay while shop is open
+		if ui_overlay:
+			ui_overlay.visible = false
+	else:
+		print("❌ Shop panel scene not found!")
+
+func _on_shop_closed(node: MapNode3D):
+	"""Handle shop closing"""
+	print("🚪 Shop closed at ", node.name)
+
+	# Move player to shop node if not already there
+	if player and player.current_node != node:
+		player.set_current_node(node)
+
+	# Mark shop node as completed
+	on_shop_completed(node)
+
+	# Show UI overlay again
+	if ui_overlay:
+		ui_overlay.visible = true
+
+func _show_rest_site(node: MapNode3D):
+	"""Show rest site options"""
+	print("💤 Rest site at ", node.name)
+	# TODO: Implement rest site UI
+
+func _start_exploration(node: MapNode3D):
+	"""Start exploration event"""
+	print("🔍 Exploration at ", node.name)
+	# TODO: Implement exploration event
+
+func _show_elemental_event(node: MapNode3D):
+	"""Show elemental event"""
+	print("🔮 Elemental event at ", node.name)
+	# TODO: Implement elemental events
+
+func _return_to_hub(node: MapNode3D):
+	"""Return to the main hub"""
+	print("🏠 Returning to hub...")
+	await TransitionFade.fade_out()
+	GameSession.switch_to_hub()
 
 func navigate_to_node_in_direction(direction: Vector2):
 	"""Navigate to the nearest reachable node in the given direction"""
@@ -518,8 +818,98 @@ func handle_node_click(mouse_pos: Vector2):
 		print("  ❌ Raycast didn't hit anything")
 
 func _on_return_to_hub():
-	"""Handle return to hub button press"""
+	"""Handle return to hub button press (old signal, now handled by trigger_node_encounter)"""
 	print("Returning to hub...")
-	# TODO: Transition back to EarthPortalScene
-	# await TransitionFade.fade_out()
-	# get_tree().change_scene_to_file("res://EarthPortalScene.tscn")
+	await TransitionFade.fade_out()
+	GameSession.switch_to_hub()
+
+func on_battle_completed(node: MapNode3D):
+	"""Called when a battle is completed successfully"""
+	if not node:
+		return
+
+	print("✅ Battle completed at: ", node.name)
+	print("  Connected nodes: ", node.connected_nodes)
+
+	# Mark node as completed
+	if not node.is_completed:
+		node.complete_node()
+		print("  ✓ Node marked as completed")
+
+	# Update reachability to unlock new nodes
+	update_node_reachability()
+
+	# Reveal connected nodes from the completed node
+	if player:
+		print("  🔍 Calling reveal_connected_nodes() from player...")
+		player.reveal_connected_nodes()
+
+	# Debug: Show which nodes are now reachable
+	print("📊 Reachable nodes after completion:")
+	for n in all_nodes:
+		if n.is_reachable:
+			print("  ✓ ", n.name, " (revealed: ", n.is_revealed, ", completed: ", n.is_completed, ")")
+
+	print("📊 Progression updated - new nodes may be available!")
+
+func on_shop_completed(node: MapNode3D):
+	"""Called when shopping is finished"""
+	if not node:
+		return
+
+	print("🛒 Shop visit completed at: ", node.name)
+
+	# Mark node as completed
+	if not node.is_completed:
+		node.complete_node()
+
+	# Update reachability to unlock new nodes
+	update_node_reachability()
+
+	# Reveal connected nodes from the completed node
+	if player:
+		player.reveal_connected_nodes()
+
+	print("📊 Progression updated - new nodes may be available!")
+
+func check_battle_result():
+	"""Check if we're returning from a battle and handle the result"""
+	if GameSession.last_battle_result == "":
+		return
+
+	print("🏁 Checking battle result: ", GameSession.last_battle_result)
+
+	# Get the battle node from stored data
+	var battle_node_name = GameSession.encounter_data.get("battle_node_name", "")
+	if battle_node_name == "":
+		print("⚠️ No battle node name stored")
+		GameSession.last_battle_result = ""
+		return
+
+	var battle_node = get_node_by_name(battle_node_name)
+	if not battle_node:
+		print("⚠️ Battle node not found: ", battle_node_name)
+		GameSession.last_battle_result = ""
+		return
+
+	# Restore player to the battle node
+	if player:
+		print("📍 Restoring player to battle node: ", battle_node.name)
+		player.set_current_node(battle_node)
+
+	if GameSession.last_battle_result == "player_won":
+		print("🎉 Player won! Completing node: ", battle_node.name)
+		on_battle_completed(battle_node)
+
+		# Show rewards if any
+		if GameSession.pending_gold_reward > 0:
+			GameSession.add_gold(GameSession.pending_gold_reward)
+			# TODO: Show reward UI
+			GameSession.pending_gold_reward = 0
+
+	elif GameSession.last_battle_result == "player_lost":
+		print("💀 Player lost at: ", battle_node.name)
+		# Node stays incomplete, player can retry
+
+	# Clear the result
+	GameSession.last_battle_result = ""

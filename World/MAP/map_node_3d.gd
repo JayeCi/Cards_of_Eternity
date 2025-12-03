@@ -37,6 +37,9 @@ var collision_shape: CollisionShape3D
 var particle_effect: GPUParticles3D
 var glow_effect: OmniLight3D
 var node_model: Node3D  # Can hold custom 3D models
+var fog_particles: GPUParticles3D  # Fog effect for unrevealed nodes
+var fog_mesh: MeshInstance3D  # Visual fog cover
+var shadow_decal: MeshInstance3D  # Shadow underneath node
 
 # Colors for different node types
 var node_colors := {
@@ -145,8 +148,8 @@ func setup_visuals():
 			material.emission_enabled = true
 			material.emission = material.albedo_color * 0.3
 		else:
-			# Hidden/fog of war appearance
-			material.albedo_color = Color(0.2, 0.2, 0.2, 0.5)
+			# Hidden/fog of war appearance - very dark silhouette
+			material.albedo_color = Color(0.1, 0.1, 0.12, 0.3)
 			material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 
 		mesh_instance.set_surface_override_material(0, material)
@@ -170,6 +173,17 @@ func setup_visuals():
 	# Add particles based on encounter type
 	if is_revealed and not particle_effect:
 		setup_particles()
+
+	# Add fog effects for unrevealed nodes (but not for hub/portal nodes or starting nodes)
+	var starting_nodes = ["Node_1A", "Node_1B", "Node_1C", "Node1A", "Node1B", "Node1C", "1a", "1b", "1c", "PortalHub"]
+	var is_starting_node = name in starting_nodes or encounter_type == "hub"
+
+	if not is_revealed and not is_starting_node:
+		setup_fog_effects()
+	elif is_starting_node:
+		# Starting nodes should be revealed from the beginning
+		is_revealed = true
+		is_reachable = true
 
 func setup_particles():
 	"""Create particle effects based on node type"""
@@ -210,8 +224,145 @@ func setup_particles():
 
 	add_child(particle_effect)
 
+func setup_fog_effects():
+	"""Create fog and shadow effects for unrevealed nodes"""
+	if not Engine.is_editor_hint():
+		print("  🌫️ Setting up fog effects for unrevealed node: ", name)
+
+	# Create fog volume mesh (MUCH larger sphere that envelops the node)
+	if not fog_mesh:
+		fog_mesh = MeshInstance3D.new()
+		fog_mesh.name = "FogVolume"
+		var fog_sphere = SphereMesh.new()
+		fog_sphere.radius = 1.2  # Much larger than the node
+		fog_sphere.height = 2.4
+		fog_mesh.mesh = fog_sphere
+
+		# Load or create fog shader material
+		var fog_material = ShaderMaterial.new()
+		var shader = load("res://World/MAP/fog_of_war.gdshader")
+		if shader:
+			fog_material.shader = shader
+			# Set shader parameters for DRAMATIC fog effect
+			fog_material.set_shader_parameter("fog_color", Color(0.05, 0.05, 0.08, 0.95))  # Very dark, very opaque
+			fog_material.set_shader_parameter("edge_color", Color(0.3, 0.3, 0.4, 1.0))  # Brighter edges
+			fog_material.set_shader_parameter("fog_density", 0.95)
+			fog_material.set_shader_parameter("edge_glow", 1.2)
+			fog_material.set_shader_parameter("animation_speed", 0.5)
+
+			# Create a noise texture
+			var noise = NoiseTexture2D.new()
+			var fnoise = FastNoiseLite.new()
+			fnoise.noise_type = FastNoiseLite.TYPE_PERLIN
+			fnoise.frequency = 0.05
+			noise.noise = fnoise
+			noise.width = 512
+			noise.height = 512
+			fog_material.set_shader_parameter("noise_texture", noise)
+
+			fog_mesh.material_override = fog_material
+			if not Engine.is_editor_hint():
+				print("    ✅ Fog shader applied successfully")
+		else:
+			# Fallback if shader doesn't load - make it VERY visible
+			if not Engine.is_editor_hint():
+				print("    ⚠️ Fog shader not found, using fallback material")
+			var fallback_mat = StandardMaterial3D.new()
+			fallback_mat.albedo_color = Color(0.05, 0.05, 0.1, 0.9)  # Very dark, very opaque
+			fallback_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			fallback_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+			fallback_mat.emission_enabled = true
+			fallback_mat.emission = Color(0.1, 0.1, 0.15)
+			fog_mesh.material_override = fallback_mat
+
+		add_child(fog_mesh)
+
+	# Create fog particles (swirling mist effect) - MUCH more visible
+	if not fog_particles:
+		fog_particles = GPUParticles3D.new()
+		fog_particles.name = "FogParticles"
+		fog_particles.emitting = true
+		fog_particles.amount = 50  # More particles
+		fog_particles.lifetime = 4.0
+		fog_particles.one_shot = false
+		fog_particles.explosiveness = 0.0
+		fog_particles.randomness = 0.8
+
+		# Create fog particle material
+		var fog_particle_mat = ParticleProcessMaterial.new()
+		fog_particle_mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+		fog_particle_mat.emission_sphere_radius = 1.0  # Larger radius
+		fog_particle_mat.direction = Vector3(0, 1, 0)
+		fog_particle_mat.spread = 180.0
+		fog_particle_mat.initial_velocity_min = 0.2
+		fog_particle_mat.initial_velocity_max = 0.5
+		fog_particle_mat.gravity = Vector3(0, 0.15, 0)
+		fog_particle_mat.scale_min = 0.1  # Bigger particles
+		fog_particle_mat.scale_max = 0.2
+		fog_particle_mat.color = Color(0.1, 0.1, 0.15, 0.7)  # More opaque
+
+		fog_particles.process_material = fog_particle_mat
+
+		# Create fog particle mesh
+		var fog_particle_mesh = SphereMesh.new()
+		fog_particle_mesh.radius = 0.15  # Bigger
+		fog_particles.draw_pass_1 = fog_particle_mesh
+
+		# Create particle material for better visibility
+		var particle_material = StandardMaterial3D.new()
+		particle_material.albedo_color = Color(0.1, 0.1, 0.15, 0.8)
+		particle_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		particle_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		fog_particles.draw_pass_1.material = particle_material
+
+		add_child(fog_particles)
+		if not Engine.is_editor_hint():
+			print("    ✅ Fog particles created")
+
+	# Create shadow decal underneath - MORE visible
+	if not shadow_decal:
+		shadow_decal = MeshInstance3D.new()
+		shadow_decal.name = "Shadow"
+		shadow_decal.position = Vector3(0, -0.45, 0)  # Place under the node
+
+		# Create a flat disc for shadow
+		var shadow_mesh = CylinderMesh.new()
+		shadow_mesh.top_radius = 1.0  # Larger shadow
+		shadow_mesh.bottom_radius = 1.0
+		shadow_mesh.height = 0.02
+		shadow_decal.mesh = shadow_mesh
+
+		# Shadow material - darker and more visible
+		var shadow_mat = StandardMaterial3D.new()
+		shadow_mat.albedo_color = Color(0.0, 0.0, 0.0, 0.7)  # More opaque
+		shadow_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		shadow_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		shadow_mat.disable_receive_shadows = true
+
+		shadow_decal.material_override = shadow_mat
+		add_child(shadow_decal)
+		if not Engine.is_editor_hint():
+			print("    ✅ Shadow decal created")
+
+func remove_fog_effects():
+	"""Remove fog effects when node is revealed"""
+	if not Engine.is_editor_hint():
+		print("  🌫️ Removing fog effects from: ", name)
+
+	if fog_mesh:
+		fog_mesh.queue_free()
+		fog_mesh = null
+
+	if fog_particles:
+		fog_particles.queue_free()
+		fog_particles = null
+
+	if shadow_decal:
+		shadow_decal.queue_free()
+		shadow_decal = null
+
 func reveal():
-	"""Reveal this node (remove fog of war)"""
+	"""Reveal this node (make it visible, but keep fog until visited)"""
 	if is_revealed:
 		return
 
@@ -219,7 +370,40 @@ func reveal():
 		print("👁️ Revealing node: ", name)
 	is_revealed = true
 
-	# Update visuals
+	# DON'T remove fog effects yet - only when completed
+	# Fog effects stay until the node is actually visited
+
+	# Update the base mesh to show node type through the fog
+	if mesh_instance:
+		var material = mesh_instance.get_surface_override_material(0) as StandardMaterial3D
+		if material:
+			# Show a hint of the color through the fog
+			var hint_color = node_colors.get(encounter_type, Color.WHITE) * 0.3
+			material.albedo_color = hint_color
+			material.emission_enabled = true
+			material.emission = hint_color * 0.5
+			material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+
+	# Keep glow hidden until visited
+	if glow_effect:
+		glow_effect.visible = false
+
+	# Don't add particles until visited
+
+func complete_node():
+	"""Mark node as completed and remove fog effects with animation"""
+	if is_completed:
+		return
+
+	if not Engine.is_editor_hint():
+		print("✅ Completing node: ", name)
+
+	is_completed = true
+
+	# Animate fog removal instead of instant
+	animate_fog_removal()
+
+	# Update visuals to full brightness
 	if mesh_instance:
 		var material = mesh_instance.get_surface_override_material(0) as StandardMaterial3D
 		if material:
@@ -234,6 +418,43 @@ func reveal():
 
 	# Add particles
 	setup_particles()
+
+func animate_fog_removal():
+	"""Animate the fog dissipating"""
+	if not Engine.is_editor_hint():
+		print("  🌫️ Animating fog removal from: ", name)
+
+	# Animate fog mesh fading out and expanding
+	if fog_mesh:
+		var tween = create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(fog_mesh, "scale", Vector3(1.5, 1.5, 1.5), 0.6)
+		tween.tween_property(fog_mesh, "modulate", Color(1, 1, 1, 0), 0.6)
+
+		# Wait then remove
+		await tween.finished
+		if fog_mesh:
+			fog_mesh.queue_free()
+			fog_mesh = null
+
+	# Stop and fade out fog particles
+	if fog_particles:
+		fog_particles.emitting = false
+		var tween2 = create_tween()
+		tween2.tween_property(fog_particles, "modulate", Color(1, 1, 1, 0), 0.5)
+		await tween2.finished
+		if fog_particles:
+			fog_particles.queue_free()
+			fog_particles = null
+
+	# Fade out shadow
+	if shadow_decal:
+		var tween3 = create_tween()
+		tween3.tween_property(shadow_decal, "modulate", Color(1, 1, 1, 0), 0.4)
+		await tween3.finished
+		if shadow_decal:
+			shadow_decal.queue_free()
+			shadow_decal = null
 
 func set_default_description():
 	"""Set default descriptions based on encounter type"""

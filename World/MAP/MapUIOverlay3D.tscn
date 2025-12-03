@@ -67,8 +67,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_top = 6
-theme_override_constants/margin_right = 6
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
 
 [node name="Art" type="TextureRect" parent="NodeInfoPanel/MarginContainer"]
 custom_minimum_size = Vector2(150, 225)
@@ -93,13 +93,14 @@ grow_vertical = 2
 
 [node name="NodeNameLabel" type="Label" parent="NodeInfoPanel/Main"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 22
 text = "Node Name"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="TypeLabel" type="Label" parent="NodeInfoPanel/Main"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 16
 text = "Type: Combat"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -145,3 +146,12 @@ theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 16
 text = "Tooltip"
 autowrap_mode = 3
+
+[node name="ActionButton" type="Button" parent="."]
+custom_minimum_size = Vector2(360, 70)
+offset_left = 1.0
+offset_top = 501.0
+offset_right = 361.0
+offset_bottom = 571.0
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_panel")

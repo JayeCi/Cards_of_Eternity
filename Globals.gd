@@ -1,6 +1,6 @@
 extends Node
 
-const TUTORIAL_SKIP := true
+const TUTORIAL_SKIP := false
 
 # Set tutorial_stage to 999 when skip is enabled to bypass all stage checks
 var tutorial_stage := 999.0 if TUTORIAL_SKIP else 0.0
