@@ -79,6 +79,7 @@ func set_current_node(node: MapNode3D):
 	if current_node:
 		current_node.set_current(true)
 		current_node.reveal()  # Reveal the node when player arrives
+		current_node.is_completed = true  # Mark as visited
 
 		# Position player at the node
 		global_position = current_node.global_position
@@ -122,6 +123,18 @@ func reveal_connected_nodes():
 		else:
 			print("    ❌ Could not find node at path: ", node_path)
 
+	# Also check for backward connections - allow moving back to completed nodes
+	for node in all_nodes:
+		if node is MapNode3D and node.is_completed and node != current_node:
+			# Check if this completed node is connected to current node
+			for node_path in node.connected_nodes:
+				var connected = node.get_node(node_path) as MapNode3D
+				if connected == current_node:
+					# This completed node connects to us, so we can move back to it
+					print("    ✓ Enabling backward movement to: ", node.name)
+					node.set_reachable(true)
+					break
+
 func move_to_node(node: MapNode3D):
 	"""Start movement to a target node"""
 	if is_moving:
@@ -134,10 +147,12 @@ func move_to_node(node: MapNode3D):
 		print("Cannot move to unreachable node: ", node.name)
 		return
 
-	# Check if the node is connected to current node
-	if current_node and not current_node.is_connected_to(node):
-		print("Node is not connected to current node")
-		return
+	# Check if the node is connected (bidirectional - forward or backward)
+	if current_node:
+		var is_connected = current_node.is_connected_to(node) or node.is_connected_to(current_node)
+		if not is_connected:
+			print("Node is not connected to current node (checked both directions)")
+			return
 
 	is_moving = true
 	target_node = node
@@ -204,8 +219,11 @@ func can_move_to(node: MapNode3D) -> bool:
 	if not node.is_reachable:
 		return false
 
-	if current_node and not current_node.is_connected_to(node):
-		return false
+	# Check bidirectional connection (forward or backward)
+	if current_node:
+		var is_connected = current_node.is_connected_to(node) or node.is_connected_to(current_node)
+		if not is_connected:
+			return false
 
 	return true
 

@@ -239,23 +239,32 @@ func setup_node_connections():
 				node.connected_nodes.append(path)
 
 func draw_all_path_lines():
-	"""Draw lines connecting all nodes"""
+	"""Draw lines for traveled paths and currently available paths"""
 
 	# Clear existing lines
 	for child in path_lines.get_children():
 		child.queue_free()
 
-	# Draw lines for each connection
+	if not player or not player.current_node:
+		return
+
+	# Draw lines from current node to reachable nodes (available paths)
+	var current = player.current_node
+	for node_path in current.connected_nodes:
+		var target = current.get_node(node_path) as MapNode3D
+		if target and target.is_revealed and target.is_reachable:
+			draw_path_line(current, target, Color(0.8, 0.8, 1.0, 0.6))  # Bright blue for available
+
+	# Draw traveled paths (from visited nodes)
 	for node in all_nodes:
-		if not node.is_revealed:
-			continue
+		if node.is_completed:  # Only draw from completed nodes
+			for node_path in node.connected_nodes:
+				var target = node.get_node(node_path) as MapNode3D
+				# Only draw to nodes we've been to
+				if target and target.is_completed:
+					draw_path_line(node, target, Color(0.5, 0.5, 0.5, 0.4))  # Gray for traveled
 
-		for node_path in node.connected_nodes:
-			var target = node.get_node(node_path) as MapNode3D
-			if target and target.is_revealed:
-				draw_path_line(node, target)
-
-func draw_path_line(from_node: MapNode3D, to_node: MapNode3D):
+func draw_path_line(from_node: MapNode3D, to_node: MapNode3D, line_color: Color = Color(0.5, 0.5, 0.8, 0.3)):
 	"""Draw a line between two nodes"""
 
 	var line = MeshInstance3D.new()
@@ -264,7 +273,7 @@ func draw_path_line(from_node: MapNode3D, to_node: MapNode3D):
 	# Create line material
 	var material = StandardMaterial3D.new()
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	material.albedo_color = Color(0.5, 0.5, 0.8, 0.3)
+	material.albedo_color = line_color
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 
 	# Draw the line
@@ -305,12 +314,12 @@ func _on_node_clicked(node: MapNode3D):
 	if map_audio:
 		map_audio.play_node_click()
 
-	# Don't focus camera, just keep overview position
-	# camera.focus_on_node(node)
-
 	# Move player to the node if possible
 	if player.can_move_to(node):
 		player.move_to_node(node)
+		# Focus camera on the target node
+		if camera:
+			camera.focus_on_node(node)
 	else:
 		print("  ❌ Cannot move to this node")
 
@@ -340,9 +349,8 @@ func _on_player_movement_started(from_node: MapNode3D, to_node: MapNode3D):
 	if map_audio:
 		map_audio.play_player_move()
 
-	# Smoothly move camera to follow player (not focus mode, just pan)
-	# Don't focus on the node, just keep overview
-	# camera.focus_on_node(to_node)
+	# Camera will already be focusing from the click handler
+	# No need to focus again here
 
 func _on_player_movement_completed(node: MapNode3D):
 	"""Handle when player completes movement"""
@@ -403,13 +411,70 @@ func handle_node_event(node: MapNode3D):
 			# TODO: Show portal hub options
 			pass
 
+func navigate_to_node_in_direction(direction: Vector2):
+	"""Navigate to the nearest reachable node in the given direction"""
+	if not player or not player.current_node:
+		return
+
+	if player.is_moving:
+		return  # Don't allow navigation while moving
+
+	var current_pos = player.current_node.global_position
+	var best_node: MapNode3D = null
+	var best_score: float = -999999.0
+
+	# Find all reachable nodes
+	for node in all_nodes:
+		if not node.is_reachable or node == player.current_node:
+			continue
+
+		# Calculate direction to this node
+		var to_node = node.global_position - current_pos
+		var node_direction = Vector2(to_node.x, to_node.z).normalized()
+
+		# Calculate how well this node matches the requested direction
+		# Dot product gives us alignment (-1 to 1, where 1 is perfect match)
+		var alignment = node_direction.dot(direction)
+
+		# Only consider nodes that are somewhat in the right direction (> 0.5)
+		if alignment > 0.5:
+			# Prefer closer nodes with better alignment
+			var distance = Vector2(to_node.x, to_node.z).length()
+			var score = alignment * 100.0 - distance  # Prioritize alignment over distance
+
+			if score > best_score:
+				best_score = score
+				best_node = node
+
+	# Move to the best matching node
+	if best_node:
+		print("⌨️ Navigating ", direction, " to: ", best_node.name)
+		_on_node_clicked(best_node)
+	else:
+		print("⌨️ No reachable node in direction ", direction)
+
 func _input(event: InputEvent):
-	"""Handle input for camera controls"""
+	"""Handle input for camera controls and node navigation"""
 
 	# Handle left click on nodes
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		print("🖱️ Left click at: ", event.position)
 		handle_node_click(event.position)
+
+	# WASD node navigation
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_W:
+			navigate_to_node_in_direction(Vector2(0, -1))  # Up/North
+		elif event.keycode == KEY_S:
+			navigate_to_node_in_direction(Vector2(0, 1))   # Down/South
+		elif event.keycode == KEY_A:
+			navigate_to_node_in_direction(Vector2(-1, 0))  # Left/West
+		elif event.keycode == KEY_D:
+			navigate_to_node_in_direction(Vector2(1, 0))   # Right/East
+		elif event.keycode == KEY_SHIFT:
+			# Toggle to overview mode (zoomed out view of current node)
+			if camera:
+				camera.toggle_to_overview()
 
 	# Zoom disabled - camera stays at fixed height
 	# if event is InputEventMouseButton:

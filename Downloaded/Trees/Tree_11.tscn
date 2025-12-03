@@ -43,5 +43,6 @@ blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_qmkou")
 
 [node name="_8_tree__8_tree_0" type="MeshInstance3D"]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0, 0)
 mesh = SubResource("ArrayMesh_jca0c")
 skeleton = NodePath("")

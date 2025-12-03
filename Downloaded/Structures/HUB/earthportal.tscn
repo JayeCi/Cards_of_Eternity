@@ -1,11 +1,11 @@
-[gd_scene load_steps=28 format=4 uid="uid://b1lmaxf3wjdva"]
+[gd_scene load_steps=27 format=4 uid="uid://b1lmaxf3wjdva"]
 
 [ext_resource type="Texture2D" uid="uid://mj7mtnalttwc" path="res://Downloaded/Structures/HUB/ancient_portal_0.png" id="1_aw1u7"]
 [ext_resource type="Script" uid="uid://dq83bnfojpaxw" path="res://Downloaded/Structures/HUB/earthportal.gd" id="1_rtqht"]
 [ext_resource type="Texture2D" uid="uid://dh4lbwk7178vb" path="res://Downloaded/Structures/HUB/ancient_portal_1.png" id="2_et5dw"]
 [ext_resource type="Texture2D" uid="uid://c0l0lcso4q7gq" path="res://Downloaded/Structures/HUB/ancient_portal_2.png" id="3_rtqht"]
 [ext_resource type="Texture2D" uid="uid://100sld6t0gyr" path="res://Downloaded/Structures/HUB/ancient_portal_3.png" id="4_qkq7o"]
-[ext_resource type="Shader" uid="uid://co756lh7i8ttk" path="res://portal.gdshader" id="5_et5dw"]
+[ext_resource type="Material" uid="uid://diadbyea0m1p8" path="res://addons/asset_placer/utils/preview_material.tres" id="6_rtqht"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_f8ll1"]
 resource_name = "platform__0"
@@ -265,19 +265,8 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_2lmhs")
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_rtqht"]
-render_priority = 0
-shader = ExtResource("5_et5dw")
-shader_parameter/speed = 1.8
-shader_parameter/swirl_strength = 5.0
-shader_parameter/distortion_amount = 0.3
-shader_parameter/inner_color = Color(0.28221428, 0.69020766, 0.34660068, 1)
-shader_parameter/outer_color = Color(0.17689273, 0.059523165, 0, 1)
-shader_parameter/ring_glow_strength = 1.5
-shader_parameter/pulse_speed = 2.5
-
 [sub_resource type="PlaneMesh" id="PlaneMesh_qkq7o"]
-material = SubResource("ShaderMaterial_rtqht")
+material = ExtResource("6_rtqht")
 
 [node name="Sketchfab_Scene" type="Node3D"]
 transform = Transform3D(0.004142359, 0, 0, 0, 0.004142359, 0, 0, 0, 0.004142359, 0, 0, 0)

@@ -5,8 +5,11 @@ signal focus_complete()
 
 @export var default_distance: float = 10.0  # Distance above the map
 @export var default_angle: float = -70.0  # Look down angle (degrees) - more top-down
-@export var focus_distance: float = 8.0  # Distance when focused on a node (not too close)
-@export var focus_angle: float = -70.0  # Angle when focused (keep same angle)
+@export var overview_distance: float = 8.0  # Distance when viewing node from above
+@export var overview_angle: float = -70.0  # Angle when in overview mode
+@export var closeup_distance: float = 3.0  # Distance when zoomed to node (close-up)
+@export var closeup_angle: float = 0.5  # Angle when zoomed (more horizontal view)
+@export var closeup_height_offset: float = 1.0  # How high above node to position camera
 @export var move_speed: float = 3.0  # Speed of camera transitions
 @export var pan_speed: float = 10.0  # Speed of WASD camera panning
 
@@ -15,6 +18,7 @@ var focus_target: Vector3
 var default_position: Vector3
 var current_focus_node: MapNode3D = null
 var camera_offset: Vector3 = Vector3.ZERO  # Offset from panning
+var is_closeup_mode: bool = false  # Track if we're in close-up or overview mode
 
 func _ready():
 	# Make this the current camera
@@ -28,9 +32,9 @@ func _ready():
 func _process(delta: float):
 	if is_focusing:
 		process_focus_transition(delta)
-	else:
-		# Handle WASD panning when not focusing
-		process_camera_panning(delta)
+	# WASD panning disabled - now used for node navigation
+	# else:
+	# 	process_camera_panning(delta)
 
 func setup_default_position():
 	"""Set the camera to default overview position"""
@@ -54,10 +58,18 @@ func focus_on_position(target_pos: Vector3, immediate: bool = false):
 		is_focusing = false
 		emit_signal("focus_complete")
 
-func focus_on_node(node: MapNode3D, immediate: bool = false):
+func focus_on_node(node: MapNode3D, immediate: bool = false, closeup: bool = true):
 	"""Focus camera on a specific node"""
 	current_focus_node = node
+	is_closeup_mode = closeup  # Set closeup mode
 	focus_on_position(node.global_position, immediate)
+
+func toggle_to_overview():
+	"""Switch to overview mode (zoomed out) for current node"""
+	if current_focus_node:
+		is_closeup_mode = false
+		is_focusing = true
+		print("📷 Switching to overview mode")
 
 func return_to_default(immediate: bool = false):
 	"""Return camera to default overview position"""
@@ -82,12 +94,13 @@ func process_focus_transition(delta: float):
 		var target_pos = calculate_focus_position(current_focus_node.global_position)
 		position = position.lerp(target_pos, delta * move_speed)
 
-		# Adjust angle
-		var target_rot = Vector3(focus_angle, 0, 0)
+		# Adjust angle based on mode
+		var target_angle = closeup_angle if is_closeup_mode else overview_angle
+		var target_rot = Vector3(target_angle, 0, 0)
 		rotation_degrees = rotation_degrees.lerp(target_rot, delta * move_speed)
 
 		# Check if close enough to target
-		if position.distance_to(target_pos) < 0.1:
+		if position.distance_to(target_pos) < 0.1 and abs(rotation_degrees.x - target_angle) < 1.0:
 			position = target_pos
 			rotation_degrees = target_rot
 			is_focusing = false
@@ -108,15 +121,33 @@ func process_focus_transition(delta: float):
 func calculate_focus_position(target: Vector3) -> Vector3:
 	"""Calculate the camera position when focusing on a target"""
 
-	# Position camera directly above the target (centered)
-	var offset = Vector3(0, focus_distance, 0)
-	return target + offset
+	if is_closeup_mode:
+		# Close-up mode: Position camera in front of and slightly above the node
+		var distance = closeup_distance
+		var angle_rad = deg_to_rad(abs(closeup_angle))
+
+		# Calculate offset to position camera in front
+		var y_offset = closeup_height_offset + distance * sin(angle_rad)  # Height above target
+		var z_offset = distance * cos(angle_rad)  # Distance in front (positive Z)
+
+		return target + Vector3(0, y_offset, z_offset)
+	else:
+		# Overview mode: Position camera above and behind for centered view
+		var distance = overview_distance
+		var angle_rad = deg_to_rad(abs(overview_angle))
+
+		# Calculate offset to center the target in view
+		var y_offset = distance * sin(angle_rad)  # Height above target
+		var z_offset = distance * cos(angle_rad)  # Distance behind target
+
+		return target + Vector3(0, y_offset, z_offset)
 
 func set_focused_position():
 	"""Immediately set camera to focused position"""
 	if current_focus_node:
 		position = calculate_focus_position(current_focus_node.global_position)
-		rotation_degrees = Vector3(focus_angle, 0, 0)
+		var target_angle = closeup_angle if is_closeup_mode else overview_angle
+		rotation_degrees = Vector3(target_angle, 0, 0)
 
 # Zoom functions disabled - camera stays at fixed height
 # func zoom_in(amount: float = 2.0):

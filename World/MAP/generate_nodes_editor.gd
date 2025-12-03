@@ -205,13 +205,32 @@ func _run():
 	# Create all nodes
 	for node_name in node_config:
 		var config = node_config[node_name]
+
+		# Calculate position FIRST
+		var pos_2d = config.get("pos", Vector2.ZERO)
+		var grid_pos = convert_2d_to_grid_position(pos_2d, grid_cell_size)
+
+		# Create node with position set BEFORE adding to tree
 		var node = create_node(node_name, config, grid_cell_size)
 
+		# Now add to tree FIRST
 		node_container.add_child(node)
 		node.owner = edited_scene  # CRITICAL: Set owner so it saves with scene
 
+		# Set position AFTER adding to tree AND after _ready() has run
+		# This ensures Area3D is properly initialized
+		node.position = grid_pos
+		node.transform.origin = grid_pos
+
+		# For Area3D nodes, we need to explicitly set the transform in editor
+		node.set_meta("editor_position", grid_pos)
+
+		# Also set owner for all children created in _ready() so they save properly
+		for child in node.get_children():
+			child.owner = edited_scene
+
 		created_nodes[node_name] = node
-		print("  ✓ Created: ", node_name)
+		print("  ✓ Created: ", node_name, " at position: ", grid_pos, " (saved to scene)")
 
 	# Set up connections (second pass)
 	print("\n🔗 Setting up connections...")
@@ -225,8 +244,24 @@ func _run():
 					node.connected_nodes.append(NodePath("../" + conn_name))
 			print("  ✓ ", node_name, " → ", config.connections)
 
+	# Force editor to update and mark scene as modified
+	editor_interface.get_selection().clear()
+
+	# Mark the scene as modified so editor knows to update
+	edited_scene.set_display_folded(false)
+
+	# Request editor to rebuild scene tree display
+	editor_interface.get_resource_filesystem().scan()
+
+	# Select the NodeContainer to force viewport refresh
+	editor_interface.get_selection().add_node(node_container)
+	await get_tree().create_timer(0.1).timeout
+	editor_interface.get_selection().clear()
+
 	print("\n✅ DONE! Created ", created_nodes.size(), " nodes")
 	print("💾 Now SAVE THE SCENE (Ctrl+S) to persist the nodes!")
+	print("🔄 If nodes aren't visible, close and reopen the scene")
+	print("📍 Try selecting a node in the Scene tree to see it highlighted in 3D viewport")
 
 func create_node(node_name: String, config: Dictionary, grid_cell_size: float) -> MapNode3D:
 	"""Create a single map node"""
@@ -240,14 +275,17 @@ func create_node(node_name: String, config: Dictionary, grid_cell_size: float) -
 	node.difficulty = config.get("difficulty", 1)
 	node.is_completed = config.get("completed", false)
 
-	# Convert 2D position to 3D
+	# Store grid position (actual 3D position will be set after adding to tree)
 	var pos_2d = config.get("pos", Vector2.ZERO)
 	var grid_pos = convert_2d_to_grid_position(pos_2d, grid_cell_size)
 	node.grid_position = Vector2i(int(grid_pos.x), int(grid_pos.z))
-	node.position = grid_pos
+	# Don't set position here - will be set after adding to tree
 
-	# Set fog of war
-	if node.encounter_type == "hub" or node.is_completed:
+	# Set fog of war and completion
+	if node.encounter_type == "hub":
+		node.is_revealed = true
+		node.is_completed = true  # Portal hub starts as visited
+	elif node.is_completed:
 		node.is_revealed = true
 	else:
 		node.is_revealed = false

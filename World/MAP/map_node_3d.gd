@@ -1,3 +1,4 @@
+@tool
 extends Area3D
 class_name MapNode3D
 
@@ -11,6 +12,7 @@ var encounter_type := "fight"
 @export var enemy_name: String = "Tutorial Enemy"
 @export var enemy_deck: Array[CardData] = []
 @export var enemy_leader: CardData = null
+@export var enemy_art_override: Texture2D = null  # Optional: Override enemy leader art in UI
 @export var difficulty: int = 1
 @export var ai_style: String = "balanced"
 @export var rewards: Array[CardData] = []
@@ -19,7 +21,7 @@ var encounter_type := "fight"
 @export var connected_nodes: Array[NodePath] = []
 @export var randomize_event: bool = true
 @export var battle_completed := false
-@export var is_completed := false
+@export var is_completed := false  # Has player visited this node?
 @export var grid_position: Vector2i = Vector2i.ZERO  # Position on the grid
 @export_multiline var defeat_message: String
 @export_multiline var description: String = "A mysterious encounter awaits..."
@@ -53,7 +55,9 @@ var node_colors := {
 }
 
 func _ready():
-	print("🔧 MapNode3D ready: ", name, " at ", global_position)
+	# Only print in game mode, not in editor
+	if not Engine.is_editor_hint():
+		print("🔧 MapNode3D ready: ", name, " at ", global_position)
 
 	# Add to map_nodes group for easy access
 	add_to_group("map_nodes")
@@ -64,25 +68,43 @@ func _ready():
 	# Set up visual representation
 	setup_visuals()
 
-	# Set up mouse interaction
-	input_ray_pickable = true
-	input_event.connect(_on_input_event)
-	mouse_entered.connect(_on_mouse_entered)
-	mouse_exited.connect(_on_mouse_exited)
+	# Set up mouse interaction (only in game mode)
+	if not Engine.is_editor_hint():
+		input_ray_pickable = true
+		input_event.connect(_on_input_event)
+		mouse_entered.connect(_on_mouse_entered)
+		mouse_exited.connect(_on_mouse_exited)
+	else:
+		# In editor, still make it pickable for selection
+		input_ray_pickable = true
 
 	# Set default description if empty
 	if description == "":
 		set_default_description()
 
-	print("  ✅ Node setup complete: mesh=", mesh_instance != null, " glow=", glow_effect != null, " pickable=", input_ray_pickable)
+	if not Engine.is_editor_hint():
+		print("  ✅ Node setup complete: mesh=", mesh_instance != null, " glow=", glow_effect != null, " pickable=", input_ray_pickable)
 
 func setup_collision():
 	"""Create a collision shape for mouse picking"""
-	collision_shape = CollisionShape3D.new()
-	var shape = SphereShape3D.new()
-	shape.radius = 0.6  # Slightly larger for easier clicking
-	collision_shape.shape = shape
-	add_child(collision_shape)
+	# Check if collision shape already exists (added manually in editor)
+	for child in get_children():
+		if child is CollisionShape3D:
+			collision_shape = child
+			if not Engine.is_editor_hint():
+				print("  🎯 Using existing collision shape from editor")
+			break
+
+	# Only create collision if it doesn't exist
+	if not collision_shape:
+		collision_shape = CollisionShape3D.new()
+		var shape = SphereShape3D.new()
+		shape.radius = 0.6  # Slightly larger for easier clicking
+		collision_shape.shape = shape
+		add_child(collision_shape)
+
+		if not Engine.is_editor_hint():
+			print("  🎯 Created default collision shape")
 
 	# Ensure collision layers are set for mouse picking
 	collision_layer = 1
@@ -92,48 +114,69 @@ func setup_collision():
 	monitorable = true
 	monitoring = true
 
-	print("  🎯 Collision setup: radius=", shape.radius, " layer=", collision_layer, " monitorable=", monitorable)
-
 func setup_visuals():
 	"""Create the visual representation of the node"""
 
-	# Create mesh instance
-	mesh_instance = MeshInstance3D.new()
-	var sphere_mesh = SphereMesh.new()
-	sphere_mesh.radius = 0.5
-	sphere_mesh.height = 1.0
-	mesh_instance.mesh = sphere_mesh
+	# Check if visual components already exist (added manually in editor)
+	for child in get_children():
+		if child is MeshInstance3D and not mesh_instance:
+			mesh_instance = child
+			if not Engine.is_editor_hint():
+				print("  🎨 Using existing mesh from editor: ", child.name)
+		elif child is OmniLight3D and not glow_effect:
+			glow_effect = child
+			if not Engine.is_editor_hint():
+				print("  💡 Using existing light from editor: ", child.name)
 
-	# Create material
-	var material = StandardMaterial3D.new()
+	# Only create default mesh if none exists
+	if not mesh_instance:
+		mesh_instance = MeshInstance3D.new()
+		var sphere_mesh = SphereMesh.new()
+		sphere_mesh.radius = 0.5
+		sphere_mesh.height = 1.0
+		mesh_instance.mesh = sphere_mesh
 
-	if is_revealed:
-		# Show actual color when revealed
-		material.albedo_color = node_colors.get(encounter_type, Color.WHITE)
-		material.emission_enabled = true
-		material.emission = material.albedo_color * 0.3
-	else:
-		# Hidden/fog of war appearance
-		material.albedo_color = Color(0.2, 0.2, 0.2, 0.5)
-		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		# Create material
+		var material = StandardMaterial3D.new()
 
-	mesh_instance.set_surface_override_material(0, material)
-	add_child(mesh_instance)
+		if is_revealed:
+			# Show actual color when revealed
+			material.albedo_color = node_colors.get(encounter_type, Color.WHITE)
+			material.emission_enabled = true
+			material.emission = material.albedo_color * 0.3
+		else:
+			# Hidden/fog of war appearance
+			material.albedo_color = Color(0.2, 0.2, 0.2, 0.5)
+			material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 
-	# Create glow effect
-	glow_effect = OmniLight3D.new()
-	glow_effect.light_energy = 0.5
-	glow_effect.light_color = node_colors.get(encounter_type, Color.WHITE)
-	glow_effect.omni_range = 2.0
-	glow_effect.visible = is_revealed
-	add_child(glow_effect)
+		mesh_instance.set_surface_override_material(0, material)
+		add_child(mesh_instance)
+
+		if not Engine.is_editor_hint():
+			print("  🎨 Created default sphere mesh")
+
+	# Only create default glow if none exists
+	if not glow_effect:
+		glow_effect = OmniLight3D.new()
+		glow_effect.light_energy = 0.5
+		glow_effect.light_color = node_colors.get(encounter_type, Color.WHITE)
+		glow_effect.omni_range = 2.0
+		glow_effect.visible = is_revealed
+		add_child(glow_effect)
+
+		if not Engine.is_editor_hint():
+			print("  💡 Created default omni light")
 
 	# Add particles based on encounter type
-	if is_revealed:
+	if is_revealed and not particle_effect:
 		setup_particles()
 
 func setup_particles():
 	"""Create particle effects based on node type"""
+	# Check if particles already exist
+	if particle_effect:
+		return  # Don't create duplicates
+
 	particle_effect = GPUParticles3D.new()
 	particle_effect.emitting = true
 	particle_effect.amount = 20
@@ -172,7 +215,8 @@ func reveal():
 	if is_revealed:
 		return
 
-	print("👁️ Revealing node: ", name)
+	if not Engine.is_editor_hint():
+		print("👁️ Revealing node: ", name)
 	is_revealed = true
 
 	# Update visuals
@@ -219,6 +263,9 @@ func set_default_description():
 
 func _on_input_event(_camera: Node, event: InputEvent, _position: Vector3, _normal: Vector3, _shape_idx: int):
 	"""Handle mouse clicks on the node"""
+	if Engine.is_editor_hint():
+		return  # Don't handle clicks in editor
+
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		print("🖱️ Node clicked: ", name, " (reachable: ", is_reachable, ", revealed: ", is_revealed, ")")
 		if is_reachable:
@@ -229,6 +276,9 @@ func _on_input_event(_camera: Node, event: InputEvent, _position: Vector3, _norm
 
 func _on_mouse_entered():
 	"""Handle mouse hover start"""
+	if Engine.is_editor_hint():
+		return  # Don't handle hover in editor
+
 	print("🖱️ Mouse entered node: ", name)
 	if is_revealed:
 		# Increase glow on hover
@@ -243,6 +293,9 @@ func _on_mouse_entered():
 
 func _on_mouse_exited():
 	"""Handle mouse hover end"""
+	if Engine.is_editor_hint():
+		return  # Don't handle hover in editor
+
 	if is_revealed:
 		# Reset glow
 		if glow_effect:
@@ -257,7 +310,8 @@ func _on_mouse_exited():
 func set_reachable(reachable: bool):
 	"""Mark this node as reachable or not"""
 	is_reachable = reachable
-	print("🔄 Node ", name, " reachable set to: ", reachable)
+	if not Engine.is_editor_hint():
+		print("🔄 Node ", name, " reachable set to: ", reachable)
 
 	if is_revealed and mesh_instance:
 		var material = mesh_instance.get_surface_override_material(0) as StandardMaterial3D

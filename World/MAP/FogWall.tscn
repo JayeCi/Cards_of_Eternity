@@ -1,0 +1,25 @@
+[gd_scene load_steps=4 format=3 uid="uid://c1ce6ucu3rdg7"]
+
+[ext_resource type="Shader" uid="uid://c0l487t834ktw" path="res://World/MAP/fog_wall.gdshader" id="1"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fogwall"]
+render_priority = 0
+shader = ExtResource("1")
+shader_parameter/fog_color = Color(0.86835223, 0.86888885, 0.91596854, 0.9019608)
+shader_parameter/fog_density = 0.9200000437
+shader_parameter/edge_softness = 0.3
+shader_parameter/flow_speed = 2.0610000978975
+shader_parameter/swirl_speed = 1.19200005662
+shader_parameter/noise_scale = 8.054000379305121
+shader_parameter/distortion_strength = 0.27600001311
+shader_parameter/glow_color = Color(0.8, 0.9019608, 1, 1)
+shader_parameter/glow_strength = 1.12800005358
+
+[sub_resource type="QuadMesh" id="QuadMesh_fogwall"]
+size = Vector2(5, 5)
+
+[node name="FogWall" type="MeshInstance3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+material_override = SubResource("ShaderMaterial_fogwall")
+mesh = SubResource("QuadMesh_fogwall")
+skeleton = NodePath("")

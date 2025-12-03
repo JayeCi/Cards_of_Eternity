@@ -6,10 +6,11 @@ signal settings_pressed()
 
 # UI Components
 @onready var node_info_panel: Panel = $NodeInfoPanel
-@onready var node_name_label: Label = $NodeInfoPanel/VBoxContainer/NodeNameLabel
-@onready var node_description_label: Label = $NodeInfoPanel/VBoxContainer/DescriptionLabel
-@onready var node_type_label: Label = $NodeInfoPanel/VBoxContainer/TypeLabel
-@onready var difficulty_label: Label = $NodeInfoPanel/VBoxContainer/DifficultyLabel
+@onready var node_name_label: Label = $NodeInfoPanel/Main/NodeNameLabel
+@onready var node_description_label: Label = $NodeInfoPanel/Main/DescriptionLabel
+@onready var node_type_label: Label = $NodeInfoPanel/Main/TypeLabel
+@onready var difficulty_label: Label = $NodeInfoPanel/Main/DifficultyLabel
+@onready var leader_art: TextureRect = $NodeInfoPanel/MarginContainer/Art
 @onready var tooltip_label: Label = $TooltipLabel
 @onready var return_button: Button = $TopBar/ReturnButton
 @onready var settings_button: Button = $TopBar/SettingsButton
@@ -78,6 +79,24 @@ func show_node_info(node: MapNode3D):
 			difficulty_label.visible = true
 		else:
 			difficulty_label.visible = false
+
+	# Set enemy leader art
+	if leader_art:
+		if node.is_revealed:
+			# Check for enemy art override first
+			if node.enemy_art_override:
+				leader_art.texture = node.enemy_art_override
+				leader_art.visible = true
+			elif node.enemy_leader:
+				# Display the enemy leader's card art
+				leader_art.texture = node.enemy_leader.art
+				leader_art.visible = true
+			else:
+				# Hide the art if no enemy leader or override
+				leader_art.visible = false
+		else:
+			# Hide the art if not revealed
+			leader_art.visible = false
 
 func hide_node_info():
 	"""Hide the node info panel"""
