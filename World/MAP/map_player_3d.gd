@@ -79,9 +79,7 @@ func set_current_node(node: MapNode3D):
 	if current_node:
 		current_node.set_current(true)
 		current_node.reveal()  # Reveal the node when player arrives
-
-		# Don't auto-complete the node! Only reveal it
-		# Nodes should only be completed after encounters are finished
+		current_node.is_completed = true  # Mark as visited
 
 		# Position player at the node
 		global_position = current_node.global_position
@@ -89,13 +87,8 @@ func set_current_node(node: MapNode3D):
 
 		print("  📍 Player position: ", global_position)
 
-		# Update reachability - only reveal connected nodes if this node is already completed
-		# OR if this is a hub/portal node
-		if current_node.is_completed or current_node.encounter_type == "hub":
-			reveal_connected_nodes()
-		else:
-			# Node not completed yet - don't reveal next nodes
-			print("  🔒 Node not completed yet, next nodes remain locked")
+		# Reveal connected nodes
+		reveal_connected_nodes()
 
 		emit_signal("arrived_at_node", current_node)
 
@@ -108,7 +101,7 @@ func reveal_connected_nodes():
 	print("  🔍 Revealing connected nodes from: ", current_node.name)
 	print("  📋 Connections: ", current_node.connected_nodes)
 
-	# Get all nodes
+	# First, mark ALL nodes as unreachable
 	var all_nodes = get_tree().get_nodes_in_group("map_nodes")
 	if all_nodes.is_empty():
 		# Fallback: get nodes from parent
@@ -116,23 +109,9 @@ func reveal_connected_nodes():
 		if map_scene and map_scene.has_method("get_all_nodes"):
 			all_nodes = map_scene.all_nodes
 
-	# First, mark all nodes as unreachable EXCEPT:
-	# - Hub/Portal nodes (always reachable)
-	# - Completed nodes (can revisit)
-	# - Starting nodes that haven't been visited yet
-	var starting_nodes = ["Node_1A", "Node_1B", "Node_1C", "Node1A", "Node1B", "Node1C", "1a", "1b", "1c", "PortalHub"]
-
 	for node in all_nodes:
 		if node != current_node and node is MapNode3D:
-			# Keep these always reachable
-			if node.encounter_type == "hub":
-				node.set_reachable(true)  # Hub always reachable
-			elif node.name in starting_nodes and not node.is_completed:
-				node.set_reachable(true)  # Starting nodes stay reachable until visited
-			elif node.is_completed:
-				node.set_reachable(true)  # Can revisit completed nodes
-			else:
-				node.set_reachable(false)  # Lock everything else
+			node.set_reachable(false)
 
 	# Then reveal and mark connected nodes as reachable
 	for node_path in current_node.connected_nodes:
@@ -143,6 +122,18 @@ func reveal_connected_nodes():
 			node.set_reachable(true)
 		else:
 			print("    ❌ Could not find node at path: ", node_path)
+
+	# Also check for backward connections - allow moving back to completed nodes
+	for node in all_nodes:
+		if node is MapNode3D and node.is_completed and node != current_node:
+			# Check if this completed node is connected to current node
+			for node_path in node.connected_nodes:
+				var connected = node.get_node(node_path) as MapNode3D
+				if connected == current_node:
+					# This completed node connects to us, so we can move back to it
+					print("    ✓ Enabling backward movement to: ", node.name)
+					node.set_reachable(true)
+					break
 
 func move_to_node(node: MapNode3D):
 	"""Start movement to a target node"""

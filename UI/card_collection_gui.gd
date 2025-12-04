@@ -927,7 +927,7 @@ func _on_x_pressed() -> void:
 	if root:
 		root.visible = false   # hide the whole container
 	selected_card = null
-
+	
 	var ui := get_ui_overlay()
 	if ui: ui.visible = true
 
@@ -937,23 +937,20 @@ func _on_x_pressed() -> void:
 	var mm := get_main_menu()
 	if mm: mm.visible = true
 
-	# 🔒 Only fire once - check if map_instance has tutorial properties (2D map only)
-	if GameSession.map_instance and "collection_tutorial_complete" in GameSession.map_instance:
-		if not GameSession.map_instance.collection_tutorial_complete:
-			GameSession.map_instance.is_in_collection_tutorial = false
-			GameSession.map_instance.collection_tutorial_complete = true
-			emit_signal("tutorial_finished")
-			print("📘 Collection tutorial finished — triggering post intro dialogue.")
-
-			# ✅ Trigger post-intro dialogue directly
-			var intro := get_tree().get_root().get_node_or_null("EarthMapScene/Intro_Earth_Realm")  # adjust path if needed
-			if intro and intro.has_method("play_post_intro_dialogue"):
-				intro.play_post_intro_dialogue()
-			else:
-				print("⚠️ Could not find Intro_Earth_Realm to trigger post intro dialogue.")
-	else:
-		# 3D map or no map instance - just close normally
-		print("📘 Collection GUI closed (no tutorial system in current map)")
+		
+	# 🔒 Only fire once
+	if not GameSession.map_instance.collection_tutorial_complete:
+		GameSession.map_instance.is_in_collection_tutorial = false
+		GameSession.map_instance.collection_tutorial_complete = true
+		emit_signal("tutorial_finished")
+		print("📘 Collection tutorial finished — triggering post intro dialogue.")
+		
+		# ✅ Trigger post-intro dialogue directly
+		var intro := get_tree().get_root().get_node_or_null("EarthMapScene/Intro_Earth_Realm")  # adjust path if needed
+		if intro and intro.has_method("play_post_intro_dialogue"):
+			intro.play_post_intro_dialogue()
+		else:
+			print("⚠️ Could not find Intro_Earth_Realm to trigger post intro dialogue.")
 
 func _on_tutorial_continue_button_pressed() -> void:
 	if not tutorial_can_continue:
