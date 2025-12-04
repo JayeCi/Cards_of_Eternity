@@ -3,6 +3,7 @@ class_name MapUIOverlay3D
 
 signal return_to_hub_pressed()
 signal settings_pressed()
+signal action_button_pressed(node: MapNode3D)
 
 # UI Components
 @onready var node_info_panel: Panel = $NodeInfoPanel
@@ -10,6 +11,8 @@ signal settings_pressed()
 @onready var node_description_label: Label = $NodeInfoPanel/Main/DescriptionLabel
 @onready var node_type_label: Label = $NodeInfoPanel/Main/TypeLabel
 @onready var difficulty_label: Label = $NodeInfoPanel/Main/DifficultyLabel
+@onready var completed_label: Label = $NodeInfoPanel/Main/CompletedLabel
+@onready var action_button: Button = $NodeInfoPanel/Main/ActionButton
 @onready var leader_art: TextureRect = $NodeInfoPanel/MarginContainer/Art
 @onready var tooltip_label: Label = $TooltipLabel
 @onready var return_button: Button = $TopBar/ReturnButton
@@ -17,6 +20,7 @@ signal settings_pressed()
 @onready var realm_label: Label = $TopBar/RealmLabel
 
 var current_hovered_node: MapNode3D = null
+var current_displayed_node: MapNode3D = null
 var map_scene: MapScene3D = null
 
 func _ready():
@@ -34,6 +38,10 @@ func _ready():
 	if settings_button:
 		settings_button.pressed.connect(_on_settings_button_pressed)
 
+	if action_button:
+		action_button.pressed.connect(_on_action_button_pressed)
+		action_button.visible = false  # Hidden by default
+
 func set_map_scene(scene: MapScene3D):
 	"""Connect to the map scene for receiving updates"""
 	map_scene = scene
@@ -49,6 +57,7 @@ func show_node_info(node: MapNode3D):
 		return
 
 	node_info_panel.visible = true
+	current_displayed_node = node
 
 	# Set node name
 	if node_name_label:
@@ -79,6 +88,22 @@ func show_node_info(node: MapNode3D):
 			difficulty_label.visible = true
 		else:
 			difficulty_label.visible = false
+
+	# Set completed status
+	if completed_label:
+		if node.is_completed:
+			completed_label.visible = true
+		else:
+			completed_label.visible = false
+
+	# Set action button visibility and text
+	if action_button:
+		# Show button only if player is at this node and it's not completed
+		if node.is_current and node.is_revealed and not node.is_completed:
+			action_button.visible = true
+			action_button.text = get_action_button_text(node.encounter_type)
+		else:
+			action_button.visible = false
 
 	# Set enemy leader art
 	if leader_art:
@@ -155,6 +180,34 @@ func get_node_type_display_name(type: String) -> String:
 		_:
 			return "Unknown"
 
+func get_action_button_text(type: String) -> String:
+	"""Get the button text for a node type"""
+	match type:
+		"fight":
+			return "Begin Battle"
+		"elite":
+			return "Fight Elite"
+		"boss":
+			return "Challenge Boss"
+		"shop":
+			return "Open Shop"
+		"fireevent":
+			return "Fire Event"
+		"waterevent":
+			return "Water Event"
+		"windevent":
+			return "Wind Event"
+		"earthevent":
+			return "Earth Event"
+		"rest":
+			return "Rest"
+		"explore":
+			return "Explore"
+		"hub":
+			return "Enter Hub"
+		_:
+			return "Enter"
+
 # Signal handlers
 
 func _on_node_clicked(node: MapNode3D):
@@ -185,6 +238,12 @@ func _on_return_button_pressed():
 func _on_settings_button_pressed():
 	"""Handle settings button press"""
 	emit_signal("settings_pressed")
+
+func _on_action_button_pressed():
+	"""Handle action button press - triggers encounter/event"""
+	if current_displayed_node:
+		print("Action button pressed for node: ", current_displayed_node.name, " type: ", current_displayed_node.encounter_type)
+		emit_signal("action_button_pressed", current_displayed_node)
 
 func _input(event: InputEvent):
 	"""Update tooltip position on mouse move"""

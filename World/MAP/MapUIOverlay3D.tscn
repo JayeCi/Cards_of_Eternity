@@ -118,6 +118,20 @@ horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
 
+[node name="CompletedLabel" type="Label" parent="NodeInfoPanel/Main"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 1, 0.3, 1)
+theme_override_font_sizes/font_size = 24
+text = "✓ COMPLETED"
+horizontal_alignment = 1
+
+[node name="ActionButton" type="Button" parent="NodeInfoPanel/Main"]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_font_sizes/font_size = 20
+text = "Enter"
+
 [node name="Rewards" type="VBoxContainer" parent="NodeInfoPanel"]
 layout_mode = 0
 offset_left = 207.0

@@ -418,6 +418,9 @@ albedo_color = Color(0.2, 0.2, 0.2, 0.5)
 
 [node name="MapScene3D" type="Node3D"]
 script = ExtResource("1_main_script")
+grid_cell_size = null
+enable_fog_of_war = null
+show_path_lines = null
 
 [node name="TestRaycast" type="Node3D" parent="."]
 script = ExtResource("7_test")

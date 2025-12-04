@@ -1,5 +1,6 @@
+@tool
 extends Area3D
-class_name MapNode3D
+# class_name MapNode3D  # DISABLED - this is a backup file
 
 signal clicked(node: MapNode3D)
 signal hovered(node: MapNode3D)
@@ -36,9 +37,6 @@ var collision_shape: CollisionShape3D
 var particle_effect: GPUParticles3D
 var glow_effect: OmniLight3D
 var node_model: Node3D  # Can hold custom 3D models
-var fog_particles: GPUParticles3D
-var fog_mesh: MeshInstance3D
-var shadow_decal: MeshInstance3D
 
 # Colors for different node types
 var node_colors := {
@@ -57,7 +55,9 @@ var node_colors := {
 }
 
 func _ready():
-	print("🔧 MapNode3D ready: ", name, " at ", global_position)
+	# Only print in game mode, not in editor
+	if not Engine.is_editor_hint():
+		print("🔧 MapNode3D ready: ", name, " at ", global_position)
 
 	# Add to map_nodes group for easy access
 	add_to_group("map_nodes")
@@ -68,21 +68,22 @@ func _ready():
 	# Set up visual representation
 	setup_visuals()
 
-	# Set up mouse interaction
-	input_ray_pickable = true
-	input_event.connect(_on_input_event)
-	mouse_entered.connect(_on_mouse_entered)
-	mouse_exited.connect(_on_mouse_exited)
+	# Set up mouse interaction (only in game mode)
+	if not Engine.is_editor_hint():
+		input_ray_pickable = true
+		input_event.connect(_on_input_event)
+		mouse_entered.connect(_on_mouse_entered)
+		mouse_exited.connect(_on_mouse_exited)
+	else:
+		# In editor, still make it pickable for selection
+		input_ray_pickable = true
 
 	# Set default description if empty
 	if description == "":
 		set_default_description()
 
-	# Set up fog effects for unrevealed nodes (except hub and starting nodes)
-	if not is_revealed and encounter_type != "hub":
-		setup_fog_effects()
-
-	print("  ✅ Node setup complete: mesh=", mesh_instance != null, " glow=", glow_effect != null, " pickable=", input_ray_pickable, " fog=", fog_mesh != null)
+	if not Engine.is_editor_hint():
+		print("  ✅ Node setup complete: mesh=", mesh_instance != null, " glow=", glow_effect != null, " pickable=", input_ray_pickable)
 
 func setup_collision():
 	"""Create a collision shape for mouse picking"""
@@ -90,7 +91,8 @@ func setup_collision():
 	for child in get_children():
 		if child is CollisionShape3D:
 			collision_shape = child
-			print("  🎯 Using existing collision shape from editor")
+			if not Engine.is_editor_hint():
+				print("  🎯 Using existing collision shape from editor")
 			break
 
 	# Only create collision if it doesn't exist
@@ -100,7 +102,9 @@ func setup_collision():
 		shape.radius = 0.6  # Slightly larger for easier clicking
 		collision_shape.shape = shape
 		add_child(collision_shape)
-		print("  🎯 Created default collision shape")
+
+		if not Engine.is_editor_hint():
+			print("  🎯 Created default collision shape")
 
 	# Ensure collision layers are set for mouse picking
 	collision_layer = 1
@@ -117,10 +121,12 @@ func setup_visuals():
 	for child in get_children():
 		if child is MeshInstance3D and not mesh_instance:
 			mesh_instance = child
-			print("  🎨 Using existing mesh from editor: ", child.name)
+			if not Engine.is_editor_hint():
+				print("  🎨 Using existing mesh from editor: ", child.name)
 		elif child is OmniLight3D and not glow_effect:
 			glow_effect = child
-			print("  💡 Using existing light from editor: ", child.name)
+			if not Engine.is_editor_hint():
+				print("  💡 Using existing light from editor: ", child.name)
 
 	# Only create default mesh if none exists
 	if not mesh_instance:
@@ -145,7 +151,9 @@ func setup_visuals():
 
 		mesh_instance.set_surface_override_material(0, material)
 		add_child(mesh_instance)
-		print("  🎨 Created default sphere mesh")
+
+		if not Engine.is_editor_hint():
+			print("  🎨 Created default sphere mesh")
 
 	# Only create default glow if none exists
 	if not glow_effect:
@@ -155,7 +163,9 @@ func setup_visuals():
 		glow_effect.omni_range = 2.0
 		glow_effect.visible = is_revealed
 		add_child(glow_effect)
-		print("  💡 Created default omni light")
+
+		if not Engine.is_editor_hint():
+			print("  💡 Created default omni light")
 
 	# Add particles based on encounter type
 	if is_revealed and not particle_effect:
@@ -200,94 +210,13 @@ func setup_particles():
 
 	add_child(particle_effect)
 
-func setup_fog_effects():
-	"""Create fog effects for unrevealed nodes"""
-	if fog_mesh:
-		return  # Already has fog
-
-	print("  🌫️ Setting up fog effects for ", name)
-
-	# Create fog sphere mesh
-	fog_mesh = MeshInstance3D.new()
-	var fog_sphere = SphereMesh.new()
-	fog_sphere.radius = 1.2
-	fog_sphere.height = 2.4
-	fog_mesh.mesh = fog_sphere
-
-	# Create dark fog material
-	var fog_material = StandardMaterial3D.new()
-	fog_material.albedo_color = Color(0.1, 0.1, 0.15, 0.8)
-	fog_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	fog_material.emission_enabled = true
-	fog_material.emission = Color(0.05, 0.05, 0.1, 1)
-	fog_material.emission_energy_multiplier = 0.3
-
-	fog_mesh.set_surface_override_material(0, fog_material)
-	add_child(fog_mesh)
-
-	# Create fog particles
-	fog_particles = GPUParticles3D.new()
-	fog_particles.emitting = true
-	fog_particles.amount = 30
-	fog_particles.lifetime = 3.0
-	fog_particles.one_shot = false
-	fog_particles.explosiveness = 0.0
-	fog_particles.randomness = 0.7
-
-	var fog_particle_mat = ParticleProcessMaterial.new()
-	fog_particle_mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
-	fog_particle_mat.emission_sphere_radius = 1.0
-	fog_particle_mat.direction = Vector3(0, 1, 0)
-	fog_particle_mat.spread = 180.0
-	fog_particle_mat.initial_velocity_min = 0.2
-	fog_particle_mat.initial_velocity_max = 0.5
-	fog_particle_mat.gravity = Vector3(0, 0.1, 0)
-	fog_particle_mat.scale_min = 0.1
-	fog_particle_mat.scale_max = 0.2
-	fog_particle_mat.color = Color(0.15, 0.15, 0.2, 0.6)
-
-	fog_particles.process_material = fog_particle_mat
-
-	var fog_particle_mesh = SphereMesh.new()
-	fog_particle_mesh.radius = 0.1
-	fog_particles.draw_pass_1 = fog_particle_mesh
-
-	add_child(fog_particles)
-
-	# Create shadow decal (dark circle on ground)
-	shadow_decal = MeshInstance3D.new()
-	var shadow_plane = PlaneMesh.new()
-	shadow_plane.size = Vector2(2.0, 2.0)
-	shadow_decal.mesh = shadow_plane
-	shadow_decal.position = Vector3(0, -0.4, 0)  # Slightly below node
-	shadow_decal.rotation_degrees = Vector3(-90, 0, 0)  # Face up
-
-	var shadow_material = StandardMaterial3D.new()
-	shadow_material.albedo_color = Color(0.0, 0.0, 0.0, 0.5)
-	shadow_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	shadow_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-
-	shadow_decal.set_surface_override_material(0, shadow_material)
-	add_child(shadow_decal)
-
-func remove_fog_effects():
-	"""Remove fog effects immediately"""
-	if fog_mesh:
-		fog_mesh.queue_free()
-		fog_mesh = null
-	if fog_particles:
-		fog_particles.queue_free()
-		fog_particles = null
-	if shadow_decal:
-		shadow_decal.queue_free()
-		shadow_decal = null
-
 func reveal():
 	"""Reveal this node (remove fog of war)"""
 	if is_revealed:
 		return
 
-	print("👁️ Revealing node: ", name)
+	if not Engine.is_editor_hint():
+		print("👁️ Revealing node: ", name)
 	is_revealed = true
 
 	# Update visuals
@@ -305,73 +234,6 @@ func reveal():
 
 	# Add particles
 	setup_particles()
-
-	# Remove fog effects
-	remove_fog_effects()
-
-func complete_node():
-	"""Mark this node as completed after winning a battle"""
-	print("✅ Completing node: ", name)
-	is_completed = true
-	battle_completed = true
-
-	# Animate fog removal with dramatic effect
-	animate_fog_removal()
-
-	# Update node visual to full brightness
-	if mesh_instance:
-		var material = mesh_instance.get_surface_override_material(0) as StandardMaterial3D
-		if material:
-			material.emission_energy_multiplier = 1.5  # Extra bright when completed
-			material.albedo_color = node_colors.get(encounter_type, Color.WHITE)
-
-func animate_fog_removal():
-	"""Animate the fog dissipating with a tween"""
-	if not fog_mesh and not fog_particles:
-		return  # No fog to remove
-
-	print("  🌫️ Animating fog removal for ", name)
-
-	# Create tween for fog mesh
-	if fog_mesh:
-		var tween_mesh = create_tween()
-		tween_mesh.set_parallel(true)
-
-		# Expand and fade the fog
-		tween_mesh.tween_property(fog_mesh, "scale", Vector3(2.0, 2.0, 2.0), 1.0)
-
-		var fog_mat = fog_mesh.get_surface_override_material(0) as StandardMaterial3D
-		if fog_mat:
-			tween_mesh.tween_property(fog_mat, "albedo_color:a", 0.0, 1.0)
-
-		tween_mesh.tween_callback(func():
-			if fog_mesh:
-				fog_mesh.queue_free()
-				fog_mesh = null
-		).set_delay(1.0)
-
-	# Stop and fade fog particles
-	if fog_particles:
-		fog_particles.emitting = false
-		var tween_particles = create_tween()
-		tween_particles.tween_callback(func():
-			if fog_particles:
-				fog_particles.queue_free()
-				fog_particles = null
-		).set_delay(3.0)  # Wait for existing particles to die
-
-	# Fade shadow decal
-	if shadow_decal:
-		var tween_shadow = create_tween()
-		var shadow_mat = shadow_decal.get_surface_override_material(0) as StandardMaterial3D
-		if shadow_mat:
-			tween_shadow.tween_property(shadow_mat, "albedo_color:a", 0.0, 1.0)
-
-		tween_shadow.tween_callback(func():
-			if shadow_decal:
-				shadow_decal.queue_free()
-				shadow_decal = null
-		).set_delay(1.0)
 
 func set_default_description():
 	"""Set default descriptions based on encounter type"""
@@ -401,6 +263,9 @@ func set_default_description():
 
 func _on_input_event(_camera: Node, event: InputEvent, _position: Vector3, _normal: Vector3, _shape_idx: int):
 	"""Handle mouse clicks on the node"""
+	if Engine.is_editor_hint():
+		return  # Don't handle clicks in editor
+
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		print("🖱️ Node clicked: ", name, " (reachable: ", is_reachable, ", revealed: ", is_revealed, ")")
 		if is_reachable:
@@ -411,6 +276,9 @@ func _on_input_event(_camera: Node, event: InputEvent, _position: Vector3, _norm
 
 func _on_mouse_entered():
 	"""Handle mouse hover start"""
+	if Engine.is_editor_hint():
+		return  # Don't handle hover in editor
+
 	print("🖱️ Mouse entered node: ", name)
 	if is_revealed:
 		# Increase glow on hover
@@ -425,6 +293,9 @@ func _on_mouse_entered():
 
 func _on_mouse_exited():
 	"""Handle mouse hover end"""
+	if Engine.is_editor_hint():
+		return  # Don't handle hover in editor
+
 	if is_revealed:
 		# Reset glow
 		if glow_effect:
@@ -439,7 +310,8 @@ func _on_mouse_exited():
 func set_reachable(reachable: bool):
 	"""Mark this node as reachable or not"""
 	is_reachable = reachable
-	print("🔄 Node ", name, " reachable set to: ", reachable)
+	if not Engine.is_editor_hint():
+		print("🔄 Node ", name, " reachable set to: ", reachable)
 
 	if is_revealed and mesh_instance:
 		var material = mesh_instance.get_surface_override_material(0) as StandardMaterial3D

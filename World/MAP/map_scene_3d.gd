@@ -1,3 +1,4 @@
+
 extends Node3D
 class_name MapScene3D
 
@@ -20,6 +21,7 @@ signal player_arrived(node: MapNode3D)
 # Map data
 var all_nodes: Array[MapNode3D] = []
 var current_level_data: Dictionary = {}
+var battle_node: MapNode3D = null  # Reference to node where battle is happening
 
 func _ready():
 	# Initialize the map
@@ -79,6 +81,10 @@ func connect_signals():
 		player.movement_started.connect(_on_player_movement_started)
 		player.movement_completed.connect(_on_player_movement_completed)
 		player.arrived_at_node.connect(_on_player_arrived_at_node)
+
+	# Connect UI overlay signals
+	if ui_overlay:
+		ui_overlay.action_button_pressed.connect(_on_action_button_pressed)
 
 func setup_existing_nodes():
 	"""Set up nodes that already exist in the scene (from editor)"""
@@ -368,48 +374,117 @@ func _on_player_arrived_at_node(node: MapNode3D):
 	"""Handle when player arrives at a node"""
 	emit_signal("player_arrived", node)
 
-	# Trigger node event based on type
+	# Don't auto-trigger events when arriving, wait for action button
+	# Just show the UI and let player decide when to engage
+
+func _on_action_button_pressed(node: MapNode3D):
+	"""Handle when action button is pressed - manually trigger the node event"""
+	print("🎯 Action button pressed for: ", node.name)
 	handle_node_event(node)
 
 func handle_node_event(node: MapNode3D):
 	"""Handle the event for the node type"""
+	battle_node = node  # Store reference for when battle completes
 
 	match node.encounter_type:
 		"fight", "elite", "boss":
-			# Start battle
-			print("Starting battle at ", node.name)
-			# TODO: Transition to battle scene
-			pass
+			# Start battle - set up encounter data and switch to arena
+			start_battle(node)
 
 		"shop":
 			# Open shop
 			print("Opening shop at ", node.name)
-			# TODO: Open shop UI
-			pass
+			open_shop(node)
 
 		"rest":
 			# Rest site
 			print("Resting at ", node.name)
-			# TODO: Show rest options
-			pass
+			show_rest_options(node)
 
 		"explore":
 			# Exploration event
 			print("Exploring at ", node.name)
-			# TODO: Show exploration event
-			pass
+			show_exploration_event(node)
 
 		"fireevent", "waterevent", "windevent", "earthevent":
 			# Elemental event
 			print("Elemental event at ", node.name)
-			# TODO: Show elemental event
-			pass
+			show_elemental_event(node)
 
 		"hub":
-			# Portal hub - allow returning to main hub
-			print("At portal hub")
-			# TODO: Show portal hub options
-			pass
+			# Portal hub - return to main hub
+			print("Returning to hub")
+			return_to_hub()
+
+# Event handler implementations
+
+func start_battle(node: MapNode3D):
+	"""Initiate a battle encounter"""
+	print("⚔️ Starting battle: ", node.enemy_name)
+
+	# Set up encounter data in GameSession
+	GameSession.encounter_data = {
+		"enemy_name": node.enemy_name,
+		"enemy_deck": node.enemy_deck,
+		"enemy_leader": node.enemy_leader,
+		"difficulty": node.difficulty,
+		"ai_style": node.ai_style,
+		"arena_modifier": node.arena_modifier,
+		"biome": node.biome,
+		"rewards": node.rewards
+	}
+
+	# Transition to battle scene
+	GameSession.switch_to_arena()
+
+func open_shop(node: MapNode3D):
+	"""Open the shop interface"""
+	print("🛒 Opening shop at: ", node.name)
+	# TODO: Implement shop UI
+	# For now, just complete the node
+	node.complete_node()
+	if player:
+		player.reveal_connected_nodes()
+	if show_path_lines:
+		draw_all_path_lines()
+
+func show_rest_options(node: MapNode3D):
+	"""Show rest site options (heal, upgrade cards, etc.)"""
+	print("💤 Rest site at: ", node.name)
+	# TODO: Implement rest UI
+	# For now, just complete the node
+	node.complete_node()
+	if player:
+		player.reveal_connected_nodes()
+	if show_path_lines:
+		draw_all_path_lines()
+
+func show_exploration_event(node: MapNode3D):
+	"""Show exploration event"""
+	print("🔍 Exploration event at: ", node.name)
+	# TODO: Implement exploration event UI
+	# For now, just complete the node
+	node.complete_node()
+	if player:
+		player.reveal_connected_nodes()
+	if show_path_lines:
+		draw_all_path_lines()
+
+func show_elemental_event(node: MapNode3D):
+	"""Show elemental event based on node type"""
+	print("🔥💧🌪️🌍 Elemental event: ", node.encounter_type, " at ", node.name)
+	# TODO: Implement elemental event UI
+	# For now, just complete the node
+	node.complete_node()
+	if player:
+		player.reveal_connected_nodes()
+	if show_path_lines:
+		draw_all_path_lines()
+
+func return_to_hub():
+	"""Return to the portal hub"""
+	print("🏠 Returning to hub...")
+	GameSession.switch_to_hub()
 
 func navigate_to_node_in_direction(direction: Vector2):
 	"""Navigate to the nearest reachable node in the given direction"""

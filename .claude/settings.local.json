@@ -5,7 +5,9 @@
       "Bash(godot:*)",
       "Bash(python -m py_compile:*)",
       "Bash(dir:*)",
-      "Bash(arena_ui.gd)"
+      "Bash(arena_ui.gd)",
+      "Bash(find:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

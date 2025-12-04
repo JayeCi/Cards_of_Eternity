@@ -255,7 +255,7 @@ func _run():
 
 	# Select the NodeContainer to force viewport refresh
 	editor_interface.get_selection().add_node(node_container)
-	await get_tree().create_timer(0.1).timeout
+	# Can't use get_tree() in editor script context, so skip the delay
 	editor_interface.get_selection().clear()
 
 	print("\n✅ DONE! Created ", created_nodes.size(), " nodes")

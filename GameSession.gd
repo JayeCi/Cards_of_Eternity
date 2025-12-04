@@ -4,7 +4,7 @@ signal gold_changed(new_amount: int)
 
 var hub_scene_path := "res://EarthPortalScene.tscn"
 var arena_scene_path := "res://Arena/Arena3D/arena_3d.tscn"
-var map_scene_path := "res://World/MAP/earth_map_screen.tscn"
+var map_scene_path := "res://World/MAP/3DMAPSCENE.tscn"
 
 var hub_instance: Node = null
 var arena_instance: Node = null
@@ -80,8 +80,16 @@ func switch_to_arena(tutorial := false) -> void:
 		hub_instance = null
 
 	await get_tree().process_frame
-	
+
 	if map_instance and is_instance_valid(map_instance):
+		# Hide the map UI overlay before detaching
+		if map_instance.has_node("MapUIOverlay3D"):
+			var ui_overlay = map_instance.get_node("MapUIOverlay3D")
+			ui_overlay.visible = false
+
+		# Make map invisible
+		map_instance.visible = false
+
 		_detach_scene(map_instance) # safe to detach but keep cached
 		realm_maps[current_realm] = map_instance
 
@@ -106,6 +114,9 @@ func switch_to_earth_map() -> void:
 	# 🌍 Set the current realm to identify which map we're using
 	current_realm = "earth"
 
+	# --- Fade out first ---
+	await TransitionFade.fade_out()
+
 	# --- Clean arena/hub while screen is dark ---
 	if arena_instance and is_instance_valid(arena_instance):
 		_detach_scene(arena_instance)
@@ -127,6 +138,14 @@ func switch_to_earth_map() -> void:
 	var root := get_tree().root
 	if not map_instance.get_parent():
 		root.add_child(map_instance)
+
+	# Make map visible again
+	map_instance.visible = true
+
+	# Show the UI overlay
+	if map_instance.has_node("MapUIOverlay3D"):
+		var ui_overlay = map_instance.get_node("MapUIOverlay3D")
+		ui_overlay.visible = true
 
 	get_tree().current_scene = map_instance
 	await get_tree().process_frame
